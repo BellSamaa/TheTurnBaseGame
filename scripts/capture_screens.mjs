@@ -87,8 +87,26 @@ async function main() {
     await sleep(1000);
     await captureScreenshot('test_home_buttons.png', 1920, 1080);
 
-    // 0b. Capture Online Lobby Modal (Create & Join)
-    console.log('0b. Capturing Online Lobby Modal...');
+    // 0a. Capture Menu Weapons Viewer
+    console.log('0a. Capturing Menu Weapons Viewer...');
+    await evaluate(`(() => {
+      const el = document.getElementById('weapons-section');
+      if (el) el.scrollIntoView({ behavior: 'instant' });
+    })()`);
+    await sleep(1000);
+    await captureScreenshot('test_menu_weapons_viewer.png', 1920, 1080);
+
+    // 0b. Capture Menu Arenas Slideshow
+    console.log('0b. Capturing Menu Arenas Slideshow...');
+    await evaluate(`(() => {
+      const el = document.getElementById('arenas-section');
+      if (el) el.scrollIntoView({ behavior: 'instant' });
+    })()`);
+    await sleep(1000);
+    await captureScreenshot('test_menu_arenas_slideshow.png', 1920, 1080);
+
+    // 0c. Capture Online Lobby Modal (Create & Join)
+    console.log('0c. Capturing Online Lobby Modal...');
     await evaluate(`window.__gameStore.getState().setPage('play');`);
     await sleep(800);
     await evaluate(`
@@ -110,25 +128,26 @@ async function main() {
     await sleep(800);
     await captureScreenshot('test_mode_select.png', 1920, 1080);
 
-    // 2. Capture Character Customizer with a complete custom outfit
-    console.log('2. Navigating to Character Customizer...');
+    // 2. Capture Character Customizer with Character Kit v2
+    console.log('2. Navigating to Character Customizer (Kit v2)...');
     await evaluate(`
       const store = window.__gameStore.getState();
       store.setPage('character');
       store.updateCharacter({
-        baseIndex: 2, // Titan
-        hairIndex: 4,
-        hairColor: '#38bdf8',
-        skinColor: '#fcd34d',
-        shirtIndex: 5,
-        shirtColor: '#ef4444',
-        pantsIndex: 7,
-        pantsColor: '#1e293b',
-        accessoryIndex: 6, // Cape behind body
-        faceIndex: 3,
+        baseIndex: 1, // male_2
+        hairIndex: 5,
+        hairColor: '#4d94ff',
+        skinColor: '#f8d5b8',
+        shirtIndex: 3,
+        shirtColor: '#38b4ad',
+        pantsIndex: 4,
+        pantsColor: '#1a202c',
+        accessoryIndex: 2, // Cape / shoulder armor
+        faceIndex: 2,
       });
     `);
-    await sleep(1000);
+    await sleep(1500);
+    await captureScreenshot('test_character_customizer_v2.png', 1920, 1080);
     await captureScreenshot('test_customizer.png', 1920, 1080);
 
     // 3. Capture Battle Screen: 1. Start of Turn (Before Rolling)

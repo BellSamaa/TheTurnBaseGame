@@ -5,11 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
 import { t } from '@/lib/translations';
-import {
-  CLASS_DEFINITIONS,
-  COLOR_PALETTES,
-  SPRITE_HELPERS,
-} from '@/lib/constants';
+import { CLASS_DEFINITIONS, WEAPON_DEFINITIONS } from '@/lib/constants';
 import type { ClassType, CharacterCustomization } from '@/types/game';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
@@ -17,36 +13,37 @@ import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import CharacterRenderer from './CharacterRenderer';
 import { playClickSound, playSaveSound } from '@/lib/soundEffects';
+import {
+  BODIES_V2,
+  HAIR_V2,
+  FACES_V2,
+  SHIRTS_V2,
+  PANTS_V2,
+  ACCESSORIES_V2,
+} from '@/lib/characterKitV2';
 
-const DEFAULT_CHARACTER: CharacterCustomization = {
-  baseIndex: 0,
-  hairIndex: 0,
-  hairColor: '#eab308',
-  skinColor: '#fcd34d',
-  shirtIndex: 0,
-  shirtColor: '#3b82f6',
-  pantsIndex: 0,
-  pantsColor: '#1e293b',
-  accessoryIndex: -1, // No accessory by default
-  faceIndex: 0,
+const PALETTES = {
+  skin: ['#f8d5b8', '#e8b88b', '#d29a68', '#b57a4a', '#845432', '#f3c4a2', '#fadfc9', '#ffece0'],
+  hair: ['#87562e', '#2d1802', '#ffe066', '#ff4d4d', '#4d94ff', '#1a202c', '#e2e8f0', '#9f7aea', '#38b2ac', '#ed8936'],
+  clothes: ['#38b4ad', '#4d94ff', '#ff4d4d', '#805ad5', '#38a169', '#dd6b20', '#2d3748', '#e2e8f0', '#1a202c', '#d69e2e'],
 };
 
 export default function CharacterCustomizer() {
-  const { profile, updateProfile, updateCharacter, setPage, settings } = useGameStore();
+  const { profile, settings, updateProfile, updateCharacter, setPage } = useGameStore();
   const lang = settings.language;
   const isEn = lang === 'en';
 
   const [activeTab, setActiveTab] = useState<
-    'body' | 'hair' | 'face' | 'shirt' | 'pants' | 'accessory' | 'colors' | 'class'
+    'body' | 'hair' | 'face' | 'shirt' | 'pants' | 'accessory' | 'class'
   >('body');
 
   const [heroName, setHeroName] = useState(profile.name);
   const [selectedClass, setSelectedClass] = useState<ClassType>(profile.classType);
   const [custom, setCustom] = useState<CharacterCustomization>(profile.character);
-  const [saveSuccess, setSaveSuccess] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Dirty state tracking: has the user made changes?
+  // Check if there are unsaved changes
   const isDirty = useMemo(() => {
     return (
       heroName.trim() !== profile.name ||
@@ -65,6 +62,7 @@ export default function CharacterCustomizer() {
   }, [heroName, selectedClass, custom, profile]);
 
   const handleSave = () => {
+    playSaveSound();
     updateProfile({
       name: heroName.trim() || (isEn ? 'Dice Hero' : 'Hiệp Sĩ Xúc Xắc'),
       classType: selectedClass,
@@ -76,13 +74,26 @@ export default function CharacterCustomizer() {
   };
 
   const handleCancel = () => {
+    playClickSound();
     setHeroName(profile.name);
     setSelectedClass(profile.classType);
     setCustom(profile.character);
   };
 
-  const handleResetToDefault = () => {
-    setCustom(DEFAULT_CHARACTER);
+  const handleRandomize = () => {
+    playClickSound();
+    setCustom({
+      baseIndex: Math.floor(Math.random() * 8),
+      hairIndex: Math.floor(Math.random() * 20),
+      hairColor: PALETTES.hair[Math.floor(Math.random() * PALETTES.hair.length)],
+      skinColor: PALETTES.skin[Math.floor(Math.random() * PALETTES.skin.length)],
+      shirtIndex: Math.floor(Math.random() * 20),
+      shirtColor: PALETTES.clothes[Math.floor(Math.random() * PALETTES.clothes.length)],
+      pantsIndex: Math.floor(Math.random() * 20),
+      pantsColor: PALETTES.clothes[Math.floor(Math.random() * PALETTES.clothes.length)],
+      accessoryIndex: Math.random() > 0.25 ? Math.floor(Math.random() * 20) : -1,
+      faceIndex: Math.floor(Math.random() * 10),
+    });
   };
 
   const handleBack = () => {
@@ -93,26 +104,15 @@ export default function CharacterCustomizer() {
     }
   };
 
-  // 8 Base Character Archetypes
-  const baseCharacters = [
-    { id: 0, name: isEn ? 'Knight Male' : 'Chiến Binh Nam' },
-    { id: 1, name: isEn ? 'Paladin Male' : 'Hiệp Sĩ Nam' },
-    { id: 2, name: isEn ? 'Titan Male' : 'Đấu Sĩ Vạm Vỡ' },
-    { id: 3, name: isEn ? 'Juggernaut' : 'Khổng Lồ Thiết Giáp' },
-    { id: 4, name: isEn ? 'Rogue Female' : 'Sát Thủ Nữ' },
-    { id: 5, name: isEn ? 'Ranger Female' : 'Cung Thủ Nữ' },
-    { id: 6, name: isEn ? 'Mage Female' : 'Pháp Sư Nữ' },
-    { id: 7, name: isEn ? 'Valkyrie' : 'Chiến Binh Nữ' },
-  ];
+  const currentWeapon = WEAPON_DEFINITIONS[profile.weaponId] || WEAPON_DEFINITIONS.greatsword;
 
   const tabs = [
     { id: 'body', label: isEn ? 'BODY' : 'THÂN', icon: 'user' as const },
-    { id: 'hair', label: isEn ? 'HAIR' : 'TÓC', icon: 'hair' as const },
-    { id: 'face', label: isEn ? 'FACE' : 'MẶT', icon: 'face' as const },
-    { id: 'shirt', label: isEn ? 'SHIRT' : 'ÁO', icon: 'shirt' as const },
-    { id: 'pants', label: isEn ? 'PANTS' : 'QUẦN', icon: 'pants' as const },
-    { id: 'accessory', label: isEn ? 'ACC' : 'PHỤ KIỆN', icon: 'ring' as const },
-    { id: 'colors', label: isEn ? 'COLORS' : 'MÀU', icon: 'palette' as const },
+    { id: 'hair', label: isEn ? 'HAIR' : 'TÓC', icon: 'sparkles' as const },
+    { id: 'face', label: isEn ? 'FACE' : 'MẶT', icon: 'eye' as const },
+    { id: 'shirt', label: isEn ? 'SHIRT' : 'ÁO', icon: 'shield' as const },
+    { id: 'pants', label: isEn ? 'PANTS' : 'QUẦN', icon: 'scroll' as const },
+    { id: 'accessory', label: isEn ? 'ACC' : 'PHỤ KIỆN', icon: 'sparkles' as const },
     { id: 'class', label: isEn ? 'CLASS' : 'NGHỀ', icon: 'sword' as const },
   ];
 
@@ -139,7 +139,7 @@ export default function CharacterCustomizer() {
         />
 
         <h2 className="text-sm sm:text-base text-yellow-400 font-pixel drop-shadow">
-          {t('customizeHero', lang)}
+          {t('customizeHero', lang)} (KIT V2)
         </h2>
 
         <div className="flex items-center gap-2">
@@ -163,491 +163,506 @@ export default function CharacterCustomizer() {
         <div className="lg:col-span-5 flex flex-col gap-3">
           <PixelFrame
             variant="gold"
-            title={isEn ? 'HERO PREVIEW' : 'HÌNH ẢNH NHÂN VẬT'}
-            className="p-3 sm:p-4 flex flex-col items-center bg-[#0c101c]/95"
+            title={isEn ? 'HERO PREVIEW (64x96)' : 'HÌNH ẢNH NHÂN VẬT (64x96)'}
+            className="flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#0c101c]/95 to-black/90"
           >
-            {/* Stage Pedestal */}
-            <div className="relative w-full aspect-square max-w-[280px] sm:max-w-[300px] bg-gradient-to-b from-slate-900 via-[#07090e] to-[#040608] border-2 border-yellow-500/70 shadow-[inset_0_0_30px_rgba(0,0,0,0.95)] flex flex-col items-center justify-center overflow-hidden mb-3 p-3">
+            {/* Live Character Stage */}
+            <div className="relative w-full aspect-square max-w-[280px] bg-repeating-conic from-[#131b2b] to-[#0d131f] border-2 border-yellow-500/70 flex items-center justify-center p-3 shadow-inner">
               <CharacterRenderer
                 character={custom}
-                size="lg"
+                weapon={currentWeapon}
+                size="xl"
+                facing="right"
                 showAura={true}
-                auraColor={custom.hairColor}
+                auraColor="#facc15"
                 showShadow={true}
               />
-              {/* Golden circular pedestal glowing base */}
-              <div className="w-36 h-3 bg-yellow-600/60 rounded-[50%] blur-[1px] border border-yellow-400/80 shadow-[0_0_15px_rgba(250,204,21,0.6)] mt-1" />
             </div>
 
-            {/* Name Input */}
-            <div className="w-full flex items-center gap-2 mb-2">
-              <span className="text-[9.5px] text-yellow-400 font-bold whitespace-nowrap font-pixel">
-                {isEn ? 'NAME:' : 'TÊN:'}
-              </span>
+            {/* Hero Name Input */}
+            <div className="w-full mt-3">
+              <label className="block text-[8px] font-pixel text-yellow-300 font-bold mb-1">
+                {isEn ? 'HERO NAME:' : 'TÊN ANH HÙNG:'}
+              </label>
               <input
                 type="text"
                 value={heroName}
                 maxLength={16}
                 onChange={(e) => setHeroName(e.target.value)}
-                className="w-full bg-[#07090e] border-2 border-yellow-500/70 px-2.5 py-1.5 text-xs text-yellow-300 font-pixel focus:outline-none focus:border-yellow-400"
-                placeholder={isEn ? 'Enter hero name...' : 'Nhập tên hiệp sĩ...'}
+                className="w-full bg-slate-900 border border-slate-700 px-3 py-1.5 text-xs text-yellow-300 font-pixel focus:outline-none focus:border-yellow-400"
               />
             </div>
 
-            {/* Class Badge */}
-            <div className="w-full p-2 bg-[#07090e] border border-slate-700 flex items-center justify-between mb-3">
-              <span className="text-[8px] text-slate-400 font-pixel">
-                {isEn ? 'CLASS ARCHETYPE:' : 'NGHỀ NGHIỆP:'}
-              </span>
-              <span className="text-[9px] text-yellow-300 font-pixel font-bold uppercase">
-                {isEn ? CLASS_DEFINITIONS[selectedClass]?.name : CLASS_DEFINITIONS[selectedClass]?.nameVi}
-              </span>
-            </div>
+            {/* Quick Actions: Randomize & Reset */}
+            <div className="flex gap-2 w-full mt-3">
+              <PixelButton
+                variant="secondary"
+                size="sm"
+                onClick={handleRandomize}
+                className="flex-1 text-[8px] font-pixel py-1.5"
+                icon={<PixelIcon name="sparkles" size={11} color="#001a22" />}
+              >
+                {isEn ? 'RANDOMIZE' : 'NGẪU NHIÊN'}
+              </PixelButton>
 
-            {/* Action Buttons: Cancel & Reset to Default */}
-            <div className="w-full grid grid-cols-2 gap-2">
-              <button
-                disabled={!isDirty}
+              <PixelButton
+                variant="frame"
+                size="sm"
                 onClick={handleCancel}
-                className={`py-1.5 px-2 text-[8px] font-pixel border transition ${
-                  isDirty
-                    ? 'bg-slate-800 text-slate-200 border-slate-600 hover:bg-slate-700 cursor-pointer'
-                    : 'bg-slate-900 text-slate-600 border-slate-800 cursor-not-allowed'
-                }`}
+                className="flex-1 text-[8px] font-pixel py-1.5"
               >
-                {isEn ? 'REVERT / CANCEL' : 'HỦY THAY ĐỔI'}
-              </button>
-
-              <button
-                onClick={handleResetToDefault}
-                className="py-1.5 px-2 text-[8px] font-pixel border border-slate-600 bg-slate-800/80 hover:bg-slate-700 text-slate-200 transition cursor-pointer"
-              >
-                {isEn ? 'RESET DEFAULT' : 'MẶC ĐỊNH'}
-              </button>
+                {isEn ? 'RESET' : 'HOÀN NGUYÊN'}
+              </PixelButton>
             </div>
           </PixelFrame>
         </div>
 
-        {/* Right Column: Customization Controls & Sliced Tabs (7 cols) */}
+        {/* Right Column: Customizer Selector Tabs & Palettes (7 cols) */}
         <div className="lg:col-span-7 flex flex-col gap-3">
-          {/* Navigation Tabs */}
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-1 bg-[#0c101c] p-1 border-2 border-yellow-500/60">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  playClickSound();
-                  setActiveTab(tab.id as typeof activeTab);
-                }}
-                className={`
-                  text-[8px] font-pixel py-2 px-1 transition text-center cursor-pointer select-none flex flex-col items-center gap-1
-                  ${
-                    activeTab === tab.id
-                      ? 'bg-yellow-500 text-black font-bold shadow-[0_0_8px_rgba(234,179,8,0.8)]'
-                      : 'text-slate-300 hover:bg-slate-800'
-                  }
-                `}
-              >
-                <PixelIcon name={tab.icon} size={14} color={activeTab === tab.id ? '#000' : '#facc15'} />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
+          <PixelFrame variant="cyan" className="p-3 sm:p-4 bg-[#0c101c]/95">
+            {/* Tab Navigation */}
+            <div className="flex flex-wrap gap-1.5 pb-3 border-b border-slate-700">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    playClickSound();
+                    setActiveTab(tab.id as typeof activeTab);
+                  }}
+                  className={`
+                    px-2.5 py-1.5 text-[8px] font-pixel font-bold flex items-center gap-1 transition cursor-pointer border
+                    ${
+                      activeTab === tab.id
+                        ? 'bg-yellow-400 text-black border-yellow-200 shadow-[0_0_8px_rgba(250,204,21,0.5)]'
+                        : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-slate-500'
+                    }
+                  `}
+                >
+                  <PixelIcon
+                    name={tab.icon}
+                    size={11}
+                    color={activeTab === tab.id ? '#000' : '#94a3b8'}
+                  />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
 
-          {/* Tab Content Panes */}
-          <PixelFrame variant="cyan" className="p-3 sm:p-4 min-h-[370px] bg-[#0c101c]/95">
-            {/* 1. Body Archetypes (8 Sliced Bodies) */}
-            {activeTab === 'body' && (
-              <div>
-                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
-                  {isEn ? 'BASE BODY ARCHETYPE (8 BODIES):' : 'KHUÔN MẪU THÂN GỐC (8 VÓC DÁNG):'}
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {baseCharacters.map((b) => (
-                    <button
-                      key={b.id}
-                      onClick={() => {
-                        playClickSound();
-                        setCustom({ ...custom, baseIndex: b.id });
-                      }}
-                      className={`
-                        p-2 border-2 cursor-pointer transition flex flex-col items-center justify-between h-36
-                        ${
-                          custom.baseIndex === b.id
-                            ? 'border-yellow-400 bg-yellow-950/60 scale-105 shadow-[0_0_10px_rgba(250,204,21,0.5)]'
-                            : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
-                        }
-                      `}
-                    >
-                      <div className="relative w-full h-20 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={SPRITE_HELPERS.body(b.id)}
-                          alt={b.name}
-                          className="w-full h-full object-contain pixelated"
-                        />
-                      </div>
-                      <span className="text-[8px] text-yellow-300 font-pixel font-bold text-center mt-1">
-                        {b.name}
-                      </span>
-                      <span className="text-[7px] text-slate-400 font-pixel">#{b.id + 1}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 2. Hair Selection (20 Sliced Hair Sprites) */}
-            {activeTab === 'hair' && (
-              <div>
-                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
-                  {isEn ? 'HAIRSTYLE (20 PIXEL STYLES):' : 'KIỂU TÓC PIXEL (20 MẪU):'}
-                </h4>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[300px] overflow-y-auto pr-1">
-                  {Array.from({ length: 20 }, (_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        playClickSound();
-                        setCustom({ ...custom, hairIndex: idx });
-                      }}
-                      className={`
-                        p-1.5 border-2 flex flex-col items-center justify-between transition cursor-pointer h-24
-                        ${
-                          custom.hairIndex === idx
-                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
-                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
-                        }
-                      `}
-                    >
-                      <div className="relative w-full h-14 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={SPRITE_HELPERS.hair(idx)}
-                          alt={`Hair ${idx + 1}`}
-                          className="w-full h-full object-contain pixelated"
-                        />
-                      </div>
-                      <span className="text-[7.5px] font-pixel text-slate-300">#{idx + 1}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 3. Face Expressions (10 Sliced Faces) */}
-            {activeTab === 'face' && (
-              <div>
-                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
-                  {isEn ? 'EXPRESSION (10 RPG FACES):' : 'BIỂU CẢM MẶT (10 MẪU):'}
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  {Array.from({ length: 10 }, (_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        playClickSound();
-                        setCustom({ ...custom, faceIndex: idx });
-                      }}
-                      className={`
-                        p-2 border-2 flex flex-col items-center justify-between transition cursor-pointer h-28
-                        ${
-                          custom.faceIndex === idx
-                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
-                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
-                        }
-                      `}
-                    >
-                      <div className="relative w-full h-16 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={SPRITE_HELPERS.face(idx)}
-                          alt={`Face ${idx + 1}`}
-                          className="w-full h-full object-contain pixelated"
-                        />
-                      </div>
-                      <span className="text-[8px] font-pixel text-slate-300">Face #{idx + 1}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 4. Shirts (20 Sliced Shirts) */}
-            {activeTab === 'shirt' && (
-              <div>
-                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
-                  {isEn ? 'UPPER BODY SHIRT / ARMOR (20 SPRITES):' : 'ÁO GIÁP / THÂN TRÊN (20 MẪU):'}
-                </h4>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[300px] overflow-y-auto pr-1">
-                  {Array.from({ length: 20 }, (_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        playClickSound();
-                        setCustom({ ...custom, shirtIndex: idx });
-                      }}
-                      className={`
-                        p-1.5 border-2 flex flex-col items-center justify-between transition cursor-pointer h-24
-                        ${
-                          custom.shirtIndex === idx
-                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
-                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
-                        }
-                      `}
-                    >
-                      <div className="relative w-full h-14 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={SPRITE_HELPERS.shirt(idx)}
-                          alt={`Shirt ${idx + 1}`}
-                          className="w-full h-full object-contain pixelated"
-                        />
-                      </div>
-                      <span className="text-[7.5px] font-pixel text-slate-300">#{idx + 1}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 5. Pants (20 Sliced Pants) */}
-            {activeTab === 'pants' && (
-              <div>
-                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
-                  {isEn ? 'LOWER BODY PANTS (20 SPRITES):' : 'QUẦN / THÂN DƯỚI (20 MẪU):'}
-                </h4>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[300px] overflow-y-auto pr-1">
-                  {Array.from({ length: 20 }, (_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        playClickSound();
-                        setCustom({ ...custom, pantsIndex: idx });
-                      }}
-                      className={`
-                        p-1.5 border-2 flex flex-col items-center justify-between transition cursor-pointer h-24
-                        ${
-                          custom.pantsIndex === idx
-                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
-                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
-                        }
-                      `}
-                    >
-                      <div className="relative w-full h-14 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={SPRITE_HELPERS.pants(idx)}
-                          alt={`Pants ${idx + 1}`}
-                          className="w-full h-full object-contain pixelated"
-                        />
-                      </div>
-                      <span className="text-[7.5px] font-pixel text-slate-300">#{idx + 1}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 6. Accessories (None Option + 20 Sliced Accessories) */}
-            {activeTab === 'accessory' && (
-              <div>
-                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3 flex items-center justify-between">
-                  <span>{isEn ? 'ACCESSORIES (CAPES, GLASSES, BELTS):' : 'PHỤ KIỆN (ÁO CHOÀNG, KÍNH, DÂY LƯNG):'}</span>
-                  {custom.accessoryIndex === -1 && (
-                    <span className="text-[8px] text-emerald-400 font-pixel">✓ {isEn ? 'NONE EQUIPPED' : 'ĐANG BỎ PHỤ KIỆN'}</span>
-                  )}
-                </h4>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[300px] overflow-y-auto pr-1">
-                  {/* Option: NONE / BỎ PHỤ KIỆN */}
-                  <button
-                    onClick={() => {
-                      playClickSound();
-                      setCustom({ ...custom, accessoryIndex: -1 });
-                    }}
-                    className={`
-                      p-1.5 border-2 flex flex-col items-center justify-center transition cursor-pointer h-24
-                      ${
-                        custom.accessoryIndex === -1
-                          ? 'border-emerald-400 bg-emerald-950/80 shadow-[0_0_8px_#4ade80]'
-                          : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
-                      }
-                    `}
-                  >
-                    <PixelIcon name="ban" size={24} color={custom.accessoryIndex === -1 ? '#4ade80' : '#94a3b8'} />
-                    <span className="text-[7.5px] font-pixel text-center mt-1.5 font-bold">
-                      {isEn ? 'NONE' : 'BỎ CHỌN'}
+            {/* TAB CONTENT */}
+            <div className="pt-3 min-h-[340px]">
+              {/* 1. BODY SELECTION */}
+              {activeTab === 'body' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[8.5px] font-pixel font-bold text-yellow-300">
+                      {isEn ? 'SELECT BODY (8 ARCHETYPES):' : 'CHỌN THÂN (8 VÓC DÁNG):'}
                     </span>
-                  </button>
-
-                  {/* 20 Accessories */}
-                  {Array.from({ length: 20 }, (_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        playClickSound();
-                        setCustom({ ...custom, accessoryIndex: idx });
-                      }}
-                      className={`
-                        p-1.5 border-2 flex flex-col items-center justify-between transition cursor-pointer h-24
-                        ${
-                          custom.accessoryIndex === idx
-                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
-                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
-                        }
-                      `}
-                    >
-                      <div className="relative w-full h-14 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={SPRITE_HELPERS.accessory(idx)}
-                          alt={`Accessory ${idx + 1}`}
-                          className="w-full h-full object-contain pixelated"
-                        />
-                      </div>
-                      <span className="text-[7.5px] font-pixel text-slate-300">#{idx + 1}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 7. Colors Tab (Hair, Shirt, Pants, Skin) */}
-            {activeTab === 'colors' && (
-              <div className="flex flex-col gap-4">
-                {/* Hair Color Picker */}
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[9px] text-yellow-300 font-pixel font-bold">
-                      {t('hairColor', lang)}:
+                    <span className="text-[8px] font-pixel text-cyan-300">
+                      {isEn ? BODIES_V2[custom.baseIndex % 8].nameEn : BODIES_V2[custom.baseIndex % 8].nameVi}
                     </span>
-                    <span
-                      className="w-4 h-4 border border-white"
-                      style={{ backgroundColor: custom.hairColor }}
-                    />
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {COLOR_PALETTES.hair.map((color) => (
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {BODIES_V2.map((b, idx) => (
                       <button
-                        key={color}
+                        key={b.id}
                         onClick={() => {
                           playClickSound();
-                          setCustom({ ...custom, hairColor: color });
+                          setCustom({ ...custom, baseIndex: idx });
                         }}
-                        style={{ backgroundColor: color }}
-                        className={`
-                          w-7 h-7 border-2 cursor-pointer transition transform
-                          ${custom.hairColor === color ? 'border-white scale-110 shadow-[0_0_8px_#fff]' : 'border-slate-700 hover:scale-105'}
-                        `}
-                      />
+                        className={`p-2 border-2 text-left font-pixel transition cursor-pointer ${
+                          custom.baseIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_#facc15]'
+                            : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
+                        }`}
+                      >
+                        <span className="text-[7.5px] font-bold block text-yellow-400">
+                          {b.gender.toUpperCase()} #{b.build}
+                        </span>
+                        <span className="text-[7px] text-slate-300 block leading-tight mt-0.5">
+                          {isEn ? b.nameEn : b.nameVi}
+                        </span>
+                      </button>
                     ))}
                   </div>
-                </div>
 
-                {/* Clothes Color Picker (Shirt & Pants) */}
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[9px] text-yellow-300 font-pixel font-bold">
-                      {t('clothingColor', lang)}:
+                  {/* Skin Color Palette */}
+                  <div className="pt-3 border-t border-slate-800">
+                    <span className="text-[8px] font-pixel font-bold text-yellow-300 block mb-1.5">
+                      {isEn ? 'SKIN COLOR PALETTE:' : 'BẢNG MÀU DA:'}
                     </span>
-                    <div className="flex gap-1">
-                      <span className="w-4 h-4 border border-white" style={{ backgroundColor: custom.shirtColor }} />
-                      <span className="w-4 h-4 border border-white" style={{ backgroundColor: custom.pantsColor }} />
+                    <div className="flex flex-wrap items-center gap-2">
+                      {PALETTES.skin.map((col) => (
+                        <button
+                          key={col}
+                          onClick={() => {
+                            playClickSound();
+                            setCustom({ ...custom, skinColor: col });
+                          }}
+                          className={`w-6 h-6 border-2 transition cursor-pointer ${
+                            custom.skinColor === col
+                              ? 'border-yellow-400 scale-110 shadow-[0_0_8px_#facc15]'
+                              : 'border-slate-700 hover:scale-105'
+                          }`}
+                          style={{ backgroundColor: col }}
+                          title={col}
+                        />
+                      ))}
+                      <input
+                        type="color"
+                        value={custom.skinColor || '#e8b88b'}
+                        onChange={(e) => setCustom({ ...custom, skinColor: e.target.value })}
+                        className="w-7 h-7 p-0 border border-slate-600 bg-transparent cursor-pointer"
+                        title="Custom Color"
+                      />
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {COLOR_PALETTES.clothes.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => {
-                          playClickSound();
-                          setCustom({
-                            ...custom,
-                            shirtColor: color,
-                            pantsColor: color,
-                          });
-                        }}
-                        style={{ backgroundColor: color }}
-                        className={`
-                          w-7 h-7 border-2 cursor-pointer transition transform
-                          ${custom.shirtColor === color ? 'border-white scale-110 shadow-[0_0_8px_#fff]' : 'border-slate-700 hover:scale-105'}
-                        `}
-                      />
-                    ))}
-                  </div>
                 </div>
+              )}
 
-                {/* Skin Color Picker */}
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[9px] text-yellow-300 font-pixel font-bold">
-                      {t('skinColor', lang)}:
+              {/* 2. HAIR SELECTION */}
+              {activeTab === 'hair' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[8.5px] font-pixel font-bold text-yellow-300">
+                      {isEn ? 'SELECT HAIR STYLE (20 STYLES):' : 'CHỌN KIỂU TÓC (20 KIỂU):'}
                     </span>
-                    <span
-                      className="w-4 h-4 border border-white"
-                      style={{ backgroundColor: custom.skinColor }}
-                    />
+                    <span className="text-[8px] font-pixel text-cyan-300">
+                      {isEn ? HAIR_V2[custom.hairIndex % 20].nameEn : HAIR_V2[custom.hairIndex % 20].nameVi}
+                    </span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {COLOR_PALETTES.skin.map((color) => (
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
+                    {HAIR_V2.map((h, idx) => (
                       <button
-                        key={color}
+                        key={h.id}
                         onClick={() => {
                           playClickSound();
-                          setCustom({ ...custom, skinColor: color });
+                          setCustom({ ...custom, hairIndex: idx });
                         }}
-                        style={{ backgroundColor: color }}
-                        className={`
-                          w-7 h-7 border-2 cursor-pointer transition transform
-                          ${custom.skinColor === color ? 'border-white scale-110 shadow-[0_0_8px_#fff]' : 'border-slate-700 hover:scale-105'}
-                        `}
+                        className={`p-2 border text-left font-pixel transition cursor-pointer ${
+                          custom.hairIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_#facc15]'
+                            : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
+                        }`}
+                      >
+                        <span className="text-[7.5px] text-yellow-400 font-bold block">
+                          #{idx + 1}
+                        </span>
+                        <span className="text-[7px] text-slate-300 block truncate">
+                          {isEn ? h.nameEn : h.nameVi}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Hair Color Palette */}
+                  <div className="pt-2 border-t border-slate-800">
+                    <span className="text-[8px] font-pixel font-bold text-yellow-300 block mb-1.5">
+                      {isEn ? 'HAIR COLOR PALETTE:' : 'BẢNG MÀU TÓC:'}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {PALETTES.hair.map((col) => (
+                        <button
+                          key={col}
+                          onClick={() => {
+                            playClickSound();
+                            setCustom({ ...custom, hairColor: col });
+                          }}
+                          className={`w-6 h-6 border-2 transition cursor-pointer ${
+                            custom.hairColor === col
+                              ? 'border-yellow-400 scale-110 shadow-[0_0_8px_#facc15]'
+                              : 'border-slate-700 hover:scale-105'
+                          }`}
+                          style={{ backgroundColor: col }}
+                          title={col}
+                        />
+                      ))}
+                      <input
+                        type="color"
+                        value={custom.hairColor || '#87562e'}
+                        onChange={(e) => setCustom({ ...custom, hairColor: e.target.value })}
+                        className="w-7 h-7 p-0 border border-slate-600 bg-transparent cursor-pointer"
+                        title="Custom Color"
                       />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. FACE SELECTION */}
+              {activeTab === 'face' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[8.5px] font-pixel font-bold text-yellow-300">
+                      {isEn ? 'FACIAL EXPRESSION (10 EXPRESSIONS):' : 'BIỂU CẢM KHUÔN MẶT (10 MẪU):'}
+                    </span>
+                    <span className="text-[8px] font-pixel text-cyan-300">
+                      {isEn ? FACES_V2[custom.faceIndex % 10].nameEn : FACES_V2[custom.faceIndex % 10].nameVi}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    {FACES_V2.map((f, idx) => (
+                      <button
+                        key={f.id}
+                        onClick={() => {
+                          playClickSound();
+                          setCustom({ ...custom, faceIndex: idx });
+                        }}
+                        className={`p-2.5 border text-center font-pixel transition cursor-pointer ${
+                          custom.faceIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_#facc15]'
+                            : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
+                        }`}
+                      >
+                        <span className="text-xs block font-bold text-yellow-400">#{idx + 1}</span>
+                        <span className="text-[7.5px] text-slate-300 block truncate mt-1">
+                          {isEn ? f.nameEn : f.nameVi}
+                        </span>
+                      </button>
                     ))}
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* 8. Class Archetype Selection (6 Classes) */}
-            {activeTab === 'class' && (
-              <div>
-                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-2">
-                  {isEn ? 'FIGHTING CLASS (6 ARCHETYPES):' : 'NGHỀ NGHIỆP CHIẾN ĐẤU (6 HỆ PHÁI):'}
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {Object.values(CLASS_DEFINITIONS).map((c) => {
-                    const isSelected = selectedClass === c.id;
-                    return (
-                      <div
+              {/* 4. SHIRT SELECTION */}
+              {activeTab === 'shirt' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[8.5px] font-pixel font-bold text-yellow-300">
+                      {isEn ? 'SHIRT STYLE (20 STYLES):' : 'KIỂU ÁO (20 KIỂU):'}
+                    </span>
+                    <span className="text-[8px] font-pixel text-cyan-300">
+                      {isEn ? SHIRTS_V2[custom.shirtIndex % 20].nameEn : SHIRTS_V2[custom.shirtIndex % 20].nameVi}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
+                    {SHIRTS_V2.map((s, idx) => (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          playClickSound();
+                          setCustom({ ...custom, shirtIndex: idx });
+                        }}
+                        className={`p-2 border text-left font-pixel transition cursor-pointer ${
+                          custom.shirtIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_#facc15]'
+                            : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
+                        }`}
+                      >
+                        <span className="text-[7.5px] text-yellow-400 font-bold block">
+                          #{idx + 1}
+                        </span>
+                        <span className="text-[7px] text-slate-300 block truncate">
+                          {isEn ? s.nameEn : s.nameVi}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Shirt Color Palette */}
+                  <div className="pt-2 border-t border-slate-800">
+                    <span className="text-[8px] font-pixel font-bold text-yellow-300 block mb-1.5">
+                      {isEn ? 'SHIRT COLOR PALETTE:' : 'BẢNG MÀU ÁO:'}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {PALETTES.clothes.map((col) => (
+                        <button
+                          key={col}
+                          onClick={() => {
+                            playClickSound();
+                            setCustom({ ...custom, shirtColor: col });
+                          }}
+                          className={`w-6 h-6 border-2 transition cursor-pointer ${
+                            custom.shirtColor === col
+                              ? 'border-yellow-400 scale-110 shadow-[0_0_8px_#facc15]'
+                              : 'border-slate-700 hover:scale-105'
+                          }`}
+                          style={{ backgroundColor: col }}
+                          title={col}
+                        />
+                      ))}
+                      <input
+                        type="color"
+                        value={custom.shirtColor || '#38b4ad'}
+                        onChange={(e) => setCustom({ ...custom, shirtColor: e.target.value })}
+                        className="w-7 h-7 p-0 border border-slate-600 bg-transparent cursor-pointer"
+                        title="Custom Color"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 5. PANTS SELECTION */}
+              {activeTab === 'pants' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[8.5px] font-pixel font-bold text-yellow-300">
+                      {isEn ? 'PANTS STYLE (20 STYLES):' : 'KIỂU QUẦN (20 KIỂU):'}
+                    </span>
+                    <span className="text-[8px] font-pixel text-cyan-300">
+                      {isEn ? PANTS_V2[custom.pantsIndex % 20].nameEn : PANTS_V2[custom.pantsIndex % 20].nameVi}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
+                    {PANTS_V2.map((p, idx) => (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          playClickSound();
+                          setCustom({ ...custom, pantsIndex: idx });
+                        }}
+                        className={`p-2 border text-left font-pixel transition cursor-pointer ${
+                          custom.pantsIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_#facc15]'
+                            : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
+                        }`}
+                      >
+                        <span className="text-[7.5px] text-yellow-400 font-bold block">
+                          #{idx + 1}
+                        </span>
+                        <span className="text-[7px] text-slate-300 block truncate">
+                          {isEn ? p.nameEn : p.nameVi}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Pants Color Palette */}
+                  <div className="pt-2 border-t border-slate-800">
+                    <span className="text-[8px] font-pixel font-bold text-yellow-300 block mb-1.5">
+                      {isEn ? 'PANTS COLOR PALETTE:' : 'BẢNG MÀU QUẦN:'}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {PALETTES.clothes.map((col) => (
+                        <button
+                          key={col}
+                          onClick={() => {
+                            playClickSound();
+                            setCustom({ ...custom, pantsColor: col });
+                          }}
+                          className={`w-6 h-6 border-2 transition cursor-pointer ${
+                            custom.pantsColor === col
+                              ? 'border-yellow-400 scale-110 shadow-[0_0_8px_#facc15]'
+                              : 'border-slate-700 hover:scale-105'
+                          }`}
+                          style={{ backgroundColor: col }}
+                          title={col}
+                        />
+                      ))}
+                      <input
+                        type="color"
+                        value={custom.pantsColor || '#526785'}
+                        onChange={(e) => setCustom({ ...custom, pantsColor: e.target.value })}
+                        className="w-7 h-7 p-0 border border-slate-600 bg-transparent cursor-pointer"
+                        title="Custom Color"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 6. ACCESSORY SELECTION */}
+              {activeTab === 'accessory' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[8.5px] font-pixel font-bold text-yellow-300">
+                      {isEn ? 'ACCESSORY (NONE + 20 ACCESSORIES):' : 'PHỤ KIỆN (KHÔNG + 20 MÓN):'}
+                    </span>
+                    <span className="text-[8px] font-pixel text-cyan-300">
+                      {custom.accessoryIndex < 0
+                        ? isEn
+                          ? 'NONE'
+                          : 'KHÔNG DÙNG'
+                        : isEn
+                        ? ACCESSORIES_V2[custom.accessoryIndex % 20]?.nameEn
+                        : ACCESSORIES_V2[custom.accessoryIndex % 20]?.nameVi}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-[260px] overflow-y-auto pr-1">
+                    {/* None option */}
+                    <button
+                      onClick={() => {
+                        playClickSound();
+                        setCustom({ ...custom, accessoryIndex: -1 });
+                      }}
+                      className={`p-2 border text-left font-pixel transition cursor-pointer ${
+                        custom.accessoryIndex < 0
+                          ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_#facc15]'
+                          : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
+                      }`}
+                    >
+                      <span className="text-[7.5px] text-red-400 font-bold block">
+                        ✕ NONE
+                      </span>
+                      <span className="text-[7px] text-slate-400 block truncate">
+                        {isEn ? 'No Accessory' : 'Không Phụ Kiện'}
+                      </span>
+                    </button>
+
+                    {ACCESSORIES_V2.map((a, idx) => (
+                      <button
+                        key={a.id}
+                        onClick={() => {
+                          playClickSound();
+                          setCustom({ ...custom, accessoryIndex: idx });
+                        }}
+                        className={`p-2 border text-left font-pixel transition cursor-pointer ${
+                          custom.accessoryIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_#facc15]'
+                            : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
+                        }`}
+                      >
+                        <span className="text-[7.5px] text-yellow-400 font-bold block">
+                          #{idx + 1}
+                        </span>
+                        <span className="text-[7px] text-slate-300 block truncate">
+                          {isEn ? a.nameEn : a.nameVi}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 7. CLASS SELECTION */}
+              {activeTab === 'class' && (
+                <div className="space-y-3">
+                  <span className="text-[8.5px] font-pixel font-bold text-yellow-300 block">
+                    {isEn ? 'SELECT COMBAT CLASS (6 CLASSES):' : 'CHỌN LỚP NGHỀ CHIẾN ĐẤU (6 HỆ):'}
+                  </span>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {Object.values(CLASS_DEFINITIONS).map((c) => (
+                      <button
                         key={c.id}
                         onClick={() => {
                           playClickSound();
                           setSelectedClass(c.id);
                         }}
-                        className={`
-                          relative p-2 border-2 cursor-pointer select-none transition flex flex-col justify-between
-                          ${
-                            isSelected
-                              ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_12px_rgba(250,204,21,0.5)] scale-[1.02]'
-                              : 'border-slate-700 bg-slate-900/70 hover:border-slate-500'
-                          }
-                        `}
+                        className={`p-2 border-2 text-left font-pixel transition cursor-pointer ${
+                          selectedClass === c.id
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_#facc15]'
+                            : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
+                        }`}
                       >
-                        <div className="relative w-full h-12 mb-1 bg-black overflow-hidden border border-slate-700">
-                          <img
-                            src={c.image}
-                            alt={c.name}
-                            className="w-full h-full object-cover pixelated"
-                          />
-                        </div>
-
-                        <span className="text-[8.5px] font-bold font-pixel text-yellow-300 text-center mb-1">
-                          {isEn ? c.name : c.nameVi} ({c.baseHp} HP)
+                        <span className="text-[8px] font-bold text-yellow-400 block">
+                          {isEn ? c.name : c.nameVi}
                         </span>
-
-                        <p className="text-[7.5px] text-slate-300 font-sans leading-tight">
+                        <span className="text-[7px] text-slate-300 block leading-tight mt-0.5 line-clamp-2">
                           {isEn ? c.description : c.descriptionVi}
-                        </p>
-                      </div>
-                    );
-                  })}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </PixelFrame>
         </div>
       </main>
@@ -655,19 +670,19 @@ export default function CharacterCustomizer() {
       {/* Unsaved Changes Confirmation Modal */}
       <AnimatePresence>
         {showExitConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-sm"
+              className="w-full max-w-md"
             >
-              <PixelFrame variant="gold" title={isEn ? 'UNSAVED CHANGES' : 'CHƯA LƯU THAY ĐỔI'}>
-                <div className="p-3 text-center">
-                  <p className="text-[9px] font-pixel text-slate-300 mb-5 leading-relaxed">
+              <PixelFrame variant="gold" title={isEn ? 'UNSAVED CHANGES' : 'TÙY BIẾN CHƯA LƯU'}>
+                <div className="p-4 text-center">
+                  <p className="text-xs font-pixel text-yellow-300 mb-4 leading-relaxed">
                     {isEn
-                      ? 'You have unsaved customizations! Discard them and return to home?'
-                      : 'Bạn đang có tùy chỉnh chưa lưu! Bạn có chắc muốn hủy và trở về không?'}
+                      ? 'You have unsaved character changes! Are you sure you want to discard them?'
+                      : 'Bạn đang có tùy chỉnh nhân vật chưa lưu! Bạn có chắc muốn hủy và trở về không?'}
                   </p>
 
                   <div className="flex gap-2 justify-center">

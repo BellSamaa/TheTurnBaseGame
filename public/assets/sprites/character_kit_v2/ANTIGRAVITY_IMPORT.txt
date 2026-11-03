@@ -1,0 +1,12 @@
+Tích hợp bộ DiceManiac_CharacterKit_v2 này để thay sprite nhân vật v1. Không thay background, vũ khí, UI hoặc luật chơi.
+
+1. Đọc README_VI.md và manifest.json. Xem preview_32_combinations.png; mở preview.html để thử chọn các lớp. File HTML này chứa mã tham khảo renderer và đổi màu.
+2. Mọi PNG lớp có canvas 64x96 và origin 0,0. Không crop, trim, resize riêng từng layer. Canvas chung mới là hợp đồng căn lớp. Chỉ scale nguyên nhân vật với nearest-neighbor.
+3. Body chọn male_1..4 hoặc female_1..4. Áo, quần và phụ kiện phải lấy đúng thư mục body tương ứng. Hair và face dùng chung.
+4. Vẽ thứ tự: accessory_back -> hair_back -> body -> pants -> shirt -> face -> hair_front -> accessory_front. Tất cả ở 0,0. Không vẽ body hai lần. File layer rỗng là hợp lệ khi món không có phần trước/sau.
+5. Mỗi lúc một tóc, mặt, áo, quần, phụ kiện; phụ kiện được phép none. Mũ và khẩu trang chủ động che phần tóc/mặt. Đừng thêm lại tóc/đầu nền từ v1.
+6. Dùng màu nhân theo độ sáng, giữ alpha và viền tối như drawLayer trong preview.html. Không recolor toàn bộ composite một lần.
+7. Dùng cùng renderer trong customizer và trận đấu. Mỗi người chơi giữ cấu hình riêng. Lưu id body và id mẫu, không lưu tọa độ màn hình hay tên file v1.
+8. Thử đổi đủ 8 body, từng nhóm đồ, màu, lưu rồi vào trận. Chụp preview và nhân vật trong trận để đối chiếu. Không tuyên bố đã kiểm tra mọi tổ hợp.
+9. Bộ này chỉ có pose đứng chính diện, chưa có animation chiến đấu. Không tự kéo giãn từng lớp để giả animation. Không chỉnh luật game trong nhiệm vụ import asset.
+10. qa.json là QA PNG; renderer_qa.json là smoke test mã Canvas trong Node với DOM tối giản, KHÔNG phải bằng chứng browser layout hoặc runtime của game đã đạt. Chạy kiểm tra thật trong dự án trước khi báo hoàn tất tích hợp.

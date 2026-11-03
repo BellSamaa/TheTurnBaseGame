@@ -1,0 +1,265 @@
+{
+  "version": 2,
+  "canvas": [
+    64,
+    96
+  ],
+  "origin": [
+    0,
+    0
+  ],
+  "anchors": {
+    "head": [
+      32,
+      20
+    ],
+    "eyes": [
+      32,
+      21
+    ],
+    "neck": [
+      32,
+      34
+    ],
+    "waist": [
+      32,
+      60
+    ],
+    "feet": [
+      32,
+      90
+    ]
+  },
+  "layerOrder": [
+    "accessory_back",
+    "hair_back",
+    "body",
+    "pants",
+    "shirt",
+    "face",
+    "hair_front",
+    "accessory_front"
+  ],
+  "hair": [
+    {
+      "id": "crop",
+      "back": "hair/00_back.png",
+      "front": "hair/00_front.png"
+    },
+    {
+      "id": "side_part",
+      "back": "hair/01_back.png",
+      "front": "hair/01_front.png"
+    },
+    {
+      "id": "spiky",
+      "back": "hair/02_back.png",
+      "front": "hair/02_front.png"
+    },
+    {
+      "id": "messy",
+      "back": "hair/03_back.png",
+      "front": "hair/03_front.png"
+    },
+    {
+      "id": "curtain",
+      "back": "hair/04_back.png",
+      "front": "hair/04_front.png"
+    },
+    {
+      "id": "quiff",
+      "back": "hair/05_back.png",
+      "front": "hair/05_front.png"
+    },
+    {
+      "id": "bob",
+      "back": "hair/06_back.png",
+      "front": "hair/06_front.png"
+    },
+    {
+      "id": "pixie",
+      "back": "hair/07_back.png",
+      "front": "hair/07_front.png"
+    },
+    {
+      "id": "long_straight",
+      "back": "hair/08_back.png",
+      "front": "hair/08_front.png"
+    },
+    {
+      "id": "long_wavy",
+      "back": "hair/09_back.png",
+      "front": "hair/09_front.png"
+    },
+    {
+      "id": "ponytail",
+      "back": "hair/10_back.png",
+      "front": "hair/10_front.png"
+    },
+    {
+      "id": "twin_tails",
+      "back": "hair/11_back.png",
+      "front": "hair/11_front.png"
+    },
+    {
+      "id": "double_buns",
+      "back": "hair/12_back.png",
+      "front": "hair/12_front.png"
+    },
+    {
+      "id": "braid",
+      "back": "hair/13_back.png",
+      "front": "hair/13_front.png"
+    },
+    {
+      "id": "side_braid",
+      "back": "hair/14_back.png",
+      "front": "hair/14_front.png"
+    },
+    {
+      "id": "afro",
+      "back": "hair/15_back.png",
+      "front": "hair/15_front.png"
+    },
+    {
+      "id": "mohawk",
+      "back": "hair/16_back.png",
+      "front": "hair/16_front.png"
+    },
+    {
+      "id": "shag",
+      "back": "hair/17_back.png",
+      "front": "hair/17_front.png"
+    },
+    {
+      "id": "undercut",
+      "back": "hair/18_back.png",
+      "front": "hair/18_front.png"
+    },
+    {
+      "id": "swept",
+      "back": "hair/19_back.png",
+      "front": "hair/19_front.png"
+    }
+  ],
+  "faces": [
+    "faces/00.png",
+    "faces/01.png",
+    "faces/02.png",
+    "faces/03.png",
+    "faces/04.png",
+    "faces/05.png",
+    "faces/06.png",
+    "faces/07.png",
+    "faces/08.png",
+    "faces/09.png"
+  ],
+  "bodies": [
+    {
+      "id": "male_1",
+      "path": "bodies/male_1.png",
+      "shoulderHalfWidth": 8
+    },
+    {
+      "id": "male_2",
+      "path": "bodies/male_2.png",
+      "shoulderHalfWidth": 10
+    },
+    {
+      "id": "male_3",
+      "path": "bodies/male_3.png",
+      "shoulderHalfWidth": 12
+    },
+    {
+      "id": "male_4",
+      "path": "bodies/male_4.png",
+      "shoulderHalfWidth": 14
+    },
+    {
+      "id": "female_1",
+      "path": "bodies/female_1.png",
+      "shoulderHalfWidth": 8
+    },
+    {
+      "id": "female_2",
+      "path": "bodies/female_2.png",
+      "shoulderHalfWidth": 10
+    },
+    {
+      "id": "female_3",
+      "path": "bodies/female_3.png",
+      "shoulderHalfWidth": 12
+    },
+    {
+      "id": "female_4",
+      "path": "bodies/female_4.png",
+      "shoulderHalfWidth": 14
+    }
+  ],
+  "shirts": [
+    "crew_tee",
+    "vneck",
+    "polo",
+    "long_sleeve",
+    "tank",
+    "hoodie",
+    "zip_hoodie",
+    "sweatshirt",
+    "cardigan",
+    "denim_jacket",
+    "bomber",
+    "leather_jacket",
+    "formal",
+    "vest",
+    "turtleneck",
+    "striped",
+    "baseball",
+    "tunic",
+    "light_armor",
+    "raincoat"
+  ],
+  "pants": [
+    "straight",
+    "slim",
+    "baggy",
+    "cargo",
+    "joggers",
+    "formal",
+    "chinos",
+    "cropped",
+    "sport_shorts",
+    "denim_shorts",
+    "cargo_shorts",
+    "knee_shorts",
+    "overalls",
+    "tactical",
+    "greaves",
+    "martial",
+    "bellbottom",
+    "patched",
+    "checked",
+    "harem"
+  ],
+  "accessories": [
+    "round_glasses",
+    "square_glasses",
+    "sunglasses",
+    "monocle",
+    "hoops",
+    "studs",
+    "scarf",
+    "neckerchief",
+    "beanie",
+    "cap",
+    "headphones",
+    "crown",
+    "headband",
+    "eyepatch",
+    "mask",
+    "necklace",
+    "bowtie",
+    "backpack",
+    "wristbands",
+    "belt_pouch"
+  ]
+}

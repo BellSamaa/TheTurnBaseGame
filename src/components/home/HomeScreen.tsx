@@ -7,15 +7,14 @@ import { useGameStore } from '@/stores/gameStore';
 import { t } from '@/lib/translations';
 import {
   CLASS_DEFINITIONS,
-  WEAPON_DEFINITIONS,
-  MAP_DEFINITIONS,
 } from '@/lib/constants';
 import PixelSpriteButton, { SpriteButtonName } from '@/components/ui/PixelSpriteButton';
 import ParticleEffect from '@/components/ui/ParticleEffect';
-import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { AudioToolbarControls } from '@/components/audio/AudioManager';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
+import MenuWeaponsViewer from '@/components/home/MenuWeaponsViewer';
+import MenuArenasSlideshow from '@/components/home/MenuArenasSlideshow';
 import { playClickSound } from '@/lib/soundEffects';
 
 export default function HomeScreen() {
@@ -33,8 +32,8 @@ export default function HomeScreen() {
 
   const menuItems: { id: string; sprite: SpriteButtonName; onClick: () => void }[] = [
     {
-      id: 'play',
-      sprite: 'play',
+      id: 'start',
+      sprite: 'start',
       onClick: () => {
         setPage('play');
       },
@@ -228,32 +227,30 @@ export default function HomeScreen() {
             {isEn ? '1v1 Turn-Based RPG Dice Combat' : 'Game Đối Kháng Xúc Xắc Theo Lượt 1v1'}
           </p>
 
-          {/* Menu Buttons Box with Pixel RPG Frame */}
+          {/* Menu Buttons - No box, clean layout */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full max-w-md"
           >
-            <PixelFrame variant="gold" className="p-3 sm:p-4 backdrop-blur-md bg-[#0c101c]/90 border-2 border-yellow-500/80">
-              <div className="flex flex-col gap-2 items-center">
-                {menuItems.map((item, idx) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.3 + idx * 0.07 }}
-                    className="w-full flex justify-center"
-                  >
-                    <PixelSpriteButton
-                      sprite={item.sprite}
-                      onClick={item.onClick}
-                      className="w-[280px] sm:w-[320px] max-w-full"
-                    />
-                  </motion.div>
-                ))}
-              </div>
-            </PixelFrame>
+            <div className="flex flex-col gap-2 items-center">
+              {menuItems.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 + idx * 0.07 }}
+                  className="w-full flex justify-center"
+                >
+                  <PixelSpriteButton
+                    sprite={item.sprite}
+                    onClick={item.onClick}
+                    className="w-[280px] sm:w-[320px] max-w-full"
+                  />
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
 
           {/* Quick Jump Links */}
@@ -482,11 +479,11 @@ export default function HomeScreen() {
       </section>
 
       {/* ============================================================ */}
-      {/* 4. WEAPONS SECTION */}
+      {/* 4. WEAPONS SECTION (Interactive Center Showcase & Sidebar) */}
       {/* ============================================================ */}
       <section
         id="weapons-section"
-        className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col gap-8"
+        className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col gap-6"
       >
         <div className="text-center">
           <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow mb-2 flex items-center justify-center gap-2">
@@ -496,65 +493,20 @@ export default function HomeScreen() {
           </h2>
           <p className="text-xs text-slate-400 font-pixel">
             {isEn
-              ? 'Each weapon bestows two unique skills: a charge threshold active and an instant face trigger'
-              : 'Mỗi vũ khí mang 2 kỹ năng: 1 kỹ năng chủ động tích sạc và 1 kỹ năng kích hoạt tức thì'}
+              ? 'Click any weapon to inspect its full skill mechanics and equip it for battle'
+              : 'Bấm vào bất kỳ vũ khí nào để xem chi tiết chiêu thức và trang bị ngay'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {Object.values(WEAPON_DEFINITIONS).map((w) => (
-            <div
-              key={w.id}
-              className="bg-[#0c101c]/90 border border-cyan-500/40 hover:border-cyan-400 p-4 flex flex-col gap-3 transition-all shadow-md"
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative w-14 h-14 bg-black border border-cyan-500/60 flex items-center justify-center p-1 shrink-0">
-                  <img
-                    src={w.image}
-                    alt={w.name}
-                    className="w-full h-full object-contain pixelated"
-                  />
-                </div>
-                <div>
-                  <h4 className="text-[10px] font-pixel text-yellow-300 font-bold">
-                    {isEn ? w.name : w.nameVi}
-                  </h4>
-                  <p className="text-[8px] text-slate-400 font-pixel mt-0.5 line-clamp-2">
-                    {isEn ? w.description : w.descriptionVi}
-                  </p>
-                </div>
-              </div>
-
-              {/* Skills summary */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800 text-[8px] font-pixel">
-                <div className="bg-yellow-950/40 border border-yellow-500/30 p-1.5 flex items-center justify-between">
-                  <span className="text-yellow-300 truncate">
-                    ⚡ {isEn ? w.skill1.name : w.skill1.nameVi}
-                  </span>
-                  <span className="text-cyan-300 whitespace-nowrap">
-                    {w.skill1.chargeRequired} PTS
-                  </span>
-                </div>
-                <div className="bg-cyan-950/40 border border-cyan-500/30 p-1.5 flex items-center justify-between">
-                  <span className="text-cyan-300 truncate">
-                    ✨ {isEn ? w.skill2.name : w.skill2.nameVi}
-                  </span>
-                  <span className="text-yellow-300 whitespace-nowrap">
-                    DIE {w.skill2.triggerNumber}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <MenuWeaponsViewer isEn={isEn} />
       </section>
 
       {/* ============================================================ */}
-      {/* 5. ARENAS SECTION */}
+      {/* 5. ARENAS SECTION (Cinematic Widescreen Slideshow) */}
       {/* ============================================================ */}
       <section
         id="arenas-section"
-        className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col gap-8"
+        className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col gap-6"
       >
         <div className="text-center">
           <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow mb-2 flex items-center justify-center gap-2">
@@ -569,32 +521,7 @@ export default function HomeScreen() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {MAP_DEFINITIONS.map((map) => (
-            <div
-              key={map.id}
-              className="relative group overflow-hidden border border-slate-700 hover:border-yellow-400 transition-all bg-black"
-            >
-              <div className="relative w-full h-32">
-                <Image
-                  src={map.image}
-                  alt={map.name}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-              </div>
-              <div className="p-3">
-                <div className="text-[10px] text-yellow-300 font-pixel">
-                  {isEn ? map.name : map.nameVi}
-                </div>
-                <div className="text-[8px] text-slate-400 font-pixel uppercase mt-1">
-                  THEME: {map.ambient}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <MenuArenasSlideshow isEn={isEn} />
       </section>
 
       {/* ============================================================ */}

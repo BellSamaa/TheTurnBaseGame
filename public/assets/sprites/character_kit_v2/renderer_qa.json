@@ -1,0 +1,7 @@
+{
+  "environment": "Node Canvas with minimal DOM; not a browser layout test",
+  "loadedImages": 698,
+  "renderedSelections": 160,
+  "changedPixels": true,
+  "errors": []
+}
