@@ -87,8 +87,26 @@ async function main() {
     await sleep(1000);
     await captureScreenshot('test_home_buttons.png', 1920, 1080);
 
-    // 0a. Capture Menu Weapons Viewer
-    console.log('0a. Capturing Menu Weapons Viewer...');
+    // 0a. Capture Rules Grimoire
+    console.log('0a. Capturing Rules Grimoire...');
+    await evaluate(`(() => {
+      const el = document.getElementById('rules-section');
+      if (el) el.scrollIntoView({ behavior: 'instant' });
+    })()`);
+    await sleep(1000);
+    await captureScreenshot('test_menu_rules_grimoire.png', 1920, 1080);
+
+    // 0b. Capture Classes Vertical Stack
+    console.log('0b. Capturing Classes Vertical Stack...');
+    await evaluate(`(() => {
+      const el = document.getElementById('classes-section');
+      if (el) el.scrollIntoView({ behavior: 'instant' });
+    })()`);
+    await sleep(1000);
+    await captureScreenshot('test_menu_classes_stack.png', 1920, 1080);
+
+    // 0c. Capture Menu Weapons Viewer
+    console.log('0c. Capturing Menu Weapons Viewer...');
     await evaluate(`(() => {
       const el = document.getElementById('weapons-section');
       if (el) el.scrollIntoView({ behavior: 'instant' });
@@ -96,8 +114,8 @@ async function main() {
     await sleep(1000);
     await captureScreenshot('test_menu_weapons_viewer.png', 1920, 1080);
 
-    // 0b. Capture Menu Arenas Slideshow
-    console.log('0b. Capturing Menu Arenas Slideshow...');
+    // 0d. Capture Menu Arenas Slideshow
+    console.log('0d. Capturing Menu Arenas Slideshow...');
     await evaluate(`(() => {
       const el = document.getElementById('arenas-section');
       if (el) el.scrollIntoView({ behavior: 'instant' });
@@ -105,8 +123,8 @@ async function main() {
     await sleep(1000);
     await captureScreenshot('test_menu_arenas_slideshow.png', 1920, 1080);
 
-    // 0c. Capture Online Lobby Modal (Create & Join)
-    console.log('0c. Capturing Online Lobby Modal...');
+    // 0e. Capture Online Lobby Modal (Create & Join)
+    console.log('0e. Capturing Online Lobby Modal...');
     await evaluate(`window.__gameStore.getState().setPage('play');`);
     await sleep(800);
     await evaluate(`

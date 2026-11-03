@@ -5,9 +5,6 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
 import { t } from '@/lib/translations';
-import {
-  CLASS_DEFINITIONS,
-} from '@/lib/constants';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import ParticleEffect from '@/components/ui/ParticleEffect';
 import PixelIcon from '@/components/ui/PixelIcon';
@@ -15,6 +12,8 @@ import { AudioToolbarControls } from '@/components/audio/AudioManager';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
 import MenuWeaponsViewer from '@/components/home/MenuWeaponsViewer';
 import MenuArenasSlideshow from '@/components/home/MenuArenasSlideshow';
+import MenuRulesGrimoire from '@/components/home/MenuRulesGrimoire';
+import MenuClassesVerticalStack from '@/components/home/MenuClassesVerticalStack';
 import { playClickSound } from '@/lib/soundEffects';
 
 export default function HomeScreen() {
@@ -278,11 +277,11 @@ export default function HomeScreen() {
       </section>
 
       {/* ============================================================ */}
-      {/* 2. HOW TO PLAY / RULES SECTION */}
+      {/* 2. HOW TO PLAY / RULES SECTION (Ancient Fantasy Grimoire) */}
       {/* ============================================================ */}
       <section
         id="rules-section"
-        className="relative z-10 w-full max-w-5xl mx-auto px-4 py-16 flex flex-col gap-8"
+        className="relative z-10 w-full max-w-5xl mx-auto px-4 py-16 flex flex-col gap-6"
       >
         <div className="text-center">
           <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow mb-2 flex items-center justify-center gap-2">
@@ -292,105 +291,20 @@ export default function HomeScreen() {
           </h2>
           <p className="text-xs text-slate-400 font-pixel">
             {isEn
-              ? 'Master the 20-sided D20 weapon combat and D6 skill charge systems'
-              : 'Nắm vững quy tắc đối kháng xúc xắc 20 mặt (D20) và tích sạc kỹ năng 6 mặt (D6)'}
+              ? 'Read the ancient grimoire of sacred D20 combat, D6 energy charges, and the blood oath'
+              : 'Nghiên cứu cổ thư ghi chép quy luật xúc xắc D20, tích nạp năng lượng D6 và sinh tử đấu'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Core Stats & D20 Combat */}
-          <div className="bg-[#0c101c]/90 border-2 border-yellow-500/50 p-5 flex flex-col gap-3 shadow-lg hover:border-yellow-400 transition-all">
-            <div className="w-10 h-10 bg-yellow-500/20 border border-yellow-400 flex items-center justify-center">
-              <PixelIcon name="dice20" size={22} color="#facc15" />
-            </div>
-            <h3 className="text-xs font-pixel text-yellow-300 uppercase">
-              {isEn ? '1. D20 Combat Rolls' : '1. Đối Kháng D20'}
-            </h3>
-            <div className="text-[10px] text-slate-300 font-pixel leading-relaxed">
-              {isEn ? (
-                <>
-                  Each turn, one player is the <strong>Attacker</strong> and the other is the <strong>Defender</strong>.
-                  Both roll a 20-sided die (D20).
-                  <br /><br />
-                  • If <strong>Atk &gt; Def</strong>: Damage dealt = <strong>Atk - Def</strong>.
-                  <br />
-                  • If <strong>Atk &le; Def</strong>: Blocked / Missed! 0 damage dealt.
-                </>
-              ) : (
-                <>
-                  Mỗi lượt có một bên <strong>Tấn Công</strong> và một bên <strong>Phòng Thủ</strong>.
-                  Cả hai cùng tung xúc xắc D20.
-                  <br /><br />
-                  • Nếu <strong>Công &gt; Thủ</strong>: Sát thương = <strong>Công - Thủ</strong>.
-                  <br />
-                  • Nếu <strong>Công &le; Thủ</strong>: Phòng thủ thành công, 0 sát thương.
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Card 2: D6 Skill Charging */}
-          <div className="bg-[#0c101c]/90 border-2 border-cyan-500/50 p-5 flex flex-col gap-3 shadow-lg hover:border-cyan-400 transition-all">
-            <div className="w-10 h-10 bg-cyan-500/20 border border-cyan-400 flex items-center justify-center">
-              <PixelIcon name="lightning" size={22} color="#38bdf8" />
-            </div>
-            <h3 className="text-xs font-pixel text-cyan-300 uppercase">
-              {isEn ? '2. D6 Skill System' : '2. Kỹ Năng Tích Sạc D6'}
-            </h3>
-            <div className="text-[10px] text-slate-300 font-pixel leading-relaxed">
-              {isEn ? (
-                <>
-                  Every turn, players roll a 6-sided die (D6) to accumulate <strong>Charge Points</strong>.
-                  <br /><br />
-                  • <strong>Skill 1 (Charge Threshold)</strong>: Unlocked when reaching 15–30 accumulated points. Consume to unleash!
-                  <br />
-                  • <strong>Skill 2 (Instant Trigger)</strong>: Activates immediately if you roll the weapon’s special required face number!
-                </>
-              ) : (
-                <>
-                  Mỗi lượt cả hai bên tung D6 để tích luỹ <strong>Điểm Sạc Kỹ Năng</strong>.
-                  <br /><br />
-                  • <strong>Kỹ năng 1</strong>: Tích luỹ đạt mốc 15–30 điểm để kích hoạt đòn đánh đặc biệt uy lực.
-                  <br />
-                  • <strong>Kỹ năng 2</strong>: Kích hoạt ngay lập tức nếu đổ ra con số xúc xắc cụ thể yêu cầu!
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Card 3: Base HP & Turn Flow */}
-          <div className="bg-[#0c101c]/90 border-2 border-red-500/50 p-5 flex flex-col gap-3 shadow-lg hover:border-red-400 transition-all">
-            <div className="w-10 h-10 bg-red-500/20 border border-red-400 flex items-center justify-center">
-              <PixelIcon name="heart" size={22} color="#ef4444" />
-            </div>
-            <h3 className="text-xs font-pixel text-red-300 uppercase">
-              {isEn ? '3. Health & Victory' : '3. Máu & Chiến Thắng'}
-            </h3>
-            <div className="text-[10px] text-slate-300 font-pixel leading-relaxed">
-              {isEn ? (
-                <>
-                  Base HP is <strong>100</strong> (modified by your selected class from 75 to 150).
-                  <br /><br />
-                  Turn roles alternate each round. The first combatant to reduce their opponent to 0 HP wins the duel and claims glory on the leaderboard!
-                </>
-              ) : (
-                <>
-                  Máu (HP) gốc của nhân vật là <strong>100</strong> (thay đổi theo Nghề từ 75 đến 150).
-                  <br /><br />
-                  Vai trò Công - Thủ hoán đổi sau mỗi hiệp. Người chơi đầu tiên triệt hạ HP đối thủ về 0 sẽ giành chiến thắng vinh quang!
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <MenuRulesGrimoire isEn={isEn} />
       </section>
 
       {/* ============================================================ */}
-      {/* 3. THE 6 FIGHTING CLASSES */}
+      {/* 3. THE 6 FIGHTING CLASSES (Interactive Vertical Stack) */}
       {/* ============================================================ */}
       <section
         id="classes-section"
-        className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col gap-8"
+        className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col gap-6"
       >
         <div className="text-center">
           <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow mb-2 flex items-center justify-center gap-2">
@@ -400,62 +314,12 @@ export default function HomeScreen() {
           </h2>
           <p className="text-xs text-slate-400 font-pixel">
             {isEn
-              ? 'Choose your tactical archetype with distinct bonuses and playstyles'
-              : 'Chọn nghề nghiệp phù hợp với phong cách chiến thuật của bạn'}
+              ? 'Click any class card to center it and reveal its full stats, masteries and lore'
+              : 'Bấm vào bất kỳ nghề nào để đưa ra giữa và xem trọn vẹn chỉ số, sở trường chiến đấu'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {Object.values(CLASS_DEFINITIONS).map((cls) => (
-            <div
-              key={cls.id}
-              className="bg-[#0c101c]/90 border border-yellow-500/40 hover:border-yellow-400 p-4 flex flex-col gap-3 transition-all group shadow-md"
-            >
-              {/* Sliced Class Banner */}
-              <div className="relative w-full h-24 overflow-hidden border border-slate-700 bg-black">
-                <img
-                  src={cls.image}
-                  alt={cls.name}
-                  className="w-full h-full object-cover pixelated group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-1 left-2 bg-black/80 px-2 py-0.5 text-[9px] font-pixel text-yellow-400 border border-yellow-500/40">
-                  {isEn ? cls.name : cls.nameVi}
-                </div>
-              </div>
-
-              {/* Stats badges */}
-              <div className="flex flex-wrap gap-1.5 text-[8px] font-pixel">
-                <span className="bg-red-950/80 border border-red-500/50 text-red-300 px-2 py-0.5">
-                  HP: {cls.baseHp}
-                </span>
-                {cls.damageModifier !== 1 && (
-                  <span className="bg-amber-950/80 border border-amber-500/50 text-amber-300 px-2 py-0.5">
-                    DMG: {cls.damageModifier * 100}%
-                  </span>
-                )}
-                {cls.damageReduction < 1 && (
-                  <span className="bg-blue-950/80 border border-blue-500/50 text-blue-300 px-2 py-0.5">
-                    ARMOR: -30%
-                  </span>
-                )}
-                {cls.extraD6Rolls > 0 && (
-                  <span className="bg-purple-950/80 border border-purple-500/50 text-purple-300 px-2 py-0.5">
-                    +1 D6 ROLL
-                  </span>
-                )}
-                {cls.extraD20Rolls > 0 && (
-                  <span className="bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 px-2 py-0.5">
-                    2x D20 (BEST)
-                  </span>
-                )}
-              </div>
-
-              <p className="text-[9px] text-slate-300 font-pixel leading-relaxed">
-                {isEn ? cls.description : cls.descriptionVi}
-              </p>
-            </div>
-          ))}
-        </div>
+        <MenuClassesVerticalStack isEn={isEn} />
       </section>
 
       {/* ============================================================ */}
