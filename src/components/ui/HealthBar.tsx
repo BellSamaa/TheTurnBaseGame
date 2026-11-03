@@ -1,137 +1,116 @@
 /* ──────────────────────────────────────────────
-   HealthBar – Animated HP bar with pixel style
+   HealthBar – Enhanced Pixel HP bar with Chip-Loss Ghost Lag
    ────────────────────────────────────────────── */
 'use client';
 
-import React, { useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 
 interface HealthBarProps {
   current: number;
   max: number;
-  playerName: string;
-  showDamage?: number | null; // flash a damage number
+  playerName?: string;
+  variant?: 'gold' | 'red' | 'cyan';
   className?: string;
-}
-
-function hpColor(pct: number): string {
-  if (pct > 0.5) return '#44ff88';
-  if (pct > 0.25) return '#ffdd44';
-  return '#ff4444';
-}
-
-function hpGlow(pct: number): string {
-  if (pct > 0.5) return 'rgba(68,255,136,0.5)';
-  if (pct > 0.25) return 'rgba(255,221,68,0.5)';
-  return 'rgba(255,68,68,0.5)';
 }
 
 export default function HealthBar({
   current,
   max,
-  playerName,
-  showDamage = null,
+  playerName = '',
+  variant = 'gold',
   className = '',
 }: HealthBarProps) {
-  const pct = useMemo(() => Math.max(0, Math.min(1, current / max)), [current, max]);
-  const color = hpColor(pct);
-  const glow = hpGlow(pct);
+  const safeCurrent = Math.max(0, Math.min(max, current));
+  const currentPct = useMemo(() => Math.max(0, Math.min(1, safeCurrent / max)), [safeCurrent, max]);
+
+  // Chip-loss ghost bar: tracks the previous HP and delays dropping
+  const [ghostPct, setGhostPct] = useState(currentPct);
+  const prevCurrentRef = useRef(safeCurrent);
+
+  useEffect(() => {
+    // If damage was taken (HP decreased)
+    if (safeCurrent < prevCurrentRef.current) {
+      const timer = setTimeout(() => {
+        setGhostPct(currentPct);
+      }, 450); // 450ms lag before ghost bar catches down
+      prevCurrentRef.current = safeCurrent;
+      return () => clearTimeout(timer);
+    } else {
+      // Healed or unchanged
+      setGhostPct(currentPct);
+      prevCurrentRef.current = safeCurrent;
+    }
+  }, [safeCurrent, currentPct]);
+
+  // Health color palette
+  const hpColor = useMemo(() => {
+    if (currentPct > 0.5) return '#22c55e'; // Green
+    if (currentPct > 0.25) return '#eab308'; // Amber
+    return '#ef4444'; // Red
+  }, [currentPct]);
+
+  const frameBorder =
+    variant === 'gold'
+      ? 'border-[#eab308]'
+      : variant === 'red'
+      ? 'border-[#ef4444]'
+      : 'border-[#06b6d4]';
 
   return (
-    <div
-      className={`relative w-full max-w-[280px] ${className}`}
-      style={{ fontFamily: 'var(--font-pixel), monospace' }}
-    >
-      {/* Player name */}
-      <div
-        className="mb-1 text-[8px] tracking-wider uppercase"
-        style={{ color: '#ffd700', textShadow: '0 0 4px rgba(255,215,0,0.4)' }}
-      >
-        {playerName}
-      </div>
-
-      {/* Bar container */}
-      <div className="relative h-5">
-        {/* Background track */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'rgba(0,0,0,0.7)',
-            boxShadow: `
-              inset 0 0 0 2px #8b6914,
-              inset 0 0 0 4px #5c4400,
-              0 0 0 1px rgba(0,0,0,0.8)
-            `,
-            imageRendering: 'pixelated',
-          }}
-        />
-
-        {/* Filled bar */}
-        <motion.div
-          className="absolute top-[2px] left-[2px] bottom-[2px]"
-          style={{
-            background: `linear-gradient(180deg, ${color} 0%, ${color}99 50%, ${color}66 100%)`,
-            boxShadow: `0 0 8px ${glow}, inset 0 1px 0 rgba(255,255,255,0.3)`,
-            imageRendering: 'pixelated',
-          }}
-          initial={false}
-          animate={{ width: `calc(${pct * 100}% - 4px)` }}
-          transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-        />
-
-        {/* Pixel grid overlay on bar */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-10"
-          style={{
-            backgroundImage:
-              'linear-gradient(0deg, transparent 50%, rgba(0,0,0,0.4) 50%)',
-            backgroundSize: '100% 2px',
-          }}
-        />
-
-        {/* Frame overlay image */}
-        <div
-          className="absolute inset-[-4px] pointer-events-none"
-          style={{
-            backgroundImage: 'url(/assets/images/frames/frame-hp-bar-gold.png)',
-            backgroundSize: '100% 100%',
-            backgroundRepeat: 'no-repeat',
-            imageRendering: 'pixelated',
-          }}
-        />
-
-        {/* HP text */}
-        <div
-          className="absolute inset-0 flex items-center justify-center text-[7px] tracking-wider"
-          style={{
-            color: '#fff',
-            textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
-          }}
-        >
-          {current}/{max}
+    <div className={`relative w-full ${className}`}>
+      {/* Optional player label and big HP numbers */}
+      <div className="flex items-center justify-between mb-1 text-[9px] font-pixel">
+        {playerName && (
+          <span className="text-yellow-400 font-bold truncate max-w-[140px] drop-shadow">
+            {playerName}
+          </span>
+        )}
+        <div className="ml-auto flex items-baseline gap-1">
+          <span className="text-xs sm:text-sm font-bold tracking-tight" style={{ color: hpColor }}>
+            {safeCurrent}
+          </span>
+          <span className="text-[8px] text-slate-400 font-pixel">/ {max} HP</span>
         </div>
       </div>
 
-      {/* Damage flash */}
-      <AnimatePresence>
-        {showDamage !== null && showDamage !== undefined && (
-          <motion.div
-            key={`dmg-${Date.now()}`}
-            className="absolute -top-3 right-0 text-[10px] font-bold"
-            style={{
-              color: '#ff4444',
-              textShadow: '0 0 6px rgba(255,0,0,0.8)',
-              fontFamily: 'var(--font-pixel), monospace',
-            }}
-            initial={{ opacity: 1, y: 0 }}
-            animate={{ opacity: 0, y: -20 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            -{showDamage}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Bar container with authentic 2px pixel frame */}
+      <div
+        className={`relative h-5 w-full bg-[#0a0d14] border-2 ${frameBorder} shadow-[inset_0_0_10px_rgba(0,0,0,0.9)] overflow-hidden`}
+        style={{ imageRendering: 'pixelated' }}
+      >
+        {/* Track Grid Lines */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-20 z-20"
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(90deg, #000 0, #000 1px, transparent 1px, transparent 10%)',
+          }}
+        />
+
+        {/* 1. Chip-loss ghost bar (Lingers when damaged to show lost amount) */}
+        <motion.div
+          className="absolute top-0 bottom-0 left-0 bg-red-400/80 z-10"
+          initial={false}
+          animate={{ width: `${ghostPct * 100}%` }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+        />
+
+        {/* 2. Real Current HP Bar (Drops instantly) */}
+        <motion.div
+          className="absolute top-0 bottom-0 left-0 z-15"
+          style={{
+            backgroundColor: hpColor,
+            boxShadow: `0 0 10px ${hpColor}88, inset 0 1px 0 rgba(255,255,255,0.4)`,
+          }}
+          initial={false}
+          animate={{ width: `${currentPct * 100}%` }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
+        />
+
+        {/* Glass highlight scanline */}
+        <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/15 pointer-events-none z-20" />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
@@ -9,13 +9,14 @@ import {
   CLASS_DEFINITIONS,
   WEAPON_DEFINITIONS,
   MAP_DEFINITIONS,
-  SPRITE_HELPERS,
 } from '@/lib/constants';
 import PixelButton from '@/components/ui/PixelButton';
 import ParticleEffect from '@/components/ui/ParticleEffect';
 import PixelFrame from '@/components/ui/PixelFrame';
+import PixelIcon from '@/components/ui/PixelIcon';
 import { AudioToolbarControls } from '@/components/audio/AudioManager';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
+import { playClickSound } from '@/lib/soundEffects';
 
 export default function HomeScreen() {
   const {
@@ -34,47 +35,63 @@ export default function HomeScreen() {
     {
       id: 'play',
       label: t('play', lang),
-      icon: '⚔️',
+      iconName: 'sword' as const,
       variant: 'primary' as const,
-      onClick: () => setPage('play'),
+      onClick: () => {
+        playClickSound();
+        setPage('play');
+      },
     },
     {
       id: 'character',
       label: t('character', lang),
-      icon: '🛡️',
+      iconName: 'user' as const,
       variant: 'gold' as const,
-      onClick: () => setPage('character'),
+      onClick: () => {
+        playClickSound();
+        setPage('character');
+      },
     },
     {
       id: 'weapons',
       label: t('weapons', lang),
-      icon: '🗡️',
+      iconName: 'dagger' as const,
       variant: 'secondary' as const,
-      onClick: () => setPage('weapons'),
+      onClick: () => {
+        playClickSound();
+        setPage('weapons');
+      },
     },
     {
       id: 'friends',
       label: t('friends', lang),
-      icon: '👥',
+      iconName: 'users' as const,
       variant: 'frame' as const,
-      onClick: () => setPage('friends'),
+      onClick: () => {
+        playClickSound();
+        setPage('friends');
+      },
     },
     {
       id: 'settings',
       label: t('settings', lang),
-      icon: '⚙️',
+      iconName: 'gear' as const,
       variant: 'frame' as const,
-      onClick: () => setPage('settings'),
+      onClick: () => {
+        playClickSound();
+        setPage('settings');
+      },
     },
   ];
 
   const scrollToSection = (id: string) => {
+    playClickSound();
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col bg-[#08080c] text-slate-100 overflow-x-hidden">
+    <div className="relative min-h-screen w-full flex flex-col bg-[#07090e] text-slate-100 overflow-x-hidden select-none">
       {/* ============================================================ */}
       {/* 1. HERO SECTION (Above the fold) */}
       {/* ============================================================ */}
@@ -88,51 +105,59 @@ export default function HomeScreen() {
             priority
             className="object-cover object-center filter brightness-[0.7] contrast-[1.15]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#08080c] via-black/40 to-black/60 pointer-events-none" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.7)_100%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-black/35 to-black/60 pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.65)_100%)] pointer-events-none" />
         </div>
 
         {/* Floating Sparkles & Particles */}
         <ParticleEffect density={24} />
 
-        {/* Top Header / Unified Navigation Toolbar (Fixed non-overlapping layout) */}
-        <header className="relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-between gap-3 bg-black/60 border-b border-yellow-500/30 backdrop-blur-sm">
+        {/* Top Header / Unified Navigation Toolbar */}
+        <header className="relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-between gap-3 bg-[#0c101c]/90 border-b border-yellow-500/40 backdrop-blur-sm">
           {/* Brand & Version Badge */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="text-[10px] sm:text-xs text-yellow-400 font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex items-center gap-2 bg-black/80 px-3 py-1.5 border border-yellow-500/40">
+            <div className="text-[10px] sm:text-xs text-yellow-400 font-pixel font-bold drop-shadow flex items-center gap-2 bg-black/80 px-3 py-1.5 border border-yellow-500/50">
               <span className="w-2 h-2 inline-block bg-yellow-400 animate-pulse" />
               <span>DICE MANIAC</span>
             </div>
 
-            {/* Sprite Atlas Inspector Button */}
+            {/* Sliced Sprite Atlas Inspector Button */}
             <button
-              onClick={() => setPage('preview')}
-              className="text-[9px] text-cyan-300 font-pixel bg-slate-900/80 hover:bg-cyan-950 px-2.5 py-1.5 border border-cyan-500/50 transition-all flex items-center gap-1.5"
+              onClick={() => {
+                playClickSound();
+                setPage('preview');
+              }}
+              className="text-[9px] text-cyan-300 font-pixel bg-slate-900/80 hover:bg-cyan-950 px-2.5 py-1.5 border border-cyan-500/50 transition-all flex items-center gap-1.5 cursor-pointer"
               title="Inspect 159 sliced sprites"
             >
-              <span>🔍</span>
+              <PixelIcon name="eye" size={12} color="#06b6d4" />
               <span className="hidden sm:inline">ATLAS (159)</span>
             </button>
           </div>
 
           {/* Right Toolbar: Audio + Lang + Auth Profile */}
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            {/* Audio BGM/SFX Toggles */}
             <AudioToolbarControls />
 
             {/* Language Switcher */}
             <div className="flex border border-slate-700 bg-black/80 p-0.5">
               <button
-                onClick={() => updateSettings({ language: 'en' })}
-                className={`text-[8.5px] font-pixel px-2 py-1 transition-all ${
+                onClick={() => {
+                  playClickSound();
+                  updateSettings({ language: 'en' });
+                }}
+                className={`text-[8.5px] font-pixel px-2 py-1 transition-all cursor-pointer ${
                   isEn ? 'bg-yellow-500 text-black font-bold' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 EN
               </button>
               <button
-                onClick={() => updateSettings({ language: 'vi' })}
-                className={`text-[8.5px] font-pixel px-2 py-1 transition-all ${
+                onClick={() => {
+                  playClickSound();
+                  updateSettings({ language: 'vi' });
+                }}
+                className={`text-[8.5px] font-pixel px-2 py-1 transition-all cursor-pointer ${
                   !isEn ? 'bg-yellow-500 text-black font-bold' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -144,11 +169,14 @@ export default function HomeScreen() {
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setAuthModal('profile')}
+                  onClick={() => {
+                    playClickSound();
+                    setAuthModal('profile');
+                  }}
                   className="flex items-center gap-2 bg-yellow-950/80 hover:bg-yellow-900/90 border border-yellow-500/70 px-2.5 py-1 transition-all group cursor-pointer"
                 >
                   <div className="relative w-6 h-8 border border-yellow-400 bg-black overflow-hidden flex items-center justify-center">
-                    <CharacterRenderer character={currentUser.avatarConfig} size="xs" />
+                    <CharacterRenderer character={currentUser.avatarConfig} size="xs" showShadow={false} />
                   </div>
                   <div className="text-left">
                     <div className="text-[9px] text-yellow-300 font-pixel leading-tight group-hover:text-yellow-100">
@@ -158,7 +186,10 @@ export default function HomeScreen() {
                   </div>
                 </button>
                 <button
-                  onClick={logoutUser}
+                  onClick={() => {
+                    playClickSound();
+                    logoutUser();
+                  }}
                   title="Logout"
                   className="text-[9px] text-red-400 font-pixel bg-red-950/60 hover:bg-red-900 border border-red-500/40 px-2 py-1.5 transition-all cursor-pointer"
                 >
@@ -168,13 +199,19 @@ export default function HomeScreen() {
             ) : (
               <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => setAuthModal('login')}
+                  onClick={() => {
+                    playClickSound();
+                    setAuthModal('login');
+                  }}
                   className="text-[9px] text-slate-200 font-pixel bg-slate-900/90 hover:bg-slate-800 border border-slate-600 px-3 py-1.5 transition-all cursor-pointer"
                 >
                   {isEn ? 'LOGIN' : 'ĐĂNG NHẬP'}
                 </button>
                 <button
-                  onClick={() => setAuthModal('signup')}
+                  onClick={() => {
+                    playClickSound();
+                    setAuthModal('signup');
+                  }}
                   className="text-[9px] text-black font-pixel bg-yellow-400 hover:bg-yellow-300 border border-yellow-200 px-3 py-1.5 font-bold transition-all cursor-pointer"
                 >
                   {isEn ? 'SIGN UP' : 'ĐĂNG KÝ'}
@@ -202,7 +239,7 @@ export default function HomeScreen() {
             />
           </motion.div>
 
-          <p className="text-[10px] sm:text-xs text-yellow-300 font-pixel tracking-widest text-center mb-6 uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+          <p className="text-[10px] sm:text-xs text-yellow-300 font-pixel tracking-widest text-center mb-6 uppercase drop-shadow">
             {isEn ? '1v1 Turn-Based RPG Dice Combat' : 'Game Đối Kháng Xúc Xắc Theo Lượt 1v1'}
           </p>
 
@@ -213,7 +250,7 @@ export default function HomeScreen() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full max-w-md"
           >
-            <PixelFrame variant="gold" className="p-4 sm:p-5 backdrop-blur-md bg-black/70 border-2 border-yellow-500/80">
+            <PixelFrame variant="gold" className="p-4 sm:p-5 backdrop-blur-md bg-[#0c101c]/90 border-2 border-yellow-500/80">
               <div className="flex flex-col gap-2.5">
                 {menuItems.map((item, idx) => (
                   <motion.div
@@ -227,7 +264,7 @@ export default function HomeScreen() {
                       size="lg"
                       onClick={item.onClick}
                       className="w-full text-xs sm:text-sm py-3 font-pixel"
-                      icon={<span>{item.icon}</span>}
+                      icon={<PixelIcon name={item.iconName} size={16} />}
                     >
                       {item.label}
                     </PixelButton>
@@ -241,28 +278,28 @@ export default function HomeScreen() {
           <div className="flex items-center gap-4 mt-6 text-[9px] font-pixel text-slate-400">
             <button
               onClick={() => scrollToSection('rules-section')}
-              className="hover:text-yellow-400 underline transition-colors"
+              className="hover:text-yellow-400 underline transition-colors cursor-pointer"
             >
               {isEn ? 'How to Play' : 'Cách Chơi'}
             </button>
             <span>•</span>
             <button
               onClick={() => scrollToSection('classes-section')}
-              className="hover:text-yellow-400 underline transition-colors"
+              className="hover:text-yellow-400 underline transition-colors cursor-pointer"
             >
               {isEn ? 'Classes' : 'Hệ Nghề'}
             </button>
             <span>•</span>
             <button
               onClick={() => scrollToSection('weapons-section')}
-              className="hover:text-yellow-400 underline transition-colors"
+              className="hover:text-yellow-400 underline transition-colors cursor-pointer"
             >
               {isEn ? 'Weapons' : 'Vũ Khí'}
             </button>
             <span>•</span>
             <button
               onClick={() => scrollToSection('arenas-section')}
-              className="hover:text-yellow-400 underline transition-colors"
+              className="hover:text-yellow-400 underline transition-colors cursor-pointer"
             >
               {isEn ? 'Arenas' : 'Đấu Trường'}
             </button>
@@ -273,7 +310,7 @@ export default function HomeScreen() {
         <div className="relative z-20 pb-4 text-center">
           <button
             onClick={() => scrollToSection('rules-section')}
-            className="text-[9px] font-pixel text-yellow-400/80 hover:text-yellow-300 transition-colors flex flex-col items-center gap-1 animate-bounce"
+            className="text-[9px] font-pixel text-yellow-400/80 hover:text-yellow-300 transition-colors flex flex-col items-center gap-1 animate-bounce cursor-pointer"
           >
             <span>{isEn ? 'SCROLL DOWN TO EXPLORE THE REALM' : 'CUỘN XUỐNG ĐỂ XEM HƯỚNG DẪN & HỆ THỐNG'}</span>
             <span>▼</span>
@@ -289,8 +326,10 @@ export default function HomeScreen() {
         className="relative z-10 w-full max-w-5xl mx-auto px-4 py-16 flex flex-col gap-8"
       >
         <div className="text-center">
-          <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow-[0_2px_8px_rgba(250,204,21,0.5)] mb-2">
-            {isEn ? '⚔️ COMBAT MECHANICS & RULES ⚔️' : '⚔️ LUẬT CHƠI & CƠ CHẾ CHIẾN ĐẤU ⚔️'}
+          <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow mb-2 flex items-center justify-center gap-2">
+            <PixelIcon name="sword" size={20} color="#facc15" />
+            <span>{isEn ? 'COMBAT MECHANICS & RULES' : 'LUẬT CHƠI & CƠ CHẾ CHIẾN ĐẤU'}</span>
+            <PixelIcon name="sword" size={20} color="#facc15" />
           </h2>
           <p className="text-xs text-slate-400 font-pixel">
             {isEn
@@ -301,14 +340,14 @@ export default function HomeScreen() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Core Stats & D20 Combat */}
-          <div className="bg-slate-900/80 border-2 border-yellow-500/40 p-5 flex flex-col gap-3 shadow-lg hover:border-yellow-400 transition-all">
-            <div className="w-10 h-10 bg-yellow-500/20 border border-yellow-400 flex items-center justify-center text-xl">
-              🎲
+          <div className="bg-[#0c101c]/90 border-2 border-yellow-500/50 p-5 flex flex-col gap-3 shadow-lg hover:border-yellow-400 transition-all">
+            <div className="w-10 h-10 bg-yellow-500/20 border border-yellow-400 flex items-center justify-center">
+              <PixelIcon name="dice20" size={22} color="#facc15" />
             </div>
             <h3 className="text-xs font-pixel text-yellow-300 uppercase">
               {isEn ? '1. D20 Combat Rolls' : '1. Đối Kháng D20'}
             </h3>
-            <p className="text-[10px] text-slate-300 font-pixel leading-relaxed">
+            <div className="text-[10px] text-slate-300 font-pixel leading-relaxed">
               {isEn ? (
                 <>
                   Each turn, one player is the <strong>Attacker</strong> and the other is the <strong>Defender</strong>.
@@ -328,18 +367,18 @@ export default function HomeScreen() {
                   • Nếu <strong>Công &le; Thủ</strong>: Phòng thủ thành công, 0 sát thương.
                 </>
               )}
-            </p>
+            </div>
           </div>
 
           {/* Card 2: D6 Skill Charging */}
-          <div className="bg-slate-900/80 border-2 border-cyan-500/40 p-5 flex flex-col gap-3 shadow-lg hover:border-cyan-400 transition-all">
-            <div className="w-10 h-10 bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-xl">
-              ⚡
+          <div className="bg-[#0c101c]/90 border-2 border-cyan-500/50 p-5 flex flex-col gap-3 shadow-lg hover:border-cyan-400 transition-all">
+            <div className="w-10 h-10 bg-cyan-500/20 border border-cyan-400 flex items-center justify-center">
+              <PixelIcon name="lightning" size={22} color="#38bdf8" />
             </div>
             <h3 className="text-xs font-pixel text-cyan-300 uppercase">
               {isEn ? '2. D6 Skill System' : '2. Kỹ Năng Tích Sạc D6'}
             </h3>
-            <p className="text-[10px] text-slate-300 font-pixel leading-relaxed">
+            <div className="text-[10px] text-slate-300 font-pixel leading-relaxed">
               {isEn ? (
                 <>
                   Every turn, players roll a 6-sided die (D6) to accumulate <strong>Charge Points</strong>.
@@ -357,18 +396,18 @@ export default function HomeScreen() {
                   • <strong>Kỹ năng 2</strong>: Kích hoạt ngay lập tức nếu đổ ra con số xúc xắc cụ thể yêu cầu!
                 </>
               )}
-            </p>
+            </div>
           </div>
 
           {/* Card 3: Base HP & Turn Flow */}
-          <div className="bg-slate-900/80 border-2 border-red-500/40 p-5 flex flex-col gap-3 shadow-lg hover:border-red-400 transition-all">
-            <div className="w-10 h-10 bg-red-500/20 border border-red-400 flex items-center justify-center text-xl">
-              ❤️
+          <div className="bg-[#0c101c]/90 border-2 border-red-500/50 p-5 flex flex-col gap-3 shadow-lg hover:border-red-400 transition-all">
+            <div className="w-10 h-10 bg-red-500/20 border border-red-400 flex items-center justify-center">
+              <PixelIcon name="heart" size={22} color="#ef4444" />
             </div>
             <h3 className="text-xs font-pixel text-red-300 uppercase">
               {isEn ? '3. Health & Victory' : '3. Máu & Chiến Thắng'}
             </h3>
-            <p className="text-[10px] text-slate-300 font-pixel leading-relaxed">
+            <div className="text-[10px] text-slate-300 font-pixel leading-relaxed">
               {isEn ? (
                 <>
                   Base HP is <strong>100</strong> (modified by your selected class from 75 to 150).
@@ -382,7 +421,7 @@ export default function HomeScreen() {
                   Vai trò Công - Thủ hoán đổi sau mỗi hiệp. Người chơi đầu tiên triệt hạ HP đối thủ về 0 sẽ giành chiến thắng vinh quang!
                 </>
               )}
-            </p>
+            </div>
           </div>
         </div>
       </section>
@@ -395,8 +434,10 @@ export default function HomeScreen() {
         className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col gap-8"
       >
         <div className="text-center">
-          <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow-[0_2px_8px_rgba(250,204,21,0.5)] mb-2">
-            {isEn ? '🛡️ 6 CHARACTER CLASSES 🛡️' : '🛡️ 6 HỆ NGHỀ CHIẾN ĐẤU 🛡️'}
+          <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow mb-2 flex items-center justify-center gap-2">
+            <PixelIcon name="shield" size={20} color="#facc15" />
+            <span>{isEn ? '6 CHARACTER CLASSES' : '6 HỆ NGHỀ CHIẾN ĐẤU'}</span>
+            <PixelIcon name="shield" size={20} color="#facc15" />
           </h2>
           <p className="text-xs text-slate-400 font-pixel">
             {isEn
@@ -409,7 +450,7 @@ export default function HomeScreen() {
           {Object.values(CLASS_DEFINITIONS).map((cls) => (
             <div
               key={cls.id}
-              className="bg-slate-900/90 border border-yellow-500/40 hover:border-yellow-400 p-4 flex flex-col gap-3 transition-all group shadow-md"
+              className="bg-[#0c101c]/90 border border-yellow-500/40 hover:border-yellow-400 p-4 flex flex-col gap-3 transition-all group shadow-md"
             >
               {/* Sliced Class Banner */}
               <div className="relative w-full h-24 overflow-hidden border border-slate-700 bg-black">
@@ -459,67 +500,66 @@ export default function HomeScreen() {
       </section>
 
       {/* ============================================================ */}
-      {/* 4. THE 9 LEGENDARY WEAPONS */}
+      {/* 4. WEAPONS SECTION */}
       {/* ============================================================ */}
       <section
         id="weapons-section"
         className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col gap-8"
       >
         <div className="text-center">
-          <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow-[0_2px_8px_rgba(250,204,21,0.5)] mb-2">
-            {isEn ? '🗡️ 9 LEGENDARY WEAPONS 🗡️' : '🗡️ 9 VŨ KHÍ HUYỀN THOẠI 🗡️'}
+          <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow mb-2 flex items-center justify-center gap-2">
+            <PixelIcon name="dagger" size={20} color="#facc15" />
+            <span>{isEn ? '9 LEGENDARY WEAPONS' : '9 BẢO KHÍ HUYỀN THOẠI'}</span>
+            <PixelIcon name="dagger" size={20} color="#facc15" />
           </h2>
           <p className="text-xs text-slate-400 font-pixel">
             {isEn
-              ? 'Each weapon carries unique charge skills and trigger mechanics'
-              : 'Mỗi vũ khí mang 2 tuyệt chiêu đặc trưng: tích sạc và tung đòn xúc xắc đặc biệt'}
+              ? 'Each weapon bestows two unique skills: a charge threshold active and an instant face trigger'
+              : 'Mỗi vũ khí mang 2 kỹ năng: 1 kỹ năng chủ động tích sạc và 1 kỹ năng kích hoạt tức thì'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {Object.values(WEAPON_DEFINITIONS).map((wep) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Object.values(WEAPON_DEFINITIONS).map((w) => (
             <div
-              key={wep.id}
-              className="bg-slate-900/90 border border-slate-700 hover:border-yellow-400 p-4 flex flex-col gap-3 transition-all"
+              key={w.id}
+              className="bg-[#0c101c]/90 border border-cyan-500/40 hover:border-cyan-400 p-4 flex flex-col gap-3 transition-all shadow-md"
             >
-              {/* Sliced Weapon Sprite Header */}
-              <div className="flex items-center gap-3 border-b border-slate-800 pb-2">
-                <div className="relative w-12 h-12 bg-black border border-yellow-500/50 flex items-center justify-center p-1">
+              <div className="flex items-center gap-3">
+                <div className="relative w-14 h-14 bg-black border border-cyan-500/60 flex items-center justify-center p-1 shrink-0">
                   <img
-                    src={wep.image}
-                    alt={wep.name}
+                    src={w.image}
+                    alt={w.name}
                     className="w-full h-full object-contain pixelated"
                   />
                 </div>
                 <div>
-                  <h4 className="text-[10px] text-yellow-300 font-pixel">
-                    {isEn ? wep.name : wep.nameVi}
+                  <h4 className="text-[10px] font-pixel text-yellow-300 font-bold">
+                    {isEn ? w.name : w.nameVi}
                   </h4>
-                  <p className="text-[8px] text-slate-400 font-pixel line-clamp-1">
-                    {isEn ? wep.description : wep.descriptionVi}
+                  <p className="text-[8px] text-slate-400 font-pixel mt-0.5 line-clamp-2">
+                    {isEn ? w.description : w.descriptionVi}
                   </p>
                 </div>
               </div>
 
-              {/* Skill 1: Charge skill */}
-              <div className="bg-black/60 border-l-2 border-amber-500 p-2 text-[8px] font-pixel">
-                <div className="text-amber-400 font-bold flex justify-between">
-                  <span>⚡ {isEn ? wep.skill1.name : wep.skill1.nameVi}</span>
-                  <span>[{wep.skill1.chargeRequired} PTS]</span>
+              {/* Skills summary */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-800 text-[8px] font-pixel">
+                <div className="bg-yellow-950/40 border border-yellow-500/30 p-1.5 flex items-center justify-between">
+                  <span className="text-yellow-300 truncate">
+                    ⚡ {isEn ? w.skill1.name : w.skill1.nameVi}
+                  </span>
+                  <span className="text-cyan-300 whitespace-nowrap">
+                    {w.skill1.chargeRequired} PTS
+                  </span>
                 </div>
-                <div className="text-slate-300 mt-1">
-                  {isEn ? wep.skill1.description : wep.skill1.descriptionVi}
-                </div>
-              </div>
-
-              {/* Skill 2: Special trigger number */}
-              <div className="bg-black/60 border-l-2 border-purple-500 p-2 text-[8px] font-pixel">
-                <div className="text-purple-400 font-bold flex justify-between">
-                  <span>✨ {isEn ? wep.skill2.name : wep.skill2.nameVi}</span>
-                  <span>[ROLL: {wep.skill2.triggerNumber}]</span>
-                </div>
-                <div className="text-slate-300 mt-1">
-                  {isEn ? wep.skill2.description : wep.skill2.descriptionVi}
+                <div className="bg-cyan-950/40 border border-cyan-500/30 p-1.5 flex items-center justify-between">
+                  <span className="text-cyan-300 truncate">
+                    ✨ {isEn ? w.skill2.name : w.skill2.nameVi}
+                  </span>
+                  <span className="text-yellow-300 whitespace-nowrap">
+                    DIE {w.skill2.triggerNumber}
+                  </span>
                 </div>
               </div>
             </div>
@@ -528,24 +568,26 @@ export default function HomeScreen() {
       </section>
 
       {/* ============================================================ */}
-      {/* 5. THE 9 BATTLE ARENAS */}
+      {/* 5. ARENAS SECTION */}
       {/* ============================================================ */}
       <section
         id="arenas-section"
         className="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col gap-8"
       >
         <div className="text-center">
-          <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow-[0_2px_8px_rgba(250,204,21,0.5)] mb-2">
-            {isEn ? '🏟️ 9 BATTLE ARENAS 🏟️' : '🏟️ 9 ĐẤU TRƯỜNG HUYỀN ẢO 🏟️'}
+          <h2 className="text-base sm:text-2xl text-yellow-400 font-pixel drop-shadow mb-2 flex items-center justify-center gap-2">
+            <PixelIcon name="map" size={20} color="#facc15" />
+            <span>{isEn ? '9 BATTLE REALMS' : '9 CHIẾN TRƯỜNG ĐẤU TRƯỜNG'}</span>
+            <PixelIcon name="map" size={20} color="#facc15" />
           </h2>
           <p className="text-xs text-slate-400 font-pixel">
             {isEn
-              ? 'Fight across diverse pixel battlegrounds with distinct atmospheres'
-              : 'Giao tranh trên khắp các chiến trường pixel tuyệt đẹp'}
+              ? 'Fight across diverse pixel fantasy realms with distinct atmospheric themes'
+              : 'Tranh tài qua 9 vùng đất huyền thoại với bối cảnh hùng tráng'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {MAP_DEFINITIONS.map((map) => (
             <div
               key={map.id}
@@ -576,7 +618,7 @@ export default function HomeScreen() {
       {/* ============================================================ */}
       {/* 6. EPIC FOOTER & CREDITS (ALL 3 AURA ANIMATIONS!) */}
       {/* ============================================================ */}
-      <footer className="relative z-20 w-full border-t-2 border-yellow-500/30 bg-black/95 py-12 px-4 text-center mt-12">
+      <footer className="relative z-20 w-full border-t-2 border-yellow-500/40 bg-[#07090e] py-12 px-4 text-center mt-12">
         <div className="max-w-3xl mx-auto flex flex-col items-center gap-6">
           {/* Logo badge in footer */}
           <div className="relative w-48 h-16">
@@ -589,7 +631,7 @@ export default function HomeScreen() {
           </div>
 
           {/* Credits box with Bell, Snow, and Shiratosi - ALL 3 WITH AURAS! */}
-          <div className="px-6 py-4 bg-slate-950/90 border-2 border-yellow-500/60 shadow-[0_0_25px_rgba(250,204,21,0.2)]">
+          <div className="px-6 py-4 bg-[#0c101c] border-2 border-yellow-500/60 shadow-[0_0_25px_rgba(250,204,21,0.2)]">
             <p className="text-xs sm:text-sm text-slate-200 leading-loose font-pixel">
               {isEn ? 'Game created by ' : 'Game tạo bởi '}
               {/* Bell with Crimson Fire Aura */}
@@ -614,7 +656,7 @@ export default function HomeScreen() {
           <div className="flex flex-wrap items-center justify-center gap-4 text-[9px] text-slate-500 font-pixel">
             <span>Next.js 16</span>
             <span>•</span>
-            <span>Three.js 3D Dice</span>
+            <span>Pixel RPG Engine</span>
             <span>•</span>
             <span>Supabase Realtime</span>
             <span>•</span>
@@ -628,7 +670,7 @@ export default function HomeScreen() {
           {/* Back to top button */}
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="text-[9px] font-pixel text-yellow-400 border border-yellow-500/40 bg-yellow-950/40 px-3 py-1 hover:bg-yellow-900/60 transition-all"
+            className="text-[9px] font-pixel text-yellow-400 border border-yellow-500/40 bg-yellow-950/40 px-3 py-1 hover:bg-yellow-900/60 transition-all cursor-pointer"
           >
             ▲ {isEn ? 'BACK TO TOP' : 'LÊN ĐẦU TRANG'}
           </button>

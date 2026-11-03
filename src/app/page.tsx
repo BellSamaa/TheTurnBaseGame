@@ -11,16 +11,7 @@ import WeaponsGallery from '@/components/weapons/WeaponsGallery';
 import FriendsList from '@/components/friends/FriendsList';
 import SettingsPanel from '@/components/settings/SettingsPanel';
 import AuthModals from '@/components/auth/AuthModals';
-
-// Dynamically import BattleScreen to prevent any SSR canvas issues
-const BattleScreen = dynamic(() => import('@/components/battle/BattleScreen'), {
-  ssr: false,
-  loading: () => (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black text-yellow-400 font-pixel text-xs animate-pulse">
-      LOADING 3D BATTLE ARENA...
-    </div>
-  ),
-});
+import BattleScreen from '@/components/battle/BattleScreen';
 
 // Dynamically import SpriteContactSheet for sprite audit and inspection
 const SpriteContactSheet = dynamic(() => import('@/components/preview/SpriteContactSheet'), {
@@ -35,6 +26,12 @@ const SpriteContactSheet = dynamic(() => import('@/components/preview/SpriteCont
 export default function GameMasterPage() {
   const { currentPage, settings } = useGameStore();
   const langClass = settings?.language === 'vi' ? 'lang-vi' : 'lang-en';
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as unknown as { __gameStore: typeof useGameStore }).__gameStore = useGameStore;
+    }
+  }, []);
 
   return (
     <main className={`relative min-h-screen w-full bg-black text-slate-100 overflow-x-hidden ${langClass}`}>

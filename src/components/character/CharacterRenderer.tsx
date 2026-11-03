@@ -12,6 +12,8 @@ export interface CharacterRendererProps {
   facing?: 'left' | 'right';
   showAura?: boolean;
   auraColor?: string;
+  showShadow?: boolean;
+  isHit?: boolean;
 }
 
 // Metadata for body landmarks (8 bodies: male/female across 4 builds)
@@ -78,6 +80,8 @@ export default function CharacterRenderer({
   facing = 'right',
   showAura = false,
   auraColor = '#fbbf24',
+  showShadow = true,
+  isHit = false,
 }: CharacterRendererProps) {
   const bodyIdx = (character?.baseIndex ?? 0) % 8;
   const meta = BODY_METADATA[bodyIdx] || BODY_METADATA[0];
@@ -86,8 +90,15 @@ export default function CharacterRenderer({
   const faceIdx = (character?.faceIndex ?? 0) % 10;
   const shirtIdx = (character?.shirtIndex ?? 0) % 20;
   const pantsIdx = (character?.pantsIndex ?? 0) % 20;
-  const accIdx = (character?.accessoryIndex ?? 0) % 20;
-  const accMeta = ACCESSORY_METADATA[accIdx] || ACCESSORY_METADATA[0];
+
+  // Has accessory check: -1 means NONE
+  const hasAccessory =
+    character?.accessoryIndex !== undefined &&
+    character?.accessoryIndex !== null &&
+    character.accessoryIndex >= 0 &&
+    character.accessoryIndex < 20;
+  const accIdx = hasAccessory ? character.accessoryIndex : -1;
+  const accMeta = hasAccessory ? ACCESSORY_METADATA[accIdx] || ACCESSORY_METADATA[0] : null;
 
   // Size mappings (aspect ratio 2:3 preserved)
   const sizeClasses = {
@@ -99,22 +110,30 @@ export default function CharacterRenderer({
   }[size];
 
   const mirrorClass = facing === 'left' ? 'scale-x-[-1]' : '';
+  const hitShakeClass = isHit ? 'animate-dice-shake brightness-150 filter' : '';
 
   return (
     <div
-      className={`relative inline-block select-none overflow-visible ${sizeClasses} ${mirrorClass} ${className}`}
+      className={`relative inline-block select-none overflow-visible ${sizeClasses} ${mirrorClass} ${hitShakeClass} ${className}`}
       style={{ aspectRatio: '2 / 3' }}
     >
       {/* Optional Aura Glow */}
       {showAura && (
         <div
-          className="absolute inset-0 rounded-full blur-xl opacity-40 animate-pulse pointer-events-none"
+          className="absolute inset-0 rounded-full blur-xl opacity-45 animate-pulse pointer-events-none"
           style={{ backgroundColor: auraColor }}
         />
       )}
 
+      {/* Ground Pixel Drop Shadow */}
+      {showShadow && (
+        <div
+          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[70%] h-3 rounded-[50%] bg-black/65 blur-[1px] pointer-events-none z-10"
+        />
+      )}
+
       {/* 1. Cape / Back Accessory Layer (zIndex: 12, behind body) */}
-      {accMeta.zIndex < 20 && (
+      {hasAccessory && accMeta && accMeta.zIndex < 20 && (
         <img
           src={SPRITE_HELPERS.accessory(accIdx)}
           alt="Cape/Back Item"
@@ -187,7 +206,7 @@ export default function CharacterRenderer({
       </div>
 
       {/* 5. Mid Accessories (Belts/Necklaces, zIndex: 35) */}
-      {accMeta.zIndex >= 30 && accMeta.zIndex < 40 && (
+      {hasAccessory && accMeta && accMeta.zIndex >= 30 && accMeta.zIndex < 40 && (
         <img
           src={SPRITE_HELPERS.accessory(accIdx)}
           alt="Accessory Belt/Necklace"
@@ -242,7 +261,7 @@ export default function CharacterRenderer({
       </div>
 
       {/* 8. Top Accessories (Glasses, Masks, Headbands, zIndex: 55-60) */}
-      {accMeta.zIndex >= 50 && (
+      {hasAccessory && accMeta && accMeta.zIndex >= 50 && (
         <img
           src={SPRITE_HELPERS.accessory(accIdx)}
           alt="Accessory Glasses/Head"
