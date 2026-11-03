@@ -376,6 +376,7 @@ export const useGameStore = create<GameStore>()(
           currentTurn: 1,
           attackerId: profile.id,
           phase: 'rolling_d20',
+          turnStep: 'd20_atk',
           d20Results: null,
           d6Results: null,
           mapId: randomMap,

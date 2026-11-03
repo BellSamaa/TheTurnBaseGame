@@ -9,7 +9,8 @@ import { playDiceRollSound } from '@/lib/soundEffects';
 
 export interface PixelDiceProps {
   // Turn Phase Stepper: D20 atk > D20 def > D6 atk > D6 def > D12
-  turnStep?: 'idle' | 'd20_atk' | 'd20_def' | 'd6_atk' | 'd6_def' | 'd12';
+  turnStep?: 'd20_atk' | 'd20_def' | 'd6_atk' | 'd6_def' | 'd12';
+  hasDefSkill?: boolean;
 
   // P1 Dice State
   p1Name: string;
@@ -17,6 +18,8 @@ export interface PixelDiceProps {
   p1D20: number | null;
   p1D6: number | null;
   p1IsRolling: boolean;
+  p1IsRollingD20?: boolean;
+  p1IsRollingD6?: boolean;
   p1HasRolled: boolean;
   p1IsBoxer?: boolean;
   p1BoxerRolls?: { r1: number; r2: number; chosen: number } | null;
@@ -30,6 +33,8 @@ export interface PixelDiceProps {
   p2D20: number | null;
   p2D6: number | null;
   p2IsRolling: boolean;
+  p2IsRollingD20?: boolean;
+  p2IsRollingD6?: boolean;
   p2HasRolled: boolean;
   p2IsBoxer?: boolean;
   p2BoxerRolls?: { r1: number; r2: number; chosen: number } | null;
@@ -55,12 +60,15 @@ export interface PixelDiceProps {
 }
 
 export default function PixelDice({
-  turnStep = 'idle',
+  turnStep = 'd20_atk',
+  hasDefSkill = true,
   p1Name,
   p1IsAttacker,
   p1D20,
   p1D6,
   p1IsRolling,
+  p1IsRollingD20,
+  p1IsRollingD6,
   p1HasRolled,
   p1IsBoxer = false,
   p1BoxerRolls = null,
@@ -73,6 +81,8 @@ export default function PixelDice({
   p2D20,
   p2D6,
   p2IsRolling,
+  p2IsRollingD20,
+  p2IsRollingD6,
   p2HasRolled,
   p2IsBoxer = false,
   p2BoxerRolls = null,
@@ -87,24 +97,26 @@ export default function PixelDice({
   isOnline = false,
   isEn = true,
 }: PixelDiceProps) {
-  // Granular dice rolling per step
-  const p1D20Rolling =
+  // Granular dice rolling per step - ONLY active when the roll is currently in progress
+  const p1D20Rolling = p1IsRollingD20 !== undefined ? p1IsRollingD20 : (p1IsRolling && turnStep === 'd20_atk' && p1IsAttacker);
+  const p1D6Rolling = p1IsRollingD6 !== undefined ? p1IsRollingD6 : (p1IsRolling && turnStep === 'd6_atk' && p1IsAttacker);
+  const p2D20Rolling = p2IsRollingD20 !== undefined ? p2IsRollingD20 : (p2IsRolling && turnStep === 'd20_atk' && !p1IsAttacker);
+  const p2D6Rolling = p2IsRollingD6 !== undefined ? p2IsRollingD6 : (p2IsRolling && turnStep === 'd6_atk' && !p1IsAttacker);
+
+  const p1IsActiveRolling = p1D20Rolling || p1D6Rolling;
+  const p2IsActiveRolling = p2D20Rolling || p2D6Rolling;
+
+  const p1NeedsToRoll =
     (turnStep === 'd20_atk' && p1IsAttacker) ||
     (turnStep === 'd20_def' && !p1IsAttacker) ||
-    (p1IsRolling && turnStep === 'idle');
-
-  const p1D6Rolling =
     (turnStep === 'd6_atk' && p1IsAttacker) ||
-    (turnStep === 'd6_def' && !p1IsAttacker);
+    (turnStep === 'd6_def' && !p1IsAttacker && hasDefSkill);
 
-  const p2D20Rolling =
+  const p2NeedsToRoll =
     (turnStep === 'd20_atk' && !p1IsAttacker) ||
     (turnStep === 'd20_def' && p1IsAttacker) ||
-    (p2IsRolling && turnStep === 'idle');
-
-  const p2D6Rolling =
     (turnStep === 'd6_atk' && !p1IsAttacker) ||
-    (turnStep === 'd6_def' && p1IsAttacker);
+    (turnStep === 'd6_def' && p1IsAttacker && hasDefSkill);
 
   // Shuffling numbers during rolling animation
   const [shuffleP1D20, setShuffleP1D20] = useState(20);
@@ -205,11 +217,13 @@ export default function PixelDice({
           className={`px-2 py-0.5 text-[7px] sm:text-[8px] font-pixel rounded-xs transition-all flex items-center gap-1 ${
             turnStep === 'd6_def'
               ? 'bg-teal-600 text-white font-bold ring-2 ring-teal-400 shadow-[0_0_12px_#14b8a6] animate-pulse scale-105'
+              : !hasDefSkill
+              ? 'bg-slate-900/50 text-slate-500 border border-slate-800 opacity-50'
               : 'bg-slate-900/90 text-slate-400 border border-slate-700/60'
           }`}
         >
           <span>🔰</span>
-          <span>4. D6 DEF</span>
+          <span>{hasDefSkill ? '4. D6 DEF' : '4. D6 DEF (No Skill)'}</span>
         </div>
 
         <span className="text-yellow-500/60 font-pixel text-[8px]">›</span>
@@ -249,18 +263,22 @@ export default function PixelDice({
             {/* Roll Status Pill */}
             <span
               className={`text-[6.5px] px-2 py-0.5 font-bold ${
-                p1IsRolling
+                p1IsActiveRolling
                   ? 'bg-yellow-500 text-black animate-pulse'
-                  : p1HasRolled
+                  : turnStep === 'd12'
                   ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/50'
+                  : p1NeedsToRoll
+                  ? 'bg-red-950 text-red-200 border border-red-500/60 animate-pulse'
                   : 'bg-slate-900 text-slate-400 border border-slate-700'
               }`}
             >
-              {p1IsRolling
+              {p1IsActiveRolling
                 ? isEn ? 'ROLLING...' : 'ĐANG TUNG...'
-                : p1HasRolled
+                : turnStep === 'd12'
                 ? isEn ? '✓ ROLLED' : '✓ ĐÃ TUNG'
-                : isEn ? 'WAITING' : 'CHỜ TUNG'}
+                : p1NeedsToRoll
+                ? isEn ? 'YOUR TURN' : 'LƯỢT TUNG'
+                : isEn ? 'WAITING' : 'CHỜ ĐỐI THỦ'}
             </span>
           </div>
 
@@ -449,18 +467,22 @@ export default function PixelDice({
             {/* Roll Status Pill */}
             <span
               className={`text-[6.5px] px-2 py-0.5 font-bold ${
-                p2IsRolling
+                p2IsActiveRolling
                   ? 'bg-yellow-500 text-black animate-pulse'
-                  : p2HasRolled
+                  : turnStep === 'd12'
                   ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/50'
+                  : p2NeedsToRoll
+                  ? 'bg-red-950 text-red-200 border border-red-500/60 animate-pulse'
                   : 'bg-slate-900 text-slate-400 border border-slate-700'
               }`}
             >
-              {p2IsRolling
+              {p2IsActiveRolling
                 ? isEn ? 'ROLLING...' : 'ĐANG TUNG...'
-                : p2HasRolled
+                : turnStep === 'd12'
                 ? isEn ? '✓ ROLLED' : '✓ ĐÃ TUNG'
-                : isEn ? 'WAITING' : 'CHỜ TUNG'}
+                : p2NeedsToRoll
+                ? isEn ? 'YOUR TURN' : 'LƯỢT TUNG'
+                : isEn ? 'WAITING' : 'CHỜ ĐỐI THỦ'}
             </span>
           </div>
 

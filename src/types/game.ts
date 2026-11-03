@@ -149,6 +149,29 @@ export interface BattleState {
   p2D20?: number | null;
   p1D6?: number | null;
   p2D6?: number | null;
+  turnStep?: 'd20_atk' | 'd20_def' | 'd6_atk' | 'd6_def' | 'd12';
+  p1EndedTurn?: boolean;
+  p2EndedTurn?: boolean;
+  activeVfx?: {
+    id: string;
+    effect: string;
+    target: 'p1' | 'p2' | 'center';
+    size?: number;
+  } | null;
+  activeSkillBanner?: {
+    id: string;
+    weaponId: string;
+    skillNameEn: string;
+    casterName: string;
+    auraColor: string;
+  } | null;
+  damagePopup?: {
+    id: string;
+    target: 'p1' | 'p2';
+    text: string;
+    type: 'damage' | 'crit' | 'block' | 'heal';
+    subtext?: string;
+  } | null;
 }
 
 export type GameMode = 'last_man_standing' | 'pve' | 'classic';
