@@ -252,7 +252,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     description: 'Cosmic ring transcending dimensions, manipulating limitless gravity and spatial voids.',
     descriptionVi: 'Chiếc nhẫn vô hạn thao túng không gian: Thuật thức Lam, Đỏ, Vô Hạ Hạn và Tử Sắc.',
     skill1: {
-      chargeRequired: 13,
+      chargeRequired: 5,
       name: 'Limitless Arts',
       nameVi: 'Thuật Thức Vô Hạ Hạn ',
       diceType: 'd6',
