@@ -266,9 +266,11 @@ export function getRoomByCode(code: string): DbOnlineRoom | null {
 }
 
 export async function getRoomByCodeAsync(code: string): Promise<DbOnlineRoom | null> {
+  globalForDb.__DICE_MANIAC_DB = undefined;
   const local = getRoomByCode(code);
+  if (!hasSupabase && process.env.VERCEL === '1') throw new Error('Online rooms require Supabase');
   const sb = getSupabaseClient();
-  if (!sb) return local;
+  if (!sb) return local ? structuredClone(local) : null;
 
   try {
     const { data, error } = await sb
@@ -277,7 +279,8 @@ export async function getRoomByCodeAsync(code: string): Promise<DbOnlineRoom | n
       .eq('code', code.trim().toUpperCase())
       .maybeSingle();
 
-    if (error || !data) return local;
+    if (error) throw new Error(error.message);
+    if (!data) return null;
 
     const room: DbOnlineRoom = {
       code: data.code,
@@ -291,14 +294,21 @@ export async function getRoomByCodeAsync(code: string): Promise<DbOnlineRoom | n
       createdAt: Number(data.created_at || Date.now()),
       lastActive: Number(data.last_active || Date.now()),
     };
-    updateRoom(room);
     return room;
-  } catch {
-    return local;
+  } catch (err) {
+    throw err;
   }
 }
 
-export function listOpenRooms(): DbOnlineRoom[] {
+export async function listOpenRooms(): Promise<DbOnlineRoom[]> {
+  const sb = getSupabaseClient();
+  if (sb) {
+    const { data, error } = await sb.from('rooms').select('code').eq('status', 'waiting');
+    if (error) throw new Error(error.message);
+    const rooms = await Promise.all((data || []).map(r => getRoomByCodeAsync(r.code)));
+    return rooms.filter((r): r is DbOnlineRoom => r !== null);
+  }
+  globalForDb.__DICE_MANIAC_DB = undefined;
   const db = loadDatabase();
   const now = Date.now();
   return Object.values(db.rooms)
@@ -306,11 +316,13 @@ export function listOpenRooms(): DbOnlineRoom[] {
     .sort((a, b) => b.createdAt - a.createdAt);
 }
 
-export function createRoom(
+export async function createRoom(
   hostUser: RoomParticipant,
   mode: 'casual' | 'ranked' = 'casual',
   mapId: string = 'castle'
-): DbOnlineRoom {
+): Promise<DbOnlineRoom> {
+  if (!hasSupabase && process.env.VERCEL === '1') throw new Error('Online rooms require Supabase');
+  globalForDb.__DICE_MANIAC_DB = undefined;
   const db = loadDatabase();
 
   let code = '';
@@ -342,8 +354,8 @@ export function createRoom(
   // Async sync to Supabase if available
   const sb = getSupabaseClient();
   if (sb) {
-    Promise.resolve(
-      sb.from('rooms').upsert({
+    const { error } = await (
+      sb.from('rooms').insert({
         code: room.code,
         id: room.id,
         host: room.host,
@@ -355,41 +367,35 @@ export function createRoom(
         created_at: room.createdAt,
         last_active: room.lastActive,
       })
-    ).catch(() => {});
+    );
+    if (error) throw new Error(error.message);
   }
 
   return room;
 }
 
-export function updateRoom(room: DbOnlineRoom): DbOnlineRoom {
-  const db = loadDatabase();
-  room.lastActive = Date.now();
-  db.rooms[room.code.toUpperCase()] = room;
-  saveDatabase();
-
-  // Async sync to Supabase if available
+export async function updateRoom(room: DbOnlineRoom): Promise<DbOnlineRoom> {
+  const previousVersion = room.lastActive;
+  room.lastActive = Math.max(Date.now(), previousVersion + 1);
   const sb = getSupabaseClient();
   if (sb) {
-    Promise.resolve(
-      sb.from('rooms').upsert({
-        code: room.code.toUpperCase(),
-        id: room.id,
-        host: room.host,
-        guest: room.guest,
-        mode: room.mode,
-        map_id: room.mapId,
-        status: room.status,
-        battle_state: room.battleState,
-        created_at: room.createdAt,
-        last_active: room.lastActive,
-      })
-    ).catch(() => {});
+    const { data, error } = await sb.from('rooms').update({
+      host: room.host, guest: room.guest, status: room.status,
+      battle_state: room.battleState, last_active: room.lastActive,
+    }).eq('code', room.code).eq('last_active', previousVersion).select('code');
+    if (error) throw new Error(error.message);
+    if (!data?.length) throw new Error('Room changed; retry after synchronization');
+  } else {
+    globalForDb.__DICE_MANIAC_DB = undefined;
+    const db = loadDatabase();
+    if (db.rooms[room.code]?.lastActive !== previousVersion) throw new Error('Room changed; retry after synchronization');
+    db.rooms[room.code] = room;
+    saveDatabase();
   }
-
   return room;
 }
 
-export function deleteRoom(code: string): void {
+export async function deleteRoom(code: string): Promise<void> {
   const db = loadDatabase();
   const upper = code.toUpperCase();
   delete db.rooms[upper];
@@ -397,8 +403,9 @@ export function deleteRoom(code: string): void {
 
   const sb = getSupabaseClient();
   if (sb) {
-    Promise.resolve(
+    const { error } = await (
       sb.from('rooms').delete().eq('code', upper)
-    ).catch(() => {});
+    );
+    if (error) throw new Error(error.message);
   }
 }

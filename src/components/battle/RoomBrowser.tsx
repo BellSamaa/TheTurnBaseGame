@@ -65,7 +65,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
 
     const pollLobby = async () => {
       try {
-        const res = await fetch(`/api/rooms/${currentLobby.code}`);
+        const res = await fetch(`/api/rooms/${currentLobby.code}`, { cache: 'no-store' });
         const data = await res.json();
         if (data.success && data.room) {
           const updated: DbOnlineRoom = data.room;
@@ -222,6 +222,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'start_battle',
+          userId: currentUser.id,
         }),
       });
 

@@ -108,15 +108,26 @@ export function calculateD20Combat(
 
   modifiedDamage = Math.max(1, Math.round(modifiedDamage));
 
-  // The Pet Rock Damage Absorption (Rock absorbs 5 damage)
+  // The Pet Rock Damage Absorption (Rock absorbs up to 5 damage)
   let absorbedByRock = 0;
-  if (defenderState && (defenderState.petRockHp ?? 0) > 0) {
-    absorbedByRock = Math.min(5, modifiedDamage, defenderState.petRockHp ?? 5);
-    defenderState.petRockHp = Math.max(0, (defenderState.petRockHp ?? 50) - absorbedByRock);
-    defenderState.petRockHits = (defenderState.petRockHits ?? 0) + 1;
-    modifiedDamage = Math.max(0, modifiedDamage - absorbedByRock);
-    if ((defenderState.petRockHits ?? 0) >= 5) {
-      defenderState.petRockEnraged = true;
+  const isDefenderPetRock =
+    defenderState &&
+    (defenderState.weapon.id === 'spirit_stone' || defenderState.weapon.id === 'pet_rock');
+
+  if (isDefenderPetRock && defenderState) {
+    if (defenderState.petRockHp === undefined) {
+      defenderState.petRockHp = 50;
+      defenderState.petRockHits = 0;
+    }
+
+    if (defenderState.petRockHp > 0) {
+      absorbedByRock = Math.min(5, modifiedDamage, defenderState.petRockHp);
+      defenderState.petRockHp = Math.max(0, defenderState.petRockHp - absorbedByRock);
+      defenderState.petRockHits = (defenderState.petRockHits ?? 0) + 1;
+      modifiedDamage = Math.max(0, modifiedDamage - absorbedByRock);
+      if (defenderState.petRockHits >= 5) {
+        defenderState.petRockEnraged = true;
+      }
     }
   }
 
@@ -124,7 +135,9 @@ export function calculateD20Combat(
   if (attackerClass.id === 'assassin') modNotes += ' [Sát Thủ +50%]';
   if (attackerClass.id === 'juggernaut') modNotes += ' [Khổng Lồ -25%]';
   if (defenderClass.id === 'tanker') modNotes += ' [Đỡ Đòn -30%]';
-  if (absorbedByRock > 0) modNotes += ` [Rock Hấp Thụ ${absorbedByRock} DMG]`;
+  if (absorbedByRock > 0 && defenderState) {
+    modNotes += ` [🪨 Rock Đỡ ${absorbedByRock} DMG (Còn ${defenderState.petRockHp}/50 HP)]`;
+  }
 
   return {
     damage: modifiedDamage,
@@ -289,11 +302,11 @@ export function executeSkill1D6(
 
     case 'spirit_stone':
       // The pet rock: triệu hồi rock (50 máu) chặn 5 sát thương cho chủ nhân, dùng D6 gây sát thương
-      user.petRockHp = 50;
-      user.petRockHits = 0;
+      user.petRockHp ??= 50;
+      user.petRockHits ??= 0;
       damage = d6Roll;
-      logTextVi = `Triệu hồi Bạn Đá Cưng Rock (50 Máu, đỡ 5 sát thương mỗi đòn) và húc đối thủ gây ${damage} sát thương!`;
-      logTextEn = `Summoned Pet Rock (50 HP, absorbs 5 dmg/hit) and retaliates for ${damage} damage!`;
+      logTextVi = `Bạn Đá Cưng Rock (${user.petRockHp}/50 Máu, đỡ tối đa 5 sát thương mỗi đòn) và húc đối thủ gây ${damage} sát thương!`;
+      logTextEn = `Pet Rock (${user.petRockHp}/50 HP, absorbs up to 5 dmg/hit) and retaliates for ${damage} damage!`;
       break;
 
     default:

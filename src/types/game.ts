@@ -129,6 +129,7 @@ export type BattlePhase =
   | 'game_over';
 
 export interface BattleState {
+  revision?: number;
   id: string;
   player1: PlayerState;
   player2: PlayerState;

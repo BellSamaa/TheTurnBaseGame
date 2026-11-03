@@ -50,7 +50,8 @@ export async function POST(req: Request, context: RouteContext) {
         return NextResponse.json({ success: true, room });
       }
 
-      if (room.guest && room.guest.id !== guest.id && room.status !== 'waiting') {
+      if (room.guest?.id === guest.id) return NextResponse.json({ success: true, room });
+      if (room.guest || room.status === 'playing' || room.status === 'finished') {
         return NextResponse.json(
           { success: false, error: 'Phòng đã đủ 2 người chơi (Room is full)' },
           { status: 403 }
@@ -68,24 +69,28 @@ export async function POST(req: Request, context: RouteContext) {
 
       room.guest = guestParticipant;
       room.status = 'ready';
-      updateRoom(room);
+      await updateRoom(room);
       return NextResponse.json({ success: true, room });
     }
 
     // 2. TOGGLE READY STATUS
     if (action === 'ready') {
       const { userId, isReady } = body;
+      if (room.status === 'playing' || room.status === 'finished') return NextResponse.json({ success: false, error: 'Battle already started' }, { status: 409 });
       if (room.host.id === userId) {
         room.host.isReady = isReady;
       } else if (room.guest && room.guest.id === userId) {
         room.guest.isReady = isReady;
       }
-      updateRoom(room);
+      await updateRoom(room);
       return NextResponse.json({ success: true, room });
     }
 
     // 3. START BATTLE (When both ready)
     if (action === 'start_battle') {
+      if (body.userId !== room.host.id) return NextResponse.json({ success: false, error: 'Host only' }, { status: 403 });
+      if (room.battleState) return NextResponse.json({ success: true, room });
+      if (!room.host.isReady || !room.guest?.isReady) return NextResponse.json({ success: false, error: 'Both players must be ready' }, { status: 409 });
       if (!room.guest) {
         return NextResponse.json(
           { success: false, error: 'Cần ít nhất 2 người chơi để bắt đầu' },
@@ -153,19 +158,22 @@ export async function POST(req: Request, context: RouteContext) {
 
       room.status = 'playing';
       room.battleState = initialBattle;
-      updateRoom(room);
+      await updateRoom(room);
       return NextResponse.json({ success: true, room });
     }
 
     // 4. BATTLE UPDATE (Action Sync from either player)
     if (action === 'battle_update') {
       const { battleState } = body;
-      if (battleState) {
+      if (body.userId !== room.host.id && body.userId !== room.guest?.id) return NextResponse.json({ success: false }, { status: 403 });
+      if (!room.battleState || body.expectedRevision !== (room.battleState.revision ?? 0)) return NextResponse.json({ success: false, room }, { status: 409 });
+      if (battleState && battleState.id === room.battleState.id) {
+        battleState.revision = (room.battleState.revision ?? 0) + 1;
         room.battleState = battleState;
         if (battleState.winnerId) {
           room.status = 'finished';
         }
-        updateRoom(room);
+        await updateRoom(room);
       }
       return NextResponse.json({ success: true, room });
     }
@@ -175,12 +183,12 @@ export async function POST(req: Request, context: RouteContext) {
       const { userId } = body;
       if (room.host.id === userId) {
         // Host left - delete room
-        deleteRoom(room.code);
+        await deleteRoom(room.code);
         return NextResponse.json({ success: true, message: 'Room deleted' });
       } else if (room.guest && room.guest.id === userId) {
         room.guest = null;
         room.status = 'waiting';
-        updateRoom(room);
+        await updateRoom(room);
         return NextResponse.json({ success: true, room });
       }
     }

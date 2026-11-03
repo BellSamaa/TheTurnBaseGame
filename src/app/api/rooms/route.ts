@@ -3,7 +3,7 @@ import { listOpenRooms, createRoom, type RoomParticipant } from '@/lib/serverDb'
 
 export async function GET() {
   try {
-    const rooms = listOpenRooms();
+    const rooms = await listOpenRooms();
     return NextResponse.json({ success: true, rooms });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Server error';
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       isReady: true,
     };
 
-    const room = createRoom(hostParticipant, mode || 'casual', mapId || 'castle');
+    const room = await createRoom(hostParticipant, mode || 'casual', mapId || 'castle');
     return NextResponse.json({ success: true, room });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Server error';

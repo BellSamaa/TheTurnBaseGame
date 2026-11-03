@@ -20,7 +20,7 @@ import {
   executeSkill2D12,
   executeAiDecisions,
 } from '@/lib/battleLogic';
-import type { BattleLogEntry, BattleState } from '@/types/game';
+import type { BattleLogEntry, BattleState, PlayerState } from '@/types/game';
 import HealthBar from '@/components/ui/HealthBar';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
@@ -161,6 +161,10 @@ export function weaponHasDefenseSkill(weaponId: string): boolean {
   return weaponId === 'bow' || weaponId === 'staff' || weaponId === 'pet_rock';
 }
 
+function spendAttackBullet(player: PlayerState): PlayerState {
+  return player.weapon.id === 'revolver' ? { ...player, bullets: Math.max(0, (player.bullets ?? 6) - 1) } : player;
+}
+
 export default function BattleScreen() {
   const {
     battleState,
@@ -240,16 +244,36 @@ export default function BattleScreen() {
   }, []);
 
   // Sync state to remote server for Online Battles
+  const syncPendingRef = useRef(false);
   const syncOnlineBattle = async (newState: BattleState) => {
     if (!onlineRoomCode) return;
+    syncPendingRef.current = true;
+    const expectedRevision = newState.revision ?? 0;
+    newState.revision = expectedRevision + 1;
     try {
-      await fetch(`/api/rooms/${onlineRoomCode}`, {
+      const response = await fetch(`/api/rooms/${onlineRoomCode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'battle_update', battleState: newState }),
+        body: JSON.stringify({ action: 'battle_update', battleState: newState, expectedRevision, userId: currentUser?.id }),
       });
+      const data = await response.json();
+      if (!response.ok) {
+        if (data.room?.battleState) setBattleState(data.room.battleState);
+        else throw new Error(data.error || 'Battle sync failed');
+      }
     } catch (err) {
       console.warn('Failed to sync online battle', err);
+      // Reconcile an uncertain write before accepting another remote snapshot.
+      try {
+        const res = await fetch(`/api/rooms/${onlineRoomCode}`, { cache: 'no-store' });
+        const data = await res.json();
+        if (data.room?.battleState) setBattleState(data.room.battleState);
+      } catch {
+        // Allow the next successful poll to reconcile the uncertain write.
+        setBattleState(current => current ? { ...current, revision: -1 } : current);
+      }
+    } finally {
+      syncPendingRef.current = false;
     }
   };
 
@@ -258,16 +282,19 @@ export default function BattleScreen() {
     if (!onlineRoomCode || battleState?.phase === 'game_over') return;
 
     const interval = setInterval(async () => {
+      if (syncPendingRef.current) return;
       try {
-        const res = await fetch(`/api/rooms/${onlineRoomCode}`);
+        const res = await fetch(`/api/rooms/${onlineRoomCode}`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.room?.battleState) {
             const remote: BattleState = data.room.battleState;
             setBattleState((current) => {
               if (!current) return remote;
+              if (syncPendingRef.current || (remote.revision ?? 0) <= (current.revision ?? 0)) return current;
 
               const hasChanged =
+                remote.revision !== current.revision ||
                 remote.currentTurn !== current.currentTurn ||
                 remote.attackerId !== current.attackerId ||
                 remote.turnStep !== current.turnStep ||
@@ -328,6 +355,8 @@ export default function BattleScreen() {
 
                 // If turn changed, reset local rolling flags and play sound
                 if (remote.currentTurn !== current.currentTurn || remote.attackerId !== current.attackerId) {
+                  setAtkRoll(null);
+                  setDefRoll(null);
                   setD20RolledThisTurn(false);
                   setD6RolledThisTurn(false);
                   setD12RolledThisTurn(false);
@@ -566,9 +595,11 @@ export default function BattleScreen() {
     const isP1Attacking = p1IsAttacker;
     const attackerClass = isP1Attacking ? p1Class : p2Class;
 
-    let finalD20 = rollD20();
+    const attackingPlayer = isP1Attacking ? player1 : player2;
+    const emptyRevolver = attackingPlayer.weapon.id === 'revolver' && (attackingPlayer.bullets ?? 6) <= 0;
+    let finalD20 = emptyRevolver ? 0 : rollD20();
     let boxerData: { r1: number; r2: number; chosen: number } | null = null;
-    if (attackerClass.extraD20Rolls > 0) {
+    if (!emptyRevolver && attackerClass.extraD20Rolls > 0) {
       const extra = rollD20();
       finalD20 = Math.max(finalD20, extra);
       boxerData = { r1: finalD20, r2: extra, chosen: finalD20 };
@@ -598,6 +629,8 @@ export default function BattleScreen() {
             ...prev,
             p1D20: isP1Attacking ? finalD20 : prev.p1D20,
             p2D20: !isP1Attacking ? finalD20 : prev.p2D20,
+            player1: isP1Attacking ? spendAttackBullet(prev.player1) : prev.player1,
+            player2: !isP1Attacking ? spendAttackBullet(prev.player2) : prev.player2,
             turnStep: 'd20_def',
             battleLog: [newLogEntry, ...prev.battleLog],
           };
@@ -619,8 +652,8 @@ export default function BattleScreen() {
     const isP1Defending = !p1IsAttacker;
     const defenderClass = isP1Defending ? p1Class : p2Class;
     const attackerClass = p1IsAttacker ? p1Class : p2Class;
-    const attackerState = p1IsAttacker ? player1 : player2;
-    const defenderState = p1IsAttacker ? player2 : player1;
+    const attackerState = structuredClone(p1IsAttacker ? player1 : player2);
+    const defenderState = structuredClone(p1IsAttacker ? player2 : player1);
     const defenderTarget: 'p1' | 'p2' = p1IsAttacker ? 'p2' : 'p1';
 
     let finalDefD20 = rollD20();
@@ -634,7 +667,7 @@ export default function BattleScreen() {
         setIsRollingD20(false);
         setDefRoll(finalDefD20);
 
-        const currentAtkRoll = atkRoll ?? (p1IsAttacker ? battleState.p1D20 : battleState.p2D20) ?? 10;
+        const currentAtkRoll = (p1IsAttacker ? battleState.p1D20 : battleState.p2D20) ?? atkRoll ?? 0;
         const combatResult = calculateD20Combat(
           currentAtkRoll,
           finalDefD20,
@@ -741,11 +774,11 @@ export default function BattleScreen() {
             damagePopup: newDamagePopup,
             battleLog: [...logsToAdd, ...prev.battleLog],
             player1: {
-              ...prev.player1,
+              ...(p1IsAttacker ? attackerState : defenderState),
               hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damage) : prev.player1.hp,
             },
             player2: {
-              ...prev.player2,
+              ...(p1IsAttacker ? defenderState : attackerState),
               hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damage) : prev.player2.hp,
             },
           };
@@ -899,11 +932,11 @@ export default function BattleScreen() {
             p2HasRolled: true,
             battleLog: [...logsToAdd, ...prev.battleLog],
             player1: {
-              ...prev.player1,
+              ...(p1IsAttacker ? attackerState : defenderState),
               d12Charge: isP1Defending ? (prev.player1.d12Charge || 0) + r6 : prev.player1.d12Charge,
             },
             player2: {
-              ...prev.player2,
+              ...(p1IsAttacker ? defenderState : attackerState),
               d12Charge: !isP1Defending ? (prev.player2.d12Charge || 0) + r6 : prev.player2.d12Charge,
             },
           };
@@ -1097,12 +1130,6 @@ export default function BattleScreen() {
       }
     }
 
-    // Passive Bullet Regen for Revolver (+1 bullet every turn)
-    const p1RevolverBullets =
-      player1.weapon.id === 'revolver' ? Math.min(6, (player1.bullets ?? 6) + 1) : player1.bullets;
-    const p2RevolverBullets =
-      player2.weapon.id === 'revolver' ? Math.min(6, (player2.bullets ?? 6) + 1) : player2.bullets;
-
     // Apply Burn Ticks
     let p1BurnDmg = 0;
     let p1NewBurnTicks = player1.burnTicks ?? 0;
@@ -1165,7 +1192,6 @@ export default function BattleScreen() {
         player1: {
           ...prev.player1,
           isAttacker: nextP1IsAttacker,
-          bullets: p1RevolverBullets,
           hp: Math.max(0, prev.player1.hp - p1BurnDmg),
           burnTicks: p1NewBurnTicks,
           panicTurns: Math.max(0, (prev.player1.panicTurns ?? 0) - 1),
@@ -1173,7 +1199,6 @@ export default function BattleScreen() {
         player2: {
           ...prev.player2,
           isAttacker: !nextP1IsAttacker,
-          bullets: p2RevolverBullets,
           hp: Math.max(0, prev.player2.hp - p2BurnDmg),
           burnTicks: p2NewBurnTicks,
           panicTurns: Math.max(0, (prev.player2.panicTurns ?? 0) - 1),
