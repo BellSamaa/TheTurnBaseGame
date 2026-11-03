@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getUserByUsernameAsync } from '@/lib/serverDb';
+import { issueSession, verifyPassword, hashPassword, sameOrigin } from '@/lib/serverAuth';
+import { getUserByUsernameAsync, saveUserAsync } from '@/lib/serverDb';
 
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     const body = await req.json();
     const { username, password } = body;
@@ -27,13 +29,15 @@ export async function POST(req: Request) {
       );
     }
 
-    if (user.passwordHash && trimmedPass && user.passwordHash !== trimmedPass) {
+    if (!verifyPassword(trimmedPass, user.passwordHash)) {
       return NextResponse.json(
         { success: false, error: 'Mật khẩu không chính xác. Vui lòng kiểm tra lại!' },
         { status: 401 }
       );
     }
 
+    await issueSession(user.id);
+    if (!user.passwordHash.startsWith('scrypt:')) { user.passwordHash = hashPassword(trimmedPass); await saveUserAsync(user); }
     const { passwordHash: _, ...safeUser } = user;
     return NextResponse.json({ success: true, user: safeUser });
   } catch (err: unknown) {

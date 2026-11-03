@@ -1,8 +1,10 @@
+import { issueSession, hashPassword, sameOrigin } from '@/lib/serverAuth';
 import { NextResponse } from 'next/server';
 import { getUserByUsernameAsync, saveUserAsync, type DbUserAccount } from '@/lib/serverDb';
 import type { CharacterCustomization, ClassType } from '@/types/game';
 
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   try {
     const body = await req.json();
     const { username, email, password, avatarConfig, selectedClass, selectedWeapon } = body;
@@ -49,7 +51,7 @@ export async function POST(req: Request) {
       id: 'user_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
       username: trimmedUser,
       email: (email || `${trimmedUser.toLowerCase()}@dicemaniac.rpg`).trim(),
-      passwordHash: trimmedPass,
+      passwordHash: hashPassword(trimmedPass),
       avatarConfig: avatarConfig || defaultAvatar,
       selectedClass: (selectedClass as ClassType) || 'warrior',
       selectedWeapon: selectedWeapon || 'greatsword',
@@ -64,6 +66,7 @@ export async function POST(req: Request) {
 
     const saved = await saveUserAsync(newUser);
 
+    await issueSession(saved.id);
     // Return safe user object (omit password)
     const { passwordHash: _, ...safeUser } = saved;
     return NextResponse.json({ success: true, user: safeUser });

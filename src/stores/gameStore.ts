@@ -254,7 +254,7 @@ export const useGameStore = create<GameStore>()(
         }
       },
 
-      logoutUser: () => set({ currentUser: null }),
+      logoutUser: () => { fetch('/api/auth/logout', { method: 'POST' }).catch(() => {}); set({ currentUser: null }); },
 
       updateUserBio: (bio) =>
         set((state) => {

@@ -1,195 +1,83 @@
 'use client';
-
-import React, { useState } from 'react';
-import Image from 'next/image';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useGameStore } from '@/stores/gameStore';
-import { t } from '@/lib/translations';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 
-interface Friend {
-  id: string;
-  name: string;
-  status: 'online' | 'in_battle' | 'offline';
-  rank: number;
-  classType: string;
-  wins: number;
-}
-
+type Person = { id: string; name: string; userId?: string; role?: string; tag?: string };
+type Social = { actorId: string; friends: Person[]; incoming: Person[]; outgoing: Person[]; clanInvites: Person[]; clan: null | { id: string; name: string; tag: string; description: string; ownerId: string; role: string; members: Person[] } };
 export default function FriendsList() {
-  const { setPage, settings, startNewBattle, accounts, currentUser } = useGameStore();
-  const lang = settings.language;
-  const isEn = lang === 'en';
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [invitedId, setInvitedId] = useState<string | null>(null);
-
-  // Initialize friends strictly from other registered accounts - NO FAKE BOTS!
-  const [friends, setFriends] = useState<Friend[]>(() => {
-    return accounts
-      .filter((a) => !currentUser || a.id !== currentUser.id)
-      .map((a) => ({
-        id: a.id,
-        name: a.username,
-        status: 'online' as const,
-        rank: a.rankPoints || 1000,
-        classType: 'Warrior',
-        wins: 0,
-      }));
-  });
-
-  const handleInvite = (friend: Friend) => {
-    setInvitedId(friend.id);
-    setTimeout(() => {
-      setInvitedId(null);
-      // Launch 1v1 local match with friend's name
-      startNewBattle({
-        mode: 'local',
-        opponentName: friend.name,
-      });
-    }, 1200);
+  const { setPage, settings, currentUser, setAuthModal } = useGameStore();
+  const en = settings.language === 'en';
+  const [data, setData] = useState<Social | null>(null);
+  const [error, setError] = useState('');
+  const [loginRequired, setLoginRequired] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<'friends' | 'clan'>('friends');
+  const [name, setName] = useState('');
+  const [clanName, setClanName] = useState('');
+  const [tag, setTag] = useState('');
+  const [invite, setInvite] = useState('');
+  const requestVersion = useRef(0);
+  const pending = useRef(false);
+  const refresh = useCallback(async () => {
+    if (pending.current || !currentUser) return;
+    const version = ++requestVersion.current;
+    try {
+      const res = await fetch('/api/social', { cache: 'no-store' });
+      const body = await res.json();
+      if (version !== requestVersion.current) return;
+      setLoginRequired(res.status === 401 || (res.ok && body.actorId !== currentUser.id));
+      if (!res.ok) throw new Error(body.error);
+      if (body.actorId !== currentUser.id) throw new Error(en ? 'Please sign in again.' : 'Vui lòng đăng nhập lại.');
+      setData(body); setError('');
+    } catch (e) { if (version === requestVersion.current) setError(e instanceof Error ? e.message : 'Connection failed'); }
+  }, [currentUser?.id, en]);
+  useEffect(() => {
+    setData(null); refresh();
+    const timer = setInterval(refresh, 5000);
+    return () => { clearInterval(timer); requestVersion.current++; };
+  }, [refresh]);
+  const act = async (action: string, values: Record<string,string> = {}) => {
+    if (pending.current) return;
+    pending.current = true; requestVersion.current++; setBusy(true); setError('');
+    try {
+      const res = await fetch('/api/social', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...values }) });
+      const body = await res.json();
+      if (res.status === 401) setLoginRequired(true);
+      if (!res.ok) throw new Error(body.error);
+      setData(body); setName(''); setInvite('');
+    } catch (e) { setError(e instanceof Error ? e.message : 'Connection failed'); }
+    finally { pending.current = false; setBusy(false); }
   };
-
-  const handleAddFriend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-
-    const newFriend: Friend = {
-      id: 'f_' + Date.now(),
-      name: searchQuery.trim(),
-      status: 'online',
-      rank: 1000,
-      classType: isEn ? 'Warrior' : 'Chiến Binh',
-      wins: 0,
-    };
-
-    setFriends([newFriend, ...friends]);
-    setSearchQuery('');
-  };
-
-  return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between items-center p-3 sm:p-6 overflow-x-hidden bg-[#07070b]">
-      {/* Background */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/assets/images/background.png"
-          alt="Friends Background"
-          fill
-          priority
-          className="object-cover filter brightness-[0.25] contrast-125 blur-sm"
-        />
-        <div className="absolute inset-0 bg-black/60 pointer-events-none" />
-      </div>
-
-      {/* Top Header */}
-      <div className="relative z-20 w-full max-w-4xl flex items-center justify-between pb-3 border-b-2 border-yellow-500/40">
-        <PixelButton
-          variant="secondary"
-          size="sm"
-          onClick={() => setPage('home')}
-          icon={<span>⬅</span>}
-        >
-          {t('back', lang)}
-        </PixelButton>
-
-        <h2 className="text-sm sm:text-base text-yellow-400 font-pixel drop-shadow">
-          {isEn ? `FRIENDS LIST (${friends.length})` : `DANH SÁCH BẠN BÈ (${friends.length})`}
-        </h2>
-
-        <div className="w-16" />
-      </div>
-
-      {/* Main Container */}
-      <div className="relative z-20 w-full max-w-3xl my-auto flex flex-col gap-4 py-4">
-        {/* Add Friend Search Box */}
-        <PixelFrame variant="cyan" title={isEn ? '🔍 ADD NEW FRIEND' : '🔍 THÊM BẠN BÈ MỚI'}>
-          <form onSubmit={handleAddFriend} className="flex gap-2 p-1">
-            <input
-              type="text"
-              placeholder={isEn ? 'Enter warrior name or ID...' : 'Nhập tên người chơi hoặc ID...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-900 border-2 border-cyan-500/70 px-3 py-1.5 text-xs text-cyan-300 font-pixel focus:outline-none"
-            />
-            <PixelButton variant="gold" size="sm" onClick={() => {}}>
-              {isEn ? 'ADD FRIEND' : 'KẾT BẠN'}
-            </PixelButton>
-          </form>
-        </PixelFrame>
-
-        {/* Friends List Card */}
-        <PixelFrame variant="gold" title={isEn ? 'ACTIVE COMRADES' : 'DANH SÁCH CHIẾN HỮU ONLINE'}>
-          <div className="flex flex-col gap-2.5 max-h-[380px] overflow-y-auto pr-1">
-            {friends.map((friend) => (
-              <div
-                key={friend.id}
-                className="p-3 bg-slate-900/80 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-500 transition"
-              >
-                <div className="flex items-center gap-3">
-                  {/* Status Indicator */}
-                  <span
-                    className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                      friend.status === 'online'
-                        ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]'
-                        : friend.status === 'in_battle'
-                        ? 'bg-amber-400 shadow-[0_0_8px_#fbbf24]'
-                        : 'bg-slate-600'
-                    }`}
-                  />
-
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-pixel font-bold text-yellow-300">
-                        {friend.name}
-                      </span>
-                      <span className="text-[7.5px] font-pixel px-1.5 py-0.5 bg-slate-800 text-cyan-300 border border-slate-700">
-                        {friend.classType}
-                      </span>
-                    </div>
-
-                    <p className="text-[8px] font-pixel text-slate-400 mt-1">
-                      {isEn ? 'Rank Rating: ' : 'Điểm hạng: '}
-                      <span className="text-yellow-400 font-bold">{friend.rank}</span>
-                      {isEn ? ' • Wins: ' : ' • Thắng: '}
-                      {friend.wins} {isEn ? 'matches' : 'trận'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-end sm:self-center">
-                  <span className="text-[7.5px] font-pixel text-slate-400">
-                    {friend.status === 'online'
-                      ? (isEn ? 'Online' : 'Đang rảnh')
-                      : friend.status === 'in_battle'
-                      ? (isEn ? 'In Duel' : 'Đang trong trận')
-                      : (isEn ? 'Offline' : 'Ngoại tuyến')}
-                  </span>
-
-                  <PixelButton
-                    variant={invitedId === friend.id ? 'success' : 'gold'}
-                    size="sm"
-                    disabled={friend.status === 'offline' || invitedId === friend.id}
-                    onClick={() => handleInvite(friend)}
-                  >
-                    {invitedId === friend.id
-                      ? (isEn ? 'CONNECTED!' : 'ĐÃ KẾT NỐI!')
-                      : (isEn ? 'CHALLENGE' : 'THÁCH ĐẤU')}
-                  </PixelButton>
-                </div>
-              </div>
-            ))}
-          </div>
-        </PixelFrame>
-      </div>
-
-      {/* Footer */}
-      <div className="relative z-20 text-center pb-4">
-        <p className="text-[8.5px] text-slate-400 font-pixel">
-          {isEn
-            ? 'Realtime Multiplayer powered by Supabase & P2P Turn-based Engine'
-            : 'Hỗ trợ chơi mạng Realtime qua Supabase & P2P Turn-based'}
-        </p>
-      </div>
+  const button = (label: string, action: string, id: string) => <button disabled={busy} className="px-3 py-2 border border-cyan-600 text-cyan-200 hover:bg-cyan-950 disabled:opacity-40" onClick={() => act(action, { id })}>{label}</button>;
+  const input = 'min-w-0 flex-1 bg-slate-950 border border-slate-600 rounded px-3 py-2 text-sm';
+  const submit = 'px-4 py-2 bg-yellow-400 text-black font-bold disabled:opacity-40';
+  const list = (people: Person[], action: string, label: string, accept?: string) => people.length ? people.map(p => <div key={p.id} className="flex flex-wrap gap-2 justify-between items-center border-b border-slate-800 py-3"><span>{p.tag ? `[${p.tag}] ` : ''}{p.name}</span><div className="flex gap-2">{accept && button(en ? 'Accept' : 'Chấp nhận', accept, p.id)}{button(label, action, p.id)}</div></div>) : <p className="text-slate-500 py-3">{en ? 'Nothing here yet.' : 'Chưa có mục nào.'}</p>;
+  return <div className="min-h-screen bg-[#07090e] text-slate-200 p-4 sm:p-8">
+    <div className="max-w-3xl mx-auto space-y-4">
+      <header className="flex justify-between items-center"><PixelButton variant="secondary" onClick={() => setPage('home')}>{en ? 'Back' : 'Quay lại'}</PixelButton><h1 className="font-pixel text-yellow-300 text-sm">{en ? 'FRIENDS & CLAN' : 'BẠN BÈ & CLAN'}</h1></header>
+      {(!currentUser || loginRequired) ? <div className="p-6 border border-yellow-600"><p>{en ? 'Sign in to connect with friends.' : 'Đăng nhập lại để kết nối bạn bè và clan.'}</p><PixelButton onClick={() => setAuthModal('login')}>{en ? 'Sign in' : 'Đăng nhập'}</PixelButton></div> : <>
+      <nav className="flex gap-2">{(['friends','clan'] as const).map(t => <button key={t} onClick={() => setTab(t)} className={'px-5 py-2 border ' + (tab===t ? 'border-yellow-400 text-yellow-300' : 'border-slate-700')}>{t==='friends' ? (en ? 'Friends' : 'Bạn bè') : 'Clan'}</button>)}</nav>
+      {error && <div role="alert" className="border border-red-700 p-3 text-red-300">{error} <button onClick={refresh} className="underline">{en ? 'Retry' : 'Thử lại'}</button></div>}
+      {!data && !error && <p>{en ? 'Loading…' : 'Đang tải…'}</p>}
+      {data && tab==='friends' && <>
+        <PixelFrame variant="cyan" title={en ? 'ADD FRIEND' : 'KẾT BẠN'}><form className="flex gap-2" onSubmit={e => { e.preventDefault(); act('request_friend', { name }); }}><input required maxLength={100} aria-label="Player name or ID" className={input} placeholder={en ? 'Exact username or ID' : 'Tên tài khoản hoặc ID chính xác'} value={name} onChange={e=>setName(e.target.value)} /><button className={submit} disabled={busy || !name.trim()}>{en ? 'Send' : 'Gửi'}</button></form></PixelFrame>
+        <PixelFrame title={en ? 'INCOMING REQUESTS' : 'LỜI MỜI NHẬN'}>{list(data.incoming,'decline_friend',en?'Decline':'Từ chối','accept_friend')}</PixelFrame>
+        <PixelFrame title={en ? 'SENT REQUESTS' : 'LỜI MỜI ĐÃ GỬI'}>{list(data.outgoing,'cancel_friend',en?'Cancel':'Hủy')}</PixelFrame>
+        <PixelFrame variant="gold" title={(en?'FRIENDS: ':'BẠN BÈ: ')+data.friends.length}>{list(data.friends,'remove_friend',en?'Unfriend':'Xóa bạn')}</PixelFrame>
+      </>}
+      {data && tab==='clan' && <>
+        <PixelFrame title={en ? 'CLAN INVITATIONS' : 'LỜI MỜI CLAN'}>{list(data.clanInvites,'decline_clan',en?'Decline':'Từ chối','accept_clan')}</PixelFrame>
+        {data.clan ? <PixelFrame variant="gold" title={`[${data.clan.tag}] ${data.clan.name}`}>
+          <p>{data.clan.description}</p>
+          {data.clan.members.map(m=><div className="flex justify-between py-2 border-b border-slate-800" key={m.id}><span>{m.name}</span><span className="text-yellow-300">{m.role==='leader' ? (en?'Leader':'Trưởng clan') : m.role==='officer' ? (en?'Officer':'Phó clan') : (en?'Member':'Thành viên')}</span></div>)}
+          {['leader','officer'].includes(data.clan.role) && <form className="flex gap-2 my-4" onSubmit={e=>{e.preventDefault();act('invite_clan',{name:invite});}}><input required maxLength={100} className={input} aria-label="Invite player" placeholder={en?'Player username':'Tên người chơi'} value={invite} onChange={e=>setInvite(e.target.value)} /><button className={submit} disabled={busy || !invite.trim()}>{en?'Invite':'Mời'}</button></form>}
+          <p className="text-xs text-slate-400 mt-4">{en?'If the leader leaves, leadership transfers to the next member. An empty clan is closed.':'Trưởng clan rời sẽ chuyển quyền cho thành viên còn lại. Clan không còn ai sẽ đóng.'}</p>
+          <button disabled={busy} className="mt-3 border border-red-600 px-4 py-2 text-red-300" onClick={()=>{if(window.confirm(en?'Leave this clan?':'Rời clan này?'))act('leave_clan');}}>{en?'Leave clan':'Rời clan'}</button>
+        </PixelFrame> : <PixelFrame variant="cyan" title={en?'CREATE CLAN':'TẠO CLAN'}><form className="flex flex-col gap-3" onSubmit={e=>{e.preventDefault();act('create_clan',{name:clanName,tag});}}><input className={input} required minLength={3} maxLength={40} aria-label="Clan name" placeholder={en?'Clan name (3–40 characters)':'Tên clan (3–40 ký tự)'} value={clanName} onChange={e=>setClanName(e.target.value)} /><input className={input} required pattern="[A-Z0-9]{2,6}" maxLength={6} aria-label="Clan tag" placeholder="TAG (2–6: A–Z, 0–9)" value={tag} onChange={e=>setTag(e.target.value.toUpperCase())} /><button disabled={busy} className={submit}>{en?'Create':'Tạo clan'}</button></form></PixelFrame>}
+      </>}
+      </>}
     </div>
-  );
+  </div>;
 }
