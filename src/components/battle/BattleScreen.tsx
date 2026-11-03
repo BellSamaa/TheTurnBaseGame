@@ -281,14 +281,12 @@ export default function BattleScreen() {
                 remote.player2.bullets !== current.player2.bullets ||
                 remote.player1.d12Charge !== current.player1.d12Charge ||
                 remote.player2.d12Charge !== current.player2.d12Charge ||
+                remote.p1EndedTurn !== current.p1EndedTurn ||
+                remote.p2EndedTurn !== current.p2EndedTurn ||
                 remote.winnerId !== current.winnerId ||
                 (remote.battleLog?.length || 0) !== (current.battleLog?.length || 0);
 
               if (hasChanged) {
-                if (remote.turnStep && remote.turnStep !== turnStep) {
-                  setTurnStep(remote.turnStep);
-                }
-
                 if (remote.activeVfx && remote.activeVfx.id !== activeVfx?.id) {
                   setActiveVfx(remote.activeVfx);
                 }
@@ -378,10 +376,17 @@ export default function BattleScreen() {
       } catch {
         // network glitch
       }
-    }, 1000);
+    }, 500);
 
     return () => clearInterval(interval);
   }, [onlineRoomCode, currentUser?.id, isEn, battleState?.phase, setBattleState]);
+
+  // Keep local turnStep always in sync with battleState.turnStep
+  useEffect(() => {
+    if (battleState?.turnStep) {
+      setTurnStep(battleState.turnStep);
+    }
+  }, [battleState?.turnStep]);
 
   if (!battleState) {
     return (
@@ -453,16 +458,14 @@ export default function BattleScreen() {
   const myReqPts = myPlayer.weapon.skill2.chargeRequired || 20;
   const canCastSkill2 = myCurrentPts >= myReqPts && !d12RolledThisTurn && turnStep === 'd12';
 
-  // Add message to battle log
+  // Add message to battle log (Local state only; actions include logs in their synced state)
   const addLog = (entry: Omit<BattleLogEntry, 'timestamp'>) => {
     setBattleState((prev) => {
       if (!prev) return null;
-      const updated: BattleState = {
+      return {
         ...prev,
         battleLog: [{ ...entry, timestamp: Date.now() }, ...prev.battleLog],
       };
-      syncOnlineBattle(updated);
-      return updated;
     });
   };
 
@@ -579,14 +582,15 @@ export default function BattleScreen() {
         setTurnStep('d20_def');
 
         const atkName = isP1Attacking ? player1.name : player2.name;
-        addLog({
+        const newLogEntry: BattleLogEntry = {
           turn: currentTurn,
           type: 'attack',
           message: isEn
             ? `${atkName} rolled D20 Attack: ${finalD20}`
             : `${atkName} tung D20 Tấn Công: ${finalD20}`,
           messageVi: `${atkName} tung D20 Tấn Công: ${finalD20}`,
-        });
+          timestamp: Date.now(),
+        };
 
         setBattleState((prev) => {
           if (!prev) return null;
@@ -595,6 +599,7 @@ export default function BattleScreen() {
             p1D20: isP1Attacking ? finalD20 : prev.p1D20,
             p2D20: !isP1Attacking ? finalD20 : prev.p2D20,
             turnStep: 'd20_def',
+            battleLog: [newLogEntry, ...prev.battleLog],
           };
           syncOnlineBattle(updated);
           return updated;
@@ -640,14 +645,17 @@ export default function BattleScreen() {
         );
 
         const defName = isP1Defending ? player1.name : player2.name;
-        addLog({
-          turn: currentTurn,
-          type: 'defend',
-          message: isEn
-            ? `${defName} rolled D20 Defense: ${finalDefD20}`
-            : `${defName} tung D20 Phòng Thủ: ${finalDefD20}`,
-          messageVi: `${defName} tung D20 Phòng Thủ: ${finalDefD20}`,
-        });
+        const logsToAdd: BattleLogEntry[] = [
+          {
+            turn: currentTurn,
+            type: 'defend',
+            message: isEn
+              ? `${defName} rolled D20 Defense: ${finalDefD20}`
+              : `${defName} tung D20 Phòng Thủ: ${finalDefD20}`,
+            messageVi: `${defName} tung D20 Phòng Thủ: ${finalDefD20}`,
+            timestamp: Date.now(),
+          },
+        ];
 
         // Set Combat Formula display
         setCombatFormula({
@@ -689,11 +697,12 @@ export default function BattleScreen() {
           };
           setDamagePopup(newDamagePopup);
 
-          addLog({
+          logsToAdd.unshift({
             turn: currentTurn,
             type: 'damage',
             message: isEn ? combatResult.logTextEn : combatResult.logTextVi,
             messageVi: combatResult.logTextVi,
+            timestamp: Date.now() + 1,
           });
         } else {
           playBlockSound();
@@ -710,11 +719,12 @@ export default function BattleScreen() {
           };
           setDamagePopup(newDamagePopup);
 
-          addLog({
+          logsToAdd.unshift({
             turn: currentTurn,
             type: 'defend',
             message: isEn ? combatResult.logTextEn : combatResult.logTextVi,
             messageVi: combatResult.logTextVi,
+            timestamp: Date.now() + 1,
           });
         }
 
@@ -729,6 +739,7 @@ export default function BattleScreen() {
             turnStep: 'd6_atk',
             activeVfx: newActiveVfx,
             damagePopup: newDamagePopup,
+            battleLog: [...logsToAdd, ...prev.battleLog],
             player1: {
               ...prev.player1,
               hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damage) : prev.player1.hp,
@@ -775,21 +786,25 @@ export default function BattleScreen() {
         const skill1Res = executeSkill1D6(r6, attackerState, defenderState);
         const extraDmg = skill1Res.damage || 0;
 
-        addLog({
-          turn: currentTurn,
-          type: 'skill',
-          message: isEn
-            ? `${attackerState.name} rolled D6 Skill Charge: +${r6} PTS`
-            : `${attackerState.name} tung D6 Sạc Chiêu: +${r6} PTS`,
-          messageVi: `${attackerState.name} tung D6 Sạc Chiêu: +${r6} PTS`,
-        });
+        const logsToAdd: BattleLogEntry[] = [
+          {
+            turn: currentTurn,
+            type: 'skill',
+            message: isEn
+              ? `${attackerState.name} rolled D6 Skill Charge: +${r6} PTS`
+              : `${attackerState.name} tung D6 Sạc Chiêu: +${r6} PTS`,
+            messageVi: `${attackerState.name} tung D6 Sạc Chiêu: +${r6} PTS`,
+            timestamp: Date.now(),
+          },
+        ];
 
         if (extraDmg > 0 || skill1Res.logTextEn) {
-          addLog({
+          logsToAdd.unshift({
             turn: currentTurn,
             type: 'skill',
             message: isEn ? skill1Res.logTextEn : skill1Res.logTextVi,
             messageVi: skill1Res.logTextVi,
+            timestamp: Date.now() + 1,
           });
         }
 
@@ -804,6 +819,7 @@ export default function BattleScreen() {
             p1D6: isP1Attacking ? r6 : prev.p1D6,
             p2D6: !isP1Attacking ? r6 : prev.p2D6,
             turnStep: nextStep,
+            battleLog: [...logsToAdd, ...prev.battleLog],
             player1: {
               ...prev.player1,
               d12Charge: isP1Attacking ? (prev.player1.d12Charge || 0) + r6 : prev.player1.d12Charge,
@@ -848,21 +864,25 @@ export default function BattleScreen() {
         // Auto-trigger Defender Skill 1 / Defense Skill
         const skill1Res = executeSkill1D6(r6, defenderState, attackerState);
 
-        addLog({
-          turn: currentTurn,
-          type: 'defend',
-          message: isEn
-            ? `${defenderState.name} rolled D6 Defense Skill: +${r6} PTS`
-            : `${defenderState.name} tung D6 Chiêu Thủ: +${r6} PTS`,
-          messageVi: `${defenderState.name} tung D6 Chiêu Thủ: +${r6} PTS`,
-        });
+        const logsToAdd: BattleLogEntry[] = [
+          {
+            turn: currentTurn,
+            type: 'defend',
+            message: isEn
+              ? `${defenderState.name} rolled D6 Defense Skill: +${r6} PTS`
+              : `${defenderState.name} tung D6 Chiêu Thủ: +${r6} PTS`,
+            messageVi: `${defenderState.name} tung D6 Chiêu Thủ: +${r6} PTS`,
+            timestamp: Date.now(),
+          },
+        ];
 
         if (skill1Res.logTextEn) {
-          addLog({
+          logsToAdd.unshift({
             turn: currentTurn,
             type: 'skill',
             message: isEn ? skill1Res.logTextEn : skill1Res.logTextVi,
             messageVi: skill1Res.logTextVi,
+            timestamp: Date.now() + 1,
           });
         }
 
@@ -877,6 +897,7 @@ export default function BattleScreen() {
             turnStep: 'd12',
             p1HasRolled: true,
             p2HasRolled: true,
+            battleLog: [...logsToAdd, ...prev.battleLog],
             player1: {
               ...prev.player1,
               d12Charge: isP1Defending ? (prev.player1.d12Charge || 0) + r6 : prev.player1.d12Charge,

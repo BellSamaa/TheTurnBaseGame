@@ -132,7 +132,8 @@ export async function POST(req: Request, context: RouteContext) {
         player2,
         currentTurn: 1,
         attackerId: p1IsAttacker ? player1.id : player2.id,
-        phase: 'waiting',
+        phase: 'rolling_d20',
+        turnStep: 'd20_atk',
         d20Results: null,
         d6Results: null,
         battleLog: [
