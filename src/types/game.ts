@@ -19,13 +19,16 @@ export interface ClassInfo {
   baseHp: number;
 }
 
+export type WeaponTier = 'common' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'secret';
+
 export interface WeaponSkill {
   name: string;
   nameVi: string;
   description: string;
   descriptionVi: string;
+  diceType: 'd6' | 'd12';
   chargeRequired?: number;
-  triggerNumber?: number;
+  triggerNumber?: number | number[];
   effect: string;
 }
 
@@ -33,11 +36,14 @@ export interface WeaponInfo {
   id: string;
   name: string;
   nameVi: string;
+  tier: WeaponTier;
   image: string; // Sliced weapon sprite
   description: string;
   descriptionVi: string;
-  skill1: WeaponSkill & { chargeRequired: number };
-  skill2: WeaponSkill & { triggerNumber: number };
+  passiveDesc?: string;
+  passiveDescVi?: string;
+  skill1: WeaponSkill & { chargeRequired?: number };
+  skill2: WeaponSkill & { triggerNumber?: number | number[]; chargeRequired?: number };
 }
 
 export interface CharacterCustomization {
@@ -63,6 +69,8 @@ export interface UserAccount {
   avatarConfig: CharacterCustomization;
   tier?: number;
   rankPoints?: number;
+  selectedClass?: ClassType;
+  selectedWeapon?: string;
 }
 
 export interface PlayerState {
@@ -73,8 +81,27 @@ export interface PlayerState {
   classType: ClassType;
   weapon: WeaponInfo;
   skillCharge: number;
+  d12Charge?: number;
   isAttacker: boolean;
   character: CharacterCustomization;
+  // Weapon dynamic state mechanics
+  bullets?: number; // Revolver cylinder (0-6)
+  petRockHp?: number; // The Pet Rock HP (0-50)
+  petRockHits?: number; // The Pet Rock hits received (0-5)
+  petRockEnraged?: boolean;
+  isBleeding?: boolean; // Bow bleed debuff
+  dodgeNextAttack?: boolean; // Bow skill 2
+  dodgeNextSkill?: boolean; // Wooden Staff skill 2
+  immuneDamageNext?: boolean; // Infinity Void face 6
+  isStunned?: boolean; // Stunned from Aoi / Time Lock
+  flameBladeBuff?: boolean; // Dragon dagger +5 damage
+  burnTicks?: number; // Fire tick duration
+  burnDmgPerTurn?: number;
+  timeAnchorHp?: number | null; // Chronos bookmarked HP
+  fateSealActive?: boolean; // Chronos reroll mark
+  timeLockActive?: boolean; // Chronos turn lock
+  panicAttackDebuff?: number; // Leaf headband -5 attack
+  panicTurns?: number;
   statusEffects?: {
     poisonTurns?: number;
     poisonDmg?: number;
@@ -110,6 +137,7 @@ export interface BattleState {
   phase: BattlePhase;
   d20Results: { attacker: number; defender: number; boxerExtra?: number } | null;
   d6Results: { player1: number[]; player2: number[] } | null;
+  d12Results?: { player1: number[]; player2: number[] } | null;
   battleLog: BattleLogEntry[];
   winnerId: string | null;
   mapId: string;

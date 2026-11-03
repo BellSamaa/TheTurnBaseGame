@@ -33,7 +33,7 @@ interface ModeCard {
 }
 
 export default function GameModeSelector({ matchType = 'casual', onClose }: GameModeSelectorProps) {
-  const { settings, startNewBattle } = useGameStore();
+  const { settings, startNewBattle, currentUser, setAuthModal } = useGameStore();
   const lang = settings.language;
   const isEn = lang === 'en';
 
@@ -97,6 +97,10 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
   const handleSelectMode = (mode: ModeCard) => {
     playClickSound();
     if (!mode.isAvailable) return;
+    if (mode.id !== 'pve' && !currentUser) {
+      setAuthModal('signup');
+      return;
+    }
     setSelectedModeId(mode.id);
   };
 
@@ -104,6 +108,11 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
     playClickSound();
     const modeObj = modes.find((m) => m.id === selectedModeId);
     if (!modeObj || !modeObj.isAvailable) return;
+
+    if (selectedModeId !== 'pve' && !currentUser) {
+      setAuthModal('signup');
+      return;
+    }
 
     startNewBattle({
       mode: selectedModeId === 'rank_pvp' ? 'ranked' : selectedModeId === 'last_man_standing' ? 'pve' : 'pve',

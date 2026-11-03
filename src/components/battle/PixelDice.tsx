@@ -17,13 +17,18 @@ interface PixelDiceProps {
   p1Name: string;
   p2Name: string;
 
-  // D6 Skill Charge
+  // D6 Skill 1
   isRollingD6: boolean;
   d6RolledThisTurn?: boolean;
   d6P1Rolls: number[] | null;
   d6P2Rolls: number[] | null;
   p1IsMage?: boolean;
   p2IsMage?: boolean;
+
+  // D12 Skill 2
+  isRollingD12?: boolean;
+  d12RolledThisTurn?: boolean;
+  d12P1Rolls?: number[] | null;
 
   // Combat Outcome Formula
   combatFormula?: {
@@ -51,6 +56,9 @@ export default function PixelDice({
   d6P2Rolls,
   p1IsMage = false,
   p2IsMage = false,
+  isRollingD12 = false,
+  d12RolledThisTurn = false,
+  d12P1Rolls = null,
   combatFormula,
   isEn = false,
 }: PixelDiceProps) {
@@ -58,6 +66,7 @@ export default function PixelDice({
   const [displayAtk, setDisplayAtk] = useState<number>(20);
   const [displayDef, setDisplayDef] = useState<number>(20);
   const [displayD6, setDisplayD6] = useState<number>(6);
+  const [displayD12, setDisplayD12] = useState<number>(12);
 
   // Preserve landed numbers permanently so they stay right where they landed
   const [landedAtk, setLandedAtk] = useState<number | null>(null);
@@ -94,6 +103,17 @@ export default function PixelDice({
     }
     return () => clearInterval(interval);
   }, [isRollingD6]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRollingD12) {
+      playDiceRollSound();
+      interval = setInterval(() => {
+        setDisplayD12(Math.floor(Math.random() * 12) + 1);
+      }, 50);
+    }
+    return () => clearInterval(interval);
+  }, [isRollingD12]);
 
   const attackerName = isP1Attacker ? p1Name : p2Name;
   const defenderName = isP1Attacker ? p2Name : p1Name;
@@ -263,6 +283,36 @@ export default function PixelDice({
               />
             </div>
           )}
+        </div>
+
+        {/* VERTICAL DIVIDER */}
+        <div className="hidden sm:block w-[1px] h-16 bg-slate-700/80 mx-1" />
+
+        {/* D12 SKILL 2 BURST / CHARGE TRAY */}
+        <div className="flex flex-col items-center">
+          <div className="flex items-center gap-1 mb-1 text-[8px] font-pixel font-bold text-purple-400">
+            <PixelIcon name="sparkles" size={12} color="#c084fc" />
+            <span>{isEn ? 'D12 BURST / CHARGE' : 'D12 KÍCH CHIÊU'}</span>
+          </div>
+          <span className="text-[7px] font-pixel text-slate-400 mb-1.5">
+            {isEn ? 'SKILL 2 TRAY' : 'KHO BẢO THẠCH D12'}
+          </span>
+
+          <div className="relative flex items-center justify-center p-1 bg-black/60 border border-purple-500/50 shadow-[0_0_15px_rgba(192,132,252,0.3)]">
+            <ThreeDiceCanvas
+              diceType="d12"
+              theme="purple"
+              isRolling={isRollingD12}
+              value={
+                isRollingD12
+                  ? displayD12
+                  : d12P1Rolls && d12P1Rolls.length > 0
+                  ? d12P1Rolls[0]
+                  : 12
+              }
+              size={58}
+            />
+          </div>
         </div>
       </div>
 

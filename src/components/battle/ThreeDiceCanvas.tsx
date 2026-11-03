@@ -5,10 +5,10 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 interface ThreeDiceCanvasProps {
-  diceType: 'd20' | 'd6';
+  diceType: 'd20' | 'd6' | 'd12';
   isRolling: boolean;
   value: number | null;
-  theme?: 'red' | 'cyan' | 'gold';
+  theme?: 'red' | 'cyan' | 'gold' | 'purple';
   size?: number;
   className?: string;
 }
@@ -50,6 +50,7 @@ export default function ThreeDiceCanvas({
     red: { light: 0xff4d4d, ambient: 0x330000, emissive: 0x330000 },
     cyan: { light: 0x38bdf8, ambient: 0x002233, emissive: 0x002233 },
     gold: { light: 0xfacc15, ambient: 0x332200, emissive: 0x332200 },
+    purple: { light: 0xc084fc, ambient: 0x220033, emissive: 0x220033 },
   }[theme];
 
   useEffect(() => {
@@ -115,41 +116,63 @@ export default function ThreeDiceCanvas({
       setLoaded(true);
     };
 
-    const cached = diceType === 'd20' ? d20SceneCache : d6SceneCache;
-    if (cached) {
-      setupMesh(cached);
-    } else {
-      const gltfLoader = getLoader();
-      const modelPath =
-        diceType === 'd20'
-          ? '/assets/models/dice_d20.glb'
-          : '/assets/models/dice_d6.glb';
+    if (diceType === 'd12') {
+      // 3D Dodecahedron (12-sided Die)
+      const geom = new THREE.DodecahedronGeometry(1.2, 0);
+      const mat = new THREE.MeshStandardMaterial({
+        color: themeColors.light,
+        roughness: 0.25,
+        metalness: 0.45,
+        wireframe: false,
+      });
+      const d12Mesh = new THREE.Mesh(geom, mat);
+      
+      // Wireframe overlay for crisp edge definition
+      const wireGeom = new THREE.EdgesGeometry(geom);
+      const wireMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+      const wire = new THREE.LineSegments(wireGeom, wireMat);
+      d12Mesh.add(wire);
 
-      gltfLoader.load(
-        modelPath,
-        (gltf) => {
-          if (diceType === 'd20') d20SceneCache = gltf.scene;
-          else d6SceneCache = gltf.scene;
-          setupMesh(gltf.scene);
-        },
-        undefined,
-        () => {
-          // Fallback procedural geometry if GLB fails
-          const geom =
-            diceType === 'd20'
-              ? new THREE.IcosahedronGeometry(1.2, 0)
-              : new THREE.BoxGeometry(1.4, 1.4, 1.4);
-          const mat = new THREE.MeshStandardMaterial({
-            color: themeColors.light,
-            roughness: 0.25,
-            metalness: 0.4,
-          });
-          const fallbackMesh = new THREE.Mesh(geom, mat);
-          group.clear();
-          group.add(fallbackMesh);
-          setLoaded(true);
-        }
-      );
+      group.clear();
+      group.add(d12Mesh);
+      setLoaded(true);
+    } else {
+      const cached = diceType === 'd20' ? d20SceneCache : d6SceneCache;
+      if (cached) {
+        setupMesh(cached);
+      } else {
+        const gltfLoader = getLoader();
+        const modelPath =
+          diceType === 'd20'
+            ? '/assets/models/dice_d20.glb'
+            : '/assets/models/dice_d6.glb';
+
+        gltfLoader.load(
+          modelPath,
+          (gltf) => {
+            if (diceType === 'd20') d20SceneCache = gltf.scene;
+            else d6SceneCache = gltf.scene;
+            setupMesh(gltf.scene);
+          },
+          undefined,
+          () => {
+            // Fallback procedural geometry if GLB fails
+            const geom =
+              diceType === 'd20'
+                ? new THREE.IcosahedronGeometry(1.2, 0)
+                : new THREE.BoxGeometry(1.4, 1.4, 1.4);
+            const mat = new THREE.MeshStandardMaterial({
+              color: themeColors.light,
+              roughness: 0.25,
+              metalness: 0.4,
+            });
+            const fallbackMesh = new THREE.Mesh(geom, mat);
+            group.clear();
+            group.add(fallbackMesh);
+            setLoaded(true);
+          }
+        );
+      }
     }
 
     // Animation Loop

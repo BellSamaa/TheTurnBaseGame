@@ -231,30 +231,33 @@ export default function HomeScreen() {
               </motion.div>
             </div>
           </motion.div>
+        </div>
 
+        {/* Section Bottom Footer: Quick Jump Links + Scroll Down Indicator (Strictly single container, zero overlap) */}
+        <div className="relative z-20 w-full pb-6 pt-2 px-4 flex flex-col items-center gap-2.5">
           {/* Quick Jump Links */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-6 text-[9px] font-pixel text-slate-400">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[9px] sm:text-[10px] font-pixel text-slate-400">
             <button
               onClick={() => scrollToSection('rules-section')}
               className="hover:text-yellow-400 underline transition-colors cursor-pointer"
             >
               {isEn ? 'How to Play' : 'Cách Chơi'}
             </button>
-            <span>•</span>
+            <span className="text-slate-600">•</span>
             <button
               onClick={() => scrollToSection('classes-section')}
               className="hover:text-yellow-400 underline transition-colors cursor-pointer"
             >
               {isEn ? 'Classes' : 'Hệ Nghề'}
             </button>
-            <span>•</span>
+            <span className="text-slate-600">•</span>
             <button
               onClick={() => scrollToSection('weapons-section')}
               className="hover:text-yellow-400 underline transition-colors cursor-pointer"
             >
               {isEn ? 'Weapons' : 'Vũ Khí'}
             </button>
-            <span>•</span>
+            <span className="text-slate-600">•</span>
             <button
               onClick={() => scrollToSection('arenas-section')}
               className="hover:text-yellow-400 underline transition-colors cursor-pointer"
@@ -262,15 +265,13 @@ export default function HomeScreen() {
               {isEn ? 'Arenas' : 'Đấu Trường'}
             </button>
           </div>
-        </div>
 
-        {/* Scroll Down Indicator */}
-        <div className="relative z-20 pb-6 pt-4 text-center">
+          {/* Scroll Down Indicator */}
           <button
             onClick={() => scrollToSection('rules-section')}
-            className="text-[9px] font-pixel text-yellow-400/80 hover:text-yellow-300 transition-colors flex flex-col items-center gap-1 animate-bounce cursor-pointer"
+            className="text-[9px] sm:text-[10px] font-pixel text-yellow-400/80 hover:text-yellow-300 transition-colors flex flex-col items-center gap-1 animate-bounce cursor-pointer"
           >
-            <span>{isEn ? 'SCROLL DOWN TO EXPLORE THE REALM' : 'CUỘN XUỐNG ĐỂ XEM HƯỚNG DẪN & HỆ THỐNG'}</span>
+            <span>{isEn ? 'SCROLL DOWN TO EXPLORE THE REALM' : 'CUỘN XUỐNG ĐỂ KHÁM PHÁ'}</span>
             <span>▼</span>
           </button>
         </div>

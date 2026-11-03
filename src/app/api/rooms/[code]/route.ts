@@ -1,0 +1,192 @@
+import { NextResponse } from 'next/server';
+import { getRoomByCode, updateRoom, deleteRoom, type RoomParticipant } from '@/lib/serverDb';
+import { CLASS_DEFINITIONS, WEAPON_DEFINITIONS } from '@/lib/constants';
+import type { BattleState, PlayerState } from '@/types/game';
+
+interface RouteContext {
+  params: Promise<{ code: string }>;
+}
+
+export async function GET(req: Request, context: RouteContext) {
+  try {
+    const { code } = await context.params;
+    const room = getRoomByCode(code);
+    if (!room) {
+      return NextResponse.json(
+        { success: false, error: 'Phòng không tồn tại hoặc đã hết hạn (Room not found)' },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ success: true, room });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Server error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request, context: RouteContext) {
+  try {
+    const { code } = await context.params;
+    const room = getRoomByCode(code);
+    if (!room) {
+      return NextResponse.json(
+        { success: false, error: 'Phòng không tồn tại (Room not found)' },
+        { status: 404 }
+      );
+    }
+
+    const body = await req.json();
+    const { action } = body;
+
+    // 1. JOIN ROOM
+    if (action === 'join') {
+      const { guest } = body;
+      if (!guest || !guest.id) {
+        return NextResponse.json({ success: false, error: 'Guest info required' }, { status: 400 });
+      }
+
+      if (room.host.id === guest.id) {
+        // Host rejoining
+        return NextResponse.json({ success: true, room });
+      }
+
+      if (room.guest && room.guest.id !== guest.id && room.status !== 'waiting') {
+        return NextResponse.json(
+          { success: false, error: 'Phòng đã đủ 2 người chơi (Room is full)' },
+          { status: 403 }
+        );
+      }
+
+      const guestParticipant: RoomParticipant = {
+        id: guest.id,
+        name: guest.name,
+        character: guest.character,
+        classType: guest.classType || 'warrior',
+        weaponId: guest.weaponId || 'greatsword',
+        isReady: false,
+      };
+
+      room.guest = guestParticipant;
+      room.status = 'ready';
+      updateRoom(room);
+      return NextResponse.json({ success: true, room });
+    }
+
+    // 2. TOGGLE READY STATUS
+    if (action === 'ready') {
+      const { userId, isReady } = body;
+      if (room.host.id === userId) {
+        room.host.isReady = isReady;
+      } else if (room.guest && room.guest.id === userId) {
+        room.guest.isReady = isReady;
+      }
+      updateRoom(room);
+      return NextResponse.json({ success: true, room });
+    }
+
+    // 3. START BATTLE (When both ready)
+    if (action === 'start_battle') {
+      if (!room.guest) {
+        return NextResponse.json(
+          { success: false, error: 'Cần ít nhất 2 người chơi để bắt đầu' },
+          { status: 400 }
+        );
+      }
+
+      const p1Class = CLASS_DEFINITIONS[room.host.classType] || CLASS_DEFINITIONS.warrior;
+      const p2Class = CLASS_DEFINITIONS[room.guest.classType] || CLASS_DEFINITIONS.warrior;
+      const p1Weapon = WEAPON_DEFINITIONS[room.host.weaponId] || WEAPON_DEFINITIONS.greatsword;
+      const p2Weapon = WEAPON_DEFINITIONS[room.guest.weaponId] || WEAPON_DEFINITIONS.greatsword;
+
+      const p1IsAttacker = Math.random() > 0.5;
+
+      const player1: PlayerState = {
+        id: room.host.id,
+        name: room.host.name,
+        character: room.host.character,
+        classType: room.host.classType,
+        weapon: p1Weapon,
+        hp: p1Class.baseHp,
+        maxHp: p1Class.baseHp,
+        skillCharge: 0,
+        isAttacker: p1IsAttacker,
+        statusEffects: {},
+      };
+
+      const player2: PlayerState = {
+        id: room.guest.id,
+        name: room.guest.name,
+        character: room.guest.character,
+        classType: room.guest.classType,
+        weapon: p2Weapon,
+        hp: p2Class.baseHp,
+        maxHp: p2Class.baseHp,
+        skillCharge: 0,
+        isAttacker: !p1IsAttacker,
+        statusEffects: {},
+      };
+
+      const initialBattle: BattleState = {
+        id: 'battle_' + room.code + '_' + Date.now(),
+        player1,
+        player2,
+        currentTurn: 1,
+        attackerId: p1IsAttacker ? player1.id : player2.id,
+        phase: 'waiting',
+        d20Results: null,
+        d6Results: null,
+        battleLog: [
+          {
+            turn: 1,
+            type: 'system',
+            message: `ONLINE DUEL COMMENCED! ${p1IsAttacker ? player1.name : player2.name} strikes first as ATTACKER!`,
+            messageVi: `TRẬN ĐẤU BẮT ĐẦU! ${p1IsAttacker ? player1.name : player2.name} đi trước ở vị thế TẤN CÔNG!`,
+            timestamp: Date.now(),
+          },
+        ],
+        winnerId: null,
+        mapId: room.mapId,
+        isAiOpponent: false,
+        mode: room.mode,
+      };
+
+      room.status = 'playing';
+      room.battleState = initialBattle;
+      updateRoom(room);
+      return NextResponse.json({ success: true, room });
+    }
+
+    // 4. BATTLE UPDATE (Action Sync from either player)
+    if (action === 'battle_update') {
+      const { battleState } = body;
+      if (battleState) {
+        room.battleState = battleState;
+        if (battleState.winnerId) {
+          room.status = 'finished';
+        }
+        updateRoom(room);
+      }
+      return NextResponse.json({ success: true, room });
+    }
+
+    // 5. LEAVE ROOM
+    if (action === 'leave') {
+      const { userId } = body;
+      if (room.host.id === userId) {
+        // Host left - delete room
+        deleteRoom(room.code);
+        return NextResponse.json({ success: true, message: 'Room deleted' });
+      } else if (room.guest && room.guest.id === userId) {
+        room.guest = null;
+        room.status = 'waiting';
+        updateRoom(room);
+        return NextResponse.json({ success: true, room });
+      }
+    }
+
+    return NextResponse.json({ success: false, error: 'Unknown action' }, { status: 400 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Server error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}

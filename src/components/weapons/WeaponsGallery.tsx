@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
 import { t } from '@/lib/translations';
 import { WEAPON_DEFINITIONS } from '@/lib/constants';
+import { getTierConfig } from '@/lib/tierStyles';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
@@ -22,6 +23,7 @@ export default function WeaponsGallery() {
 
   const selectedWeapon = WEAPON_DEFINITIONS[selectedWeaponId] || WEAPON_DEFINITIONS.greatsword;
   const isCurrentlyEquipped = profile.weaponId === selectedWeaponId;
+  const currentTier = getTierConfig(selectedWeapon.tier);
 
   const handleEquip = (id: string) => {
     playClickSound();
@@ -72,6 +74,7 @@ export default function WeaponsGallery() {
               {Object.values(WEAPON_DEFINITIONS).map((w) => {
                 const isSelected = selectedWeaponId === w.id;
                 const isEquipped = profile.weaponId === w.id;
+                const itemTier = getTierConfig(w.tier);
 
                 return (
                   <motion.div
@@ -81,11 +84,15 @@ export default function WeaponsGallery() {
                       playClickSound();
                       setSelectedWeaponId(w.id);
                     }}
+                    style={{
+                      borderColor: isSelected ? itemTier.borderColor : undefined,
+                      boxShadow: isSelected ? itemTier.boxShadow : undefined,
+                    }}
                     className={`
                       relative p-2.5 border-2 cursor-pointer transition select-none flex flex-col items-center justify-between text-center
                       ${
                         isSelected
-                          ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_12px_rgba(250,204,21,0.5)] scale-[1.02]'
+                          ? 'bg-yellow-950/60 scale-[1.02]'
                           : 'border-slate-700 bg-slate-900/70 hover:border-slate-500'
                       }
                     `}
@@ -96,6 +103,13 @@ export default function WeaponsGallery() {
                       </span>
                     )}
 
+                    {/* Tier badge on card */}
+                    <span
+                      className={`text-[6px] font-pixel px-1 mb-1 border font-bold uppercase ${itemTier.badgeClass}`}
+                    >
+                      {isEn ? itemTier.labelEn : itemTier.labelVi}
+                    </span>
+
                     {/* Sliced Weapon Image */}
                     <div className="relative w-14 h-14 sm:w-16 sm:h-16 mb-2 flex items-center justify-center">
                       <img
@@ -105,7 +119,10 @@ export default function WeaponsGallery() {
                       />
                     </div>
 
-                    <h4 className="text-[9px] font-pixel font-bold text-yellow-300 leading-tight mb-1 truncate w-full">
+                    <h4
+                      className="text-[9px] font-pixel font-bold leading-tight mb-1 truncate w-full"
+                      style={{ color: itemTier.accentColor }}
+                    >
                       {isEn ? w.name : w.nameVi}
                     </h4>
 
@@ -127,12 +144,18 @@ export default function WeaponsGallery() {
             className="flex flex-col gap-3"
           >
             {/* Weapon Showcase Stage */}
-            <div className="relative w-full aspect-video bg-[#0c101c] border-2 border-yellow-500/70 flex items-center justify-center p-4">
+            <div
+              className="relative w-full aspect-video bg-[#0c101c] border-2 flex items-center justify-center p-4"
+              style={{
+                borderColor: currentTier.borderColor,
+                boxShadow: currentTier.boxShadow,
+              }}
+            >
               <div className="relative w-28 h-28 sm:w-32 sm:h-32">
                 <img
                   src={selectedWeapon.image}
                   alt={selectedWeapon.name}
-                  className="w-full h-full object-contain pixelated drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] animate-float"
+                  className="w-full h-full object-contain pixelated drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] animate-float"
                 />
               </div>
 
@@ -144,32 +167,60 @@ export default function WeaponsGallery() {
             </div>
 
             <div>
-              <h3 className="text-sm font-pixel font-bold text-yellow-400 mb-1">
-                {isEn ? selectedWeapon.name : selectedWeapon.nameVi}
-              </h3>
-              <p className="text-[8.5px] font-sans text-slate-300 leading-relaxed">
+              <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                <h3
+                  className="text-sm font-pixel font-bold"
+                  style={{ color: currentTier.accentColor }}
+                >
+                  {isEn ? selectedWeapon.name : selectedWeapon.nameVi}
+                </h3>
+                <span
+                  className={`text-[7.5px] font-pixel px-2 py-0.5 border font-bold uppercase ${currentTier.badgeClass}`}
+                >
+                  TIER {isEn ? currentTier.labelEn : currentTier.labelVi}
+                </span>
+              </div>
+              <p className="text-[8.5px] font-pixel text-slate-300 leading-relaxed">
                 {isEn ? selectedWeapon.description : selectedWeapon.descriptionVi}
               </p>
             </div>
 
+            {/* Passive Trait */}
+            {(selectedWeapon.passiveDesc || selectedWeapon.passiveDescVi) && (
+              <div className="p-2 bg-purple-950/40 border border-purple-500/60">
+                <span className="text-[7.5px] font-pixel text-purple-300 font-bold block mb-0.5">
+                  ⚡ {isEn ? 'PASSIVE TRAIT:' : 'NỘI TẠI:'}
+                </span>
+                <p className="text-[7.5px] font-pixel text-slate-200">
+                  {isEn ? selectedWeapon.passiveDesc : selectedWeapon.passiveDescVi}
+                </p>
+              </div>
+            )}
+
             {/* Weapon Skills Breakdown */}
             <div className="space-y-2 pt-2 border-t border-slate-800">
               <div className="p-2 bg-yellow-950/40 border border-yellow-500/40">
-                <div className="flex items-center justify-between text-[8.5px] font-pixel font-bold text-yellow-300 mb-1">
-                  <span>⚡ SKILL 1: {isEn ? selectedWeapon.skill1.name : selectedWeapon.skill1.nameVi}</span>
-                  <span className="text-cyan-300">{selectedWeapon.skill1.chargeRequired} PTS</span>
+                <div className="flex items-center justify-between text-[8px] font-pixel font-bold text-yellow-300 mb-1">
+                  <span>🎲 SKILL 1: {isEn ? selectedWeapon.skill1.name : selectedWeapon.skill1.nameVi}</span>
+                  <span className="text-yellow-300 bg-yellow-950 px-1 py-0.2 border border-yellow-500/50">
+                    D6
+                  </span>
                 </div>
-                <p className="text-[7.5px] font-sans text-slate-300 leading-tight">
+                <p className="text-[7.5px] font-pixel text-slate-300 leading-tight">
                   {isEn ? selectedWeapon.skill1.description : selectedWeapon.skill1.descriptionVi}
                 </p>
               </div>
 
               <div className="p-2 bg-cyan-950/40 border border-cyan-500/40">
-                <div className="flex items-center justify-between text-[8.5px] font-pixel font-bold text-cyan-300 mb-1">
+                <div className="flex items-center justify-between text-[8px] font-pixel font-bold text-cyan-300 mb-1">
                   <span>✨ SKILL 2: {isEn ? selectedWeapon.skill2.name : selectedWeapon.skill2.nameVi}</span>
-                  <span className="text-yellow-300">TRIGGER DIE {selectedWeapon.skill2.triggerNumber}</span>
+                  <span className="text-cyan-300 bg-cyan-950 px-1 py-0.2 border border-cyan-500/50">
+                    {selectedWeapon.skill2.chargeRequired
+                      ? `${selectedWeapon.skill2.chargeRequired} PTS`
+                      : 'D12'}
+                  </span>
                 </div>
-                <p className="text-[7.5px] font-sans text-slate-300 leading-tight">
+                <p className="text-[7.5px] font-pixel text-slate-300 leading-tight">
                   {isEn ? selectedWeapon.skill2.description : selectedWeapon.skill2.descriptionVi}
                 </p>
               </div>

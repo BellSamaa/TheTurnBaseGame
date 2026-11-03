@@ -39,16 +39,20 @@ export default function AuthModals() {
   const [editBio, setEditBio] = useState(currentUser?.bio || '');
   const [editName, setEditName] = useState(profile.name);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (authModal === 'none') return null;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginUsername.trim()) {
       setErrorMsg(isEn ? 'Please enter your username.' : 'Vui lòng nhập tên người dùng.');
       return;
     }
-    const res = loginUser(loginUsername.trim(), loginPass);
+    setIsLoading(true);
+    setErrorMsg('');
+    const res = await loginUser(loginUsername.trim(), loginPass);
+    setIsLoading(false);
     if (!res.success) {
       setErrorMsg(res.error || (isEn ? 'User not found.' : 'Không tìm thấy tài khoản.'));
     } else {
@@ -58,17 +62,20 @@ export default function AuthModals() {
     }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signupUsername.trim()) {
       setErrorMsg(isEn ? 'Please enter a username.' : 'Vui lòng nhập tên.');
       return;
     }
-    const res = signupUser(
+    setIsLoading(true);
+    setErrorMsg('');
+    const res = await signupUser(
       signupUsername.trim(),
       signupEmail.trim() || `${signupUsername.trim().toLowerCase()}@dicemaniac.rpg`,
       signupPass
     );
+    setIsLoading(false);
     if (!res.success) {
       setErrorMsg(res.error || (isEn ? 'Username already taken.' : 'Tên tài khoản đã tồn tại.'));
     } else {
@@ -153,8 +160,10 @@ export default function AuthModals() {
                 </div>
 
                 <div className="pt-2 flex flex-col gap-2">
-                  <PixelButton variant="gold" size="md" className="w-full py-2.5">
-                    {isEn ? 'ENTER THE ARENA' : 'ĐĂNG NHẬP NGAY'}
+                  <PixelButton variant="gold" size="md" className="w-full py-2.5" disabled={isLoading}>
+                    {isLoading
+                      ? (isEn ? 'CONNECTING...' : 'ĐANG ĐĂNG NHẬP...')
+                      : (isEn ? 'ENTER THE ARENA' : 'ĐĂNG NHẬP NGAY')}
                   </PixelButton>
 
                   <div className="text-center text-[9px] text-slate-400 mt-2">
@@ -243,8 +252,10 @@ export default function AuthModals() {
                 </div>
 
                 <div className="pt-2 flex flex-col gap-2">
-                  <PixelButton variant="secondary" size="md" className="w-full py-2.5">
-                    {isEn ? 'CREATE ACCOUNT' : 'TẠO TÀI KHOẢN'}
+                  <PixelButton variant="secondary" size="md" className="w-full py-2.5" disabled={isLoading}>
+                    {isLoading
+                      ? (isEn ? 'CREATING HERO...' : 'ĐANG KHỞI TẠO...')
+                      : (isEn ? 'CREATE ACCOUNT' : 'TẠO TÀI KHOẢN')}
                   </PixelButton>
 
                   <div className="text-center text-[9px] text-slate-400 mt-2">

@@ -37,8 +37,8 @@ interface GameStore {
   accounts: UserAccount[];
   authModal: 'none' | 'login' | 'signup' | 'profile';
   setAuthModal: (m: 'none' | 'login' | 'signup' | 'profile') => void;
-  loginUser: (username: string, pass?: string) => { success: boolean; error?: string };
-  signupUser: (username: string, email: string, pass?: string) => { success: boolean; error?: string };
+  loginUser: (username: string, pass?: string) => Promise<{ success: boolean; error?: string }>;
+  signupUser: (username: string, email: string, pass?: string) => Promise<{ success: boolean; error?: string }>;
   logoutUser: () => void;
   updateUserBio: (bio: string) => void;
 
@@ -48,6 +48,8 @@ interface GameStore {
   // Active Battle & Rooms
   battleState: BattleState | null;
   activeRoom: RoomState | null;
+  onlineRoomCode: string | null;
+  setOnlineRoomCode: (code: string | null) => void;
   rooms: RoomState[];
 
   // Actions
@@ -111,44 +113,67 @@ export const useGameStore = create<GameStore>()(
 
       setAuthModal: (m) => set({ authModal: m }),
 
-      loginUser: (username, pass) => {
-        const trimmedUser = username.trim().toLowerCase();
-        const acc = get().accounts.find(
-          (a) => a.username.toLowerCase() === trimmedUser || a.email.toLowerCase() === trimmedUser
-        );
-        if (!acc) {
+      loginUser: async (username, pass) => {
+        const trimmedUser = username.trim();
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: trimmedUser, password: pass }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success && data.user) {
+            const u = data.user;
+            set({
+              currentUser: u,
+              profile: {
+                ...get().profile,
+                id: u.id,
+                name: u.username,
+                character: u.avatarConfig || get().profile.character,
+                classType: u.selectedClass || get().profile.classType,
+                weaponId: u.selectedWeapon || get().profile.weaponId,
+                tier: u.tier || 1,
+                rank: u.rankPoints || 1000,
+                wins: u.wins || 0,
+                losses: u.losses || 0,
+              },
+              authModal: 'none',
+            });
+            return { success: true };
+          } else {
+            return {
+              success: false,
+              error: data.error || (get().settings.language === 'vi' ? 'Đăng nhập không thành công' : 'Login failed'),
+            };
+          }
+        } catch {
+          // Offline fallback: check local accounts in storage
+          const acc = get().accounts.find(
+            (a) => a.username.toLowerCase() === trimmedUser.toLowerCase()
+          );
+          if (acc) {
+            if (acc.passwordHash && pass && acc.passwordHash !== pass) {
+              return {
+                success: false,
+                error: get().settings.language === 'vi' ? 'Mật khẩu không chính xác.' : 'Incorrect password.',
+              };
+            }
+            set({
+              currentUser: acc,
+              profile: { ...get().profile, id: acc.id, name: acc.username, character: acc.avatarConfig },
+              authModal: 'none',
+            });
+            return { success: true };
+          }
           return {
             success: false,
-            error: get().settings.language === 'vi'
-              ? 'Tài khoản không tồn tại. Vui lòng bấm Đăng Ký.'
-              : 'User account not found. Please click Sign Up.',
+            error: get().settings.language === 'vi' ? 'Không thể kết nối đến máy chủ.' : 'Could not connect to server.',
           };
         }
-
-        if (acc.passwordHash && pass && acc.passwordHash !== pass) {
-          return {
-            success: false,
-            error: get().settings.language === 'vi'
-              ? 'Mật khẩu không chính xác. Vui lòng thử lại.'
-              : 'Incorrect password. Please try again.',
-          };
-        }
-
-        set({
-          currentUser: acc,
-          profile: {
-            ...get().profile,
-            name: acc.username,
-            character: acc.avatarConfig,
-            tier: acc.tier || 1,
-            rank: acc.rankPoints || 1000,
-          },
-          authModal: 'none',
-        });
-        return { success: true };
       },
 
-      signupUser: (username, email, pass) => {
+      signupUser: async (username, email, pass) => {
         const trimmedUser = username.trim();
         const trimmedEmail = email.trim();
 
@@ -170,39 +195,63 @@ export const useGameStore = create<GameStore>()(
           };
         }
 
-        const existing = get().accounts.find(
-          (a) =>
-            a.username.toLowerCase() === trimmedUser.toLowerCase() ||
-            (trimmedEmail && a.email.toLowerCase() === trimmedEmail.toLowerCase())
-        );
-        if (existing) {
-          return {
-            success: false,
-            error: get().settings.language === 'vi'
-              ? 'Tên tài khoản hoặc email này đã được sử dụng.'
-              : 'Username or email is already registered.',
+        try {
+          const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: trimmedUser,
+              email: trimmedEmail || `${trimmedUser.toLowerCase()}@dicemaniac.rpg`,
+              password: pass,
+              avatarConfig: get().profile.character,
+              selectedClass: get().profile.classType,
+              selectedWeapon: get().profile.weaponId,
+            }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success && data.user) {
+            const u = data.user;
+            set({
+              currentUser: u,
+              accounts: [...get().accounts.filter((a) => a.username.toLowerCase() !== u.username.toLowerCase()), u],
+              profile: {
+                ...get().profile,
+                id: u.id,
+                name: u.username,
+                character: u.avatarConfig || get().profile.character,
+                classType: u.selectedClass || get().profile.classType,
+                weaponId: u.selectedWeapon || get().profile.weaponId,
+              },
+              authModal: 'none',
+            });
+            return { success: true };
+          } else {
+            return {
+              success: false,
+              error: data.error || (get().settings.language === 'vi' ? 'Tên tài khoản này đã được sử dụng.' : 'Username already taken.'),
+            };
+          }
+        } catch {
+          // Local fallback
+          const newAcc: UserAccount = {
+            id: 'user_' + Date.now().toString(36),
+            username: trimmedUser,
+            email: trimmedEmail || `${trimmedUser.toLowerCase()}@dicemaniac.rpg`,
+            passwordHash: pass || '',
+            bio: 'Challenger ready to roll the D20.',
+            createdAt: new Date().toISOString().split('T')[0],
+            avatarConfig: get().profile.character,
+            tier: 1,
+            rankPoints: 1000,
           };
+          set({
+            accounts: [...get().accounts, newAcc],
+            currentUser: newAcc,
+            profile: { ...get().profile, id: newAcc.id, name: newAcc.username },
+            authModal: 'none',
+          });
+          return { success: true };
         }
-
-        const newAcc: UserAccount = {
-          id: 'user_' + Date.now().toString(36),
-          username: trimmedUser,
-          email: trimmedEmail || `${trimmedUser.toLowerCase()}@dicemaniac.rpg`,
-          passwordHash: pass || '',
-          bio: 'Challenger ready to roll the D20.',
-          createdAt: new Date().toISOString().split('T')[0],
-          avatarConfig: get().profile.character,
-          tier: 1,
-          rankPoints: 1000,
-        };
-
-        set({
-          accounts: [...get().accounts, newAcc],
-          currentUser: newAcc,
-          profile: { ...get().profile, name: newAcc.username },
-          authModal: 'none',
-        });
-        return { success: true };
       },
 
       logoutUser: () => set({ currentUser: null }),
@@ -211,6 +260,11 @@ export const useGameStore = create<GameStore>()(
         set((state) => {
           if (!state.currentUser) return state;
           const updated = { ...state.currentUser, bio };
+          fetch('/api/auth/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: updated.username, bio }),
+          }).catch(() => {});
           return {
             currentUser: updated,
             accounts: state.accounts.map((a) =>
@@ -221,6 +275,8 @@ export const useGameStore = create<GameStore>()(
 
       battleState: null,
       activeRoom: null,
+      onlineRoomCode: null,
+      setOnlineRoomCode: (code) => set({ onlineRoomCode: code }),
       rooms: [],
 
       setPage: (page) => set({ currentPage: page }),
@@ -239,11 +295,21 @@ export const useGameStore = create<GameStore>()(
       updateProfile: (newProfile) =>
         set((state) => {
           const updated = { ...state.profile, ...newProfile };
-          if (state.currentUser && newProfile.name) {
-            state.currentUser.username = newProfile.name;
-          }
-          if (state.currentUser && newProfile.character) {
-            state.currentUser.avatarConfig = newProfile.character;
+          if (state.currentUser) {
+            if (newProfile.name) state.currentUser.username = newProfile.name;
+            if (newProfile.character) state.currentUser.avatarConfig = newProfile.character;
+            if (newProfile.classType) state.currentUser.selectedClass = newProfile.classType;
+            if (newProfile.weaponId) state.currentUser.selectedWeapon = newProfile.weaponId;
+            fetch('/api/auth/profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: state.currentUser.username,
+                avatarConfig: updated.character,
+                selectedClass: updated.classType,
+                selectedWeapon: updated.weaponId,
+              }),
+            }).catch(() => {});
           }
           return { profile: updated };
         }),
@@ -253,6 +319,14 @@ export const useGameStore = create<GameStore>()(
           const newCustom = { ...state.profile.character, ...custom };
           if (state.currentUser) {
             state.currentUser.avatarConfig = newCustom;
+            fetch('/api/auth/profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: state.currentUser.username,
+                avatarConfig: newCustom,
+              }),
+            }).catch(() => {});
           }
           return {
             profile: {

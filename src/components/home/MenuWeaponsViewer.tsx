@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WEAPON_DEFINITIONS } from '@/lib/constants';
 import { useGameStore } from '@/stores/gameStore';
+import { getTierConfig } from '@/lib/tierStyles';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelIcon from '@/components/ui/PixelIcon';
@@ -21,6 +22,7 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
   const weapons = Object.values(WEAPON_DEFINITIONS);
   const selectedWeapon = WEAPON_DEFINITIONS[selectedId] || weapons[0];
   const isEquipped = profile.weaponId === selectedWeapon.id;
+  const currentTier = getTierConfig(selectedWeapon.tier);
 
   const handleEquip = (id: string) => {
     playSaveSound();
@@ -47,6 +49,7 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
           {weapons.map((w) => {
             const isSelected = selectedId === w.id;
             const isCurrent = profile.weaponId === w.id;
+            const itemTier = getTierConfig(w.tier);
 
             return (
               <motion.button
@@ -67,7 +70,10 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
                 `}
               >
                 {/* Small Weapon Icon */}
-                <div className="relative w-9 h-9 bg-black border border-slate-700 p-0.5 flex-shrink-0 flex items-center justify-center">
+                <div
+                  className="relative w-9 h-9 bg-black border p-0.5 flex-shrink-0 flex items-center justify-center"
+                  style={{ borderColor: itemTier.borderColor }}
+                >
                   <img
                     src={w.image}
                     alt={w.name}
@@ -77,7 +83,10 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[8.5px] font-pixel font-bold text-yellow-300 truncate">
+                    <span
+                      className="text-[8.5px] font-pixel font-bold truncate"
+                      style={{ color: itemTier.accentColor }}
+                    >
                       {isEn ? w.name : w.nameVi}
                     </span>
                     {isCurrent && (
@@ -86,9 +95,14 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
                       </span>
                     )}
                   </div>
-                  <span className="text-[7px] text-slate-400 font-sans block truncate">
-                    {isEn ? w.description : w.descriptionVi}
-                  </span>
+                  <div className="flex items-center justify-between gap-1 mt-0.5">
+                    <span className="text-[7px] text-slate-400 font-sans block truncate max-w-[150px]">
+                      {isEn ? w.description : w.descriptionVi}
+                    </span>
+                    <span className={`text-[6px] font-pixel px-1 border ${itemTier.badgeClass}`}>
+                      {isEn ? itemTier.labelEn : itemTier.labelVi}
+                    </span>
+                  </div>
                 </div>
               </motion.button>
             );
@@ -97,7 +111,13 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
       </div>
 
       {/* 2. CENTER & RIGHT STAGE: Large Weapon Showcase & Deep Skill Mechanics (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col justify-between gap-4 bg-[#07090e]/90 border border-yellow-500/50 p-4 sm:p-5">
+      <div
+        className="lg:col-span-8 flex flex-col justify-between gap-4 bg-[#07090e]/90 border-2 p-4 sm:p-5 transition-all"
+        style={{
+          borderColor: currentTier.borderColor,
+          boxShadow: currentTier.boxShadow,
+        }}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={selectedWeapon.id}
@@ -108,9 +128,17 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
             className="flex flex-col gap-4"
           >
             {/* Top Showcase: Big Floating Weapon Sprite */}
-            <div className="relative w-full aspect-[21/9] sm:aspect-[24/9] bg-gradient-to-b from-[#131b2b] via-[#0c101c] to-black border-2 border-yellow-500/70 flex items-center justify-center overflow-hidden shadow-inner">
+            <div
+              className="relative w-full aspect-[21/9] sm:aspect-[24/9] bg-gradient-to-b from-[#131b2b] via-[#0c101c] to-black border-2 flex items-center justify-center overflow-hidden shadow-inner"
+              style={{ borderColor: currentTier.borderColor }}
+            >
               {/* Background ambient radial glow */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(250,204,21,0.18)_0%,transparent_70%)] pointer-events-none" />
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: `radial-gradient(circle at center, ${currentTier.glowColor} 0%, transparent 70%)`,
+                }}
+              />
 
               {/* Large Centered Weapon */}
               <motion.div
@@ -123,7 +151,7 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
                   duration: 3.5,
                   ease: 'easeInOut',
                 }}
-                className="relative w-28 h-28 sm:w-36 sm:h-36 drop-shadow-[0_0_25px_rgba(250,204,21,0.65)]"
+                className="relative w-28 h-28 sm:w-36 sm:h-36 drop-shadow-[0_0_25px_rgba(255,255,255,0.4)]"
               >
                 <img
                   src={selectedWeapon.image}
@@ -140,64 +168,73 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
               )}
             </div>
 
-            {/* Title & Lore */}
+            {/* Title, Tier & Lore */}
             <div>
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <h3 className="text-sm sm:text-base font-pixel font-bold text-yellow-300 drop-shadow flex items-center gap-1.5">
-                  <PixelIcon name="dagger" size={16} color="#facc15" />
+              <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                <h3
+                  className="text-sm sm:text-base font-pixel font-bold drop-shadow flex items-center gap-1.5"
+                  style={{ color: currentTier.accentColor }}
+                >
+                  <PixelIcon name="dagger" size={16} color={currentTier.accentColor} />
                   <span>{isEn ? selectedWeapon.name : selectedWeapon.nameVi}</span>
                 </h3>
-                <span className="text-[7.5px] font-pixel text-yellow-400 bg-yellow-950/80 px-2 py-0.5 border border-yellow-500/50">
-                  TIER 3 LEGENDARY
+                <span
+                  className={`text-[8px] font-pixel px-2.5 py-0.5 border font-bold uppercase shadow ${currentTier.badgeClass}`}
+                >
+                  TIER {isEn ? currentTier.labelEn : currentTier.labelVi}
                 </span>
               </div>
-              <p className="text-[8px] sm:text-[9px] font-sans text-slate-300 leading-relaxed">
+              <p className="text-[8.5px] sm:text-[9.5px] font-pixel text-slate-300 leading-relaxed">
                 {isEn ? selectedWeapon.description : selectedWeapon.descriptionVi}
               </p>
             </div>
 
+            {/* Weapon Passive (if any) */}
+            {(selectedWeapon.passiveDesc || selectedWeapon.passiveDescVi) && (
+              <div className="p-2.5 bg-purple-950/40 border border-purple-500/60 flex flex-col gap-1">
+                <span className="text-[8px] font-pixel text-purple-300 font-bold flex items-center gap-1">
+                  <span>⚡</span> {isEn ? 'PASSIVE TRAIT:' : 'NỘI TẠI VŨ KHÍ:'}
+                </span>
+                <p className="text-[8px] text-slate-200 font-pixel">
+                  {isEn ? selectedWeapon.passiveDesc : selectedWeapon.passiveDescVi}
+                </p>
+              </div>
+            )}
+
             {/* 2 Detailed Skill Mechanics Breakdown */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800">
-              {/* Skill 1: Charge Threshold Skill */}
+              {/* Skill 1: D6 Ability */}
               <div className="p-3 bg-yellow-950/40 border-2 border-yellow-500/60 shadow">
                 <div className="flex items-center justify-between text-[8.5px] font-pixel font-bold text-yellow-300 mb-1.5">
                   <span className="flex items-center gap-1">
-                    <PixelIcon name="lightning" size={12} color="#facc15" />
+                    <PixelIcon name="dice6" size={12} color="#facc15" />
                     <span>SKILL 1: {isEn ? selectedWeapon.skill1.name : selectedWeapon.skill1.nameVi}</span>
                   </span>
-                  <span className="text-cyan-300 bg-cyan-950 px-1.5 py-0.5 border border-cyan-500/50">
-                    {selectedWeapon.skill1.chargeRequired} PTS
+                  <span className="text-yellow-300 bg-yellow-950 px-1.5 py-0.5 border border-yellow-500/50">
+                    D6 ROLL
                   </span>
                 </div>
-                <p className="text-[8px] font-sans text-slate-200 leading-normal">
+                <p className="text-[8px] font-pixel text-slate-200 leading-relaxed">
                   {isEn ? selectedWeapon.skill1.description : selectedWeapon.skill1.descriptionVi}
                 </p>
-                <div className="mt-2 text-[7px] font-pixel text-yellow-400/90 bg-black/60 px-2 py-1 border border-yellow-500/30">
-                  {isEn
-                    ? `Activates when accumulating ${selectedWeapon.skill1.chargeRequired} D6 energy points.`
-                    : `Kích hoạt khi tích đủ ${selectedWeapon.skill1.chargeRequired} điểm sạc xúc xắc D6.`}
-                </div>
               </div>
 
-              {/* Skill 2: Special Face Trigger */}
+              {/* Skill 2: D12 Ability */}
               <div className="p-3 bg-cyan-950/40 border-2 border-cyan-500/60 shadow">
                 <div className="flex items-center justify-between text-[8.5px] font-pixel font-bold text-cyan-300 mb-1.5">
                   <span className="flex items-center gap-1">
                     <PixelIcon name="sparkles" size={12} color="#38bdf8" />
                     <span>SKILL 2: {isEn ? selectedWeapon.skill2.name : selectedWeapon.skill2.nameVi}</span>
                   </span>
-                  <span className="text-yellow-300 bg-yellow-950 px-1.5 py-0.5 border border-yellow-500/50">
-                    DIE {selectedWeapon.skill2.triggerNumber}
+                  <span className="text-cyan-300 bg-cyan-950 px-1.5 py-0.5 border border-cyan-500/50">
+                    {selectedWeapon.skill2.chargeRequired
+                      ? `${selectedWeapon.skill2.chargeRequired} PTS D12`
+                      : 'D12 ROLL'}
                   </span>
                 </div>
-                <p className="text-[8px] font-sans text-slate-200 leading-normal">
+                <p className="text-[8px] font-pixel text-slate-200 leading-relaxed">
                   {isEn ? selectedWeapon.skill2.description : selectedWeapon.skill2.descriptionVi}
                 </p>
-                <div className="mt-2 text-[7px] font-pixel text-cyan-300/90 bg-black/60 px-2 py-1 border border-cyan-500/30">
-                  {isEn
-                    ? `Instantly triggers when rolling face ${selectedWeapon.skill2.triggerNumber} on D6 die!`
-                    : `Kích hoạt tức thì khi xúc xắc D6 đổ ra mặt ${selectedWeapon.skill2.triggerNumber}!`}
-                </div>
               </div>
             </div>
           </motion.div>
