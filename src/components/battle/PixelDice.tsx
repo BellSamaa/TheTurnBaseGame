@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PixelIcon from '@/components/ui/PixelIcon';
+import ThreeDiceCanvas from './ThreeDiceCanvas';
 import { playDiceRollSound } from '@/lib/soundEffects';
 
 interface PixelDiceProps {
@@ -152,72 +153,48 @@ export default function PixelDice({
 
           {/* Boxer double roll */}
           {boxerRolls && !isRollingD20 ? (
-            <div className="flex items-center gap-1.5">
-              <div
-                className={`w-11 h-11 sm:w-12 sm:h-12 flex flex-col items-center justify-center border-2 ${
-                  boxerRolls.chosen === boxerRolls.r1
-                    ? 'border-yellow-400 bg-yellow-950/80 shadow-[0_0_10px_#facc15]'
-                    : 'border-slate-700 bg-slate-900/80 opacity-60'
-                }`}
-                style={{ clipPath: 'polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%)' }}
-              >
-                <span className="text-xs sm:text-sm font-pixel font-bold text-yellow-300">
-                  {boxerRolls.r1}
-                </span>
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col items-center">
+                <ThreeDiceCanvas
+                  diceType="d20"
+                  theme={boxerRolls.chosen === boxerRolls.r1 ? 'gold' : 'red'}
+                  isRolling={false}
+                  value={boxerRolls.r1}
+                  size={56}
+                />
                 {boxerRolls.chosen === boxerRolls.r1 && (
-                  <span className="text-[6px] font-pixel text-yellow-400">BEST</span>
+                  <span className="text-[6.5px] font-pixel text-yellow-400 font-bold mt-0.5">BEST</span>
                 )}
               </div>
-
-              <div
-                className={`w-11 h-11 sm:w-12 sm:h-12 flex flex-col items-center justify-center border-2 ${
-                  boxerRolls.chosen === boxerRolls.r2
-                    ? 'border-yellow-400 bg-yellow-950/80 shadow-[0_0_10px_#facc15]'
-                    : 'border-slate-700 bg-slate-900/80 opacity-60'
-                }`}
-                style={{ clipPath: 'polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%)' }}
-              >
-                <span className="text-xs sm:text-sm font-pixel font-bold text-yellow-300">
-                  {boxerRolls.r2}
-                </span>
+              <div className="flex flex-col items-center">
+                <ThreeDiceCanvas
+                  diceType="d20"
+                  theme={boxerRolls.chosen === boxerRolls.r2 ? 'gold' : 'red'}
+                  isRolling={false}
+                  value={boxerRolls.r2}
+                  size={56}
+                />
                 {boxerRolls.chosen === boxerRolls.r2 && (
-                  <span className="text-[6px] font-pixel text-yellow-400">BEST</span>
+                  <span className="text-[6.5px] font-pixel text-yellow-400 font-bold mt-0.5">BEST</span>
                 )}
               </div>
             </div>
           ) : (
-            /* Single D20 Attack Die */
-            <motion.div
-              animate={
-                isRollingD20
-                  ? {
-                      rotate: [0, -18, 18, -12, 12, 0],
-                      scale: [1, 1.25, 0.95, 1.2, 1],
-                    }
-                  : { rotate: 0, scale: 1 }
-              }
-              transition={isRollingD20 ? { repeat: Infinity, duration: 0.35 } : undefined}
-              className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center border-2 transition-all ${
-                isRollingD20
-                  ? 'border-red-400 bg-red-950/90 shadow-[0_0_20px_#ef4444]'
-                  : (landedAtk ?? atkRoll) === 20
-                  ? 'border-yellow-400 bg-yellow-500/40 shadow-[0_0_20px_#facc15] scale-105'
-                  : 'border-red-500/80 bg-slate-950/95'
-              }`}
-              style={{
-                clipPath: 'polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%)',
-                imageRendering: 'pixelated',
-              }}
-            >
-              <span className="text-lg sm:text-xl font-pixel font-bold text-red-300 drop-shadow-[0_2px_4px_#000]">
-                {isRollingD20 ? displayAtk : (landedAtk ?? atkRoll ?? 20)}
-              </span>
-            </motion.div>
+            /* Single D20 Attack 3D Die */
+            <div className="relative flex items-center justify-center p-1 bg-black/60 border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+              <ThreeDiceCanvas
+                diceType="d20"
+                theme="red"
+                isRolling={isRollingD20}
+                value={isRollingD20 ? displayAtk : (landedAtk ?? atkRoll ?? 20)}
+                size={68}
+              />
+            </div>
           )}
         </div>
 
         {/* VS DIVIDER */}
-        <div className="flex flex-col items-center justify-center pt-4">
+        <div className="flex flex-col items-center justify-center pt-2">
           <span className="text-xs font-pixel font-bold text-yellow-400 tracking-widest drop-shadow">
             VS
           </span>
@@ -233,32 +210,16 @@ export default function PixelDice({
             {defenderName}
           </span>
 
-          <motion.div
-            animate={
-              isRollingD20
-                ? {
-                    rotate: [0, 18, -18, 12, -12, 0],
-                    scale: [1, 1.25, 0.95, 1.2, 1],
-                  }
-                : { rotate: 0, scale: 1 }
-            }
-            transition={isRollingD20 ? { repeat: Infinity, duration: 0.35 } : undefined}
-            className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center border-2 transition-all ${
-              isRollingD20
-                ? 'border-cyan-400 bg-cyan-950/90 shadow-[0_0_20px_#38bdf8]'
-                : (landedDef ?? defRoll) === 20
-                ? 'border-cyan-300 bg-cyan-500/40 shadow-[0_0_20px_#38bdf8] scale-105'
-                : 'border-cyan-500/80 bg-slate-950/95'
-            }`}
-            style={{
-              clipPath: 'polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%)',
-              imageRendering: 'pixelated',
-            }}
-          >
-            <span className="text-lg sm:text-xl font-pixel font-bold text-cyan-300 drop-shadow-[0_2px_4px_#000]">
-              {isRollingD20 ? displayDef : (landedDef ?? defRoll ?? 20)}
-            </span>
-          </motion.div>
+          {/* Single D20 Defense 3D Die */}
+          <div className="relative flex items-center justify-center p-1 bg-black/60 border border-cyan-500/50 shadow-[0_0_15px_rgba(56,189,248,0.3)]">
+            <ThreeDiceCanvas
+              diceType="d20"
+              theme="cyan"
+              isRolling={isRollingD20}
+              value={isRollingD20 ? displayDef : (landedDef ?? defRoll ?? 20)}
+              size={68}
+            />
+          </div>
         </div>
 
         {/* VERTICAL DIVIDER */}
@@ -276,44 +237,31 @@ export default function PixelDice({
 
           {/* If Mage rolled 2 D6 dice */}
           {p1IsMage && d6P1Rolls && d6P1Rolls.length > 1 && !isRollingD6 ? (
-            <div className="flex items-center gap-1.5">
-              <div className="w-9 h-9 flex flex-col items-center justify-center border-2 border-cyan-400 bg-cyan-950/90 shadow">
-                <span className="text-xs font-pixel font-bold text-cyan-200">{d6P1Rolls[0]}</span>
-              </div>
+            <div className="flex items-center gap-1.5 p-1 bg-black/60 border border-yellow-500/40">
+              <ThreeDiceCanvas diceType="d6" theme="cyan" isRolling={false} value={d6P1Rolls[0]} size={48} />
               <span className="text-[10px] font-pixel text-yellow-400">+</span>
-              <div className="w-9 h-9 flex flex-col items-center justify-center border-2 border-cyan-400 bg-cyan-950/90 shadow">
-                <span className="text-xs font-pixel font-bold text-cyan-200">{d6P1Rolls[1]}</span>
-              </div>
-              <span className="text-[8px] font-pixel text-yellow-300">
+              <ThreeDiceCanvas diceType="d6" theme="cyan" isRolling={false} value={d6P1Rolls[1]} size={48} />
+              <span className="text-[8px] font-pixel text-yellow-300 font-bold ml-1">
                 ={d6P1Rolls.reduce((a, b) => a + b, 0)}
               </span>
             </div>
           ) : (
-            /* Single D6 Die */
-            <motion.div
-              animate={
-                isRollingD6
-                  ? {
-                      rotate: [0, 90, 180, 270, 360],
-                      scale: [1, 1.2, 0.9, 1.15, 1],
-                    }
-                  : { rotate: 0, scale: 1 }
-              }
-              transition={isRollingD6 ? { repeat: Infinity, duration: 0.4 } : undefined}
-              className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center border-2 transition-all ${
-                isRollingD6
-                  ? 'border-yellow-400 bg-yellow-950/80 shadow-[0_0_15px_#facc15]'
-                  : 'border-yellow-500/80 bg-slate-950/95 shadow-[0_0_10px_rgba(250,204,21,0.2)]'
-              }`}
-            >
-              <span className="text-lg sm:text-xl font-pixel font-bold text-yellow-300 drop-shadow">
-                {isRollingD6
-                  ? displayD6
-                  : d6P1Rolls && d6P1Rolls.length > 0
-                  ? d6P1Rolls.reduce((a, b) => a + b, 0)
-                  : '6'}
-              </span>
-            </motion.div>
+            /* Single D6 3D Die */
+            <div className="relative flex items-center justify-center p-1 bg-black/60 border border-yellow-500/50 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+              <ThreeDiceCanvas
+                diceType="d6"
+                theme="gold"
+                isRolling={isRollingD6}
+                value={
+                  isRollingD6
+                    ? displayD6
+                    : d6P1Rolls && d6P1Rolls.length > 0
+                    ? d6P1Rolls.reduce((a, b) => a + b, 0)
+                    : 6
+                }
+                size={58}
+              />
+            </div>
           )}
         </div>
       </div>

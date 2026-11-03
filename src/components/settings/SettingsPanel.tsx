@@ -154,7 +154,7 @@ export default function SettingsPanel() {
                   size="sm"
                   onClick={() => updateSettings({ language: 'vi' })}
                 >
-                  🇻🇳 TIẾNG VIỆT
+                  🇻🇳 VIETNAMESE
                 </PixelButton>
               </div>
             </div>

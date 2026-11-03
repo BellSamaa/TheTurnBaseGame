@@ -8,7 +8,7 @@ import { t } from '@/lib/translations';
 import {
   CLASS_DEFINITIONS,
 } from '@/lib/constants';
-import PixelSpriteButton, { SpriteButtonName } from '@/components/ui/PixelSpriteButton';
+import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import ParticleEffect from '@/components/ui/ParticleEffect';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { AudioToolbarControls } from '@/components/audio/AudioManager';
@@ -29,44 +29,6 @@ export default function HomeScreen() {
 
   const lang = settings.language;
   const isEn = lang === 'en';
-
-  const menuItems: { id: string; sprite: SpriteButtonName; onClick: () => void }[] = [
-    {
-      id: 'start',
-      sprite: 'start',
-      onClick: () => {
-        setPage('play');
-      },
-    },
-    {
-      id: 'character',
-      sprite: 'character',
-      onClick: () => {
-        setPage('character');
-      },
-    },
-    {
-      id: 'weapons',
-      sprite: 'weapons',
-      onClick: () => {
-        setPage('weapons');
-      },
-    },
-    {
-      id: 'friends',
-      sprite: 'friends',
-      onClick: () => {
-        setPage('friends');
-      },
-    },
-    {
-      id: 'settings',
-      sprite: 'settings',
-      onClick: () => {
-        setPage('settings');
-      },
-    },
-  ];
 
   const scrollToSection = (id: string) => {
     playClickSound();
@@ -96,42 +58,24 @@ export default function HomeScreen() {
         {/* Floating Sparkles & Particles */}
         <ParticleEffect density={24} />
 
-        {/* Top Header / Unified Navigation Toolbar */}
-        <header className="relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-between gap-3 bg-[#0c101c]/90 border-b border-yellow-500/40 backdrop-blur-sm">
-          {/* Brand & Version Badge */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="text-[10px] sm:text-xs text-yellow-400 font-pixel font-bold drop-shadow flex items-center gap-2 bg-black/80 px-3 py-1.5 border border-yellow-500/50">
-              <span className="w-2 h-2 inline-block bg-yellow-400 animate-pulse" />
-              <span>DICE MANIAC</span>
-            </div>
-
-            {/* Sliced Sprite Atlas Inspector Button */}
-            <button
-              onClick={() => {
-                playClickSound();
-                setPage('preview');
-              }}
-              className="text-[9px] text-cyan-300 font-pixel bg-slate-900/80 hover:bg-cyan-950 px-2.5 py-1.5 border border-cyan-500/50 transition-all flex items-center gap-1.5 cursor-pointer"
-              title="Inspect 159 sliced sprites"
-            >
-              <PixelIcon name="eye" size={12} color="#06b6d4" />
-              <span className="hidden sm:inline">ATLAS (159)</span>
-            </button>
-          </div>
-
+        {/* Top Header / Transparent Navigation Toolbar */}
+        <header className="relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-end gap-3">
           {/* Right Toolbar: Audio + Lang + Auth Profile */}
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            <AudioToolbarControls />
+            {/* Audio Controls with enchant glow */}
+            <div className="flex items-center gap-1.5 animate-enchant-glow">
+              <AudioToolbarControls />
+            </div>
 
-            {/* Language Switcher */}
-            <div className="flex border border-slate-700 bg-black/80 p-0.5">
+            {/* Language Switcher with enchant glow */}
+            <div className="flex border-2 border-yellow-400/70 bg-black/60 p-0.5 shadow-[0_0_12px_rgba(250,204,21,0.3)] animate-enchant-glow">
               <button
                 onClick={() => {
                   playClickSound();
                   updateSettings({ language: 'en' });
                 }}
-                className={`text-[8.5px] font-pixel px-2 py-1 transition-all cursor-pointer ${
-                  isEn ? 'bg-yellow-500 text-black font-bold' : 'text-slate-400 hover:text-white'
+                className={`text-[10px] sm:text-xs font-pixel px-3 py-1.5 transition-all cursor-pointer ${
+                  isEn ? 'bg-yellow-500 text-black font-bold shadow-[0_0_8px_rgba(250,204,21,0.6)]' : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
               >
                 EN
@@ -141,8 +85,8 @@ export default function HomeScreen() {
                   playClickSound();
                   updateSettings({ language: 'vi' });
                 }}
-                className={`text-[8.5px] font-pixel px-2 py-1 transition-all cursor-pointer ${
-                  !isEn ? 'bg-yellow-500 text-black font-bold' : 'text-slate-400 hover:text-white'
+                className={`text-[10px] sm:text-xs font-pixel px-3 py-1.5 transition-all cursor-pointer ${
+                  !isEn ? 'bg-yellow-500 text-black font-bold shadow-[0_0_8px_rgba(250,204,21,0.6)]' : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
               >
                 VI
@@ -151,22 +95,22 @@ export default function HomeScreen() {
 
             {/* Real User Auth Profile Badge */}
             {currentUser ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 animate-enchant-glow">
                 <button
                   onClick={() => {
                     playClickSound();
                     setAuthModal('profile');
                   }}
-                  className="flex items-center gap-2 bg-yellow-950/80 hover:bg-yellow-900/90 border border-yellow-500/70 px-2.5 py-1 transition-all group cursor-pointer"
+                  className="flex items-center gap-2 bg-yellow-950/80 hover:bg-yellow-900/90 border-2 border-yellow-400/70 px-3 py-1.5 transition-all group cursor-pointer shadow-[0_0_12px_rgba(250,204,21,0.3)]"
                 >
                   <div className="relative w-6 h-8 border border-yellow-400 bg-black overflow-hidden flex items-center justify-center">
                     <CharacterRenderer character={currentUser.avatarConfig} size="xs" showShadow={false} />
                   </div>
                   <div className="text-left">
-                    <div className="text-[9px] text-yellow-300 font-pixel leading-tight group-hover:text-yellow-100">
+                    <div className="text-[10px] sm:text-xs text-yellow-300 font-pixel leading-tight group-hover:text-yellow-100">
                       {currentUser.username}
                     </div>
-                    <div className="text-[7px] text-slate-400 font-pixel">TIER {currentUser.tier || 1}</div>
+                    <div className="text-[8px] text-slate-400 font-pixel">TIER {currentUser.tier || 1}</div>
                   </div>
                 </button>
                 <button
@@ -175,19 +119,19 @@ export default function HomeScreen() {
                     logoutUser();
                   }}
                   title="Logout"
-                  className="text-[9px] text-red-400 font-pixel bg-red-950/60 hover:bg-red-900 border border-red-500/40 px-2 py-1.5 transition-all cursor-pointer"
+                  className="text-[10px] sm:text-xs text-red-400 font-pixel bg-red-950/60 hover:bg-red-900 border-2 border-red-500/50 px-2.5 py-1.5 transition-all cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2 animate-enchant-glow">
                 <button
                   onClick={() => {
                     playClickSound();
                     setAuthModal('login');
                   }}
-                  className="text-[9px] text-slate-200 font-pixel bg-slate-900/90 hover:bg-slate-800 border border-slate-600 px-3 py-1.5 transition-all cursor-pointer"
+                  className="text-[10px] sm:text-xs text-slate-100 font-pixel bg-slate-800/80 hover:bg-slate-700 border-2 border-slate-500/70 px-4 py-2 transition-all cursor-pointer shadow-[0_0_10px_rgba(148,163,184,0.2)]"
                 >
                   {isEn ? 'LOGIN' : 'ĐĂNG NHẬP'}
                 </button>
@@ -196,7 +140,7 @@ export default function HomeScreen() {
                     playClickSound();
                     setAuthModal('signup');
                   }}
-                  className="text-[9px] text-black font-pixel bg-yellow-400 hover:bg-yellow-300 border border-yellow-200 px-3 py-1.5 font-bold transition-all cursor-pointer"
+                  className="text-[10px] sm:text-xs text-black font-pixel bg-yellow-400 hover:bg-yellow-300 border-2 border-yellow-200 px-4 py-2 font-bold transition-all cursor-pointer shadow-[0_0_14px_rgba(250,204,21,0.5)]"
                 >
                   {isEn ? 'SIGN UP' : 'ĐĂNG KÝ'}
                 </button>
@@ -223,38 +167,74 @@ export default function HomeScreen() {
             />
           </motion.div>
 
-          <p className="text-[10px] sm:text-xs text-yellow-300 font-pixel tracking-widest text-center mb-6 uppercase drop-shadow">
+          <p className="text-xs sm:text-sm text-yellow-300 font-pixel tracking-widest text-center mb-6 uppercase drop-shadow">
             {isEn ? '1v1 Turn-Based RPG Dice Combat' : 'Game Đối Kháng Xúc Xắc Theo Lượt 1v1'}
           </p>
 
-          {/* Menu Buttons - No box, clean layout */}
+          {/* Menu Buttons - 3 Row Layout */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-full max-w-md"
+            className="w-full max-w-lg"
           >
             <div className="flex flex-col gap-2 items-center">
-              {menuItems.map((item, idx) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.3 + idx * 0.07 }}
-                  className="w-full flex justify-center"
-                >
-                  <PixelSpriteButton
-                    sprite={item.sprite}
-                    onClick={item.onClick}
-                    className="w-[280px] sm:w-[320px] max-w-full"
-                  />
-                </motion.div>
-              ))}
+              {/* Row 1: START (centered, full width) */}
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="flex justify-center"
+              >
+                <PixelSpriteButton
+                  sprite="start"
+                  onClick={() => setPage('play')}
+                  className="w-[280px] sm:w-[320px]"
+                />
+              </motion.div>
+
+              {/* Row 2: CHARACTER + WEAPONS (side by side) */}
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.37 }}
+                className="flex gap-2 justify-center w-full"
+              >
+                <PixelSpriteButton
+                  sprite="character"
+                  onClick={() => setPage('character')}
+                  className="w-[138px] sm:w-[155px]"
+                />
+                <PixelSpriteButton
+                  sprite="weapons"
+                  onClick={() => setPage('weapons')}
+                  className="w-[138px] sm:w-[155px]"
+                />
+              </motion.div>
+
+              {/* Row 3: FRIENDS + SETTINGS (side by side) */}
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.44 }}
+                className="flex gap-2 justify-center w-full"
+              >
+                <PixelSpriteButton
+                  sprite="friends"
+                  onClick={() => setPage('friends')}
+                  className="w-[138px] sm:w-[155px]"
+                />
+                <PixelSpriteButton
+                  sprite="settings"
+                  onClick={() => setPage('settings')}
+                  className="w-[138px] sm:w-[155px]"
+                />
+              </motion.div>
             </div>
           </motion.div>
 
           {/* Quick Jump Links */}
-          <div className="flex items-center gap-4 mt-6 text-[9px] font-pixel text-slate-400">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-6 text-[9px] font-pixel text-slate-400">
             <button
               onClick={() => scrollToSection('rules-section')}
               className="hover:text-yellow-400 underline transition-colors cursor-pointer"
@@ -286,7 +266,7 @@ export default function HomeScreen() {
         </div>
 
         {/* Scroll Down Indicator */}
-        <div className="relative z-20 pb-4 text-center">
+        <div className="relative z-20 pb-6 pt-4 text-center">
           <button
             onClick={() => scrollToSection('rules-section')}
             className="text-[9px] font-pixel text-yellow-400/80 hover:text-yellow-300 transition-colors flex flex-col items-center gap-1 animate-bounce cursor-pointer"

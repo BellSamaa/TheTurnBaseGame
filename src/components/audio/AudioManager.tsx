@@ -86,10 +86,10 @@ export function AudioToolbarControls() {
     <div className="flex items-center gap-1.5">
       <button
         onClick={() => updateSettings({ musicMuted: !settings.musicMuted })}
-        className={`px-2 py-1 text-[8.5px] font-pixel border transition cursor-pointer select-none flex items-center gap-1 ${
+        className={`px-3 py-1.5 text-[10px] sm:text-xs font-pixel border-2 transition cursor-pointer select-none flex items-center gap-1 ${
           settings.musicMuted
             ? 'bg-red-950/70 border-red-500/60 text-red-300'
-            : 'bg-yellow-950/70 border-yellow-500/70 text-yellow-300 hover:bg-yellow-900/60'
+            : 'bg-yellow-950/70 border-yellow-400/70 text-yellow-300 hover:bg-yellow-900/60 shadow-[0_0_10px_rgba(250,204,21,0.2)]'
         }`}
         title="Toggle Music"
       >
@@ -99,10 +99,10 @@ export function AudioToolbarControls() {
 
       <button
         onClick={() => updateSettings({ sfxMuted: !settings.sfxMuted })}
-        className={`px-2 py-1 text-[8.5px] font-pixel border transition cursor-pointer select-none flex items-center gap-1 ${
+        className={`px-3 py-1.5 text-[10px] sm:text-xs font-pixel border-2 transition cursor-pointer select-none flex items-center gap-1 ${
           settings.sfxMuted
             ? 'bg-red-950/70 border-red-500/60 text-red-300'
-            : 'bg-cyan-950/70 border-cyan-500/70 text-cyan-300 hover:bg-cyan-900/60'
+            : 'bg-cyan-950/70 border-cyan-400/70 text-cyan-300 hover:bg-cyan-900/60 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
         }`}
         title="Toggle SFX"
       >
