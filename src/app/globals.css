@@ -263,3 +263,9 @@ html, body {
  .global-directory > div:first-child > div { min-width: 0; }
  .global-directory > div:first-child > button { width: 44px; }
 }
+.infinity-guard { position:absolute; inset:0; border:3px solid white; border-radius:50%; box-shadow:0 0 16px white,inset 0 0 20px #ffffff88,0 0 38px #ffffff99; pointer-events:none; z-index:10; }
+.purple-sky { position:fixed; inset:0; z-index:40; pointer-events:none; animation:purple-sky-wash 3s both; }
+.purple-sky i { position:absolute; left:50%; bottom:25%; width:80px; height:80px; border-radius:50%; background:radial-gradient(circle,white,#d8b4fe 20%,#9333ea 60%,transparent 72%); box-shadow:0 0 60px #c084fc; animation:purple-sky-orb 3s both; }
+@keyframes purple-sky-wash { 0%,100% {background:transparent} 30%,75% {background:#7e22ce88} }
+@keyframes purple-sky-orb { 0% {transform:translate(-50%,0) scale(.3);opacity:1} 30% {transform:translate(-50%,-45vh) scale(1.5);opacity:1} 65%,100% {transform:translate(-50%,-45vh) scale(6);opacity:0} }
+@media (prefers-reduced-motion:reduce) { .purple-sky i {display:none} }

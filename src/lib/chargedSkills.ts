@@ -1,3 +1,4 @@
+import { applyOpponentDamage, skillIsLocked } from './combatDamage';
 import type { PlayerState } from '@/types/game';
 import { WEAPON_DEFINITIONS } from './constants';
 import { executeSkill1D6, executeSkill2D12, rollD6 } from './battleLogic';
@@ -9,7 +10,9 @@ export function skillCost(player: PlayerState, slot: 1 | 2, form?: number) {
 }
 
 // Both skills spend the same balance, once, and return immutable player snapshots.
-export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1 | 2, turn: number, form?: number) {
+export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1 | 2, turn: number, form?: number, lockSlot?: 1 | 2) {
+  if (skillIsLocked(user, slot, turn)) return null;
+  if (slot === 2 && user.weapon.id === "infinity_ring" && ((form != null && form !== 1 && form !== 2) || (form === 2 && lockSlot !== 1 && lockSlot !== 2))) return null;
   if (slot === 1 && user.weapon.id === 'fire_headband' && user.leafSkillReadyTurn !== turn) return null;
   if (slot === 2 && user.weapon.id === "fire_headband" && form !== undefined && form !== 20 && form !== 30) return null;
   const cost = skillCost(user, slot, form);
@@ -21,8 +24,16 @@ export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1
   const forms = caster.weapon.skill1.triggerNumber;
   if (slot === 1 && Array.isArray(forms) && (form == null || !forms.includes(form))) return null;
   const result = slot === 1
-    ? executeSkill1D6(form ?? rollD6(), caster, opponent)
+    ? executeSkill1D6(form ?? rollD6(), caster, opponent, turn)
     : executeSkill2D12(user.weapon.id === "fire_headband" ? cost : 0, caster, opponent, caster.isAttacker);
+  const purpleSky = slot === 2 && user.weapon.id === 'infinity_ring' && form === 2;
+  if (purpleSky) {
+    result.damage = 30;
+    opponent.lockedSkill = lockSlot;
+    opponent.skillLockTurn = turn + 1;
+    result.logTextEn = 'Purple Sky: 30 damage; locks enemy Skill ' + lockSlot + ' next round.';
+    result.logTextVi = 'Tử Sắc Thiên Không: 30 sát thương; khóa Skill ' + lockSlot + ' đối thủ ở hiệp kế tiếp.';
+  }
   caster.d12Charge = (user.d12Charge ?? 0) - cost;
   if (slot === 1) caster.skill1UsedTurn = turn;
   else caster.skill2UsedTurn = turn;
@@ -39,12 +50,9 @@ export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1
     // Discard offensive debuffs from the blocked cast, but retain the spent cost.
     Object.assign(opponent, structuredClone(target), { dodgeNextSkill: false });
     damage = 0;
-  } else if (opponent.immuneDamageNext && damage > 0) {
-    opponent.immuneDamageNext = false;
-    damage = 0;
   }
-  opponent.hp = Math.max(0, opponent.hp - damage);
-  return { caster, opponent, damage, cost,
+  damage = applyOpponentDamage(opponent, damage, turn);
+  return { caster, opponent, damage, cost, purpleSky,
     logTextEn: result.logTextEn.replace(/rolled (\d+)/gi, 'selected form $1') + (blocked ? ' [BLOCKED]' : '') + ' [-' + cost + ' PTS]' + (bonus ? ' [Reload bonus +' + bonus + ' PTS]' : ''),
     logTextVi: result.logTextVi.replace(/ra mặt (\d+)/gi, 'chọn dạng $1') + ' [-' + cost + ' PTS]' + (bonus ? ' [Nạp đạn +' + bonus + ' PTS]' : '') };
 }

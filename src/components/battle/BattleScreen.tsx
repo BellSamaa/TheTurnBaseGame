@@ -23,6 +23,8 @@ import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
+import { applyOpponentDamage, recordOpponentDamage, skillIsLocked } from '@/lib/combatDamage';
+import PurpleSkyEffect from './PurpleSkyEffect';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
 import PixelDice from './PixelDice';
 import PixelDamagePopup, { DamageEvent } from './PixelDamagePopup';
@@ -177,6 +179,8 @@ export default function BattleScreen() {
   const isEn = lang === 'en';
 
   const [openSkillInfo, setOpenSkillInfo] = useState<1 | 2 | null>(null);
+  const [voidForm, setVoidForm] = useState(1);
+  const [lockSlot, setLockSlot] = useState<1 | 2>(1);
   const [meteorCost, setMeteorCost] = useState(20);
   const [selectedSkillForm, setSelectedSkillForm] = useState<number | undefined>();
   const castLockRef = useRef(false);
@@ -493,8 +497,8 @@ export default function BattleScreen() {
   const myPlayer = isP1User ? player1 : player2;
   const myCurrentPts = myPlayer.d12Charge || 0;
   const myReqPts = myPlayer.weapon.skill2.chargeRequired || 20;
-  const canCastSkill2 = myCurrentPts >= skillCost(myPlayer, 2, meteorCost) && myPlayer.skill2UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12' && !(myPlayer.weapon.id === 'revolver' && (myPlayer.bullets ?? 6) <= 0);
-  const canCastSkill1 = (myPlayer.weapon.id !== 'fire_headband' || myPlayer.leafSkillReadyTurn === currentTurn) && myCurrentPts >= skillCost(myPlayer, 1) && myPlayer.skill1UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12';
+  const canCastSkill2 = !skillIsLocked(myPlayer, 2, currentTurn) && myCurrentPts >= skillCost(myPlayer, 2, meteorCost) && myPlayer.skill2UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12' && !(myPlayer.weapon.id === 'revolver' && (myPlayer.bullets ?? 6) <= 0);
+  const canCastSkill1 = !skillIsLocked(myPlayer, 1, currentTurn) && (myPlayer.weapon.id !== 'fire_headband' || myPlayer.leafSkillReadyTurn === currentTurn) && myCurrentPts >= skillCost(myPlayer, 1) && myPlayer.skill1UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12';
 
   // Add message to battle log (Local state only; actions include logs in their synced state)
   const addLog = (entry: Omit<BattleLogEntry, 'timestamp'>) => {
@@ -573,8 +577,8 @@ export default function BattleScreen() {
       return () => clearTimeout(t);
     }
     if (turnStep === 'd12') {
-      const slot = (player2.d12Charge || 0) >= skillCost(player2, 2) && player2.skill2UsedTurn !== currentTurn ? 2
-        : (player2.d12Charge || 0) >= skillCost(player2, 1) && player2.skill1UsedTurn !== currentTurn && (player2.weapon.id !== 'fire_headband' || player2.leafSkillReadyTurn === currentTurn) ? 1 : null;
+      const slot = (player2.d12Charge || 0) >= skillCost(player2, 2) && player2.skill2UsedTurn !== currentTurn && !skillIsLocked(player2, 2, currentTurn) ? 2
+        : (player2.d12Charge || 0) >= skillCost(player2, 1) && player2.skill1UsedTurn !== currentTurn && !skillIsLocked(player2, 1, currentTurn) && (player2.weapon.id !== 'fire_headband' || player2.leafSkillReadyTurn === currentTurn) ? 1 : null;
       if (slot) { const t = setTimeout(() => handleCastSkill(slot, true), 850); return () => clearTimeout(t); }
     }
   }, [
@@ -771,7 +775,9 @@ export default function BattleScreen() {
           });
         }
 
-        const rockDamage = attackerState.weapon.id === 'spirit_stone' && (attackerState.petRockHp ?? 0) > 0 ? 2 : 0;
+        recordOpponentDamage(defenderState, Math.min(defenderState.hp, combatResult.damage), currentTurn);
+        defenderState.hp = Math.max(0, defenderState.hp - combatResult.damage);
+        const rockDamage = attackerState.weapon.id === 'spirit_stone' && (attackerState.petRockHp ?? 0) > 0 ? applyOpponentDamage(defenderState, 2, currentTurn) : 0;
         if (rockDamage) logsToAdd.unshift({ turn: currentTurn, type: 'damage', timestamp: Date.now() + 2,
           message: 'Pet Rock follows its owner: 2 damage.', messageVi: 'Lượt Pet Rock: tấn công sau chủ nhân, gây 2 sát thương.' });
         setTurnStep('d6_atk');
@@ -788,11 +794,9 @@ export default function BattleScreen() {
             battleLog: [...logsToAdd, ...prev.battleLog],
             player1: {
               ...(p1IsAttacker ? attackerState : defenderState),
-              hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damage - rockDamage) : prev.player1.hp,
             },
             player2: {
               ...(p1IsAttacker ? defenderState : attackerState),
-              hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damage - rockDamage) : prev.player2.hp,
             },
           };
           syncOnlineBattle(updated);
@@ -864,14 +868,14 @@ export default function BattleScreen() {
     const caster = isP1 ? player1 : player2;
     const opponent = isP1 ? player2 : player1;
     const forms = caster.weapon.skill1.triggerNumber;
-    const form = slot === 2 && caster.weapon.id === "fire_headband" ? (bot ? ((caster.d12Charge ?? 0) >= 30 ? 30 : 20) : meteorCost) : Array.isArray(forms) ? (bot ? forms[0] : selectedSkillForm != null && forms.includes(selectedSkillForm) ? selectedSkillForm : forms[0]) : undefined;
-    const result = castChargedSkill(caster, opponent, slot, currentTurn, form);
+    const form = slot === 2 && caster.weapon.id === "fire_headband" ? (bot ? ((caster.d12Charge ?? 0) >= 30 ? 30 : 20) : meteorCost) : slot === 2 && caster.weapon.id === "infinity_ring" ? (bot ? 1 : voidForm) : slot === 1 && Array.isArray(forms) ? (bot ? forms[0] : selectedSkillForm != null && forms.includes(selectedSkillForm) ? selectedSkillForm : forms[0]) : undefined;
+    const result = castChargedSkill(caster, opponent, slot, currentTurn, form, lockSlot);
     if (!result) return;
     castLockRef.current = true;
     const skill = slot === 1 ? result.caster.weapon.skill1 : result.caster.weapon.skill2;
     const banner: SkillActivationEvent = { id: crypto.randomUUID(), weaponId: caster.weapon.id,
       skillNameEn: skill.name, casterName: caster.name, auraColor: getWeaponAuraColor(caster.weapon.id) };
-    const vfx: VfxEvent = { id: crypto.randomUUID(), effect: getWeaponVfx(caster.weapon.id, slot === 2), target: isP1 ? 'p2' : 'p1', size: slot === 2 ? 180 : 130 };
+    const vfx: VfxEvent = { id: crypto.randomUUID(), effect: getWeaponVfx(caster.weapon.id, slot === 2), target: caster.weapon.id === 'infinity_ring' && slot === 1 && form === 6 ? (isP1 ? 'p1' : 'p2') : isP1 ? 'p2' : 'p1', size: slot === 2 ? 180 : 130 };
     seenSkillBanners.current.add(banner.id);
     setSkillBannerQueue(q => [...q, banner]);
     seenVfx.current.add(vfx.id);
@@ -883,6 +887,7 @@ export default function BattleScreen() {
         player1: isP1 ? result.caster : result.opponent,
         player2: isP1 ? result.opponent : result.caster,
         activeSkillBanner: banner, activeVfx: vfx,
+        purpleSky: result.purpleSky ? { id: crypto.randomUUID(), startedAt: Date.now() } : prev.purpleSky,
         battleLog: [{ turn: currentTurn, type: 'skill', message: result.logTextEn, messageVi: result.logTextVi, timestamp: Date.now() }, ...prev.battleLog],
       };
       syncOnlineBattle(next);
@@ -965,6 +970,9 @@ export default function BattleScreen() {
 
     setBattleState((prev) => {
       if (!prev) return null;
+      const burnedP1 = { ...prev.player1 }, burnedP2 = { ...prev.player2 };
+      applyOpponentDamage(burnedP1, p1BurnDmg, currentTurn);
+      applyOpponentDamage(burnedP2, p2BurnDmg, currentTurn);
       const updated: BattleState = {
         ...prev,
         currentTurn: prev.currentTurn + 1,
@@ -982,16 +990,16 @@ export default function BattleScreen() {
         activeSkillBanner: null,
         damagePopup: null,
         player1: {
-          ...prev.player1,
+          ...burnedP1,
           isAttacker: nextP1IsAttacker,
-          hp: Math.max(0, prev.player1.hp - p1BurnDmg),
+          hp: burnedP1.hp,
           burnTicks: p1NewBurnTicks,
           panicTurns: Math.max(0, (prev.player1.panicTurns ?? 0) - 1),
         },
         player2: {
-          ...prev.player2,
+          ...burnedP2,
           isAttacker: !nextP1IsAttacker,
-          hp: Math.max(0, prev.player2.hp - p2BurnDmg),
+          hp: burnedP2.hp,
           burnTicks: p2NewBurnTicks,
           panicTurns: Math.max(0, (prev.player2.panicTurns ?? 0) - 1),
         },
@@ -1066,6 +1074,7 @@ export default function BattleScreen() {
 
   return (
     <div className="battle-screen relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-[#07090e] select-none text-slate-100">
+      {battleState.purpleSky && <PurpleSkyEffect key={battleState.purpleSky.id} startedAt={battleState.purpleSky.startedAt} />}
       {/* 1. Background Arena Map */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -1221,6 +1230,7 @@ export default function BattleScreen() {
                 )}
               </div>
 
+              {player1.immuneDamageNext && <div aria-label="Immune" className="infinity-guard" />}
               <CharacterRenderer
                 character={player1.character}
                 weapon={player1.weapon}
@@ -1264,6 +1274,7 @@ export default function BattleScreen() {
                 )}
               </div>
 
+              {player2.immuneDamageNext && <div aria-label="Immune" className="infinity-guard" />}
               <CharacterRenderer
                 character={player2.character}
                 weapon={player2.weapon}
@@ -1358,7 +1369,7 @@ export default function BattleScreen() {
                   className={'w-full h-[38px] sm:h-[44px] px-2 border-2 font-pixel text-[8px] sm:text-[9px] font-bold transition ' + (enabled ? 'action-beacon border-yellow-300 bg-purple-950 text-yellow-200 cursor-pointer' : 'border-slate-700 bg-slate-950 text-slate-400')}
                   title={isEn ? skill.description : skill.descriptionVi}>
                   <span className="block">SKILL {slot} · {skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</span>
-                  <span className="block text-[10px]">{used ? '✓' : enabled ? '⚡' : myCurrentPts + '/' + skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)}</span>
+                  <span className="block text-[10px]">{skillIsLocked(myPlayer, slot, currentTurn) ? '🔒' : used ? '✓' : enabled ? '⚡' : myCurrentPts + '/' + skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)}</span>
                 </button>
                 <button type="button" className="skill-info-toggle" aria-expanded={openSkillInfo === slot} aria-controls={'skill-info-' + slot} onClick={() => setOpenSkillInfo(openSkillInfo === slot ? null : slot)}>{isEn ? 'ⓘ Details / Form' : 'ⓘ Chi tiết / Dạng'}</button>
                 {openSkillInfo === slot && <button type="button" className="skill-info-backdrop" aria-label={isEn ? 'Close skill details' : 'Đóng thông tin kỹ năng'} onClick={() => setOpenSkillInfo(null)} />}
@@ -1367,13 +1378,17 @@ export default function BattleScreen() {
                   <strong className="text-yellow-300">{isEn ? skill.name : skill.nameVi} · {skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</strong>
                   <p className="mt-1">{isEn ? skill.description : skill.descriptionVi}</p>
                   <p className="mt-1 text-cyan-300">{isEn ? 'Shared PTS · Once per round' : 'Dùng chung PTS · 1 lần/hiệp'}</p>
+                {slot === 2 && myPlayer.weapon.id === 'infinity_ring' && <>
+                  <select aria-label="Purple form" value={voidForm} onChange={e => setVoidForm(Number(e.target.value))} className="w-full bg-slate-900 p-1 mt-2 text-yellow-200"><option value={1}>Purple · 50 DMG</option><option value={2}>Purple Sky · 30 DMG + Lock</option></select>
+                  {voidForm === 2 && <select aria-label="Lock enemy skill" value={lockSlot} onChange={e => setLockSlot(Number(e.target.value) as 1 | 2)} className="w-full bg-slate-900 p-1 mt-2 text-yellow-200"><option value={1}>{isEn ? 'Lock enemy Skill 1' : 'Khóa Skill 1 đối thủ'}</option><option value={2}>{isEn ? 'Lock enemy Skill 2' : 'Khóa Skill 2 đối thủ'}</option></select>}
+                </>}
                 {slot === 2 && myPlayer.weapon.id === 'fire_headband' && <select aria-label="Meteor cost" value={meteorCost} onChange={e => setMeteorCost(Number(e.target.value))} className="w-full bg-slate-900 p-1 mt-2 text-yellow-200"><option value={20}>20 PTS · 1 ☄ · 10 DMG</option><option value={30}>30 PTS · 2 ☄ · 30 DMG + Panic</option></select>}
                 {slot === 1 && Array.isArray(skill.triggerNumber) && <select
                   aria-label={isEn ? 'Choose Skill 1 form' : 'Chọn dạng Skill 1'}
                   value={selectedSkillForm != null && skill.triggerNumber.includes(selectedSkillForm) ? selectedSkillForm : skill.triggerNumber[0]}
                   onChange={e => setSelectedSkillForm(Number(e.target.value))}
                   className="w-full mt-1 bg-slate-900 text-yellow-200 border border-slate-500 text-xs p-1">
-                  {skill.triggerNumber.map(form => <option key={form} value={form}>{({ infinity_ring: { 3: 'Aoi · Stun', 4: 'Akai · 10 DMG', 6: 'Infinity · Shield' }, dagger: { 1: 'Throw · Burn', 2: 'Multi Slash · Buff' }, chronos_watch: { 2: 'Time Anchor', 4: 'Fate Seal', 6: 'Time Lock' } } as Record<string, Record<number, string>>)[myPlayer.weapon.id]?.[form] || form}</option>)}
+                  {skill.triggerNumber.map(form => <option key={form} value={form}>{({ infinity_ring: { 3: 'Aoi · Reflect', 4: 'Akai · 12 DMG', 6: 'Immune' }, dagger: { 1: 'Throw · Burn', 2: 'Multi Slash · Buff' }, chronos_watch: { 2: 'Time Anchor', 4: 'Fate Seal', 6: 'Time Lock' } } as Record<string, Record<number, string>>)[myPlayer.weapon.id]?.[form] || form}</option>)}
                 </select>}
                 </div>
               </div>;
@@ -1381,7 +1396,7 @@ export default function BattleScreen() {
           </div>
         </div>
 
-        <p className="text-xs text-cyan-200">PTS: {myCurrentPts}</p>
+        <p className="text-xs text-cyan-200 text-center">{player1.name}: {player1.d12Charge ?? 0} PTS · {player2.name}: {player2.d12Charge ?? 0} PTS</p>
         {/* Expandable Compact Battle Log Strip */}
         <div className="w-full max-w-4xl flex items-center justify-between px-3 py-1 bg-[#060810]/90 border border-slate-700 text-[7px] sm:text-[8px] font-pixel">
           <div className="flex items-center gap-2 truncate">

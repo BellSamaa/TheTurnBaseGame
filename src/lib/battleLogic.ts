@@ -1,3 +1,4 @@
+import { reflectedDamage } from './combatDamage';
 import type {
   BattleState,
   PlayerState,
@@ -66,19 +67,6 @@ export function calculateD20Combat(
     };
   }
 
-  // Check Immunity from Infinity Void (Vô Hạ Hạn)
-  if (defenderState?.immuneDamageNext) {
-    defenderState.immuneDamageNext = false;
-    return {
-      damage: 0,
-      rawDiff: 0,
-      isHit: false,
-      isImmune: true,
-      logTextVi: `Kích hoạt Vô Hạ Hạn! Miễn nhiễm toàn bộ sát thương đòn đánh!`,
-      logTextEn: `Infinity Barrier activated! Completely immune to incoming damage!`,
-    };
-  }
-
   // Check Panic debuff (-5 attack)
   let effectiveAtk = attackerD20;
   if (attackerState?.fateSealActive) {
@@ -98,6 +86,19 @@ export function calculateD20Combat(
       isHit: false,
       logTextVi: `Phòng thủ thành công! (Công ${effectiveAtk} ≤ Thủ ${defenderD20}) - Không nhận sát thương.`,
       logTextEn: `Defended successfully! (Atk ${effectiveAtk} ≤ Def ${defenderD20}) - 0 damage taken.`,
+    };
+  }
+
+  // Check Immunity from Infinity Void (Vô Hạ Hạn)
+  if (defenderState?.immuneDamageNext) {
+    defenderState.immuneDamageNext = false;
+    return {
+      damage: 0,
+      rawDiff: 0,
+      isHit: false,
+      isImmune: true,
+      logTextVi: `Kích hoạt Vô Hạ Hạn! Miễn nhiễm toàn bộ sát thương đòn đánh!`,
+      logTextEn: `Infinity Barrier activated! Completely immune to incoming damage!`,
     };
   }
 
@@ -165,7 +166,8 @@ export function calculateD20Combat(
 export function executeSkill1D6(
   d6Roll: number,
   user: PlayerState,
-  target: PlayerState
+  target: PlayerState,
+  turn = 1
 ): {
   damage: number;
   heal: number;
@@ -218,18 +220,18 @@ export function executeSkill1D6(
 
     case 'infinity_ring':
       // Infinity Void: 3 dạng
-      // ra 3: aoi - hút làm choáng 1 lượt
-      // ra 4: akai - gây 10 dame
+      // Aoi reflects actual opponent damage from the latest round.
+      // Akai deals 12 damage.
       // ra 6: vô hạ hạn - immune dame 1 lần
       if (d6Roll === 3) {
-        target.isStunned = true;
-        statusEffect = 'stun';
-        logTextVi = `Infinity Void ra mặt 3: Thi triển Thuật Thức Thuận Chuyển [Thương - Aoi] làm choáng đối phương 1 lượt!`;
-        logTextEn = `Infinity Void rolled 3: Casts Blue (Aoi) stunning opponent for 1 turn!`;
+        damage = reflectedDamage(user, turn);
+        statusEffect = 'reflection';
+        logTextVi = `Aoi phản lại ${damage} sát thương đã nhận từ đối thủ trong lượt gần nhất!`;
+        logTextEn = `Aoi reflects ${damage} damage received from the opponent in the latest turn!`;
       } else if (d6Roll === 4) {
-        damage = 10;
-        logTextVi = `Infinity Void ra mặt 4: Thi triển Thuật Thức Phản Chuyển [Hách - Akai] bộc phá gây 10 sát thương!`;
-        logTextEn = `Infinity Void rolled 4: Casts Red (Akai) dealing 10 blast damage!`;
+        damage = 12;
+        logTextVi = `Infinity Void ra mặt 4: Thi triển Thuật Thức Phản Chuyển [Hách - Akai] bộc phá gây 12 sát thương!`;
+        logTextEn = `Infinity Void rolled 4: Casts Red (Akai) dealing 12 blast damage!`;
       } else if (d6Roll === 6) {
         user.immuneDamageNext = true;
         statusEffect = 'immune';
