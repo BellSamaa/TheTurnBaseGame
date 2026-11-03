@@ -99,7 +99,7 @@ export default function WeaponItemSlot({
               <div className="flex items-center gap-1 bg-black/80 px-1 py-0.5 border border-cyan-500/60 rounded-xs">
                 <span className="text-[6.5px] font-pixel text-cyan-300">🪨 ROCK:</span>
                 <span className="text-[7px] font-pixel text-yellow-300">
-                  {player.petRockHp ?? 0} HP
+                  {player.petRockHp ?? 0}/50 HP
                 </span>
                 {player.petRockEnraged && (
                   <span className="text-[6px] font-pixel text-red-400 font-bold animate-pulse">ENRAGED!</span>

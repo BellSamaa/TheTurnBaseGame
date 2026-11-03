@@ -51,7 +51,13 @@ export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1
     Object.assign(opponent, structuredClone(target), { dodgeNextSkill: false });
     damage = 0;
   }
+  const rockHpBefore = opponent.petRockHp ?? 0;
   damage = applyOpponentDamage(opponent, damage, turn);
+  const rockAbsorbed = rockHpBefore - (opponent.petRockHp ?? 0);
+  if (rockAbsorbed > 0) {
+    result.logTextEn += ' [Rock absorbs ' + rockAbsorbed + '; ' + opponent.petRockHp + '/50 HP. Owner loses ' + damage + ' HP.]';
+    result.logTextVi += ' [Rock đỡ ' + rockAbsorbed + '; còn ' + opponent.petRockHp + '/50 HP. Chủ mất ' + damage + ' HP.]';
+  }
   return { caster, opponent, damage, cost, purpleSky,
     logTextEn: result.logTextEn.replace(/rolled (\d+)/gi, 'selected form $1') + (blocked ? ' [BLOCKED]' : '') + ' [-' + cost + ' PTS]' + (bonus ? ' [Reload bonus +' + bonus + ' PTS]' : ''),
     logTextVi: result.logTextVi.replace(/ra mặt (\d+)/gi, 'chọn dạng $1') + ' [-' + cost + ' PTS]' + (bonus ? ' [Nạp đạn +' + bonus + ' PTS]' : '') };

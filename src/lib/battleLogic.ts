@@ -1,4 +1,4 @@
-import { reflectedDamage } from './combatDamage';
+import { reflectedDamage, absorbWithRock } from './combatDamage';
 import type {
   BattleState,
   PlayerState,
@@ -119,28 +119,8 @@ export function calculateD20Combat(
 
   modifiedDamage = Math.max(1, Math.round(modifiedDamage));
 
-  // The Pet Rock Damage Absorption (Rock absorbs up to 5 damage)
-  let absorbedByRock = 0;
-  const isDefenderPetRock =
-    defenderState &&
-    (defenderState.weapon.id === 'spirit_stone' || defenderState.weapon.id === 'pet_rock');
-
-  if (isDefenderPetRock && defenderState) {
-    if (defenderState.petRockHp === undefined) {
-      defenderState.petRockHp = 0;
-      defenderState.petRockHits = 0;
-    }
-
-    if (defenderState.petRockHp > 0) {
-      absorbedByRock = Math.min(5, modifiedDamage, defenderState.petRockHp);
-      defenderState.petRockHp = Math.max(0, defenderState.petRockHp - absorbedByRock);
-      defenderState.petRockHits = (defenderState.petRockHits ?? 0) + 1;
-      modifiedDamage = Math.max(0, modifiedDamage - absorbedByRock);
-      if (defenderState.petRockHits >= 5) {
-        defenderState.petRockEnraged = true;
-      }
-    }
-  }
+  const absorbedByRock = defenderState ? absorbWithRock(defenderState, modifiedDamage) : 0;
+  modifiedDamage -= absorbedByRock;
 
   let modNotes = '';
   if (attackerClass.id === 'assassin') modNotes += ' [Sát Thủ +50%]';

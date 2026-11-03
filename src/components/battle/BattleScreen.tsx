@@ -317,6 +317,8 @@ export default function BattleScreen() {
                 remote.p1D20 !== current.p1D20 ||
                 remote.p2D20 !== current.p2D20 ||
                 remote.player1.hp !== current.player1.hp ||
+                remote.player1.petRockHp !== current.player1.petRockHp ||
+                remote.player2.petRockHp !== current.player2.petRockHp ||
                 remote.player2.hp !== current.player2.hp ||
                 remote.player1.bullets !== current.player1.bullets ||
                 remote.player2.bullets !== current.player2.bullets ||
@@ -975,8 +977,8 @@ export default function BattleScreen() {
     setBattleState((prev) => {
       if (!prev) return null;
       const burnedP1 = { ...prev.player1 }, burnedP2 = { ...prev.player2 };
-      applyOpponentDamage(burnedP1, p1BurnDmg, currentTurn);
-      applyOpponentDamage(burnedP2, p2BurnDmg, currentTurn);
+      applyOpponentDamage(burnedP1, p1BurnDmg, currentTurn, false);
+      applyOpponentDamage(burnedP2, p2BurnDmg, currentTurn, false);
       const updated: BattleState = {
         ...prev,
         currentTurn: prev.currentTurn + 1,
