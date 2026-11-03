@@ -57,3 +57,17 @@ const hit = calculateD20Combat(17,5,CLASS_DEFINITIONS.warrior,CLASS_DEFINITIONS.
 assert.equal(hit.damage,7); assert.equal(shield.petRockHp,45);
 assert.ok(castChargedSkill({ ...sword, skill1UsedTurn: 1 },foe,1,2));
 console.log('PASS: Leaf D6 condition, 5 HP cost, 3 x 5 burn; Rock absorbs 5 of 12; skill reusable next round');
+const { chargeSkillPoints } = require('../src/lib/chargedSkills.ts');
+const low = { ...leaf, d12Charge: 8, leafSkillReadyTurn: undefined };
+const reached = chargeSkillPoints(low,[2],1);
+assert.equal(reached.d12Charge,10); assert.equal(reached.leafSkillReadyTurn,undefined);
+const unlocked = chargeSkillPoints(reached,[2],2);
+assert.equal(unlocked.leafSkillReadyTurn,2);
+assert.equal(chargeSkillPoints(reached,[3],2).leafSkillReadyTurn,undefined);
+const meteor1 = castChargedSkill({...leaf,d12Charge:30},foe,2,1,20);
+assert.equal(meteor1.damage,10); assert.equal(meteor1.caster.d12Charge,10); assert.equal(meteor1.opponent.panicTurns,undefined);
+const meteor2 = castChargedSkill({...leaf,d12Charge:30},foe,2,1,30);
+assert.equal(meteor2.damage,30); assert.equal(meteor2.caster.d12Charge,0); assert.equal(meteor2.opponent.panicTurns,2); assert.equal(meteor2.opponent.panicAttackDebuff,5);
+assert.equal(castChargedSkill({...leaf,d12Charge:29},foe,2,1,30),null);
+assert.equal(castChargedSkill(leaf,foe,2,1,25),null);
+console.log('PASS: later-round Leaf unlock, explicit 20/30 PTS meteors, exact costs and Panic');

@@ -153,6 +153,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
 
       const data = await res.json();
       if (data.success && data.room) {
+        setOnlineRoomCode(data.room.code);
         setCurrentLobby(data.room);
         setActiveTab('lobby');
       } else {
@@ -197,6 +198,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
 
       const data = await res.json();
       if (data.success && data.room) {
+        setOnlineRoomCode(data.room.code);
         setCurrentLobby(data.room);
         setActiveTab('lobby');
       } else {

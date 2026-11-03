@@ -10,6 +10,7 @@ import CharacterCustomizer from '@/components/character/CharacterCustomizer';
 import WeaponsGallery from '@/components/weapons/WeaponsGallery';
 import FriendsList from '@/components/friends/FriendsList';
 import SettingsPanel from '@/components/settings/SettingsPanel';
+import PresenceReporter from '@/components/auth/PresenceReporter';
 import AuthModals from '@/components/auth/AuthModals';
 import BattleScreen from '@/components/battle/BattleScreen';
 
@@ -56,6 +57,7 @@ export default function GameMasterPage() {
     <main className={`relative min-h-screen w-full bg-black text-slate-100 overflow-x-hidden ${langClass}`}>
       {/* Global Audio Controller (BGM, Battle Music, Mute, Volume) */}
       <AudioManager />
+      <PresenceReporter />
 
       {/* Global Auth Modals (Login, Sign Up, Profile & Character Inspector) */}
       <AuthModals />

@@ -1,0 +1,21 @@
+const fs=require('fs'),assert=require('node:assert/strict'),ts=require('typescript');
+require.extensions['.ts']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,f);
+const {aggregatePresence}=require('../src/lib/presence.ts');
+const {PGlite}=require('@electric-sql/pglite');
+(async()=>{
+const db=new PGlite();
+await db.exec("create role anon;create role authenticated;create role service_role bypassrls;create table users(id text primary key);insert into users values('a'),('b');");
+await db.exec(fs.readFileSync('sql/supabase-presence.sql','utf8'));
+await db.exec(fs.readFileSync('sql/supabase-presence.sql','utf8'));
+const tab1='11111111-1111-4111-8111-111111111111',tab2='22222222-2222-4222-8222-222222222222';
+const send=(tab,activity)=>db.query('select game_presence($1,$2,$3)',['a',tab,activity]);
+await send(tab1,'online');await send(tab2,'battle');
+const snapshot=async()=>aggregatePresence((await db.query('select user_id,activity,last_seen::text from player_presence')).rows);
+assert.equal((await snapshot()).a,'battle');
+await send(tab2,'offline');assert.equal((await snapshot()).a,'online');
+await send(tab1,'lobby');assert.equal((await snapshot()).a,'lobby');
+await db.exec("update player_presence set last_seen=now()-interval '91 seconds'");assert.equal((await snapshot()).a,undefined);
+await send(tab1,'online');await send(tab1,'offline');assert.equal((await snapshot()).a,undefined);
+await db.exec('set role anon');await assert.rejects(()=>send(tab1,'online'));
+await db.close();console.log('PASS: multiple tabs, battle/lobby/online priority, last-tab close, timeout, private presence writes');
+})().catch(e=>{console.error(e);process.exitCode=1});

@@ -307,7 +307,7 @@ export function executeSkill1D6(
       target.burnDmgPerTurn = 5;
       statusEffect = 'amaterasu';
       logTextVi = `Băng Đô Lá phóng ngọn lửa đen Amaterasu gây 5 sát thương thiêu đốt x 3 lượt! Hắc hỏa khiến mắt chảy máu (-5 HP)!`;
-      logTextEn = `Leaf Headband unleashes Amaterasu dealing 5 burn damage for 3 turns! Eye strain costs 3 HP!`;
+      logTextEn = `Leaf Headband unleashes Amaterasu dealing 5 burn damage for 3 turns! Eye strain costs 5 HP!`;
       break;
 
     case 'spirit_stone':
@@ -358,7 +358,7 @@ export function executeSkill2D12(
   let logTextEn = '';
 
   const pts = user.d12Charge ?? 0;
-  const cost = weapon.skill2.chargeRequired || 20;
+  const cost = weapon.id === "fire_headband" ? (d12Roll === 30 ? 30 : 20) : weapon.skill2.chargeRequired || 20;
 
   switch (weapon.id) {
     case 'greatsword':
@@ -469,12 +469,11 @@ export function executeSkill2D12(
       // Leaf headband: tích đủ 32 PTS triệu hồi thiên thạch giáng thế 30 dame + hoảng loạn
       if (pts >= cost) {
         user.d12Charge = Math.max(0, pts - cost);
-        damage = 30;
-        target.panicAttackDebuff = 5;
-        target.panicTurns = 2;
+        damage = cost === 30 ? 30 : 10;
+        if (cost === 30) { target.panicAttackDebuff = 5; target.panicTurns = 2; }
         burstTriggered = true;
-        logTextVi = `☄️☄️ THIÊN THẠCH GIÁNG THẾ (TENGAI SHINSEI)! Tích đủ ${cost} PTS D6 triệu hồi thiên thạch gây 30 sát thương kèm Hoảng Loạn (-5 Công trong 2 lượt)!`;
-        logTextEn = `☄️☄️ TENGAI SHINSEI METEOR STORM! Reached ${cost} D6 PTS summoning meteors for 30 damage & inflicts Panic (-5 attack for 2 turns)!`;
+        logTextVi = cost === 20 ? `☄️ Một thiên thạch: 10 sát thương, 20 PTS.` : `☄️☄️ THIÊN THẠCH GIÁNG THẾ (TENGAI SHINSEI)! Tích đủ ${cost} PTS D6 triệu hồi thiên thạch gây 30 sát thương kèm Hoảng Loạn (-5 Công trong 2 lượt)!`;
+        logTextEn = cost === 20 ? `☄️ One meteor: 10 damage, 20 PTS.` : `☄️☄️ TENGAI SHINSEI METEOR STORM! Reached ${cost} D6 PTS summoning meteors for 30 damage & inflicts Panic (-5 attack for 2 turns)!`;
       } else {
         logTextVi = `Leaf Headband cần tích đủ ${cost} PTS D6 để giáng Thiên Thạch (Hiện có: ${pts}/${cost} PTS).`;
         logTextEn = `Leaf Headband requires ${cost} D6 PTS to summon Meteors (Current: ${pts}/${cost} PTS).`;

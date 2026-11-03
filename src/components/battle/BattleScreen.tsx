@@ -17,7 +17,7 @@ import {
   calculateD20Combat,
 } from '@/lib/battleLogic';
 import type { BattleLogEntry, BattleState, PlayerState } from '@/types/game';
-import { castChargedSkill, skillCost } from '@/lib/chargedSkills';
+import { castChargedSkill, skillCost, chargeSkillPoints } from '@/lib/chargedSkills';
 import HealthBar from '@/components/ui/HealthBar';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
@@ -176,6 +176,7 @@ export default function BattleScreen() {
   const lang = settings.language;
   const isEn = lang === 'en';
 
+  const [meteorCost, setMeteorCost] = useState(20);
   const [selectedSkillForm, setSelectedSkillForm] = useState<number | undefined>();
   const castLockRef = useRef(false);
   const [lobbyError, setLobbyError] = useState('');
@@ -491,7 +492,7 @@ export default function BattleScreen() {
   const myPlayer = isP1User ? player1 : player2;
   const myCurrentPts = myPlayer.d12Charge || 0;
   const myReqPts = myPlayer.weapon.skill2.chargeRequired || 20;
-  const canCastSkill2 = myCurrentPts >= skillCost(myPlayer, 2) && myPlayer.skill2UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12' && !(myPlayer.weapon.id === 'revolver' && (myPlayer.bullets ?? 6) <= 0);
+  const canCastSkill2 = myCurrentPts >= skillCost(myPlayer, 2, meteorCost) && myPlayer.skill2UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12' && !(myPlayer.weapon.id === 'revolver' && (myPlayer.bullets ?? 6) <= 0);
   const canCastSkill1 = (myPlayer.weapon.id !== 'fire_headband' || myPlayer.leafSkillReadyTurn === currentTurn) && myCurrentPts >= skillCost(myPlayer, 1) && myPlayer.skill1UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12';
 
   // Add message to battle log (Local state only; actions include logs in their synced state)
@@ -824,8 +825,8 @@ export default function BattleScreen() {
           p1D6: isP1 ? points : prev.p1D6,
           p2D6: !isP1 ? points : prev.p2D6,
           d6Results: { player1: isP1 ? rolls : (prev.d6Results?.player1 || []), player2: !isP1 ? rolls : (prev.d6Results?.player2 || []) },
-          player1: isP1 ? { ...prev.player1, d12Charge: (prev.player1.d12Charge || 0) + points, leafSkillReadyTurn: rolls.includes(2) ? prev.currentTurn : undefined } : prev.player1,
-          player2: !isP1 ? { ...prev.player2, d12Charge: (prev.player2.d12Charge || 0) + points, leafSkillReadyTurn: rolls.includes(2) ? prev.currentTurn : undefined } : prev.player2,
+          player1: isP1 ? chargeSkillPoints(prev.player1, rolls, prev.currentTurn) : prev.player1,
+          player2: !isP1 ? chargeSkillPoints(prev.player2, rolls, prev.currentTurn) : prev.player2,
           battleLog: [{ turn: prev.currentTurn, type: 'system', timestamp: Date.now(),
             message: player.name + ' charges +' + points + ' PTS. Choose skills after both players charge.',
             messageVi: player.name + ' sạc +' + points + ' PTS. Chọn kỹ năng sau khi cả hai sạc xong.' }, ...prev.battleLog],
@@ -862,7 +863,7 @@ export default function BattleScreen() {
     const caster = isP1 ? player1 : player2;
     const opponent = isP1 ? player2 : player1;
     const forms = caster.weapon.skill1.triggerNumber;
-    const form = Array.isArray(forms) ? (bot ? forms[0] : selectedSkillForm != null && forms.includes(selectedSkillForm) ? selectedSkillForm : forms[0]) : undefined;
+    const form = slot === 2 && caster.weapon.id === "fire_headband" ? (bot ? ((caster.d12Charge ?? 0) >= 30 ? 30 : 20) : meteorCost) : Array.isArray(forms) ? (bot ? forms[0] : selectedSkillForm != null && forms.includes(selectedSkillForm) ? selectedSkillForm : forms[0]) : undefined;
     const result = castChargedSkill(caster, opponent, slot, currentTurn, form);
     if (!result) return;
     castLockRef.current = true;
@@ -1355,13 +1356,14 @@ export default function BattleScreen() {
                 <button onClick={() => handleCastSkill(slot)} disabled={!enabled}
                   className={'w-full h-[38px] sm:h-[44px] px-2 border-2 font-pixel text-[8px] sm:text-[9px] font-bold transition ' + (enabled ? 'action-beacon border-yellow-300 bg-purple-950 text-yellow-200 cursor-pointer' : 'border-slate-700 bg-slate-950 text-slate-400')}
                   title={isEn ? skill.description : skill.descriptionVi}>
-                  <span className="block">SKILL {slot} · {skillCost(myPlayer, slot)} PTS</span>
-                  <span className="block text-[10px]">{used ? '✓' : enabled ? '⚡' : myCurrentPts + '/' + skillCost(myPlayer, slot)}</span>
+                  <span className="block">SKILL {slot} · {skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</span>
+                  <span className="block text-[10px]">{used ? '✓' : enabled ? '⚡' : myCurrentPts + '/' + skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)}</span>
                 </button>
                 <div role="tooltip" className="absolute bottom-full right-0 mb-2 z-50 hidden group-hover:block group-focus-within:block w-64 max-w-[75vw] p-3 border border-yellow-500/70 bg-slate-950 shadow-xl text-xs text-slate-200 leading-relaxed after:absolute after:top-full after:left-0 after:h-2 after:w-full">
-                  <strong className="text-yellow-300">{isEn ? skill.name : skill.nameVi} · {skillCost(myPlayer, slot)} PTS</strong>
+                  <strong className="text-yellow-300">{isEn ? skill.name : skill.nameVi} · {skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</strong>
                   <p className="mt-1">{isEn ? skill.description : skill.descriptionVi}</p>
                   <p className="mt-1 text-cyan-300">{isEn ? 'Shared PTS · Once per round' : 'Dùng chung PTS · 1 lần/hiệp'}</p>
+                {slot === 2 && myPlayer.weapon.id === 'fire_headband' && <select aria-label="Meteor cost" value={meteorCost} onChange={e => setMeteorCost(Number(e.target.value))} className="w-full bg-slate-900 p-1 mt-2 text-yellow-200"><option value={20}>20 PTS · 1 ☄ · 10 DMG</option><option value={30}>30 PTS · 2 ☄ · 30 DMG + Panic</option></select>}
                 {slot === 1 && Array.isArray(skill.triggerNumber) && <select
                   aria-label={isEn ? 'Choose Skill 1 form' : 'Chọn dạng Skill 1'}
                   value={selectedSkillForm != null && skill.triggerNumber.includes(selectedSkillForm) ? selectedSkillForm : skill.triggerNumber[0]}

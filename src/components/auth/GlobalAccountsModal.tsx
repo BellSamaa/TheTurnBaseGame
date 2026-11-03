@@ -12,6 +12,7 @@ import { playClickSound } from '@/lib/soundEffects';
 
 interface SafeUserItem {
   id: string;
+  presence?: "online" | "offline" | "lobby" | "battle" | "unknown";
   username: string;
   avatarConfig: any;
   selectedClass?: string;
@@ -40,11 +41,11 @@ export default function GlobalAccountsModal({
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUsers = async () => {
-    setLoading(true);
+  const fetchUsers = async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/auth/users');
+      const res = await fetch('/api/auth/users', { cache: 'no-store' });
       const data = await res.json();
       if (data.success && Array.isArray(data.users)) {
         setUsers(data.users);
@@ -61,6 +62,8 @@ export default function GlobalAccountsModal({
   useEffect(() => {
     if (isOpen) {
       fetchUsers();
+      const timer = setInterval(() => fetchUsers(true), 5000);
+      return () => clearInterval(timer);
     }
   }, [isOpen]);
 
@@ -92,7 +95,7 @@ export default function GlobalAccountsModal({
                 <h3 className="text-xs sm:text-base font-pixel font-bold text-yellow-400 drop-shadow flex items-center gap-2">
                   <span>{isEn ? 'GLOBAL ADVENTURERS DIRECTORY' : 'DANH BẠ ANH HÙNG TOÀN CẦU'}</span>
                   <span className="text-[9px] px-2 py-0.5 bg-yellow-500/20 text-yellow-300 border border-yellow-500/50">
-                    {users.length} {isEn ? 'ONLINE & SAVED' : 'TÀI KHOẢN CSDL'}
+                    {users.length} {isEn ? 'ACCOUNTS' : 'TÀI KHOẢN CSDL'}
                   </span>
                 </h3>
                 <p className="text-[8px] sm:text-[9px] text-slate-400 font-pixel mt-0.5">
@@ -159,7 +162,7 @@ export default function GlobalAccountsModal({
               <div className="text-center py-12">
                 <p className="text-[10px] font-pixel text-red-400">{error}</p>
                 <button
-                  onClick={fetchUsers}
+                  onClick={() => fetchUsers()}
                   className="mt-3 text-[9px] font-pixel text-yellow-400 underline"
                 >
                   {isEn ? 'Try Again' : 'Thử lại'}
@@ -204,7 +207,7 @@ export default function GlobalAccountsModal({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1 mb-0.5">
                           <span className="text-[11px] font-pixel font-bold text-yellow-300 group-hover:text-yellow-100 truncate">
-                            {user.username}
+                            {user.username}<span className={'ml-2 text-[8px] ' + (user.presence === 'offline' ? 'text-slate-500' : user.presence === 'battle' ? 'text-red-300' : 'text-emerald-300')}>{({online: '● Online', offline: '○ Offline', lobby: isEn ? '● Lobby' : '● Trong phòng', battle: isEn ? '⚔ In battle' : '⚔ Đang đấu', unknown: isEn ? 'Status unavailable' : 'Chưa có trạng thái'})[user.presence || 'unknown']}</span>
                           </span>
                           <span className="text-[8px] font-pixel text-yellow-400 bg-yellow-950/70 border border-yellow-500/40 px-1 py-0.2 whitespace-nowrap">
                             {user.rankPoints || 0} PTS
