@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserByUsername, saveUser } from '@/lib/serverDb';
+import { getUserByUsernameAsync, saveUserAsync } from '@/lib/serverDb';
 
 export async function POST(req: Request) {
   try {
@@ -7,12 +7,13 @@ export async function POST(req: Request) {
     const { username, avatarConfig, selectedClass, selectedWeapon, bio, rankPoints, wins, losses } = body;
 
     if (!username) {
-      return NextResponse.json({ success: false, error: 'Username required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Username required' });
     }
 
-    const user = getUserByUsername(username);
+    const user = await getUserByUsernameAsync(username);
     if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+      // Soft response to prevent browser console 404 red error for guest / unsynced local accounts
+      return NextResponse.json({ success: false, message: 'Local profile updated, user not in server DB' });
     }
 
     if (avatarConfig) user.avatarConfig = avatarConfig;
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     if (wins !== undefined) user.wins = wins;
     if (losses !== undefined) user.losses = losses;
 
-    const saved = saveUser(user);
+    const saved = await saveUserAsync(user);
     const { passwordHash: _, ...safeUser } = saved;
     return NextResponse.json({ success: true, user: safeUser });
   } catch (err: unknown) {

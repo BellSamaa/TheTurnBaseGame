@@ -3,6 +3,7 @@
 import React, { useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
+import { playClickSound } from '@/lib/soundEffects';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'gold' | 'frame';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
@@ -89,26 +90,9 @@ export default function PixelButton({
 
   const handleClick = useCallback(() => {
     if (disabled) return;
-    if (!settings.sfxMuted && typeof window !== 'undefined') {
-      try {
-        const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.08);
-        gain.gain.setValueAtTime(settings.sfxVolume * 0.25, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.08);
-      } catch {
-        // audio fail silent
-      }
-    }
+    playClickSound();
     onClick?.();
-  }, [onClick, settings.sfxVolume, settings.sfxMuted, disabled]);
+  }, [onClick, disabled]);
 
   const v = VARIANT_STYLES[variant] || VARIANT_STYLES.primary;
 

@@ -214,7 +214,12 @@ export default function ThreeDiceCanvas({
 
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      renderer.dispose();
+      try {
+        renderer.forceContextLoss();
+        renderer.dispose();
+      } catch {
+        // ignore
+      }
       if (container) container.innerHTML = '';
     };
   }, [diceType, size, themeColors.light]);

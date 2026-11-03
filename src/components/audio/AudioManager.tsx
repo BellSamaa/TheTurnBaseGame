@@ -55,17 +55,6 @@ export default function AudioManager() {
     // 2. Global capture listeners for the VERY FIRST interaction anywhere on document
     const handleFirstGesture = () => {
       playBgm();
-      // Also resume AudioContext for sound effects
-      try {
-        const AudioCtx =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        if (AudioCtx) {
-          const ctx = new AudioCtx();
-          if (ctx.state === 'suspended') ctx.resume();
-        }
-      } catch {}
-
       window.removeEventListener('pointerdown', handleFirstGesture, true);
       window.removeEventListener('click', handleFirstGesture, true);
       window.removeEventListener('keydown', handleFirstGesture, true);
