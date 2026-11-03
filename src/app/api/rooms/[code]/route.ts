@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getRoomByCode, updateRoom, deleteRoom, type RoomParticipant } from '@/lib/serverDb';
+import { getRoomByCodeAsync, updateRoom, deleteRoom, type RoomParticipant } from '@/lib/serverDb';
 import { CLASS_DEFINITIONS, WEAPON_DEFINITIONS } from '@/lib/constants';
 import type { BattleState, PlayerState } from '@/types/game';
 
@@ -10,7 +10,7 @@ interface RouteContext {
 export async function GET(req: Request, context: RouteContext) {
   try {
     const { code } = await context.params;
-    const room = getRoomByCode(code);
+    const room = await getRoomByCodeAsync(code);
     if (!room) {
       return NextResponse.json(
         { success: false, error: 'Phòng không tồn tại hoặc đã hết hạn (Room not found)' },
@@ -27,7 +27,7 @@ export async function GET(req: Request, context: RouteContext) {
 export async function POST(req: Request, context: RouteContext) {
   try {
     const { code } = await context.params;
-    const room = getRoomByCode(code);
+    const room = await getRoomByCodeAsync(code);
     if (!room) {
       return NextResponse.json(
         { success: false, error: 'Phòng không tồn tại (Room not found)' },

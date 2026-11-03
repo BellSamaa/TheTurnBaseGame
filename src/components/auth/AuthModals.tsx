@@ -171,7 +171,18 @@ export default function AuthModals() {
                 </div>
 
                 <div className="pt-2 flex flex-col gap-2">
-                  <PixelButton variant="gold" size="md" className="w-full py-2.5" disabled={isLoading}>
+                  <PixelButton
+                    type="submit"
+                    variant="gold"
+                    size="md"
+                    className="w-full py-2.5 cursor-pointer"
+                    disabled={isLoading}
+                    onClick={() => {
+                      if (loginUsername.trim()) {
+                        handleLogin({ preventDefault: () => {} } as React.FormEvent);
+                      }
+                    }}
+                  >
                     {isLoading
                       ? (isEn ? 'CONNECTING...' : 'ĐANG ĐĂNG NHẬP...')
                       : (isEn ? 'ENTER THE ARENA' : 'ĐĂNG NHẬP NGAY')}
@@ -263,7 +274,18 @@ export default function AuthModals() {
                 </div>
 
                 <div className="pt-2 flex flex-col gap-2">
-                  <PixelButton variant="secondary" size="md" className="w-full py-2.5" disabled={isLoading}>
+                  <PixelButton
+                    type="submit"
+                    variant="secondary"
+                    size="md"
+                    className="w-full py-2.5 cursor-pointer"
+                    disabled={isLoading}
+                    onClick={() => {
+                      if (signupUsername.trim()) {
+                        handleSignup({ preventDefault: () => {} } as React.FormEvent);
+                      }
+                    }}
+                  >
                     {isLoading
                       ? (isEn ? 'CREATING HERO...' : 'ĐANG KHỞI TẠO...')
                       : (isEn ? 'CREATE ACCOUNT' : 'TẠO TÀI KHOẢN')}

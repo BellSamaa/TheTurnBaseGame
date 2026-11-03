@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserByUsername } from '@/lib/serverDb';
+import { getUserByUsernameAsync } from '@/lib/serverDb';
 
 export async function POST(req: Request) {
   try {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = getUserByUsername(trimmedUser);
+    const user = await getUserByUsernameAsync(trimmedUser);
     if (!user) {
       return NextResponse.json(
         {

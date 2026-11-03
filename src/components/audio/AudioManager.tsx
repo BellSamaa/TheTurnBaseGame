@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import { BATTLE_TRACKS, LOBBY_BGM } from '@/lib/constants';
+
+let globalBgmAudio: HTMLAudioElement | null = null;
 
 // Headless Audio Controller (manages BGM tracks and playback)
 export default function AudioManager() {
   const { currentPage, settings } = useGameStore();
-  const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
   const [currentTrack, setCurrentTrack] = useState<string>(LOBBY_BGM);
-  const [hasInteracted, setHasInteracted] = useState(false);
 
   // Pick track based on currentPage (battle vs menu)
   useEffect(() => {
@@ -22,59 +22,80 @@ export default function AudioManager() {
     }
   }, [currentPage]);
 
-  // Audio setup & playback
+  // Audio setup & resilient playback
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    if (!bgmAudioRef.current) {
-      bgmAudioRef.current = new Audio();
-      bgmAudioRef.current.loop = true;
+    if (!globalBgmAudio) {
+      globalBgmAudio = new Audio();
+      globalBgmAudio.loop = true;
     }
 
-    const audio = bgmAudioRef.current;
-    if (audio.src !== window.location.origin + currentTrack && !audio.src.endsWith(currentTrack)) {
+    const audio = globalBgmAudio;
+    const targetUrl = currentTrack.startsWith('http')
+      ? currentTrack
+      : window.location.origin + currentTrack;
+
+    if (audio.src !== targetUrl && !audio.src.endsWith(currentTrack)) {
       audio.src = currentTrack;
     }
 
-    audio.volume = settings.musicMuted ? 0 : settings.musicVolume;
+    audio.volume = settings.musicMuted ? 0 : Math.max(0, Math.min(1, settings.musicVolume ?? 0.7));
 
-    if (hasInteracted && !settings.musicMuted) {
+    const playBgm = () => {
+      if (settings.musicMuted || !audio) return;
       audio.play().catch(() => {
-        // Autoplay policy waiting for user click
+        // Will be resumed by global capture listener
       });
-    }
-
-    const unlockAudio = () => {
-      setHasInteracted(true);
-      if (!settings.musicMuted && bgmAudioRef.current) {
-        bgmAudioRef.current.play().catch(() => {});
-      }
-      window.removeEventListener('click', unlockAudio);
-      window.removeEventListener('keydown', unlockAudio);
     };
 
-    window.addEventListener('click', unlockAudio);
-    window.addEventListener('keydown', unlockAudio);
+    // 1. Attempt immediate playback
+    playBgm();
+
+    // 2. Global capture listeners for the VERY FIRST interaction anywhere on document
+    const handleFirstGesture = () => {
+      playBgm();
+      // Also resume AudioContext for sound effects
+      try {
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          if (ctx.state === 'suspended') ctx.resume();
+        }
+      } catch {}
+
+      window.removeEventListener('pointerdown', handleFirstGesture, true);
+      window.removeEventListener('click', handleFirstGesture, true);
+      window.removeEventListener('keydown', handleFirstGesture, true);
+      window.removeEventListener('touchstart', handleFirstGesture, true);
+    };
+
+    window.addEventListener('pointerdown', handleFirstGesture, { capture: true, once: true });
+    window.addEventListener('click', handleFirstGesture, { capture: true, once: true });
+    window.addEventListener('keydown', handleFirstGesture, { capture: true, once: true });
+    window.addEventListener('touchstart', handleFirstGesture, { capture: true, once: true });
 
     return () => {
-      window.removeEventListener('click', unlockAudio);
-      window.removeEventListener('keydown', unlockAudio);
+      window.removeEventListener('pointerdown', handleFirstGesture, true);
+      window.removeEventListener('click', handleFirstGesture, true);
+      window.removeEventListener('keydown', handleFirstGesture, true);
+      window.removeEventListener('touchstart', handleFirstGesture, true);
     };
-  }, [currentTrack, hasInteracted, settings.musicMuted, settings.musicVolume]);
+  }, [currentTrack]);
 
-  // Update volume / mute when settings change
+  // Sync volume / mute changes
   useEffect(() => {
-    if (bgmAudioRef.current) {
-      bgmAudioRef.current.volume = settings.musicMuted ? 0 : settings.musicVolume;
-      if (settings.musicMuted) {
-        bgmAudioRef.current.pause();
-      } else if (hasInteracted) {
-        bgmAudioRef.current.play().catch(() => {});
-      }
+    if (!globalBgmAudio) return;
+    globalBgmAudio.volume = settings.musicMuted ? 0 : Math.max(0, Math.min(1, settings.musicVolume ?? 0.7));
+    if (settings.musicMuted) {
+      globalBgmAudio.pause();
+    } else {
+      globalBgmAudio.play().catch(() => {});
     }
-  }, [settings.musicMuted, settings.musicVolume, hasInteracted]);
+  }, [settings.musicMuted, settings.musicVolume]);
 
-  // Headless - does not render floating element that collides with header!
   return null;
 }
 
@@ -85,11 +106,17 @@ export function AudioToolbarControls() {
   return (
     <div className="flex items-center gap-1.5">
       <button
-        onClick={() => updateSettings({ musicMuted: !settings.musicMuted })}
-        className={`px-3 py-1.5 text-[10px] sm:text-xs font-pixel border-2 transition cursor-pointer select-none flex items-center gap-1 ${
+        onClick={() => {
+          const nextMuted = !settings.musicMuted;
+          updateSettings({ musicMuted: nextMuted });
+          if (!nextMuted && globalBgmAudio) {
+            globalBgmAudio.play().catch(() => {});
+          }
+        }}
+        className={`px-2 py-1 text-[8.5px] font-pixel border transition cursor-pointer select-none flex items-center gap-1 ${
           settings.musicMuted
             ? 'bg-red-950/70 border-red-500/60 text-red-300'
-            : 'bg-yellow-950/70 border-yellow-400/70 text-yellow-300 hover:bg-yellow-900/60 shadow-[0_0_10px_rgba(250,204,21,0.2)]'
+            : 'bg-yellow-950/70 border-yellow-500/70 text-yellow-300 hover:bg-yellow-900/60'
         }`}
         title="Toggle Music"
       >
@@ -99,10 +126,10 @@ export function AudioToolbarControls() {
 
       <button
         onClick={() => updateSettings({ sfxMuted: !settings.sfxMuted })}
-        className={`px-3 py-1.5 text-[10px] sm:text-xs font-pixel border-2 transition cursor-pointer select-none flex items-center gap-1 ${
+        className={`px-2 py-1 text-[8.5px] font-pixel border transition cursor-pointer select-none flex items-center gap-1 ${
           settings.sfxMuted
             ? 'bg-red-950/70 border-red-500/60 text-red-300'
-            : 'bg-cyan-950/70 border-cyan-400/70 text-cyan-300 hover:bg-cyan-900/60 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+            : 'bg-cyan-950/70 border-cyan-500/70 text-cyan-300 hover:bg-cyan-900/60'
         }`}
         title="Toggle SFX"
       >

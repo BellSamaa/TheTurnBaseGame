@@ -168,13 +168,10 @@ export default function PixelDice({
           >
             {/* The Authentic Pixel Dual Frame Image */}
             <div className="absolute inset-0 pointer-events-none z-20">
-              <Image
+              <img
                 src="/assets/sprites/ui/frames/frame_dual_dice_premium.png"
                 alt="Khung xúc xắc pixel đôi cao cấp"
-                fill
-                className="object-contain"
-                priority
-                unoptimized
+                className="w-full h-full object-contain pointer-events-none select-none"
               />
             </div>
 
@@ -371,13 +368,10 @@ export default function PixelDice({
           >
             {/* The Authentic Pixel Dual Frame Image */}
             <div className="absolute inset-0 pointer-events-none z-20">
-              <Image
+              <img
                 src="/assets/sprites/ui/frames/frame_dual_dice_premium.png"
                 alt="Khung xúc xắc pixel đôi cao cấp"
-                fill
-                className="object-contain"
-                priority
-                unoptimized
+                className="w-full h-full object-contain pointer-events-none select-none"
               />
             </div>
 

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listAllUsers } from '@/lib/serverDb';
+import { listAllUsersAsync } from '@/lib/serverDb';
 
 export async function GET(req: NextRequest) {
   // Reading nextUrl marks this route handler as dynamic per request
   const _search = req.nextUrl.searchParams;
   try {
-    const users = listAllUsers();
+    const users = await listAllUsersAsync();
     return NextResponse.json({
       success: true,
       users,

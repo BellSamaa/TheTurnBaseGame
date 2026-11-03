@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserByUsername, saveUser, type DbUserAccount } from '@/lib/serverDb';
+import { getUserByUsernameAsync, saveUserAsync, type DbUserAccount } from '@/lib/serverDb';
 import type { CharacterCustomization, ClassType } from '@/types/game';
 
 export async function POST(req: Request) {
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const existing = getUserByUsername(trimmedUser);
+    const existing = await getUserByUsernameAsync(trimmedUser);
     if (existing) {
       return NextResponse.json(
         { success: false, error: 'Tên tài khoản này đã tồn tại, vui lòng chọn tên khác hoặc Đăng Nhập!' },
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       updatedAt: new Date().toISOString(),
     };
 
-    const saved = saveUser(newUser);
+    const saved = await saveUserAsync(newUser);
 
     // Return safe user object (omit password)
     const { passwordHash: _, ...safeUser } = saved;

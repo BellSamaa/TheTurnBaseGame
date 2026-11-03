@@ -1,12 +1,6 @@
-/* ──────────────────────────────────────────────
-   HealthBar – Ornate Gold & Ruby Pixel Health Bar
-   Using authentic frame: Khung thanh máu pixel vàng ngọc.png (Aspect 3:1)
-   Exact Inner Opening: left 14%, width 72%, top 35.5%, height 28%
-   ────────────────────────────────────────────── */
 'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 interface HealthBarProps {
@@ -15,14 +9,15 @@ interface HealthBarProps {
   playerName?: string;
   variant?: 'gold' | 'red' | 'cyan';
   className?: string;
+  showText?: boolean;
 }
 
 export default function HealthBar({
   current,
   max,
   playerName = '',
-  variant = 'gold',
   className = '',
+  showText = true,
 }: HealthBarProps) {
   const safeCurrent = Math.max(0, Math.min(max, current));
   const currentPct = useMemo(() => Math.max(0, Math.min(1, safeCurrent / max)), [safeCurrent, max]);
@@ -35,7 +30,7 @@ export default function HealthBar({
     if (safeCurrent < prevCurrentRef.current) {
       const timer = setTimeout(() => {
         setGhostPct(currentPct);
-      }, 450);
+      }, 400);
       prevCurrentRef.current = safeCurrent;
       return () => clearTimeout(timer);
     } else {
@@ -44,52 +39,40 @@ export default function HealthBar({
     }
   }, [safeCurrent, currentPct]);
 
-  // Health color palette
-  const hpColor = useMemo(() => {
-    if (currentPct > 0.5) return 'from-emerald-500 to-green-600';
-    if (currentPct > 0.25) return 'from-amber-400 to-yellow-600';
-    return 'from-rose-500 to-red-700';
+  // Color gradient based on remaining HP percentage
+  const hpGradient = useMemo(() => {
+    if (currentPct > 0.5) return 'from-emerald-500 via-green-500 to-emerald-600';
+    if (currentPct > 0.25) return 'from-amber-400 via-yellow-500 to-amber-600';
+    return 'from-rose-600 via-red-600 to-rose-700';
   }, [currentPct]);
 
   return (
-    <div className={`relative flex flex-col items-center w-full max-w-[280px] sm:max-w-[320px] mx-auto ${className}`}>
-      {/* Player Header Label (if supplied) */}
+    <div className={`relative flex flex-col items-center w-full max-w-[280px] sm:max-w-[320px] mx-auto select-none ${className}`}>
+      {/* Player Header (Optional) */}
       {playerName && (
         <div className="flex items-center justify-between w-full px-2 mb-0.5 text-[8.5px] font-pixel">
           <span className="text-yellow-300 font-bold drop-shadow truncate max-w-[150px]">
             {playerName}
           </span>
-          <span className="text-slate-300">
+          <span className="text-slate-300 font-pixel">
             {safeCurrent} / {max} HP
           </span>
         </div>
       )}
 
-      {/* Ornate Gold & Ruby HP Frame (Aspect 3:1 Container) */}
-      <div className="relative w-full aspect-[3/1] max-h-12 flex items-center justify-center select-none">
-        {/* Authentic Pixel Frame Foreground Image */}
-        <div className="absolute inset-0 pointer-events-none z-20">
-          <Image
-            src="/assets/sprites/ui/frames/frame_hp_gold_ruby.png"
-            alt="Gold Ruby HP Frame"
-            fill
-            className="object-contain"
-            priority
-            unoptimized
-          />
-        </div>
-
-        {/* Inner Health Bar Slot (Pixel-matched opening: left 14%, width 72%, top 35.5%, height 28%) */}
+      {/* Authentic Ornate Ruby-Gold Frame Container (Aspect Ratio ~ 2112/463 = 4.56/1) */}
+      <div className="relative w-full aspect-[2112/463] flex items-center justify-center filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+        {/* Underlay: Dark Channel Interior inside slot (13.5% to 86.5% X, 32% to 73% Y) */}
         <div
-          className="absolute z-10 bg-[#08070d] overflow-hidden shadow-[inset_0_0_6px_rgba(0,0,0,0.95)] flex items-center"
+          className="absolute z-0 bg-[#080a14] rounded-xs overflow-hidden"
           style={{
-            left: '14%',
-            width: '72%',
-            top: '35.5%',
-            height: '28%',
+            left: '13.5%',
+            width: '73%',
+            top: '32%',
+            height: '41%',
           }}
         >
-          {/* Subtle grid lines */}
+          {/* Subtle Scanline Overlay */}
           <div
             className="absolute inset-0 pointer-events-none opacity-25 z-20"
             style={{
@@ -106,26 +89,35 @@ export default function HealthBar({
             transition={{ duration: 0.35, ease: 'easeOut' }}
           />
 
-          {/* 2. Real Current HP Bar with Gradient */}
+          {/* 2. Real Current HP Bar */}
           <motion.div
-            className={`absolute top-0 bottom-0 left-0 bg-gradient-to-r ${hpColor} z-10 shadow-[0_0_8px_rgba(34,197,94,0.5)]`}
+            className={`absolute top-0 bottom-0 left-0 bg-gradient-to-r ${hpGradient} z-10 shadow-[0_0_8px_rgba(34,197,94,0.5)]`}
             initial={false}
             animate={{ width: `${currentPct * 100}%` }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
           />
 
-          {/* 3. Centered HP Text Overlay */}
-          <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-            <span
-              className="text-[7.5px] sm:text-[8.5px] font-pixel font-bold text-white drop-shadow tracking-wider whitespace-nowrap"
-              style={{
-                textShadow: '1px 1px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000',
-              }}
-            >
-              {safeCurrent} / {max} HP
-            </span>
-          </div>
+          {/* 3. Center Numeric HP Text inside bar */}
+          {showText && (
+            <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+              <span
+                className="text-[8px] sm:text-[9px] font-pixel font-bold text-white tracking-wider"
+                style={{
+                  textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 4px #000',
+                }}
+              >
+                {safeCurrent}/{max}
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Overlay: Authentic Pixel Gold-Ruby Frame Sprite */}
+        <img
+          src="/assets/sprites/ui/frames/frame_hp_gold_ruby_tight.png"
+          alt="Khung thanh máu pixel vàng ngọc"
+          className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-30"
+        />
       </div>
     </div>
   );

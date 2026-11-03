@@ -31,6 +31,7 @@ import PixelDice from './PixelDice';
 import PixelDamagePopup, { DamageEvent } from './PixelDamagePopup';
 import WeaponItemSlot from './WeaponItemSlot';
 import CinematicSkillBanner, { SkillActivationEvent } from './CinematicSkillBanner';
+import VfxAnimationPlayer, { VfxEvent } from './VfxAnimationPlayer';
 import { getTierConfig } from '@/lib/tierStyles';
 import {
   playHitSound,
@@ -90,6 +91,57 @@ function playWeaponSound(weaponId: string) {
   }
 }
 
+function getWeaponVfx(weaponId: string, isSkill2 = false): string {
+  if (isSkill2) {
+    switch (weaponId) {
+      case 'infinity_void':
+        return 'hollow_purple';
+      case 'dragon_dagger':
+        return 'burn_blue';
+      case 'leaf_headband':
+        return 'meteor_impact';
+      case 'chronos':
+        return 'time_erase';
+      case 'revolver':
+        return 'bullet';
+      case 'pet_rock':
+        return 'rock_rage';
+      case 'greatsword':
+        return 'slash_heavy';
+      case 'bow':
+        return 'dodge_attack';
+      case 'staff':
+        return 'dodge_spell';
+      default:
+        return 'impact_physical';
+    }
+  }
+
+  // D20 Normal Attack VFX
+  switch (weaponId) {
+    case 'greatsword':
+      return 'slash_heavy';
+    case 'dragon_dagger':
+      return 'slash_multi';
+    case 'bow':
+      return 'arrow';
+    case 'revolver':
+      return 'bullet';
+    case 'staff':
+      return 'magic_orb';
+    case 'leaf_headband':
+      return 'burn_black';
+    case 'infinity_void':
+      return 'void_red';
+    case 'chronos':
+      return 'time_lock';
+    case 'pet_rock':
+      return 'rock_roll';
+    default:
+      return 'impact_physical';
+  }
+}
+
 export default function BattleScreen() {
   const {
     battleState,
@@ -132,6 +184,9 @@ export default function BattleScreen() {
   const [p1IsHit, setP1IsHit] = useState(false);
   const [p2IsHit, setP2IsHit] = useState(false);
   const [damagePopup, setDamagePopup] = useState<DamageEvent | null>(null);
+
+  // AnimationKit VFX Event
+  const [activeVfx, setActiveVfx] = useState<VfxEvent | null>(null);
 
   // Turn transition slide banner
   const [turnBannerText, setTurnBannerText] = useState<string | null>(null);
@@ -318,7 +373,7 @@ export default function BattleScreen() {
   const myPlayer = isP1User ? player1 : player2;
   const myCurrentPts = myPlayer.d12Charge || 0;
   const myReqPts = myPlayer.weapon.skill2.chargeRequired || 20;
-  const canCastSkill2 = myCurrentPts >= myReqPts;
+  const canCastSkill2 = myCurrentPts >= myReqPts && !d12RolledThisTurn;
 
   // Add message to battle log
   const addLog = (entry: Omit<BattleLogEntry, 'timestamp'>) => {
@@ -356,7 +411,6 @@ export default function BattleScreen() {
 
   // Turn Countdown Timer & Auto-Roll Handler
   useEffect(() => {
-    // Reset timer on new turn
     setTurnTimer(currentTurn === 1 ? 20 : 10);
   }, [currentTurn]);
 
@@ -367,7 +421,6 @@ export default function BattleScreen() {
       setTurnTimer((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          // Auto-roll when timer expires
           handleRollD20();
           return 0;
         }
@@ -378,7 +431,7 @@ export default function BattleScreen() {
     return () => clearInterval(timer);
   }, [currentTurn, hasLocalPlayerRolled, phase]);
 
-  // Handler: ROLL DICE (Both D20 Combat and D6 Skill/PTS simultaneously!)
+  // Handler: ROLL DICE (Simultaneously rolls D20 & D6, auto-triggers Skill 1 if matching!)
   const handleRollD20 = () => {
     if (isRollingD20 || hasLocalPlayerRolled || phase === 'game_over') return;
 
@@ -386,7 +439,7 @@ export default function BattleScreen() {
     setIsRollingD6(true);
 
     if (onlineRoomCode) {
-      // ONLINE MULTIPLAYER: Roll for this local player
+      // ONLINE MULTIPLAYER
       const myD20 = rollD20();
       const myD6 = rollD6();
 
@@ -438,8 +491,14 @@ export default function BattleScreen() {
               });
 
               if (isHit && resolvedDmg > 0) {
-                const attackerWeapon = prev.player1.isAttacker ? prev.player1.weapon.id : prev.player2.weapon.id;
-                playWeaponSound(attackerWeapon);
+                const atkWeapon = prev.player1.isAttacker ? prev.player1.weapon.id : prev.player2.weapon.id;
+                playWeaponSound(atkWeapon);
+                setActiveVfx({
+                  id: String(Date.now()),
+                  effect: getWeaponVfx(atkWeapon, false),
+                  target: targetSide,
+                });
+
                 if (targetSide === 'p1') {
                   setP1IsHit(true);
                   setTimeout(() => setP1IsHit(false), 400);
@@ -532,8 +591,15 @@ export default function BattleScreen() {
             defRoll: calculatedDef,
           });
 
+          // Play Weapon AnimationKit VFX and Sound on D20 Hit
           if (combatResult.isHit) {
             playWeaponSound(attackerState.weapon.id);
+            setActiveVfx({
+              id: String(Date.now()),
+              effect: getWeaponVfx(attackerState.weapon.id, false),
+              target: defenderTarget,
+            });
+
             if (defenderTarget === 'p1') {
               setP1IsHit(true);
               setTimeout(() => setP1IsHit(false), 400);
@@ -579,6 +645,10 @@ export default function BattleScreen() {
             });
           }
 
+          // AUTO-RESOLVE SKILL 1 (Based on rolled D6)
+          const p1SkillRes = executeSkill1D6(r6_1, player1, player2);
+          let extraSkill1DmgToP2 = p1SkillRes.damage;
+
           setBattleState((prev) => {
             if (!prev) return null;
             const updated: BattleState = {
@@ -598,8 +668,8 @@ export default function BattleScreen() {
               },
               player2: {
                 ...prev.player2,
-                hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damage) : prev.player2.hp,
-                isBleeding: defenderTarget === 'p2' ? false : prev.player2.isBleeding,
+                hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damage - extraSkill1DmgToP2) : Math.max(0, prev.player2.hp - extraSkill1DmgToP2),
+                isBleeding: p1SkillRes.logTextEn.includes('Bleed') ? true : prev.player2.isBleeding,
                 d12Charge: (prev.player2.d12Charge || 0) + r6_2,
               },
             };
@@ -612,99 +682,7 @@ export default function BattleScreen() {
     }
   };
 
-  // Handler: CAST SKILL 1 (Uses landed D6 value)
-  const handleRollD6 = () => {
-    if (isRollingD6 || !hasLocalPlayerRolled || phase === 'game_over') return;
-
-    const myD6Val = isP1User ? (battleState.p1D6 ?? 6) : (battleState.p2D6 ?? 6);
-    const caster = isP1User ? player1 : player2;
-    const opponent = isP1User ? player2 : player1;
-    const targetSide = isP1User ? 'p2' : 'p1';
-
-    const res = executeSkill1D6(myD6Val, caster, opponent);
-    playWeaponSound(caster.weapon.id);
-
-    if (res.damage > 0) {
-      if (targetSide === 'p1') {
-        setP1IsHit(true);
-        setTimeout(() => setP1IsHit(false), 400);
-      } else {
-        setP2IsHit(true);
-        setTimeout(() => setP2IsHit(false), 400);
-      }
-
-      setDamagePopup({
-        id: String(Date.now()),
-        target: targetSide,
-        text: `-${res.damage} DMG`,
-        type: 'skill',
-        subtext: `SKILL 1 (D6 MẶT ${myD6Val})`,
-      });
-    }
-
-    setBattleState((prev) => {
-      if (!prev) return null;
-      const isP1 = isP1User;
-      const updated: BattleState = {
-        ...prev,
-        player1: isP1
-          ? {
-              ...prev.player1,
-              hp: Math.max(0, prev.player1.hp - res.recoil + res.heal),
-              bullets: caster.bullets,
-              flameBladeBuff: caster.flameBladeBuff,
-              timeAnchorHp: caster.timeAnchorHp,
-              immuneDamageNext: caster.immuneDamageNext,
-              petRockHp: caster.petRockHp,
-              petRockHits: caster.petRockHits,
-            }
-          : {
-              ...prev.player1,
-              hp: Math.max(0, prev.player1.hp - res.damage),
-              isBleeding: opponent.isBleeding,
-              isStunned: opponent.isStunned,
-              burnTicks: opponent.burnTicks,
-              burnDmgPerTurn: opponent.burnDmgPerTurn,
-              fateSealActive: opponent.fateSealActive,
-              timeLockActive: opponent.timeLockActive,
-            },
-        player2: !isP1
-          ? {
-              ...prev.player2,
-              hp: Math.max(0, prev.player2.hp - res.recoil + res.heal),
-              bullets: caster.bullets,
-              flameBladeBuff: caster.flameBladeBuff,
-              timeAnchorHp: caster.timeAnchorHp,
-              immuneDamageNext: caster.immuneDamageNext,
-              petRockHp: caster.petRockHp,
-              petRockHits: caster.petRockHits,
-            }
-          : {
-              ...prev.player2,
-              hp: Math.max(0, prev.player2.hp - res.damage),
-              isBleeding: opponent.isBleeding,
-              isStunned: opponent.isStunned,
-              burnTicks: opponent.burnTicks,
-              burnDmgPerTurn: opponent.burnDmgPerTurn,
-              fateSealActive: opponent.fateSealActive,
-              timeLockActive: opponent.timeLockActive,
-            },
-      };
-      syncOnlineBattle(updated);
-      return updated;
-    });
-
-    addLog({
-      turn: currentTurn,
-      type: 'skill',
-      message: isEn ? res.logTextEn : res.logTextVi,
-      messageVi: res.logTextVi,
-    });
-
-    addTimer(setTimeout(() => setDamagePopup(null), 1600));
-  };
-
-  // Handler: CAST SKILL 2 (Consumes accumulated PTS + Widescreen Cinematic Banner)
+  // Handler: CAST SKILL 2 (ONLY clickable skill! Consumes PTS + Widescreen Cinematic Banner + VFX)
   const handleRollD12 = () => {
     if (isRollingD12 || d12RolledThisTurn || phase === 'game_over' || !canCastSkill2) return;
 
@@ -715,7 +693,7 @@ export default function BattleScreen() {
     const opponent = isP1User ? player2 : player1;
     const targetSide = isP1User ? 'p2' : 'p1';
 
-    // 1. Launch Grand Cinematic Banner
+    // 1. Launch Grand Cinematic Banner with Weapon Aura
     const auraColor = getWeaponAuraColor(caster.weapon.id);
     setSkillBannerQueue((prev) => [
       ...prev,
@@ -727,6 +705,15 @@ export default function BattleScreen() {
         auraColor,
       },
     ]);
+
+    // 2. Trigger AnimationKit Ultimate VFX on target
+    const ultimateVfx = getWeaponVfx(caster.weapon.id, true);
+    setActiveVfx({
+      id: String(Date.now() + 1),
+      effect: ultimateVfx,
+      target: targetSide,
+      size: 180,
+    });
 
     addTimer(
       setTimeout(() => {
@@ -822,9 +809,6 @@ export default function BattleScreen() {
     // AI decisions in PvE mode
     if (isAiOpponent) {
       const ai = executeAiDecisions(battleState);
-      if (ai.wantsToUseD6) {
-        handleRollD6();
-      }
       if (ai.wantsToUseD12) {
         handleRollD12();
       }
@@ -951,7 +935,7 @@ export default function BattleScreen() {
 
   const p1Tier = getTierConfig(player1.weapon.tier);
 
-  // Skill 1 trigger glow & vibrate detection
+  // Skill 1 trigger glow & vibrate detection (Auto-triggers on matching D6 roll!)
   const myD6Val = isP1User ? (battleState.p1D6 ?? null) : (battleState.p2D6 ?? null);
   const myWeaponId = myPlayer.weapon.id;
   const isSkill1Triggered = Boolean(
@@ -1015,11 +999,11 @@ export default function BattleScreen() {
         </div>
       )}
 
-      {/* 2. Top Combat HUD Header (With Ornate Ruby Divider Border) */}
+      {/* 2. Top Combat HUD Header (Clean, unboxed, with ruby filigree divider) */}
       <header className="relative z-20 w-full px-3 py-2 bg-black/85 border-b-2 border-yellow-500/60 backdrop-blur-md flex items-center justify-between gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
-        {/* Left: Player 1 Health & Pod with Ruby Border */}
-        <div className="flex-1 max-w-[290px] relative p-1.5 bg-[#090d1a]/90 border border-yellow-500/40 rounded-sm">
-          <div className="flex items-center justify-between text-[9px] font-pixel mb-1">
+        {/* Left: Player 1 Health */}
+        <div className="flex-1 max-w-[280px] flex flex-col items-center">
+          <div className="flex items-center justify-between w-full px-1 text-[9px] font-pixel mb-1">
             <span className="font-bold text-yellow-300 truncate max-w-[140px] flex items-center gap-1">
               <span>{player1.name}</span>
               {p1IsAttacker && (
@@ -1027,9 +1011,6 @@ export default function BattleScreen() {
                   ATK
                 </span>
               )}
-            </span>
-            <span className="text-slate-300 font-pixel">
-              {player1.hp}/{player1.maxHp} HP
             </span>
           </div>
           <HealthBar current={player1.hp} max={player1.maxHp} variant="gold" />
@@ -1053,9 +1034,9 @@ export default function BattleScreen() {
           </button>
         </div>
 
-        {/* Right: Player 2 / AI Health & Pod with Ruby Border */}
-        <div className="flex-1 max-w-[290px] relative p-1.5 bg-[#090d1a]/90 border border-cyan-500/40 rounded-sm">
-          <div className="flex items-center justify-between text-[9px] font-pixel mb-1 flex-row-reverse">
+        {/* Right: Player 2 / AI Health */}
+        <div className="flex-1 max-w-[280px] flex flex-col items-center">
+          <div className="flex items-center justify-between w-full px-1 text-[9px] font-pixel mb-1 flex-row-reverse">
             <span className="font-bold text-cyan-300 truncate max-w-[140px] flex items-center gap-1 flex-row-reverse">
               <span>{player2.name}</span>
               {!p1IsAttacker && (
@@ -1064,27 +1045,10 @@ export default function BattleScreen() {
                 </span>
               )}
             </span>
-            <span className="text-slate-300 font-pixel">
-              {player2.hp}/{player2.maxHp} HP
-            </span>
           </div>
           <HealthBar current={player2.hp} max={player2.maxHp} variant="red" />
         </div>
       </header>
-
-      {/* Decorative Ornate Gold & Ruby Filigree Bar under header */}
-      <div className="relative w-full h-2 pointer-events-none z-20 flex justify-center -mt-1">
-        <div className="relative w-full max-w-2xl h-3 opacity-80">
-          <Image
-            src="/assets/sprites/ui/frames/border_gold_ruby.png"
-            alt="Ruby Filigree Divider"
-            fill
-            className="object-contain"
-            priority
-            unoptimized
-          />
-        </div>
-      </div>
 
       {/* 3. Center Battle Stage (Dice Arena Centered Vertically & Horizontally) */}
       <main className="relative z-10 flex-1 flex flex-col justify-between items-center py-1 px-2 sm:px-6">
@@ -1122,7 +1086,7 @@ export default function BattleScreen() {
           />
         </div>
 
-        {/* Characters Podiums with Equipped Weapon Item Slot underneath */}
+        {/* Characters Podiums with Equipped Weapon Item Slot underneath & AnimationKit VFX Overlay */}
         <div className="w-full flex items-end justify-between px-2 sm:px-8 mt-auto mb-1">
           {/* LEFT: Player 1 Character + Item Slot */}
           <div className="relative flex flex-col items-center">
@@ -1130,16 +1094,25 @@ export default function BattleScreen() {
               {damagePopup?.target === 'p1' && <PixelDamagePopup event={damagePopup} />}
             </AnimatePresence>
 
-            <CharacterRenderer
-              character={player1.character}
-              weapon={player1.weapon}
-              size="md"
-              facing="right"
-              showAura={p1IsAttacker}
-              auraColor="#facc15"
-              showShadow={true}
-              isHit={p1IsHit}
-            />
+            {/* Character Sprite with Direct VFX Overlay */}
+            <div className="relative flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
+                {activeVfx?.target === 'p1' && (
+                  <VfxAnimationPlayer activeVfx={activeVfx} onFinish={() => setActiveVfx(null)} />
+                )}
+              </div>
+
+              <CharacterRenderer
+                character={player1.character}
+                weapon={player1.weapon}
+                size="md"
+                facing="right"
+                showAura={p1IsAttacker}
+                auraColor="#facc15"
+                showShadow={true}
+                isHit={p1IsHit}
+              />
+            </div>
 
             {/* EQUIPPED WEAPON ITEM SLOT UNDER PLAYER 1 */}
             <WeaponItemSlot
@@ -1150,22 +1123,38 @@ export default function BattleScreen() {
             />
           </div>
 
+          {/* Center Arena VFX Overlay */}
+          {activeVfx?.target === 'center' && (
+            <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+              <VfxAnimationPlayer activeVfx={activeVfx} onFinish={() => setActiveVfx(null)} />
+            </div>
+          )}
+
           {/* RIGHT: Player 2 Character + Item Slot */}
           <div className="relative flex flex-col items-center">
             <AnimatePresence>
               {damagePopup?.target === 'p2' && <PixelDamagePopup event={damagePopup} />}
             </AnimatePresence>
 
-            <CharacterRenderer
-              character={player2.character}
-              weapon={player2.weapon}
-              size="md"
-              facing="left"
-              showAura={!p1IsAttacker}
-              auraColor="#ef4444"
-              showShadow={true}
-              isHit={p2IsHit}
-            />
+            {/* Character Sprite with Direct VFX Overlay */}
+            <div className="relative flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
+                {activeVfx?.target === 'p2' && (
+                  <VfxAnimationPlayer activeVfx={activeVfx} onFinish={() => setActiveVfx(null)} />
+                )}
+              </div>
+
+              <CharacterRenderer
+                character={player2.character}
+                weapon={player2.weapon}
+                size="md"
+                facing="left"
+                showAura={!p1IsAttacker}
+                auraColor="#ef4444"
+                showShadow={true}
+                isHit={p2IsHit}
+              />
+            </div>
 
             {/* EQUIPPED WEAPON ITEM SLOT UNDER PLAYER 2 */}
             <WeaponItemSlot
@@ -1182,7 +1171,7 @@ export default function BattleScreen() {
       <footer className="relative z-20 w-full px-2 sm:px-4 py-2 bg-black/92 border-t-2 border-yellow-500/70 flex flex-col items-center gap-2">
         {/* ============================================================ */}
         {/* THE 4 CENTERED ADJACENT BUTTONS */}
-        {/* Left Pair: ROLL DICE + END TURN | Right Pair: SKILL 1 + SKILL 2 */}
+        {/* Left Pair: ROLL DICE + END TURN | Right Pair: SKILL 1 (Indicator) + SKILL 2 (Action) */}
         {/* ============================================================ */}
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 p-2 bg-[#090d19]/95 border-2 border-yellow-500/80 shadow-[0_0_25px_rgba(0,0,0,0.9)] max-w-4xl w-full">
           {/* --- LEFT GROUP: ROLL DICE & END TURN --- */}
@@ -1219,21 +1208,19 @@ export default function BattleScreen() {
           {/* Divider between Left Pair & Right Pair */}
           <div className="hidden sm:block w-[2px] h-12 bg-yellow-500/50" />
 
-          {/* --- RIGHT GROUP: SKILL 1 & SKILL 2 --- */}
+          {/* --- RIGHT GROUP: SKILL 1 (Passive Display) & SKILL 2 (Active Button) --- */}
           <div className="flex flex-col sm:flex-row items-center gap-1.5 flex-1 min-w-[240px]">
-            {/* 3. SKILL 1 BUTTON (Vibrates and radiates light on valid trigger!) */}
+            {/* 3. SKILL 1 DISPLAY BOX (CANNOT BE CLICKED! Auto-glows & shakes when matching D6 face is rolled!) */}
             <div
               className={`w-full transition-all duration-300 ${
                 isSkill1Triggered
                   ? 'animate-shake ring-2 ring-yellow-400 shadow-[0_0_25px_#facc15] brightness-110'
-                  : ''
+                  : 'opacity-85'
               }`}
             >
-              <button
-                disabled={!hasLocalPlayerRolled || phase === 'game_over'}
-                onClick={handleRollD6}
-                className={`relative w-full h-[38px] sm:h-[44px] flex items-center justify-center border-2 border-yellow-500/70 bg-[#0a0f1d] hover:bg-[#151d38] font-pixel text-[8px] sm:text-[9px] font-bold text-yellow-300 cursor-pointer overflow-hidden transition-all ${
-                  !hasLocalPlayerRolled ? 'opacity-40 grayscale pointer-events-none' : ''
+              <div
+                className={`relative w-full h-[38px] sm:h-[44px] flex items-center justify-center border-2 border-yellow-500/70 bg-[#0a0f1d] font-pixel text-[8px] sm:text-[9px] font-bold text-yellow-300 overflow-hidden select-none pointer-events-none transition-all ${
+                  !hasLocalPlayerRolled ? 'opacity-40 grayscale' : ''
                 }`}
               >
                 <div className="absolute inset-0 pointer-events-none opacity-40">
@@ -1242,24 +1229,26 @@ export default function BattleScreen() {
                     alt="Skill 1 Frame"
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                 </div>
                 <span className="relative z-10 flex items-center gap-1 drop-shadow">
-                  <span>⚔️</span>
+                  <span>{isSkill1Triggered ? '⚡' : '⚔️'}</span>
                   <span className="truncate max-w-[140px]">
                     SKILL 1: {isEn ? myPlayer.weapon.skill1.name : myPlayer.weapon.skill1.nameVi}
+                    {isSkill1Triggered ? ' (TRIGGERED!)' : ''}
                   </span>
                 </span>
-              </button>
+              </div>
             </div>
 
-            {/* 4. SKILL 2 BUTTON (Pitch black when PTS < req, brilliant radiant light when ready!) */}
+            {/* 4. SKILL 2 BUTTON (Clickable ONLY when PTS >= reqPts. Click once, then resets PTS!) */}
             <div className="w-full">
               <button
-                disabled={!canCastSkill2 || phase === 'game_over'}
+                disabled={!canCastSkill2 || phase === 'game_over' || d12RolledThisTurn}
                 onClick={handleRollD12}
                 className={`relative w-full h-[38px] sm:h-[44px] flex items-center justify-center border-2 font-pixel text-[8px] sm:text-[9px] font-bold overflow-hidden transition-all duration-300 ${
-                  canCastSkill2
+                  canCastSkill2 && !d12RolledThisTurn
                     ? 'border-yellow-300 bg-purple-950/90 text-yellow-200 ring-2 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-pulse cursor-pointer hover:scale-[1.02]'
                     : 'border-slate-800 bg-black/95 text-slate-500 opacity-30 grayscale brightness-50 pointer-events-none cursor-not-allowed'
                 }`}
@@ -1270,12 +1259,13 @@ export default function BattleScreen() {
                     alt="Skill 2 Frame"
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                 </div>
                 <span className="relative z-10 flex items-center gap-1 drop-shadow">
                   <span>💥</span>
                   <span className="truncate max-w-[140px]">
-                    {canCastSkill2
+                    {canCastSkill2 && !d12RolledThisTurn
                       ? `SKILL 2: ${myPlayer.weapon.skill2.name.toUpperCase()}`
                       : `${myCurrentPts}/${myReqPts} PTS`}
                   </span>
