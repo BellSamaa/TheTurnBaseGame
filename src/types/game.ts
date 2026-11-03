@@ -143,6 +143,12 @@ export interface BattleState {
   mapId: string;
   isAiOpponent: boolean;
   mode: 'ranked' | 'casual' | 'pve' | 'local';
+  p1HasRolled?: boolean;
+  p2HasRolled?: boolean;
+  p1D20?: number | null;
+  p2D20?: number | null;
+  p1D6?: number | null;
+  p2D6?: number | null;
 }
 
 export type GameMode = 'last_man_standing' | 'pve' | 'classic';

@@ -35,8 +35,8 @@ interface GameStore {
   // User Auth & Accounts Database
   currentUser: UserAccount | null;
   accounts: UserAccount[];
-  authModal: 'none' | 'login' | 'signup' | 'profile';
-  setAuthModal: (m: 'none' | 'login' | 'signup' | 'profile') => void;
+  authModal: 'none' | 'login' | 'signup' | 'profile' | 'global';
+  setAuthModal: (m: 'none' | 'login' | 'signup' | 'profile' | 'global') => void;
   loginUser: (username: string, pass?: string) => Promise<{ success: boolean; error?: string }>;
   signupUser: (username: string, email: string, pass?: string) => Promise<{ success: boolean; error?: string }>;
   logoutUser: () => void;

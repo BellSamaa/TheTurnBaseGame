@@ -128,6 +128,13 @@ export function saveUser(user: DbUserAccount): DbUserAccount {
   return db.users[key];
 }
 
+export function listAllUsers(): Omit<DbUserAccount, 'passwordHash'>[] {
+  const db = loadDatabase();
+  return Object.values(db.users)
+    .map(({ passwordHash, ...safeUser }) => safeUser)
+    .sort((a, b) => (b.rankPoints || 0) - (a.rankPoints || 0));
+}
+
 // ----------------------------------------------------------------------
 // Room Operations
 // ----------------------------------------------------------------------

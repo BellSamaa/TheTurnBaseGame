@@ -335,109 +335,134 @@ export function executeSkill2D12(
   let logTextVi = '';
   let logTextEn = '';
 
+  const pts = user.d12Charge ?? 0;
+  const cost = weapon.skill2.chargeRequired || 20;
+
   switch (weapon.id) {
     case 'greatsword':
-      // Greatsword: gây 5 sát thương lên tất cả kẻ địch
-      damage = 5;
-      burstTriggered = true;
-      logTextVi = `Đại Kiếm tung Trảm Quét Toàn Kẻ Địch gây 5 sát thương dữ dội!`;
-      logTextEn = `Greatsword executes Whirlwind Cleave dealing 5 damage to all foes!`;
+      // Greatsword: Tích đủ 20 PTS D6 gây 5 sát thương lên tất cả kẻ địch
+      if (pts >= cost) {
+        user.d12Charge = Math.max(0, pts - cost);
+        damage = 5;
+        burstTriggered = true;
+        logTextVi = `💥 ĐẠI KIẾM TRẢM QUÉT TOÀN BỘ KẺ ĐỊCH! Tiêu hao ${cost} PTS D6 gây 5 sát thương càn quét!`;
+        logTextEn = `💥 WHIRLWIND CLEAVE! Consumed ${cost} D6 PTS dealing 5 sweeping damage to all foes!`;
+      } else {
+        logTextVi = `Đại Kiếm cần tích đủ ${cost} PTS D6 để Trảm Quét (Hiện có: ${pts}/${cost} PTS).`;
+        logTextEn = `Greatsword requires ${cost} D6 PTS to Cleave (Current: ${pts}/${cost} PTS).`;
+      }
       break;
 
     case 'bow':
-      // Bow: (dùng ở lượt thủ) né Công kích kế tiếp
-      user.dodgeNextAttack = true;
-      burstTriggered = true;
-      logTextVi = `Cung Thủ Lộn Nhào Né Đòn! Sẵn sàng né hoàn toàn đòn công kích kế tiếp!`;
-      logTextEn = `Bow Archer rolls into evasive stance! Dodges next incoming attack completely!`;
+      // Bow: Tích đủ 22 PTS D6 (dùng ở lượt thủ) né Công kích kế tiếp
+      if (pts >= cost) {
+        user.d12Charge = Math.max(0, pts - cost);
+        user.dodgeNextAttack = true;
+        burstTriggered = true;
+        logTextVi = `🏹 CUNG THỦ LỘN NHÀO NÉ ĐÒN! Tiêu hao ${cost} PTS D6: Né hoàn toàn đòn công kích kế tiếp!`;
+        logTextEn = `🏹 EVASIVE ROLL! Consumed ${cost} D6 PTS: Dodges next incoming attack completely!`;
+      } else {
+        logTextVi = `Cung Săn cần tích đủ ${cost} PTS D6 để Lộn Nhào Né Đòn (Hiện có: ${pts}/${cost} PTS).`;
+        logTextEn = `Bow requires ${cost} D6 PTS to Evasive Roll (Current: ${pts}/${cost} PTS).`;
+      }
       break;
 
     case 'staff':
-      // Trượng gỗ: (dùng ở lượt thủ) né Kĩ năng kế tiếp
-      user.dodgeNextSkill = true;
-      burstTriggered = true;
-      logTextVi = `Trượng Gỗ dựng Khiên Phép Hóa Giải! Miễn nhiễm và né hoàn toàn Kĩ Năng kế tiếp!`;
-      logTextEn = `Wooden Staff invokes Spell Ward! Dodges next incoming skill completely!`;
+      // Trượng gỗ: Tích đủ 22 PTS D6 (dùng ở lượt thủ) né Kĩ năng kế tiếp
+      if (pts >= cost) {
+        user.d12Charge = Math.max(0, pts - cost);
+        user.dodgeNextSkill = true;
+        burstTriggered = true;
+        logTextVi = `✨ TRƯỢNG GỖ DỰNG KHIÊN PHÉP! Tiêu hao ${cost} PTS D6: Né và hóa giải Kĩ Năng kế tiếp!`;
+        logTextEn = `✨ SPELL WARD! Consumed ${cost} D6 PTS: Dodges and dispels next incoming skill!`;
+      } else {
+        logTextVi = `Trượng Gỗ cần tích đủ ${cost} PTS D6 để Dựng Khiên Phép (Hiện có: ${pts}/${cost} PTS).`;
+        logTextEn = `Staff requires ${cost} D6 PTS for Spell Ward (Current: ${pts}/${cost} PTS).`;
+      }
       break;
 
     case 'revolver':
-      // Revolver: Bắn ra 1 viên đạn xuyên qua phòng thủ nhưng có thể né, sát thương bằng số D20
-      // Consume 1 bullet if available
-      if ((user.bullets ?? 6) > 0) {
-        user.bullets = (user.bullets ?? 6) - 1;
+      // Revolver: Tích đủ 28 PTS D6 Bắn ra 1 viên đạn xuyên qua phòng thủ sát thương bằng D20
+      if (pts >= cost) {
+        user.d12Charge = Math.max(0, pts - cost);
+        if ((user.bullets ?? 6) > 0) {
+          user.bullets = (user.bullets ?? 6) - 1;
+        }
+        damage = rollD20();
+        burstTriggered = true;
+        logTextVi = `🔫 SÚNG LỤC BẮN ĐẠN XUYÊN GIÁP! Tiêu hao ${cost} PTS D6 gây ${damage} sát thương chuẩn (Bằng số D20)! Đạn: ${user.bullets ?? 0}/6.`;
+        logTextEn = `🔫 ARMOR-PIERCING BULLET! Consumed ${cost} D6 PTS dealing ${damage} true damage (equal to D20 roll)! Ammo: ${user.bullets ?? 0}/6.`;
+      } else {
+        logTextVi = `Súng Lục cần tích đủ ${cost} PTS D6 để Bắn Xuyên Giáp (Hiện có: ${pts}/${cost} PTS).`;
+        logTextEn = `Revolver requires ${cost} D6 PTS for Armor-Piercing Shot (Current: ${pts}/${cost} PTS).`;
       }
-      damage = rollD20();
-      burstTriggered = true;
-      logTextVi = `Súng Lục bắn Đạn Bạc Xuyên Phòng Thủ gây ${damage} sát thương chuẩn (Bằng số D20)! Còn ${user.bullets ?? 0}/6 viên đạn.`;
-      logTextEn = `Revolver fires Armor-Piercing Bullet dealing ${damage} damage (equal to D20 roll)! Ammo: ${user.bullets ?? 0}/6.`;
       break;
 
     case 'infinity_ring':
-      // Infinity Void: hollow purple ra tổng điểm 30 bắn hollow purple gây 50 dame
-      user.d12Charge = (user.d12Charge ?? 0) + d12Roll;
-      if (user.d12Charge >= 30) {
+      // Infinity Void: hollow purple tích đủ 40 PTS bắn hollow purple gây 50 dame
+      if (pts >= cost) {
+        user.d12Charge = Math.max(0, pts - cost);
         damage = 50;
         burstTriggered = true;
-        user.d12Charge = 0; // reset
-        logTextVi = `💥 BÁT TỬ SẮC [HOLLOW PURPLE]! Tích đủ 30 điểm D12, dung hợp Lam và Đỏ hủy diệt gây 50 siêu sát thương!`;
-        logTextEn = `💥 HOLLOW PURPLE UNLEASHED! Reached 30 D12 points, colliding Blue and Red for 50 apocalyptic damage!`;
+        logTextVi = `💥💥 BÁT TỬ SẮC [HOLLOW PURPLE]! Tích đủ ${cost} PTS D6, hợp nhất Vô Hạ Hạn hủy diệt gây 50 siêu sát thương cực hạn!`;
+        logTextEn = `💥💥 HOLLOW PURPLE UNLEASHED! Reached ${cost} D6 PTS, limitless collision obliterates for 50 apocalyptic damage!`;
       } else {
-        logTextVi = `Tung D12 nhận +${d12Roll} điểm năng lượng Tử Sắc (${user.d12Charge}/30 điểm).`;
-        logTextEn = `Rolled D12 for +${d12Roll} Purple Energy (${user.d12Charge}/30 points).`;
+        logTextVi = `Infinity Void cần tích đủ ${cost} PTS D6 để bắn Tử Sắc (Hiện có: ${pts}/${cost} PTS).`;
+        logTextEn = `Infinity Void requires ${cost} D6 PTS to fire Hollow Purple (Current: ${pts}/${cost} PTS).`;
       }
       break;
 
     case 'dagger':
-      // Dragon Dagger: ra đủ 30 điểm hóa lửa xanh cho dagger sau đó chém đòn liên tục 20 dame kèm tick 2 dame trong 5 lượt
-      user.d12Charge = (user.d12Charge ?? 0) + d12Roll;
-      if (user.d12Charge >= 30) {
+      // Dragon Dagger: ra đủ 35 PTS hóa lửa xanh cho dagger sau đó chém liên tục 20 dame kèm tick 2 dame trong 5 lượt
+      if (pts >= cost) {
+        user.d12Charge = Math.max(0, pts - cost);
         damage = 20;
         target.burnTicks = 5;
         target.burnDmgPerTurn = 2;
         burstTriggered = true;
-        user.d12Charge = 0;
-        logTextVi = `🔥 BÃO LỬA LAM ĐỒ SÁT! Tích đủ 30 điểm D12, Hóa Lửa Xanh chém liên hoàn 20 dame + thiêu đốt 2 dame/lượt trong 5 lượt!`;
-        logTextEn = `🔥 AZURE HELLFIRE STORM! Reached 30 D12 points, blue flame unleashed for 20 damage + 2 burn/turn for 5 turns!`;
+        logTextVi = `🔥 BÃO LỬA LAM ĐỒ SÁT! Tích đủ ${cost} PTS D6, Hóa Lửa Xanh chém liên hoàn 20 dame + thiêu đốt 2 dame/lượt trong 5 lượt!`;
+        logTextEn = `🔥 AZURE HELLFIRE STORM! Reached ${cost} D6 PTS, blue flame strikes for 20 damage + 2 burn/turn for 5 turns!`;
       } else {
-        logTextVi = `Tung D12 tích lũy +${d12Roll} điểm Lửa Lam (${user.d12Charge}/30 điểm).`;
-        logTextEn = `Rolled D12 accumulating +${d12Roll} Blue Flame (${user.d12Charge}/30 points).`;
+        logTextVi = `Dragon Dagger cần tích đủ ${cost} PTS D6 để Hóa Lửa Lam (Hiện có: ${pts}/${cost} PTS).`;
+        logTextEn = `Dragon Dagger requires ${cost} D6 PTS to unleash Azure Flame (Current: ${pts}/${cost} PTS).`;
       }
       break;
 
     case 'chronos_watch':
-      // Chronos: Eraser Time: xóa 1 turn đã được lưu / tua ngược thời gian
-      burstTriggered = true;
-      logTextVi = `⏳ ERASER TIME: Xóa bỏ dòng thời gian! Dừng lượt và tái thiết lại vận mệnh!`;
-      logTextEn = `⏳ ERASER TIME: Erased timeline branch! Time distorted to summoner's favor!`;
+      // Chronos: Eraser Time: tích đủ 38 PTS xóa 1 turn đã được lưu / tua ngược thời gian
+      if (pts >= cost) {
+        user.d12Charge = Math.max(0, pts - cost);
+        burstTriggered = true;
+        logTextVi = `⏳ ERASER TIME: Tích đủ ${cost} PTS D6! Xóa bỏ 1 turn đã lưu và đảo ngược dòng thời gian!`;
+        logTextEn = `⏳ ERASER TIME: Reached ${cost} D6 PTS! Erased 1 recorded turn and rewinded fate!`;
+      } else {
+        logTextVi = `Chronos cần tích đủ ${cost} PTS D6 để dùng Eraser Time (Hiện có: ${pts}/${cost} PTS).`;
+        logTextEn = `Chronos requires ${cost} D6 PTS for Eraser Time (Current: ${pts}/${cost} PTS).`;
+      }
       break;
 
     case 'fire_headband':
-      // Leaf headband: tích đủ 20 điểm triệu hồi 1 thiên thạch 10 dame; tích đủ 30 điểm triệu hồi 2 thiên thạch 30 dame + hoảng loạn giảm 5 công trong 2 lượt
-      user.d12Charge = (user.d12Charge ?? 0) + d12Roll;
-      if (user.d12Charge >= 30) {
+      // Leaf headband: tích đủ 32 PTS triệu hồi thiên thạch giáng thế 30 dame + hoảng loạn
+      if (pts >= cost) {
+        user.d12Charge = Math.max(0, pts - cost);
         damage = 30;
         target.panicAttackDebuff = 5;
         target.panicTurns = 2;
         burstTriggered = true;
-        user.d12Charge = 0;
-        logTextVi = `☄️☄️ SONG THIÊN THẠCH TENGAI SHINSEI! Tích đủ 30 điểm D12 triệu hồi 2 thiên thạch giáng xuống gây 30 sát thương kèm Hoảng Loạn (-5 Công trong 2 lượt)!`;
-        logTextEn = `☄️☄️ DUAL METEORS (TENGAI SHINSEI)! Reached 30 D12 points, 2 meteors obliterate foe for 30 damage & inflict Panic (-5 attack for 2 turns)!`;
-      } else if (user.d12Charge >= 20) {
-        damage = 10;
-        burstTriggered = true;
-        logTextVi = `☄️ THIÊN THẠCH RƠI! Tích đủ 20 điểm D12 triệu hồi 1 thiên thạch giáng xuống gây 10 sát thương! (Tích tiếp đến 30 điểm để triệu hồi 2 thiên thạch!)`;
-        logTextEn = `☄️ METEOR STRIKE! Reached 20 D12 points summoning a meteor for 10 damage! (Reach 30 for Dual Meteors!)`;
+        logTextVi = `☄️☄️ THIÊN THẠCH GIÁNG THẾ (TENGAI SHINSEI)! Tích đủ ${cost} PTS D6 triệu hồi thiên thạch gây 30 sát thương kèm Hoảng Loạn (-5 Công trong 2 lượt)!`;
+        logTextEn = `☄️☄️ TENGAI SHINSEI METEOR STORM! Reached ${cost} D6 PTS summoning meteors for 30 damage & inflicts Panic (-5 attack for 2 turns)!`;
       } else {
-        logTextVi = `Tung D12 tích lũy +${d12Roll} điểm Thiên Thạch (${user.d12Charge}/30 điểm).`;
-        logTextEn = `Rolled D12 accumulating +${d12Roll} Meteor Energy (${user.d12Charge}/30 points).`;
+        logTextVi = `Leaf Headband cần tích đủ ${cost} PTS D6 để giáng Thiên Thạch (Hiện có: ${pts}/${cost} PTS).`;
+        logTextEn = `Leaf Headband requires ${cost} D6 PTS to summon Meteors (Current: ${pts}/${cost} PTS).`;
       }
       break;
 
     case 'spirit_stone':
-      // The pet rock: sau khi bị tấn công 5 lần, Rock tiến vào cuồng bạo phình to x2 lăn đến kẻ địch gây sát thương bằng D20 (có khả năng lăn ngược)
-      if (user.petRockEnraged || (user.petRockHits ?? 0) >= 5) {
+      // The pet rock: tích đủ 25 PTS D6 (hoặc sau 5 lần bị đánh): Rock phình to x2 lăn đến kẻ địch gây sát thương bằng D20
+      if (pts >= cost || user.petRockEnraged || (user.petRockHits ?? 0) >= 5) {
+        user.d12Charge = Math.max(0, pts - cost);
         const roll = rollD20();
-        const rollBack = Math.random() < 0.2; // 20% chance to roll back to summoner
+        const rollBack = Math.random() < 0.15; // 15% chance to roll back to summoner
         burstTriggered = true;
         if (rollBack) {
           damage = Math.round(roll / 2);
@@ -452,15 +477,22 @@ export function executeSkill2D12(
         user.petRockEnraged = false;
         user.petRockHits = 0;
       } else {
-        logTextVi = `Bạn Đá Cưng Rock đang tích lũy nộ (${user.petRockHits ?? 0}/5 lần bị đánh để Cuồng Bạo). Tung D12 nhận +${d12Roll} phòng ngự!`;
-        logTextEn = `Pet Rock building rage (${user.petRockHits ?? 0}/5 hits taken to Enrage). Rolled D12 for +${d12Roll} stone resilience!`;
+        logTextVi = `Bạn Đá Cưng Rock cần tích đủ ${cost} PTS D6 (hoặc bị đánh 5 lần để Cuồng Bạo). Hiện có: ${pts}/${cost} PTS.`;
+        logTextEn = `Pet Rock requires ${cost} D6 PTS (or 5 hits taken). Current: ${pts}/${cost} PTS.`;
       }
       break;
 
     default:
-      damage = 5;
-      logTextVi = `${weapon.nameVi} kích hoạt chiêu D12 gây ${damage} sát thương!`;
-      logTextEn = `${weapon.name} executes D12 skill dealing ${damage} damage!`;
+      if (pts >= cost) {
+        user.d12Charge = Math.max(0, pts - cost);
+        damage = 5;
+        burstTriggered = true;
+        logTextVi = `${weapon.nameVi} giải phóng kĩ năng tối thượng gây ${damage} sát thương!`;
+        logTextEn = `${weapon.name} unleashes ultimate skill dealing ${damage} damage!`;
+      } else {
+        logTextVi = `${weapon.nameVi} cần tích đủ ${cost} PTS D6 (Hiện có: ${pts}/${cost} PTS).`;
+        logTextEn = `${weapon.name} requires ${cost} D6 PTS (Current: ${pts}/${cost} PTS).`;
+      }
   }
 
   return {

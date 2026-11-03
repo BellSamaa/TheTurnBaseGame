@@ -1,9 +1,12 @@
 /* ──────────────────────────────────────────────
-   HealthBar – Enhanced Pixel HP bar with Chip-Loss Ghost Lag
+   HealthBar – Ornate Gold & Ruby Pixel Health Bar
+   Using authentic frame: Khung thanh máu pixel vàng ngọc.png (Aspect 3:1)
+   Exact Inner Opening: left 14%, width 72%, top 35.5%, height 28%
    ────────────────────────────────────────────── */
 'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 interface HealthBarProps {
@@ -29,15 +32,13 @@ export default function HealthBar({
   const prevCurrentRef = useRef(safeCurrent);
 
   useEffect(() => {
-    // If damage was taken (HP decreased)
     if (safeCurrent < prevCurrentRef.current) {
       const timer = setTimeout(() => {
         setGhostPct(currentPct);
-      }, 450); // 450ms lag before ghost bar catches down
+      }, 450);
       prevCurrentRef.current = safeCurrent;
       return () => clearTimeout(timer);
     } else {
-      // Healed or unchanged
       setGhostPct(currentPct);
       prevCurrentRef.current = safeCurrent;
     }
@@ -45,71 +46,86 @@ export default function HealthBar({
 
   // Health color palette
   const hpColor = useMemo(() => {
-    if (currentPct > 0.5) return '#22c55e'; // Green
-    if (currentPct > 0.25) return '#eab308'; // Amber
-    return '#ef4444'; // Red
+    if (currentPct > 0.5) return 'from-emerald-500 to-green-600';
+    if (currentPct > 0.25) return 'from-amber-400 to-yellow-600';
+    return 'from-rose-500 to-red-700';
   }, [currentPct]);
 
-  const frameBorder =
-    variant === 'gold'
-      ? 'border-[#eab308]'
-      : variant === 'red'
-      ? 'border-[#ef4444]'
-      : 'border-[#06b6d4]';
-
   return (
-    <div className={`relative w-full ${className}`}>
-      {/* Optional player label and big HP numbers */}
-      <div className="flex items-center justify-between mb-1 text-[9px] font-pixel">
-        {playerName && (
-          <span className="text-yellow-400 font-bold truncate max-w-[140px] drop-shadow">
+    <div className={`relative flex flex-col items-center w-full max-w-[280px] sm:max-w-[320px] mx-auto ${className}`}>
+      {/* Player Header Label (if supplied) */}
+      {playerName && (
+        <div className="flex items-center justify-between w-full px-2 mb-0.5 text-[8.5px] font-pixel">
+          <span className="text-yellow-300 font-bold drop-shadow truncate max-w-[150px]">
             {playerName}
           </span>
-        )}
-        <div className="ml-auto flex items-baseline gap-1">
-          <span className="text-xs sm:text-sm font-bold tracking-tight" style={{ color: hpColor }}>
-            {safeCurrent}
+          <span className="text-slate-300">
+            {safeCurrent} / {max} HP
           </span>
-          <span className="text-[8px] text-slate-400 font-pixel">/ {max} HP</span>
         </div>
-      </div>
+      )}
 
-      {/* Bar container with authentic 2px pixel frame */}
-      <div
-        className={`relative h-5 w-full bg-[#0a0d14] border-2 ${frameBorder} shadow-[inset_0_0_10px_rgba(0,0,0,0.9)] overflow-hidden`}
-        style={{ imageRendering: 'pixelated' }}
-      >
-        {/* Track Grid Lines */}
+      {/* Ornate Gold & Ruby HP Frame (Aspect 3:1 Container) */}
+      <div className="relative w-full aspect-[3/1] max-h-12 flex items-center justify-center select-none">
+        {/* Authentic Pixel Frame Foreground Image */}
+        <div className="absolute inset-0 pointer-events-none z-20">
+          <Image
+            src="/assets/sprites/ui/frames/frame_hp_gold_ruby.png"
+            alt="Gold Ruby HP Frame"
+            fill
+            className="object-contain"
+            priority
+            unoptimized
+          />
+        </div>
+
+        {/* Inner Health Bar Slot (Pixel-matched opening: left 14%, width 72%, top 35.5%, height 28%) */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-20 z-20"
+          className="absolute z-10 bg-[#08070d] overflow-hidden shadow-[inset_0_0_6px_rgba(0,0,0,0.95)] flex items-center"
           style={{
-            backgroundImage:
-              'repeating-linear-gradient(90deg, #000 0, #000 1px, transparent 1px, transparent 10%)',
+            left: '14%',
+            width: '72%',
+            top: '35.5%',
+            height: '28%',
           }}
-        />
+        >
+          {/* Subtle grid lines */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-25 z-20"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(90deg, #000 0, #000 1px, transparent 1px, transparent 10%)',
+            }}
+          />
 
-        {/* 1. Chip-loss ghost bar (Lingers when damaged to show lost amount) */}
-        <motion.div
-          className="absolute top-0 bottom-0 left-0 bg-red-400/80 z-10"
-          initial={false}
-          animate={{ width: `${ghostPct * 100}%` }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
-        />
+          {/* 1. Ghost Lag Bar */}
+          <motion.div
+            className="absolute top-0 bottom-0 left-0 bg-red-400/80 z-10"
+            initial={false}
+            animate={{ width: `${ghostPct * 100}%` }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+          />
 
-        {/* 2. Real Current HP Bar (Drops instantly) */}
-        <motion.div
-          className="absolute top-0 bottom-0 left-0 z-15"
-          style={{
-            backgroundColor: hpColor,
-            boxShadow: `0 0 10px ${hpColor}88, inset 0 1px 0 rgba(255,255,255,0.4)`,
-          }}
-          initial={false}
-          animate={{ width: `${currentPct * 100}%` }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-        />
+          {/* 2. Real Current HP Bar with Gradient */}
+          <motion.div
+            className={`absolute top-0 bottom-0 left-0 bg-gradient-to-r ${hpColor} z-10 shadow-[0_0_8px_rgba(34,197,94,0.5)]`}
+            initial={false}
+            animate={{ width: `${currentPct * 100}%` }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+          />
 
-        {/* Glass highlight scanline */}
-        <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/15 pointer-events-none z-20" />
+          {/* 3. Centered HP Text Overlay */}
+          <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+            <span
+              className="text-[7.5px] sm:text-[8.5px] font-pixel font-bold text-white drop-shadow tracking-wider whitespace-nowrap"
+              style={{
+                textShadow: '1px 1px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000',
+              }}
+            >
+              {safeCurrent} / {max} HP
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

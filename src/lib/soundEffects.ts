@@ -247,3 +247,133 @@ export function playSaveSound() {
   });
 }
 
+// 9. Sharp Blade Slash Sound (Swords, Daggers)
+export function playSlashSound() {
+  const { canPlay, volume } = canPlaySound();
+  if (!canPlay) return;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(800, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.12);
+
+  gain.gain.setValueAtTime(volume * 0.4, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start();
+  osc.stop(ctx.currentTime + 0.12);
+}
+
+// 10. Revolver Gunshot Sound (Explosive pop + low crackle)
+export function playGunshotSound() {
+  const { canPlay, volume } = canPlaySound();
+  if (!canPlay) return;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  // Sharp initial pop
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(1200, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.15);
+
+  gain.gain.setValueAtTime(volume * 0.5, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start();
+  osc.stop(ctx.currentTime + 0.15);
+}
+
+// 11. Celestial Magic Cast Sound (Staff, Infinity Void)
+export function playMagicCastSound() {
+  const { canPlay, volume } = canPlaySound();
+  if (!canPlay) return;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  [440, 659.25, 880, 1174.66].forEach((freq, idx) => {
+    const time = ctx.currentTime + idx * 0.04;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, time);
+
+    gain.gain.setValueAtTime(volume * 0.25, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(time);
+    osc.stop(time + 0.25);
+  });
+}
+
+// 12. Meteor Rumble & Ground Impact (Leaf Headband Tengai Shinsei, Pet Rock)
+export function playMeteorRumbleSound() {
+  const { canPlay, volume } = canPlaySound();
+  if (!canPlay) return;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(110, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.45);
+
+  gain.gain.setValueAtTime(volume * 0.6, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start();
+  osc.stop(ctx.currentTime + 0.45);
+}
+
+// 13. Ultimate Skill 2 Burst Aura Fanfare
+export function playUltimateAuraSound() {
+  const { canPlay, volume } = canPlaySound();
+  if (!canPlay) return;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  [330, 440, 554.37, 659.25, 880].forEach((freq, idx) => {
+    const time = ctx.currentTime + idx * 0.06;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, time);
+
+    gain.gain.setValueAtTime(volume * 0.35, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.35);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(time);
+    osc.stop(time + 0.35);
+  });
+}
+

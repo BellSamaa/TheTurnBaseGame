@@ -92,6 +92,19 @@ export default function HomeScreen() {
               </button>
             </div>
 
+            {/* Global Directory Button */}
+            <button
+              onClick={() => {
+                playClickSound();
+                setAuthModal('global');
+              }}
+              title={isEn ? 'View all registered community accounts' : 'Xem danh sách tất cả tài khoản đã đăng ký'}
+              className="flex items-center gap-1.5 text-[10px] sm:text-xs text-yellow-300 font-pixel bg-gradient-to-r from-yellow-950/90 to-amber-900/90 hover:from-yellow-900 hover:to-amber-800 border-2 border-yellow-400 px-3 py-1.5 transition-all cursor-pointer shadow-[0_0_12px_rgba(250,204,21,0.4)] animate-enchant-glow hover:scale-105"
+            >
+              <span>🌐</span>
+              <span className="font-bold tracking-wide">GLOBAL</span>
+            </button>
+
             {/* Real User Auth Profile Badge */}
             {currentUser ? (
               <div className="flex items-center gap-2 animate-enchant-glow">
@@ -233,10 +246,10 @@ export default function HomeScreen() {
           </motion.div>
         </div>
 
-        {/* Section Bottom Footer: Quick Jump Links + Scroll Down Indicator (Strictly single container, zero overlap) */}
-        <div className="relative z-20 w-full pb-6 pt-2 px-4 flex flex-col items-center gap-2.5">
-          {/* Quick Jump Links */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[9px] sm:text-[10px] font-pixel text-slate-400">
+        {/* Section Bottom Footer: Quick Jump Links + Scroll Down Indicator (Strictly separated containers, zero overlap) */}
+        <div className="relative z-20 w-full pb-6 pt-3 px-4 flex flex-col items-center gap-3">
+          {/* Quick Jump Links Container */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[9px] sm:text-[10px] font-pixel text-slate-400 bg-black/70 px-4 py-1.5 border border-slate-700/70 shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
             <button
               onClick={() => scrollToSection('rules-section')}
               className="hover:text-yellow-400 underline transition-colors cursor-pointer"
@@ -266,13 +279,15 @@ export default function HomeScreen() {
             </button>
           </div>
 
-          {/* Scroll Down Indicator */}
+          {/* Scroll Down Indicator with steady text and downward bouncing arrow */}
           <button
             onClick={() => scrollToSection('rules-section')}
-            className="text-[9px] sm:text-[10px] font-pixel text-yellow-400/80 hover:text-yellow-300 transition-colors flex flex-col items-center gap-1 animate-bounce cursor-pointer"
+            className="group text-[9px] sm:text-[10px] font-pixel text-yellow-400/90 hover:text-yellow-300 transition-colors flex flex-col items-center gap-1 cursor-pointer"
           >
-            <span>{isEn ? 'SCROLL DOWN TO EXPLORE THE REALM' : 'CUỘN XUỐNG ĐỂ KHÁM PHÁ'}</span>
-            <span>▼</span>
+            <span className="tracking-widest group-hover:underline">
+              {isEn ? 'SCROLL DOWN TO EXPLORE THE REALM' : 'CUỘN XUỐNG ĐỂ KHÁM PHÁ'}
+            </span>
+            <span className="text-yellow-400 text-xs inline-block animate-bounce">▼</span>
           </button>
         </div>
       </section>

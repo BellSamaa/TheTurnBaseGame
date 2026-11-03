@@ -9,6 +9,7 @@ import { SPRITE_HELPERS, CLASS_DEFINITIONS } from '@/lib/constants';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
+import GlobalAccountsModal from './GlobalAccountsModal';
 
 export default function AuthModals() {
   const {
@@ -42,6 +43,16 @@ export default function AuthModals() {
   const [isLoading, setIsLoading] = useState(false);
 
   if (authModal === 'none') return null;
+
+  if (authModal === 'global') {
+    return (
+      <GlobalAccountsModal
+        isOpen={true}
+        onClose={() => setAuthModal('none')}
+        isEn={isEn}
+      />
+    );
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,0 +1,2222 @@
+{
+  "version": 1,
+  "format": "row-based-source-atlas",
+  "columns": 4,
+  "rows": 4,
+  "effects": {
+    "slash_light": {
+      "sheet": "sheets/physical.png",
+      "sourceSize": [
+        1261,
+        1247
+      ],
+      "row": 0,
+      "frames": [
+        {
+          "rect": [
+            0,
+            0,
+            315,
+            312
+          ],
+          "file": "frames/slash_light/0.png"
+        },
+        {
+          "rect": [
+            315,
+            0,
+            316,
+            312
+          ],
+          "file": "frames/slash_light/1.png"
+        },
+        {
+          "rect": [
+            631,
+            0,
+            315,
+            312
+          ],
+          "file": "frames/slash_light/2.png"
+        },
+        {
+          "rect": [
+            946,
+            0,
+            315,
+            312
+          ],
+          "file": "frames/slash_light/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "slash_heavy": {
+      "sheet": "sheets/physical.png",
+      "sourceSize": [
+        1261,
+        1247
+      ],
+      "row": 1,
+      "frames": [
+        {
+          "rect": [
+            0,
+            312,
+            315,
+            312
+          ],
+          "file": "frames/slash_heavy/0.png"
+        },
+        {
+          "rect": [
+            315,
+            312,
+            316,
+            312
+          ],
+          "file": "frames/slash_heavy/1.png"
+        },
+        {
+          "rect": [
+            631,
+            312,
+            315,
+            312
+          ],
+          "file": "frames/slash_heavy/2.png"
+        },
+        {
+          "rect": [
+            946,
+            312,
+            315,
+            312
+          ],
+          "file": "frames/slash_heavy/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "slash_multi": {
+      "sheet": "sheets/physical.png",
+      "sourceSize": [
+        1261,
+        1247
+      ],
+      "row": 2,
+      "frames": [
+        {
+          "rect": [
+            0,
+            624,
+            315,
+            311
+          ],
+          "file": "frames/slash_multi/0.png"
+        },
+        {
+          "rect": [
+            315,
+            624,
+            316,
+            311
+          ],
+          "file": "frames/slash_multi/1.png"
+        },
+        {
+          "rect": [
+            631,
+            624,
+            315,
+            311
+          ],
+          "file": "frames/slash_multi/2.png"
+        },
+        {
+          "rect": [
+            946,
+            624,
+            315,
+            311
+          ],
+          "file": "frames/slash_multi/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "impact_physical": {
+      "sheet": "sheets/physical.png",
+      "sourceSize": [
+        1261,
+        1247
+      ],
+      "row": 3,
+      "frames": [
+        {
+          "rect": [
+            0,
+            935,
+            315,
+            312
+          ],
+          "file": "frames/impact_physical/0.png"
+        },
+        {
+          "rect": [
+            315,
+            935,
+            316,
+            312
+          ],
+          "file": "frames/impact_physical/1.png"
+        },
+        {
+          "rect": [
+            631,
+            935,
+            315,
+            312
+          ],
+          "file": "frames/impact_physical/2.png"
+        },
+        {
+          "rect": [
+            946,
+            935,
+            315,
+            312
+          ],
+          "file": "frames/impact_physical/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 240,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "burn_orange": {
+      "sheet": "sheets/status.png",
+      "sourceSize": [
+        1269,
+        1240
+      ],
+      "row": 0,
+      "frames": [
+        {
+          "rect": [
+            0,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/burn_orange/0.png"
+        },
+        {
+          "rect": [
+            317,
+            0,
+            318,
+            310
+          ],
+          "file": "frames/burn_orange/1.png"
+        },
+        {
+          "rect": [
+            635,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/burn_orange/2.png"
+        },
+        {
+          "rect": [
+            952,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/burn_orange/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        140,
+        140
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "burn_blue": {
+      "sheet": "sheets/status.png",
+      "sourceSize": [
+        1269,
+        1240
+      ],
+      "row": 1,
+      "frames": [
+        {
+          "rect": [
+            0,
+            310,
+            317,
+            310
+          ],
+          "file": "frames/burn_blue/0.png"
+        },
+        {
+          "rect": [
+            317,
+            310,
+            318,
+            310
+          ],
+          "file": "frames/burn_blue/1.png"
+        },
+        {
+          "rect": [
+            635,
+            310,
+            317,
+            310
+          ],
+          "file": "frames/burn_blue/2.png"
+        },
+        {
+          "rect": [
+            952,
+            310,
+            317,
+            310
+          ],
+          "file": "frames/burn_blue/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        140,
+        140
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "burn_black": {
+      "sheet": "sheets/status.png",
+      "sourceSize": [
+        1269,
+        1240
+      ],
+      "row": 2,
+      "frames": [
+        {
+          "rect": [
+            0,
+            620,
+            317,
+            310
+          ],
+          "file": "frames/burn_black/0.png"
+        },
+        {
+          "rect": [
+            317,
+            620,
+            318,
+            310
+          ],
+          "file": "frames/burn_black/1.png"
+        },
+        {
+          "rect": [
+            635,
+            620,
+            317,
+            310
+          ],
+          "file": "frames/burn_black/2.png"
+        },
+        {
+          "rect": [
+            952,
+            620,
+            317,
+            310
+          ],
+          "file": "frames/burn_black/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        140,
+        140
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "bleed": {
+      "sheet": "sheets/status.png",
+      "sourceSize": [
+        1269,
+        1240
+      ],
+      "row": 3,
+      "frames": [
+        {
+          "rect": [
+            0,
+            930,
+            317,
+            310
+          ],
+          "file": "frames/bleed/0.png"
+        },
+        {
+          "rect": [
+            317,
+            930,
+            318,
+            310
+          ],
+          "file": "frames/bleed/1.png"
+        },
+        {
+          "rect": [
+            635,
+            930,
+            317,
+            310
+          ],
+          "file": "frames/bleed/2.png"
+        },
+        {
+          "rect": [
+            952,
+            930,
+            317,
+            310
+          ],
+          "file": "frames/bleed/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "dodge_attack": {
+      "sheet": "sheets/defense.png",
+      "sourceSize": [
+        1261,
+        1247
+      ],
+      "row": 0,
+      "frames": [
+        {
+          "rect": [
+            0,
+            0,
+            315,
+            312
+          ],
+          "file": "frames/dodge_attack/0.png"
+        },
+        {
+          "rect": [
+            315,
+            0,
+            316,
+            312
+          ],
+          "file": "frames/dodge_attack/1.png"
+        },
+        {
+          "rect": [
+            631,
+            0,
+            315,
+            312
+          ],
+          "file": "frames/dodge_attack/2.png"
+        },
+        {
+          "rect": [
+            946,
+            0,
+            315,
+            312
+          ],
+          "file": "frames/dodge_attack/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "dodge_spell": {
+      "sheet": "sheets/defense.png",
+      "sourceSize": [
+        1261,
+        1247
+      ],
+      "row": 1,
+      "frames": [
+        {
+          "rect": [
+            0,
+            312,
+            315,
+            312
+          ],
+          "file": "frames/dodge_spell/0.png"
+        },
+        {
+          "rect": [
+            315,
+            312,
+            316,
+            312
+          ],
+          "file": "frames/dodge_spell/1.png"
+        },
+        {
+          "rect": [
+            631,
+            312,
+            315,
+            312
+          ],
+          "file": "frames/dodge_spell/2.png"
+        },
+        {
+          "rect": [
+            946,
+            312,
+            315,
+            312
+          ],
+          "file": "frames/dodge_spell/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "guard": {
+      "sheet": "sheets/defense.png",
+      "sourceSize": [
+        1261,
+        1247
+      ],
+      "row": 2,
+      "frames": [
+        {
+          "rect": [
+            0,
+            624,
+            315,
+            311
+          ],
+          "file": "frames/guard/0.png"
+        },
+        {
+          "rect": [
+            315,
+            624,
+            316,
+            311
+          ],
+          "file": "frames/guard/1.png"
+        },
+        {
+          "rect": [
+            631,
+            624,
+            315,
+            311
+          ],
+          "file": "frames/guard/2.png"
+        },
+        {
+          "rect": [
+            946,
+            624,
+            315,
+            311
+          ],
+          "file": "frames/guard/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "stun": {
+      "sheet": "sheets/defense.png",
+      "sourceSize": [
+        1261,
+        1247
+      ],
+      "row": 3,
+      "frames": [
+        {
+          "rect": [
+            0,
+            935,
+            315,
+            312
+          ],
+          "file": "frames/stun/0.png"
+        },
+        {
+          "rect": [
+            315,
+            935,
+            316,
+            312
+          ],
+          "file": "frames/stun/1.png"
+        },
+        {
+          "rect": [
+            631,
+            935,
+            315,
+            312
+          ],
+          "file": "frames/stun/2.png"
+        },
+        {
+          "rect": [
+            946,
+            935,
+            315,
+            312
+          ],
+          "file": "frames/stun/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "arrow": {
+      "sheet": "sheets/projectiles.png",
+      "sourceSize": [
+        1269,
+        1240
+      ],
+      "row": 0,
+      "frames": [
+        {
+          "rect": [
+            0,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/arrow/0.png"
+        },
+        {
+          "rect": [
+            317,
+            0,
+            318,
+            310
+          ],
+          "file": "frames/arrow/1.png"
+        },
+        {
+          "rect": [
+            635,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/arrow/2.png"
+        },
+        {
+          "rect": [
+            952,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/arrow/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "right"
+    },
+    "magic_orb": {
+      "sheet": "sheets/projectiles.png",
+      "sourceSize": [
+        1269,
+        1240
+      ],
+      "row": 1,
+      "frames": [
+        {
+          "rect": [
+            0,
+            310,
+            317,
+            310
+          ],
+          "file": "frames/magic_orb/0.png"
+        },
+        {
+          "rect": [
+            317,
+            310,
+            318,
+            310
+          ],
+          "file": "frames/magic_orb/1.png"
+        },
+        {
+          "rect": [
+            635,
+            310,
+            317,
+            310
+          ],
+          "file": "frames/magic_orb/2.png"
+        },
+        {
+          "rect": [
+            952,
+            310,
+            317,
+            310
+          ],
+          "file": "frames/magic_orb/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "right"
+    },
+    "bullet": {
+      "sheet": "sheets/projectiles.png",
+      "sourceSize": [
+        1269,
+        1240
+      ],
+      "row": 2,
+      "frames": [
+        {
+          "rect": [
+            0,
+            620,
+            317,
+            310
+          ],
+          "file": "frames/bullet/0.png"
+        },
+        {
+          "rect": [
+            317,
+            620,
+            318,
+            310
+          ],
+          "file": "frames/bullet/1.png"
+        },
+        {
+          "rect": [
+            635,
+            620,
+            317,
+            310
+          ],
+          "file": "frames/bullet/2.png"
+        },
+        {
+          "rect": [
+            952,
+            620,
+            317,
+            310
+          ],
+          "file": "frames/bullet/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 240,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "right"
+    },
+    "reload": {
+      "sheet": "sheets/projectiles.png",
+      "sourceSize": [
+        1269,
+        1240
+      ],
+      "row": 3,
+      "frames": [
+        {
+          "rect": [
+            0,
+            930,
+            317,
+            310
+          ],
+          "file": "frames/reload/0.png"
+        },
+        {
+          "rect": [
+            317,
+            930,
+            318,
+            310
+          ],
+          "file": "frames/reload/1.png"
+        },
+        {
+          "rect": [
+            635,
+            930,
+            317,
+            310
+          ],
+          "file": "frames/reload/2.png"
+        },
+        {
+          "rect": [
+            952,
+            930,
+            317,
+            310
+          ],
+          "file": "frames/reload/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "void_blue": {
+      "sheet": "sheets/void.png",
+      "sourceSize": [
+        1263,
+        1246
+      ],
+      "row": 0,
+      "frames": [
+        {
+          "rect": [
+            0,
+            0,
+            316,
+            312
+          ],
+          "file": "frames/void_blue/0.png"
+        },
+        {
+          "rect": [
+            316,
+            0,
+            316,
+            312
+          ],
+          "file": "frames/void_blue/1.png"
+        },
+        {
+          "rect": [
+            632,
+            0,
+            315,
+            312
+          ],
+          "file": "frames/void_blue/2.png"
+        },
+        {
+          "rect": [
+            947,
+            0,
+            316,
+            312
+          ],
+          "file": "frames/void_blue/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "void_red": {
+      "sheet": "sheets/void.png",
+      "sourceSize": [
+        1263,
+        1246
+      ],
+      "row": 1,
+      "frames": [
+        {
+          "rect": [
+            0,
+            312,
+            316,
+            311
+          ],
+          "file": "frames/void_red/0.png"
+        },
+        {
+          "rect": [
+            316,
+            312,
+            316,
+            311
+          ],
+          "file": "frames/void_red/1.png"
+        },
+        {
+          "rect": [
+            632,
+            312,
+            315,
+            311
+          ],
+          "file": "frames/void_red/2.png"
+        },
+        {
+          "rect": [
+            947,
+            312,
+            316,
+            311
+          ],
+          "file": "frames/void_red/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "infinity": {
+      "sheet": "sheets/void.png",
+      "sourceSize": [
+        1263,
+        1246
+      ],
+      "row": 2,
+      "frames": [
+        {
+          "rect": [
+            0,
+            623,
+            316,
+            312
+          ],
+          "file": "frames/infinity/0.png"
+        },
+        {
+          "rect": [
+            316,
+            623,
+            316,
+            312
+          ],
+          "file": "frames/infinity/1.png"
+        },
+        {
+          "rect": [
+            632,
+            623,
+            315,
+            312
+          ],
+          "file": "frames/infinity/2.png"
+        },
+        {
+          "rect": [
+            947,
+            623,
+            316,
+            312
+          ],
+          "file": "frames/infinity/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "hollow_purple": {
+      "sheet": "sheets/void.png",
+      "sourceSize": [
+        1263,
+        1246
+      ],
+      "row": 3,
+      "frames": [
+        {
+          "rect": [
+            0,
+            935,
+            316,
+            311
+          ],
+          "file": "frames/hollow_purple/0.png"
+        },
+        {
+          "rect": [
+            316,
+            935,
+            316,
+            311
+          ],
+          "file": "frames/hollow_purple/1.png"
+        },
+        {
+          "rect": [
+            632,
+            935,
+            315,
+            311
+          ],
+          "file": "frames/hollow_purple/2.png"
+        },
+        {
+          "rect": [
+            947,
+            935,
+            316,
+            311
+          ],
+          "file": "frames/hollow_purple/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "left"
+    },
+    "time_save": {
+      "sheet": "sheets/chronos.png",
+      "sourceSize": [
+        1272,
+        1236
+      ],
+      "row": 0,
+      "frames": [
+        {
+          "rect": [
+            0,
+            0,
+            318,
+            309
+          ],
+          "file": "frames/time_save/0.png"
+        },
+        {
+          "rect": [
+            318,
+            0,
+            318,
+            309
+          ],
+          "file": "frames/time_save/1.png"
+        },
+        {
+          "rect": [
+            636,
+            0,
+            318,
+            309
+          ],
+          "file": "frames/time_save/2.png"
+        },
+        {
+          "rect": [
+            954,
+            0,
+            318,
+            309
+          ],
+          "file": "frames/time_save/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "time_reroll": {
+      "sheet": "sheets/chronos.png",
+      "sourceSize": [
+        1272,
+        1236
+      ],
+      "row": 1,
+      "frames": [
+        {
+          "rect": [
+            0,
+            309,
+            318,
+            309
+          ],
+          "file": "frames/time_reroll/0.png"
+        },
+        {
+          "rect": [
+            318,
+            309,
+            318,
+            309
+          ],
+          "file": "frames/time_reroll/1.png"
+        },
+        {
+          "rect": [
+            636,
+            309,
+            318,
+            309
+          ],
+          "file": "frames/time_reroll/2.png"
+        },
+        {
+          "rect": [
+            954,
+            309,
+            318,
+            309
+          ],
+          "file": "frames/time_reroll/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "time_lock": {
+      "sheet": "sheets/chronos.png",
+      "sourceSize": [
+        1272,
+        1236
+      ],
+      "row": 2,
+      "frames": [
+        {
+          "rect": [
+            0,
+            618,
+            318,
+            309
+          ],
+          "file": "frames/time_lock/0.png"
+        },
+        {
+          "rect": [
+            318,
+            618,
+            318,
+            309
+          ],
+          "file": "frames/time_lock/1.png"
+        },
+        {
+          "rect": [
+            636,
+            618,
+            318,
+            309
+          ],
+          "file": "frames/time_lock/2.png"
+        },
+        {
+          "rect": [
+            954,
+            618,
+            318,
+            309
+          ],
+          "file": "frames/time_lock/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "time_erase": {
+      "sheet": "sheets/chronos.png",
+      "sourceSize": [
+        1272,
+        1236
+      ],
+      "row": 3,
+      "frames": [
+        {
+          "rect": [
+            0,
+            927,
+            318,
+            309
+          ],
+          "file": "frames/time_erase/0.png"
+        },
+        {
+          "rect": [
+            318,
+            927,
+            318,
+            309
+          ],
+          "file": "frames/time_erase/1.png"
+        },
+        {
+          "rect": [
+            636,
+            927,
+            318,
+            309
+          ],
+          "file": "frames/time_erase/2.png"
+        },
+        {
+          "rect": [
+            954,
+            927,
+            318,
+            309
+          ],
+          "file": "frames/time_erase/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "meteor_one": {
+      "sheet": "sheets/meteor.png",
+      "sourceSize": [
+        1268,
+        1241
+      ],
+      "row": 0,
+      "frames": [
+        {
+          "rect": [
+            0,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/meteor_one/0.png"
+        },
+        {
+          "rect": [
+            317,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/meteor_one/1.png"
+        },
+        {
+          "rect": [
+            634,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/meteor_one/2.png"
+        },
+        {
+          "rect": [
+            951,
+            0,
+            317,
+            310
+          ],
+          "file": "frames/meteor_one/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "down-right"
+    },
+    "meteor_two": {
+      "sheet": "sheets/meteor.png",
+      "sourceSize": [
+        1268,
+        1241
+      ],
+      "row": 1,
+      "frames": [
+        {
+          "rect": [
+            0,
+            310,
+            317,
+            311
+          ],
+          "file": "frames/meteor_two/0.png"
+        },
+        {
+          "rect": [
+            317,
+            310,
+            317,
+            311
+          ],
+          "file": "frames/meteor_two/1.png"
+        },
+        {
+          "rect": [
+            634,
+            310,
+            317,
+            311
+          ],
+          "file": "frames/meteor_two/2.png"
+        },
+        {
+          "rect": [
+            951,
+            310,
+            317,
+            311
+          ],
+          "file": "frames/meteor_two/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "down-right"
+    },
+    "meteor_impact": {
+      "sheet": "sheets/meteor.png",
+      "sourceSize": [
+        1268,
+        1241
+      ],
+      "row": 2,
+      "frames": [
+        {
+          "rect": [
+            0,
+            621,
+            317,
+            310
+          ],
+          "file": "frames/meteor_impact/0.png"
+        },
+        {
+          "rect": [
+            317,
+            621,
+            317,
+            310
+          ],
+          "file": "frames/meteor_impact/1.png"
+        },
+        {
+          "rect": [
+            634,
+            621,
+            317,
+            310
+          ],
+          "file": "frames/meteor_impact/2.png"
+        },
+        {
+          "rect": [
+            951,
+            621,
+            317,
+            310
+          ],
+          "file": "frames/meteor_impact/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        140,
+        140
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "panic": {
+      "sheet": "sheets/meteor.png",
+      "sourceSize": [
+        1268,
+        1241
+      ],
+      "row": 3,
+      "frames": [
+        {
+          "rect": [
+            0,
+            931,
+            317,
+            310
+          ],
+          "file": "frames/panic/0.png"
+        },
+        {
+          "rect": [
+            317,
+            931,
+            317,
+            310
+          ],
+          "file": "frames/panic/1.png"
+        },
+        {
+          "rect": [
+            634,
+            931,
+            317,
+            310
+          ],
+          "file": "frames/panic/2.png"
+        },
+        {
+          "rect": [
+            951,
+            931,
+            317,
+            310
+          ],
+          "file": "frames/panic/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        120,
+        120
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "rock_summon": {
+      "sheet": "sheets/rock.png",
+      "sourceSize": [
+        1263,
+        1245
+      ],
+      "row": 0,
+      "frames": [
+        {
+          "rect": [
+            0,
+            0,
+            316,
+            311
+          ],
+          "file": "frames/rock_summon/0.png"
+        },
+        {
+          "rect": [
+            316,
+            0,
+            316,
+            311
+          ],
+          "file": "frames/rock_summon/1.png"
+        },
+        {
+          "rect": [
+            632,
+            0,
+            315,
+            311
+          ],
+          "file": "frames/rock_summon/2.png"
+        },
+        {
+          "rect": [
+            947,
+            0,
+            316,
+            311
+          ],
+          "file": "frames/rock_summon/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        140,
+        140
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "rock_block": {
+      "sheet": "sheets/rock.png",
+      "sourceSize": [
+        1263,
+        1245
+      ],
+      "row": 1,
+      "frames": [
+        {
+          "rect": [
+            0,
+            311,
+            316,
+            312
+          ],
+          "file": "frames/rock_block/0.png"
+        },
+        {
+          "rect": [
+            316,
+            311,
+            316,
+            312
+          ],
+          "file": "frames/rock_block/1.png"
+        },
+        {
+          "rect": [
+            632,
+            311,
+            315,
+            312
+          ],
+          "file": "frames/rock_block/2.png"
+        },
+        {
+          "rect": [
+            947,
+            311,
+            316,
+            312
+          ],
+          "file": "frames/rock_block/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        140,
+        140
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "rock_rage": {
+      "sheet": "sheets/rock.png",
+      "sourceSize": [
+        1263,
+        1245
+      ],
+      "row": 2,
+      "frames": [
+        {
+          "rect": [
+            0,
+            623,
+            316,
+            311
+          ],
+          "file": "frames/rock_rage/0.png"
+        },
+        {
+          "rect": [
+            316,
+            623,
+            316,
+            311
+          ],
+          "file": "frames/rock_rage/1.png"
+        },
+        {
+          "rect": [
+            632,
+            623,
+            315,
+            311
+          ],
+          "file": "frames/rock_rage/2.png"
+        },
+        {
+          "rect": [
+            947,
+            623,
+            316,
+            311
+          ],
+          "file": "frames/rock_rage/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        140,
+        140
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "none"
+    },
+    "rock_roll": {
+      "sheet": "sheets/rock.png",
+      "sourceSize": [
+        1263,
+        1245
+      ],
+      "row": 3,
+      "frames": [
+        {
+          "rect": [
+            0,
+            934,
+            316,
+            311
+          ],
+          "file": "frames/rock_roll/0.png"
+        },
+        {
+          "rect": [
+            316,
+            934,
+            316,
+            311
+          ],
+          "file": "frames/rock_roll/1.png"
+        },
+        {
+          "rect": [
+            632,
+            934,
+            315,
+            311
+          ],
+          "file": "frames/rock_roll/2.png"
+        },
+        {
+          "rect": [
+            947,
+            934,
+            316,
+            311
+          ],
+          "file": "frames/rock_roll/3.png"
+        }
+      ],
+      "pivot": [
+        0.5,
+        0.88
+      ],
+      "durationMs": 400,
+      "suggestedWorldSize": [
+        140,
+        140
+      ],
+      "sequence": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "statusLoopSequence": [
+        1,
+        2,
+        3,
+        2
+      ],
+      "defaultLoop": false,
+      "canonicalDirection": "right"
+    }
+  },
+  "buttons": {
+    "skill_1": "ui/skill_1.png",
+    "skill_2": "ui/skill_2.png"
+  },
+  "timingsAre": "visual proposals only; never game turn lengths",
+  "qualityNote": "Grid cuts preserve original pixels. AI source may have glow/particles near boundaries; inspect preview before production."
+}

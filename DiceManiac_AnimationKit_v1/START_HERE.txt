@@ -1,0 +1,7 @@
+PROMPT NGẮN ĐỂ GỬI ANTIGRAVITY:
+
+Tôi đính kèm folder DiceManiac_AnimationKit_v1. Hãy mở và đọc trọn ANTIGRAVITY_PROMPT.md, README_VI.md, manifest.json, abilities.json và docs/INTEGRATION_EXAMPLE.md rồi tích hợp vào game hiện tại.
+
+Triển khai mọi nhánh vũ khí được mô tả, dùng asset và vị trí/timeline trong kit. Kết quả combat đã resolve là nguồn duy nhất; animation không tự roll, trừ HP, cộng charge hoặc chọn nhánh. Phải có scene thử chiêu, thử trái/phải và outcome, dọn VFX đúng lúc. Các rules chưa rõ phải được chỉ ra hoặc lấy config có nguồn; không tự bịa.
+
+Hai nút skill là ui/skill_1.png và ui/skill_2.png. Các hiệu ứng có128 frame tách riêng. Không đưa nguyên sprite sheet thành một hình trong trận đấu. Hoàn thành code, kiểm tra thực tế và báo phần còn thiếu theo prompt đầy đủ trong folder.

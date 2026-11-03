@@ -1,0 +1,21 @@
+{
+  "assetFramesLoaded": 128,
+  "effectsRendered": 32,
+  "abilityScenariosValidated": 29,
+  "cuesRendered": 52,
+  "checks": [
+    "frame rectangles in image bounds",
+    "cropped PNG dimensions match manifest",
+    "all referenced effects load and render",
+    "one-shot expiry",
+    "same-id replacement",
+    "explicit stop",
+    "loop TTL expiry",
+    "dispose",
+    "offline preview inline JavaScript parses"
+  ],
+  "environment": "Node Canvas; no browser or actual game tested",
+  "visualStatus": "Source images were viewed; frame-to-frame pivot/art continuity not exhaustively verified",
+  "gameplayStatus": "Not implemented in this kit; prompt describes integration",
+  "errors": []
+}
