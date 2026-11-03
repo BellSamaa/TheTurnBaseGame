@@ -47,6 +47,12 @@ export function calculateD20Combat(
   logTextVi: string;
   logTextEn: string;
 } {
+  if (attackerState?.isStunned || attackerState?.timeLockActive) {
+    attackerState.isStunned = false;
+    attackerState.timeLockActive = false;
+    return { damage: 0, rawDiff: 0, isHit: false,
+      logTextEn: 'Stunned: the next attack is cancelled.', logTextVi: 'Bị choáng: mất đòn tấn công này.' };
+  }
   // Check Dodge from Bow Skill 2
   if (defenderState?.dodgeNextAttack) {
     defenderState.dodgeNextAttack = false;
@@ -75,6 +81,10 @@ export function calculateD20Combat(
 
   // Check Panic debuff (-5 attack)
   let effectiveAtk = attackerD20;
+  if (attackerState?.fateSealActive) {
+    effectiveAtk = Math.min(effectiveAtk, rollD20());
+    attackerState.fateSealActive = false;
+  }
   if (attackerState?.panicAttackDebuff && (attackerState.panicTurns ?? 0) > 0) {
     effectiveAtk = Math.max(1, effectiveAtk - attackerState.panicAttackDebuff);
   }
@@ -116,7 +126,7 @@ export function calculateD20Combat(
 
   if (isDefenderPetRock && defenderState) {
     if (defenderState.petRockHp === undefined) {
-      defenderState.petRockHp = 50;
+      defenderState.petRockHp = 0;
       defenderState.petRockHits = 0;
     }
 
@@ -302,8 +312,7 @@ export function executeSkill1D6(
 
     case 'spirit_stone':
       // The pet rock: triệu hồi rock (50 máu) chặn 5 sát thương cho chủ nhân, dùng D6 gây sát thương
-      user.petRockHp ??= 50;
-      user.petRockHits ??= 0;
+      if ((user.petRockHp ?? 0) <= 0) { user.petRockHp = 50; user.petRockHits = 0; }
       damage = d6Roll;
       logTextVi = `Bạn Đá Cưng Rock (${user.petRockHp}/50 Máu, đỡ tối đa 5 sát thương mỗi đòn) và húc đối thủ gây ${damage} sát thương!`;
       logTextEn = `Pet Rock (${user.petRockHp}/50 HP, absorbs up to 5 dmg/hit) and retaliates for ${damage} damage!`;
@@ -446,6 +455,8 @@ export function executeSkill2D12(
       if (pts >= cost) {
         user.d12Charge = Math.max(0, pts - cost);
         burstTriggered = true;
+        user.hp = Math.min(user.maxHp, user.timeAnchorHp ?? user.maxHp);
+        user.timeAnchorHp = null;
         logTextVi = `⏳ ERASER TIME: Tích đủ ${cost} PTS D6! Xóa bỏ 1 turn đã lưu và đảo ngược dòng thời gian!`;
         logTextEn = `⏳ ERASER TIME: Reached ${cost} D6 PTS! Erased 1 recorded turn and rewinded fate!`;
       } else {

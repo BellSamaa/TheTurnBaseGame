@@ -203,7 +203,7 @@ export default function WeaponsGallery() {
                 <div className="flex items-center justify-between text-[8px] font-pixel font-bold text-yellow-300 mb-1">
                   <span>🎲 SKILL 1: {isEn ? selectedWeapon.skill1.name : selectedWeapon.skill1.nameVi}</span>
                   <span className="text-yellow-300 bg-yellow-950 px-1 py-0.2 border border-yellow-500/50">
-                    D6
+                    {selectedWeapon.skill1.chargeRequired} PTS · CLICK
                   </span>
                 </div>
                 <p className="text-[7.5px] font-pixel text-slate-300 leading-tight">

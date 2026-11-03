@@ -29,7 +29,10 @@ export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1
     caster.d12Charge += bonus;
   }
   let damage = result.damage;
-  if (opponent.dodgeNextSkill) {
+  if (slot === 2 && user.weapon.id === 'spirit_stone' && caster.hp < user.hp) damage = 0;
+  const offensive = damage > 0 || JSON.stringify(opponent) !== JSON.stringify(target);
+  const blocked = Boolean(offensive && opponent.dodgeNextSkill);
+  if (blocked) {
     // Discard offensive debuffs from the blocked cast, but retain the spent cost.
     Object.assign(opponent, structuredClone(target), { dodgeNextSkill: false });
     damage = 0;
@@ -39,6 +42,6 @@ export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1
   }
   opponent.hp = Math.max(0, opponent.hp - damage);
   return { caster, opponent, damage, cost,
-    logTextEn: result.logTextEn.replace(/rolled (\d+)/gi, 'selected form $1') + ' [-' + cost + ' PTS]' + (bonus ? ' [Reload bonus +' + bonus + ' PTS]' : ''),
+    logTextEn: result.logTextEn.replace(/rolled (\d+)/gi, 'selected form $1') + (blocked ? ' [BLOCKED]' : '') + ' [-' + cost + ' PTS]' + (bonus ? ' [Reload bonus +' + bonus + ' PTS]' : ''),
     logTextVi: result.logTextVi.replace(/ra mặt (\d+)/gi, 'chọn dạng $1') + ' [-' + cost + ' PTS]' + (bonus ? ' [Nạp đạn +' + bonus + ' PTS]' : '') };
 }

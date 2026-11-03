@@ -99,7 +99,7 @@ export default function WeaponItemSlot({
               <div className="flex items-center gap-1 bg-black/80 px-1 py-0.5 border border-cyan-500/60 rounded-xs">
                 <span className="text-[6.5px] font-pixel text-cyan-300">🪨 ROCK:</span>
                 <span className="text-[7px] font-pixel text-yellow-300">
-                  {player.petRockHp ?? 50} HP
+                  {player.petRockHp ?? 0} HP
                 </span>
                 {player.petRockEnraged && (
                   <span className="text-[6px] font-pixel text-red-400 font-bold animate-pulse">ENRAGED!</span>
@@ -110,7 +110,7 @@ export default function WeaponItemSlot({
             {/* D12 Gauge Counter for weapons with D12 charge */}
             {weapon.skill2.chargeRequired && (
               <div className="flex items-center gap-0.5 bg-black/80 px-1 py-0.5 border border-amber-500/60 rounded-xs">
-                <span className="text-[6.5px] font-pixel text-amber-300">D12:</span>
+                <span className="text-[6.5px] font-pixel text-amber-300">PTS:</span>
                 <span className="text-[7.5px] font-pixel font-bold text-yellow-300">
                   {player.d12Charge ?? 0}/{weapon.skill2.chargeRequired}
                 </span>
@@ -232,10 +232,10 @@ export default function WeaponItemSlot({
                   <div className="flex items-center justify-between">
                     <span className="text-[8.5px] font-pixel font-bold text-yellow-300 flex items-center gap-1.5">
                       <span>🎲</span>
-                      <span>SKILL 1 (D6): {isEn ? weapon.skill1.name : weapon.skill1.nameVi}</span>
+                      <span>SKILL 1: {isEn ? weapon.skill1.name : weapon.skill1.nameVi}</span>
                     </span>
                     <span className="text-[7px] font-pixel bg-yellow-950 text-yellow-200 border border-yellow-400 px-1.5 py-0.5">
-                      D6 ROLL
+                      {weapon.skill1.chargeRequired ?? 10} PTS · CLICK
                     </span>
                   </div>
                   <p className="text-[8px] text-slate-300 font-pixel leading-relaxed">
@@ -248,12 +248,12 @@ export default function WeaponItemSlot({
                   <div className="flex items-center justify-between">
                     <span className="text-[8.5px] font-pixel font-bold text-cyan-300 flex items-center gap-1.5">
                       <span>✨</span>
-                      <span>SKILL 2 (D12): {isEn ? weapon.skill2.name : weapon.skill2.nameVi}</span>
+                      <span>SKILL 2: {isEn ? weapon.skill2.name : weapon.skill2.nameVi}</span>
                     </span>
                     <span className="text-[7px] font-pixel bg-cyan-950 text-cyan-200 border border-cyan-400 px-1.5 py-0.5">
                       {weapon.skill2.chargeRequired
-                        ? `D12 TARGET: ${weapon.skill2.chargeRequired} PTS`
-                        : 'D12 ROLL'}
+                        ? `COST: ${weapon.skill2.chargeRequired} PTS`
+                        : 'CLICK TO CAST'}
                     </span>
                   </div>
                   <p className="text-[8px] text-slate-300 font-pixel leading-relaxed">

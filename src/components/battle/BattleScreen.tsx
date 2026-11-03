@@ -14,13 +14,10 @@ import {
 import {
   rollD20,
   rollD6,
-  rollD12,
   calculateD20Combat,
-  executeSkill1D6,
-  executeSkill2D12,
-  executeAiDecisions,
 } from '@/lib/battleLogic';
 import type { BattleLogEntry, BattleState, PlayerState } from '@/types/game';
+import { castChargedSkill, skillCost } from '@/lib/chargedSkills';
 import HealthBar from '@/components/ui/HealthBar';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
@@ -179,6 +176,8 @@ export default function BattleScreen() {
   const lang = settings.language;
   const isEn = lang === 'en';
 
+  const [selectedSkillForm, setSelectedSkillForm] = useState<number | undefined>();
+  const castLockRef = useRef(false);
   const [lobbyError, setLobbyError] = useState('');
   const [returningToLobby, setReturningToLobby] = useState(false);
 
@@ -444,7 +443,7 @@ export default function BattleScreen() {
 
   const isAttacker = isP1User ? p1IsAttacker : !p1IsAttacker;
   const defenderWeaponId = p1IsAttacker ? player2.weapon.id : player1.weapon.id;
-  const defenderHasDefenseSkill = weaponHasDefenseSkill(defenderWeaponId);
+  const defenderHasDefenseSkill = true; // Both players charge PTS each round.
 
   // Discrete roll gating
   let canLocalRoll = false;
@@ -471,7 +470,7 @@ export default function BattleScreen() {
   } else if (turnStep === 'd6_def') {
     canLocalRoll = !isAttacker && defenderHasDefenseSkill && !isRollingD6;
     rollButtonTitle = !isAttacker
-      ? (isEn ? 'Roll D6 Defense Skill' : 'Tung D6 Chiêu Thủ')
+      ? (isEn ? 'Roll D6 · Charge PTS' : 'Tung D6 · Sạc PTS')
       : (isEn ? 'Waiting for Defender D6...' : 'Chờ Bên Thủ Tung D6...');
   } else if (turnStep === 'd12') {
     canLocalRoll = false;
@@ -489,7 +488,8 @@ export default function BattleScreen() {
   const myPlayer = isP1User ? player1 : player2;
   const myCurrentPts = myPlayer.d12Charge || 0;
   const myReqPts = myPlayer.weapon.skill2.chargeRequired || 20;
-  const canCastSkill2 = myCurrentPts >= myReqPts && !d12RolledThisTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12';
+  const canCastSkill2 = myCurrentPts >= skillCost(myPlayer, 2) && myPlayer.skill2UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12' && !(myPlayer.weapon.id === 'revolver' && (myPlayer.bullets ?? 6) <= 0);
+  const canCastSkill1 = myCurrentPts >= skillCost(myPlayer, 1) && myPlayer.skill1UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12';
 
   // Add message to battle log (Local state only; actions include logs in their synced state)
   const addLog = (entry: Omit<BattleLogEntry, 'timestamp'>) => {
@@ -567,13 +567,10 @@ export default function BattleScreen() {
       const t = setTimeout(() => executeRollD6Def(), 850);
       return () => clearTimeout(t);
     }
-    if (turnStep === 'd12' && botIsAttacker) {
-      const botCurrentPts = player2.d12Charge || 0;
-      const botReqPts = player2.weapon.skill2.chargeRequired || 20;
-      if (botCurrentPts >= botReqPts && !d12RolledThisTurn) {
-        const t = setTimeout(() => handleRollD12(), 800);
-        return () => clearTimeout(t);
-      }
+    if (turnStep === 'd12') {
+      const slot = (player2.d12Charge || 0) >= skillCost(player2, 2) && player2.skill2UsedTurn !== currentTurn ? 2
+        : (player2.d12Charge || 0) >= skillCost(player2, 1) && player2.skill1UsedTurn !== currentTurn ? 1 : null;
+      if (slot) { const t = setTimeout(() => handleCastSkill(slot, true), 850); return () => clearTimeout(t); }
     }
   }, [
     turnStep,
@@ -585,6 +582,8 @@ export default function BattleScreen() {
     isRollingD6,
     d12RolledThisTurn,
     player2.d12Charge,
+    player2.skill1UsedTurn,
+    player2.skill2UsedTurn,
     player2.weapon.skill2.chargeRequired,
   ]);
 
@@ -798,158 +797,38 @@ export default function BattleScreen() {
   // ==========================================
   // DISCRETE ROLL STEP 3: D6 ATTACK (Skill Charge + Passive Skill 1)
   // ==========================================
-  const executeRollD6Atk = () => {
-    if (isRollingD6 || phase === 'game_over') return;
+  const chargePlayer = (attacking: boolean) => {
+    if (isRollingD6 || phase === 'game_over' || syncPendingRef.current) return;
     setIsRollingD6(true);
     playDiceRollSound();
-
-    const isP1Attacking = p1IsAttacker;
-    const attackerState = isP1Attacking ? player1 : player2;
-    const defenderState = isP1Attacking ? player2 : player1;
-    const defenderTarget: 'p1' | 'p2' = isP1Attacking ? 'p2' : 'p1';
-
-    const r6 = rollD6();
-
-    addTimer(
-      setTimeout(() => {
-        setIsRollingD6(false);
-        if (isP1Attacking) {
-          setD6P1Rolls([r6]);
-        } else {
-          setD6P2Rolls([r6]);
-        }
-
-        // Auto-trigger Skill 1 for Attacker
-        const skill1Res = executeSkill1D6(r6, attackerState, defenderState);
-        const extraDmg = skill1Res.damage || 0;
-
-        const logsToAdd: BattleLogEntry[] = [
-          {
-            turn: currentTurn,
-            type: 'skill',
-            message: isEn
-              ? `${attackerState.name} rolled D6 Skill Charge: +${r6} PTS`
-              : `${attackerState.name} tung D6 Sạc Chiêu: +${r6} PTS`,
-            messageVi: `${attackerState.name} tung D6 Sạc Chiêu: +${r6} PTS`,
-            timestamp: Date.now(),
-          },
-        ];
-
-        if (extraDmg > 0 || skill1Res.logTextEn) {
-          logsToAdd.unshift({
-            turn: currentTurn,
-            type: 'skill',
-            message: isEn ? skill1Res.logTextEn : skill1Res.logTextVi,
-            messageVi: skill1Res.logTextVi,
-            timestamp: Date.now() + 1,
-          });
-        }
-
-        // If defender has defense skill, advance to d6_def, else finish rolls (d12)
-        const nextStep = defenderHasDefenseSkill ? 'd6_def' : 'd12';
-        setTurnStep(nextStep);
-
-        setBattleState((prev) => {
-          if (!prev) return null;
-          const updated: BattleState = {
-            ...prev,
-            p1D6: isP1Attacking ? r6 : prev.p1D6,
-            p2D6: !isP1Attacking ? r6 : prev.p2D6,
-            turnStep: nextStep,
-            battleLog: [...logsToAdd, ...prev.battleLog],
-            player1: {
-              ...prev.player1,
-              d12Charge: isP1Attacking ? (prev.player1.d12Charge || 0) + r6 : prev.player1.d12Charge,
-              hp: !isP1Attacking && extraDmg > 0 ? Math.max(0, prev.player1.hp - extraDmg) : prev.player1.hp,
-            },
-            player2: {
-              ...prev.player2,
-              d12Charge: !isP1Attacking ? (prev.player2.d12Charge || 0) + r6 : prev.player2.d12Charge,
-              hp: isP1Attacking && extraDmg > 0 ? Math.max(0, prev.player2.hp - extraDmg) : prev.player2.hp,
-            },
-          };
-          syncOnlineBattle(updated);
-          return updated;
-        });
-      }, 600)
-    );
+    const isP1 = attacking ? p1IsAttacker : !p1IsAttacker;
+    const player = isP1 ? player1 : player2;
+    const count = 1 + (CLASS_DEFINITIONS[player.classType]?.extraD6Rolls || 0);
+    const rolls = Array.from({ length: count }, () => rollD6());
+    const points = rolls.reduce((sum, n) => sum + n, 0);
+    addTimer(setTimeout(() => {
+      setIsRollingD6(false);
+      if (isP1) setD6P1Rolls(rolls); else setD6P2Rolls(rolls);
+      setBattleState(prev => {
+        if (!prev) return null;
+        const updated: BattleState = { ...prev,
+          turnStep: attacking ? 'd6_def' : 'd12',
+          p1D6: isP1 ? points : prev.p1D6,
+          p2D6: !isP1 ? points : prev.p2D6,
+          d6Results: { player1: isP1 ? rolls : (prev.d6Results?.player1 || []), player2: !isP1 ? rolls : (prev.d6Results?.player2 || []) },
+          player1: isP1 ? { ...prev.player1, d12Charge: (prev.player1.d12Charge || 0) + points } : prev.player1,
+          player2: !isP1 ? { ...prev.player2, d12Charge: (prev.player2.d12Charge || 0) + points } : prev.player2,
+          battleLog: [{ turn: prev.currentTurn, type: 'system', timestamp: Date.now(),
+            message: player.name + ' charges +' + points + ' PTS. Choose skills after both players charge.',
+            messageVi: player.name + ' sạc +' + points + ' PTS. Chọn kỹ năng sau khi cả hai sạc xong.' }, ...prev.battleLog],
+        };
+        syncOnlineBattle(updated);
+        return updated;
+      });
+    }, 600));
   };
-
-  // ==========================================
-  // DISCRETE ROLL STEP 4: D6 DEFENSE (Defense Skill only!)
-  // ==========================================
-  const executeRollD6Def = () => {
-    if (isRollingD6 || phase === 'game_over') return;
-    setIsRollingD6(true);
-    playDiceRollSound();
-
-    const isP1Defending = !p1IsAttacker;
-    const defenderState = isP1Defending ? player1 : player2;
-    const attackerState = isP1Defending ? player2 : player1;
-
-    const r6 = rollD6();
-
-    addTimer(
-      setTimeout(() => {
-        setIsRollingD6(false);
-        if (isP1Defending) {
-          setD6P1Rolls([r6]);
-        } else {
-          setD6P2Rolls([r6]);
-        }
-
-        // Auto-trigger Defender Skill 1 / Defense Skill
-        const skill1Res = executeSkill1D6(r6, defenderState, attackerState);
-
-        const logsToAdd: BattleLogEntry[] = [
-          {
-            turn: currentTurn,
-            type: 'defend',
-            message: isEn
-              ? `${defenderState.name} rolled D6 Defense Skill: +${r6} PTS`
-              : `${defenderState.name} tung D6 Chiêu Thủ: +${r6} PTS`,
-            messageVi: `${defenderState.name} tung D6 Chiêu Thủ: +${r6} PTS`,
-            timestamp: Date.now(),
-          },
-        ];
-
-        if (skill1Res.logTextEn) {
-          logsToAdd.unshift({
-            turn: currentTurn,
-            type: 'skill',
-            message: isEn ? skill1Res.logTextEn : skill1Res.logTextVi,
-            messageVi: skill1Res.logTextVi,
-            timestamp: Date.now() + 1,
-          });
-        }
-
-        setTurnStep('d12');
-
-        setBattleState((prev) => {
-          if (!prev) return null;
-          const updated: BattleState = {
-            ...prev,
-            p1D6: isP1Defending ? r6 : prev.p1D6,
-            p2D6: !isP1Defending ? r6 : prev.p2D6,
-            turnStep: 'd12',
-            p1HasRolled: true,
-            p2HasRolled: true,
-            battleLog: [...logsToAdd, ...prev.battleLog],
-            player1: {
-              ...(p1IsAttacker ? attackerState : defenderState),
-              d12Charge: isP1Defending ? (prev.player1.d12Charge || 0) + r6 : prev.player1.d12Charge,
-            },
-            player2: {
-              ...(p1IsAttacker ? defenderState : attackerState),
-              d12Charge: !isP1Defending ? (prev.player2.d12Charge || 0) + r6 : prev.player2.d12Charge,
-            },
-          };
-          syncOnlineBattle(updated);
-          return updated;
-        });
-      }, 600)
-    );
-  };
+  const executeRollD6Atk = () => chargePlayer(true);
+  const executeRollD6Def = () => chargePlayer(false);
 
   // ==========================================
   // MASTER DISPATCHER: ROLL DICE
@@ -967,135 +846,38 @@ export default function BattleScreen() {
     }
   };
 
-  // Handler: CAST SKILL 2 (ONLY clickable skill! Consumes PTS + Widescreen Cinematic Banner + VFX)
-  const handleRollD12 = () => {
-    if (isRollingD12 || d12RolledThisTurn || phase === 'game_over' || !canCastSkill2) return;
-
-    setIsRollingD12(true);
-    const r12 = rollD12();
-
-    const caster = isP1User ? player1 : player2;
-    const opponent = isP1User ? player2 : player1;
-    const targetSide = isP1User ? 'p2' : 'p1';
-
-    // 1. Launch Grand Cinematic Banner with Weapon Aura
-    const auraColor = getWeaponAuraColor(caster.weapon.id);
-    setSkillBannerQueue((prev) => [
-      ...prev,
-      {
-        id: String(Date.now()),
-        weaponId: caster.weapon.id,
-        skillNameEn: caster.weapon.skill2.name,
-        casterName: caster.name,
-        auraColor,
-      },
-    ]);
-
-    // 2. Trigger AnimationKit Ultimate VFX on target
-    const ultimateVfx = getWeaponVfx(caster.weapon.id, true);
-    setActiveVfx({
-      id: String(Date.now() + 1),
-      effect: ultimateVfx,
-      target: targetSide,
-      size: 180,
+  const handleCastSkill = (slot: 1 | 2, bot = false) => {
+    if (castLockRef.current || syncPendingRef.current || phase === 'game_over' || turnStep !== 'd12') return;
+    const isP1 = bot ? false : isP1User;
+    if (onlineRoomCode && (isP1 ? battleState.p1EndedTurn : battleState.p2EndedTurn)) return;
+    const caster = isP1 ? player1 : player2;
+    const opponent = isP1 ? player2 : player1;
+    const forms = caster.weapon.skill1.triggerNumber;
+    const form = Array.isArray(forms) ? (bot ? forms[0] : selectedSkillForm != null && forms.includes(selectedSkillForm) ? selectedSkillForm : forms[0]) : undefined;
+    const result = castChargedSkill(caster, opponent, slot, currentTurn, form);
+    if (!result) return;
+    castLockRef.current = true;
+    const skill = slot === 1 ? result.caster.weapon.skill1 : result.caster.weapon.skill2;
+    const banner: SkillActivationEvent = { id: crypto.randomUUID(), weaponId: caster.weapon.id,
+      skillNameEn: skill.name, casterName: caster.name, auraColor: getWeaponAuraColor(caster.weapon.id) };
+    const vfx: VfxEvent = { id: crypto.randomUUID(), effect: getWeaponVfx(caster.weapon.id, slot === 2), target: isP1 ? 'p2' : 'p1', size: slot === 2 ? 180 : 130 };
+    setSkillBannerQueue(q => [...q, banner]);
+    setActiveVfx(vfx);
+    playWeaponSound(caster.weapon.id);
+    setBattleState(prev => {
+      if (!prev) return null;
+      const next: BattleState = { ...prev,
+        player1: isP1 ? result.caster : result.opponent,
+        player2: isP1 ? result.opponent : result.caster,
+        activeSkillBanner: banner, activeVfx: vfx,
+        battleLog: [{ turn: currentTurn, type: 'skill', message: result.logTextEn, messageVi: result.logTextVi, timestamp: Date.now() }, ...prev.battleLog],
+      };
+      syncOnlineBattle(next);
+      return next;
     });
-
-    addTimer(
-      setTimeout(() => {
-        setIsRollingD12(false);
-        setD12RolledThisTurn(true);
-
-        const res = executeSkill2D12(r12, caster, opponent, caster.isAttacker);
-        playWeaponSound(caster.weapon.id);
-
-        if (res.damage > 0) {
-          if (targetSide === 'p1') {
-            setP1IsHit(true);
-            setTimeout(() => setP1IsHit(false), 400);
-          } else {
-            setP2IsHit(true);
-            setTimeout(() => setP2IsHit(false), 400);
-          }
-
-          setDamagePopup({
-            id: String(Date.now()),
-            target: targetSide,
-            text: `-${res.damage} DMG`,
-            type: 'crit',
-            subtext: `${caster.weapon.skill2.name.toUpperCase()}!`,
-          });
-        }
-
-        setBattleState((prev) => {
-          if (!prev) return null;
-          const isP1 = isP1User;
-          const updated: BattleState = {
-            ...prev,
-            activeSkillBanner: {
-              id: String(Date.now()),
-              weaponId: caster.weapon.id,
-              skillNameEn: caster.weapon.skill2.name,
-              casterName: caster.name,
-              auraColor,
-            },
-            activeVfx: {
-              id: String(Date.now() + 1),
-              effect: ultimateVfx,
-              target: targetSide,
-              size: 180,
-            },
-            player1: isP1
-              ? {
-                  ...prev.player1,
-                  d12Charge: Math.max(0, (prev.player1.d12Charge || 0) - myReqPts),
-                  bullets: caster.bullets,
-                  dodgeNextAttack: caster.dodgeNextAttack,
-                  dodgeNextSkill: caster.dodgeNextSkill,
-                  petRockEnraged: caster.petRockEnraged,
-                  petRockHits: caster.petRockHits,
-                }
-              : {
-                  ...prev.player1,
-                  hp: Math.max(0, prev.player1.hp - res.damage),
-                  burnTicks: opponent.burnTicks,
-                  burnDmgPerTurn: opponent.burnDmgPerTurn,
-                  panicAttackDebuff: opponent.panicAttackDebuff,
-                  panicTurns: opponent.panicTurns,
-                },
-            player2: !isP1
-              ? {
-                  ...prev.player2,
-                  d12Charge: Math.max(0, (prev.player2.d12Charge || 0) - myReqPts),
-                  bullets: caster.bullets,
-                  dodgeNextAttack: caster.dodgeNextAttack,
-                  dodgeNextSkill: caster.dodgeNextSkill,
-                  petRockEnraged: caster.petRockEnraged,
-                  petRockHits: caster.petRockHits,
-                }
-              : {
-                  ...prev.player2,
-                  hp: Math.max(0, prev.player2.hp - res.damage),
-                  burnTicks: opponent.burnTicks,
-                  burnDmgPerTurn: opponent.burnDmgPerTurn,
-                  panicAttackDebuff: opponent.panicAttackDebuff,
-                  panicTurns: opponent.panicTurns,
-                },
-          };
-          syncOnlineBattle(updated);
-          return updated;
-        });
-
-        addLog({
-          turn: currentTurn,
-          type: 'skill',
-          message: isEn ? res.logTextEn : res.logTextVi,
-          messageVi: res.logTextVi,
-        });
-
-        addTimer(setTimeout(() => setDamagePopup(null), 1800));
-      }, 700)
-    );
+    addTimer(setTimeout(() => { castLockRef.current = false; }, 450));
   };
+  const handleRollD12 = () => handleCastSkill(2);
 
   // Handler: END TURN (With Debounce Protection & Both Players Rolled Gate)
   const handleEndTurn = () => {
@@ -1125,14 +907,6 @@ export default function BattleScreen() {
 
     setIsEndingTurn(true);
     playTurnSound();
-
-    // AI decisions in PvE mode
-    if (isAiOpponent) {
-      const ai = executeAiDecisions(battleState);
-      if (ai.wantsToUseD12) {
-        handleRollD12();
-      }
-    }
 
     // Apply Burn Ticks
     let p1BurnDmg = 0;
@@ -1275,21 +1049,6 @@ export default function BattleScreen() {
   const p1Tier = getTierConfig(player1.weapon.tier);
 
   // Skill 1 trigger glow & vibrate detection (Auto-triggers on matching D6 roll!)
-  const myD6Val = isP1User ? (battleState.p1D6 ?? null) : (battleState.p2D6 ?? null);
-  const myWeaponId = myPlayer.weapon.id;
-  const isSkill1Triggered = Boolean(
-    hasLocalPlayerRolled &&
-      myD6Val != null &&
-      (myWeaponId === 'greatsword' ||
-        myWeaponId === 'bow' ||
-        myWeaponId === 'staff' ||
-        myWeaponId === 'revolver' ||
-        myWeaponId === 'leaf_headband' ||
-        myWeaponId === 'pet_rock' ||
-        (myWeaponId === 'infinity_void' && (myD6Val === 3 || myD6Val === 4 || myD6Val === 6)) ||
-        (myWeaponId === 'dragon_dagger' && (myD6Val === 1 || myD6Val === 2)) ||
-        (myWeaponId === 'chronos' && (myD6Val === 2 || myD6Val === 4 || myD6Val === 6)))
-  );
 
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-[#07090e] select-none text-slate-100">
@@ -1520,7 +1279,7 @@ export default function BattleScreen() {
           {bothPlayersHaveRolled
             ? hasLocalPlayerEndedTurn
               ? (isEn ? 'Waiting for your opponent to finish…' : 'Đang chờ đối thủ kết thúc lượt…')
-              : (isEn ? '▼ END TURN to continue · Skill 2 is optional when glowing' : '▼ Bấm KẾT THÚC LƯỢT để tiếp tục · Có thể dùng Skill 2 khi sáng')
+              : (isEn ? '▼ END TURN to continue · Both skills are optional; each costs shared PTS' : '▼ Bấm KẾT THÚC LƯỢT để tiếp tục · Hai kỹ năng dùng chung PTS; bấm để dùng khi sáng')
             : canLocalRoll
               ? '▼ ' + rollButtonTitle
               : rollButtonTitle}
@@ -1576,71 +1335,32 @@ export default function BattleScreen() {
 
           {/* --- RIGHT GROUP: SKILL 1 (Passive Display) & SKILL 2 (Active Button) --- */}
           <div className="flex flex-col sm:flex-row items-center gap-1.5 flex-1 min-w-[240px]">
-            {/* 3. SKILL 1 DISPLAY BOX (CANNOT BE CLICKED! Auto-glows & shakes when matching D6 face is rolled!) */}
-            <div
-              className={`w-full transition-all duration-300 ${
-                isSkill1Triggered
-                  ? 'animate-shake ring-2 ring-yellow-400 shadow-[0_0_25px_#facc15] brightness-110'
-                  : 'opacity-85'
-              }`}
-            >
-              <div
-                className={`relative w-full h-[38px] sm:h-[44px] flex items-center justify-center border-2 border-yellow-500/70 bg-[#0a0f1d] font-pixel text-[8px] sm:text-[9px] font-bold text-yellow-300 overflow-hidden select-none pointer-events-none transition-all ${
-                  !hasLocalPlayerRolled ? 'opacity-40 grayscale' : ''
-                }`}
-              >
-                <div className="absolute inset-0 pointer-events-none opacity-40">
-                  <Image
-                    src="/assets/sprites/ui/frames/btn_skill_1.png"
-                    alt="Skill 1 Frame"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-                <span className="relative z-10 flex items-center gap-1 drop-shadow">
-                  <span>{isSkill1Triggered ? '⚡' : '⚔️'}</span>
-                  <span className="truncate max-w-[140px]">
-                    SKILL 1: {isEn ? myPlayer.weapon.skill1.name : myPlayer.weapon.skill1.nameVi}
-                    {isSkill1Triggered ? ' (TRIGGERED!)' : ''}
-                  </span>
-                </span>
-              </div>
-            </div>
-
-            {/* 4. SKILL 2 BUTTON (Clickable ONLY when PTS >= reqPts. Click once, then resets PTS!) */}
-            <div className="w-full">
-              <button
-                disabled={!canCastSkill2 || phase === 'game_over' || d12RolledThisTurn}
-                onClick={handleRollD12}
-                className={`relative w-full h-[38px] sm:h-[44px] flex items-center justify-center border-2 font-pixel text-[8px] sm:text-[9px] font-bold overflow-hidden transition-all duration-300 ${
-                  canCastSkill2 && !d12RolledThisTurn
-                    ? 'border-yellow-300 bg-purple-950/90 text-yellow-200 ring-2 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-pulse cursor-pointer hover:scale-[1.02]'
-                    : 'border-slate-800 bg-black/95 text-slate-500 opacity-30 grayscale brightness-50 pointer-events-none cursor-not-allowed'
-                }`}
-              >
-                <div className="absolute inset-0 pointer-events-none opacity-40">
-                  <Image
-                    src="/assets/sprites/ui/frames/btn_skill_2.png"
-                    alt="Skill 2 Frame"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-                <span className="relative z-10 flex items-center gap-1 drop-shadow">
-                  <span>💥</span>
-                  <span className="truncate max-w-[140px]">
-                    {canCastSkill2 && !d12RolledThisTurn
-                      ? `SKILL 2: ${myPlayer.weapon.skill2.name.toUpperCase()}`
-                      : `${myCurrentPts}/${myReqPts} PTS`}
-                  </span>
-                </span>
-              </button>
-            </div>
+            {([1, 2] as const).map(slot => {
+              const skill = slot === 1 ? myPlayer.weapon.skill1 : myPlayer.weapon.skill2;
+              const enabled = (slot === 1 ? canCastSkill1 : canCastSkill2) && phase !== 'game_over';
+              const used = (slot === 1 ? myPlayer.skill1UsedTurn : myPlayer.skill2UsedTurn) === currentTurn;
+              return <div key={slot} className="w-full min-w-0">
+                <button onClick={() => handleCastSkill(slot)} disabled={!enabled}
+                  className={'w-full min-h-14 px-2 py-2 border-2 text-xs font-bold transition ' + (enabled ? 'action-beacon border-yellow-300 bg-purple-950 text-yellow-200 cursor-pointer' : 'border-slate-700 bg-slate-950 text-slate-400')}
+                  title={isEn ? skill.description : skill.descriptionVi}>
+                  <span className="block">SKILL {slot} · {skillCost(myPlayer, slot)} PTS</span>
+                  <span className="block">{isEn ? skill.name : skill.nameVi}</span>
+                  <span className="block text-[10px]">{used ? (isEn ? 'USED THIS ROUND' : 'ĐÃ DÙNG HIỆP NÀY') : enabled ? (isEn ? 'CLICK TO CAST' : 'BẤM ĐỂ DÙNG') : myCurrentPts + '/' + skillCost(myPlayer, slot) + ' PTS'}</span>
+                </button>
+                <p className="text-[11px] text-slate-300 mt-2 leading-relaxed">{isEn ? skill.description : skill.descriptionVi}</p>
+                {slot === 1 && Array.isArray(skill.triggerNumber) && <select
+                  aria-label={isEn ? 'Choose Skill 1 form' : 'Chọn dạng Skill 1'}
+                  value={selectedSkillForm != null && skill.triggerNumber.includes(selectedSkillForm) ? selectedSkillForm : skill.triggerNumber[0]}
+                  onChange={e => setSelectedSkillForm(Number(e.target.value))}
+                  className="w-full mt-1 bg-slate-900 text-yellow-200 border border-slate-500 text-xs p-1">
+                  {skill.triggerNumber.map(form => <option key={form} value={form}>{({ infinity_ring: { 3: 'Aoi · Stun', 4: 'Akai · 10 DMG', 6: 'Infinity · Shield' }, dagger: { 1: 'Throw · Burn', 2: 'Multi Slash · Buff' }, chronos_watch: { 2: 'Time Anchor', 4: 'Fate Seal', 6: 'Time Lock' } } as Record<string, Record<number, string>>)[myPlayer.weapon.id]?.[form] || form}</option>)}
+                </select>}
+              </div>;
+            })}
           </div>
         </div>
 
+        <p className="text-xs text-cyan-200">{isEn ? 'SHARED PTS: ' : 'PTS DÙNG CHUNG: '}{myCurrentPts} · {isEn ? 'D6 charges only · Each skill once per round · Unspent PTS carry over' : 'D6 chỉ sạc điểm · Mỗi kỹ năng 1 lần/hiệp · Điểm dư giữ lại'}</p>
         {/* Expandable Compact Battle Log Strip */}
         <div className="w-full max-w-4xl flex items-center justify-between px-3 py-1 bg-[#060810]/90 border border-slate-700 text-[7px] sm:text-[8px] font-pixel">
           <div className="flex items-center gap-2 truncate">

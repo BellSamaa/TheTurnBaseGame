@@ -211,7 +211,7 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
                     <span>SKILL 1: {isEn ? selectedWeapon.skill1.name : selectedWeapon.skill1.nameVi}</span>
                   </span>
                   <span className="text-yellow-300 bg-yellow-950 px-1.5 py-0.5 border border-yellow-500/50">
-                    D6 ROLL
+                    {selectedWeapon.skill1.chargeRequired} PTS · CLICK
                   </span>
                 </div>
                 <p className="text-[8px] font-pixel text-slate-200 leading-relaxed">
@@ -228,8 +228,8 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
                   </span>
                   <span className="text-cyan-300 bg-cyan-950 px-1.5 py-0.5 border border-cyan-500/50">
                     {selectedWeapon.skill2.chargeRequired
-                      ? `${selectedWeapon.skill2.chargeRequired} PTS D12`
-                      : 'D12 ROLL'}
+                      ? `${selectedWeapon.skill2.chargeRequired} PTS`
+                      : 'CLICK TO CAST'}
                   </span>
                 </div>
                 <p className="text-[8px] font-pixel text-slate-200 leading-relaxed">
