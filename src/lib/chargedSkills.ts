@@ -63,5 +63,5 @@ export function chargeSkillPoints(player: PlayerState, rolls: number[], turn: nu
   const before = player.d12Charge ?? 0;
   const points = rolls.reduce((sum, n) => sum + n, 0);
   return { ...player, d12Charge: before + points,
-    leafSkillReadyTurn: player.weapon.id === 'fire_headband' && before >= skillCost(player, 1) && rolls.includes(2) ? turn : undefined };
+    leafSkillReadyTurn: player.leafSkillReadyTurn === turn || (player.weapon.id === 'fire_headband' && before >= skillCost(player, 1) && rolls.includes(2)) ? turn : undefined };
 }

@@ -111,3 +111,29 @@ for (const locked of [1, 2]) {
 assert.equal(castChargedSkill(ring, foe, 2, 1, 2), null);
 assert.equal(castChargedSkill(ring, foe, 2, 1, 3), null);
 console.log('PASS: Infinity reflection, Akai 12, one-hit immunity, Purple 50, Purple Sky 30, selected next-round lock and expiry');
+const { applyChargeRoll } = require('../src/lib/chargeRoll.ts');
+for (const mageFirst of [true, false]) {
+  let state = { player1: { ...ring, id: 'p1', classType: mageFirst ? 'mage' : 'warrior', d12Charge: 0 }, player2: { ...foe, id: 'p2', classType: mageFirst ? 'warrior' : 'mage', d12Charge: 0 }, currentTurn: 1, attackerId: 'p1', phase: 'battle', turnStep: 'd6_atk', d6Results: null };
+  for (const isP1 of [true, false]) {
+    const key = isP1 ? 'player1' : 'player2';
+    const phase = isP1 ? 'd6_atk' : 'd6_def';
+    const mage = state[key].classType === 'mage';
+    const first = applyChargeRoll(state, isP1, 3);
+    assert.equal(first[key].d12Charge, 3);
+    assert.deepEqual(first.d6Results[key], [3]);
+    assert.equal(state[key].d12Charge, 0, 'source unchanged');
+    if (mage) {
+      assert.equal(first.turnStep, phase, 'Mage must click again');
+      state = applyChargeRoll(JSON.parse(JSON.stringify(first)), isP1, 5);
+      assert.equal(state[key].d12Charge, 8);
+      assert.deepEqual(state.d6Results[key], [3, 5]);
+    } else state = first;
+    assert.equal(state.turnStep, isP1 ? 'd6_def' : 'd12');
+    assert.equal(applyChargeRoll(state, isP1, 6), null, 'no extra roll after allowance');
+  }
+  const nextRound = { ...state, currentTurn: 2, attackerId: 'p2', turnStep: 'd6_atk', d6Results: null };
+  assert.ok(applyChargeRoll(nextRound, false, 2));
+}
+const readyLeaf = { ...make(WEAPON_DEFINITIONS.fire_headband), leafSkillReadyTurn: 4 };
+assert.equal(require('../src/lib/chargedSkills.ts').chargeSkillPoints(readyLeaf, [3], 4).leafSkillReadyTurn, 4);
+console.log('PASS: Mage two separate D6 clicks, both sides, shared-state round trip, exact PTS, roll limit, next-round reset');

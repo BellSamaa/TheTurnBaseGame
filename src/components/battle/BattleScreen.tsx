@@ -17,13 +17,14 @@ import {
   calculateD20Combat,
 } from '@/lib/battleLogic';
 import type { BattleLogEntry, BattleState, PlayerState } from '@/types/game';
-import { castChargedSkill, skillCost, chargeSkillPoints } from '@/lib/chargedSkills';
+import { castChargedSkill, skillCost } from '@/lib/chargedSkills';
 import HealthBar from '@/components/ui/HealthBar';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { applyOpponentDamage, recordOpponentDamage, skillIsLocked } from '@/lib/combatDamage';
+import { applyChargeRoll } from '@/lib/chargeRoll';
 import PurpleSkyEffect from './PurpleSkyEffect';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
 import PixelDice from './PixelDice';
@@ -184,6 +185,7 @@ export default function BattleScreen() {
   const [meteorCost, setMeteorCost] = useState(20);
   const [selectedSkillForm, setSelectedSkillForm] = useState<number | undefined>();
   const castLockRef = useRef(false);
+  const chargeRollLockRef = useRef(false);
   const [lobbyError, setLobbyError] = useState('');
   const [returningToLobby, setReturningToLobby] = useState(false);
 
@@ -484,6 +486,13 @@ export default function BattleScreen() {
   } else if (turnStep === 'd12') {
     canLocalRoll = false;
     rollButtonTitle = isEn ? '✓ All Rolls Done' : '✓ Đã Hoàn Tất Tung';
+  }
+
+  if (canLocalRoll && (turnStep === 'd6_atk' || turnStep === 'd6_def')) {
+    const rollingPlayer = isP1User ? player1 : player2;
+    const count = 1 + (CLASS_DEFINITIONS[rollingPlayer.classType]?.extraD6Rolls ?? 0);
+    const completed = battleState.d6Results?.[isP1User ? 'player1' : 'player2']?.length ?? 0;
+    rollButtonTitle += ' · ' + Math.min(count, completed + 1) + '/' + count;
   }
 
   const bothPlayersHaveRolled = turnStep === 'd12';
@@ -812,35 +821,30 @@ export default function BattleScreen() {
   // DISCRETE ROLL STEP 3: D6 ATTACK (Skill Charge + Passive Skill 1)
   // ==========================================
   const chargePlayer = (attacking: boolean) => {
-    if (isRollingD6 || phase === 'game_over' || syncPendingRef.current) return;
+    if (chargeRollLockRef.current || isRollingD6 || phase === 'game_over' || syncPendingRef.current) return;
+    const isP1 = attacking ? p1IsAttacker : !p1IsAttacker;
+    const roll = rollD6();
+    if (!applyChargeRoll(battleState, isP1, roll)) return;
+    chargeRollLockRef.current = true;
     setIsRollingD6(true);
     playDiceRollSound();
-    const isP1 = attacking ? p1IsAttacker : !p1IsAttacker;
-    const player = isP1 ? player1 : player2;
-    const count = 1 + (CLASS_DEFINITIONS[player.classType]?.extraD6Rolls || 0);
-    const rolls = Array.from({ length: count }, () => rollD6());
-    const points = rolls.reduce((sum, n) => sum + n, 0);
     addTimer(setTimeout(() => {
+      chargeRollLockRef.current = false;
       setIsRollingD6(false);
-      if (isP1) setD6P1Rolls(rolls); else setD6P2Rolls(rolls);
       setBattleState(prev => {
-        if (!prev) return null;
-        const updated: BattleState = { ...prev,
-          turnStep: attacking ? 'd6_def' : 'd12',
-          p1D6: isP1 ? points : prev.p1D6,
-          p2D6: !isP1 ? points : prev.p2D6,
-          d6Results: { player1: isP1 ? rolls : (prev.d6Results?.player1 || []), player2: !isP1 ? rolls : (prev.d6Results?.player2 || []) },
-          player1: isP1 ? chargeSkillPoints(prev.player1, rolls, prev.currentTurn) : prev.player1,
-          player2: !isP1 ? chargeSkillPoints(prev.player2, rolls, prev.currentTurn) : prev.player2,
-          battleLog: [{ turn: prev.currentTurn, type: 'system', timestamp: Date.now(),
-            message: player.name + ' charges +' + points + ' PTS. Choose skills after both players charge.',
-            messageVi: player.name + ' sạc +' + points + ' PTS. Chọn kỹ năng sau khi cả hai sạc xong.' }, ...prev.battleLog],
-        };
+        if (!prev || prev.currentTurn !== currentTurn) return prev;
+        const updated = applyChargeRoll(prev, isP1, roll);
+        if (!updated) return prev;
+        const player = isP1 ? updated.player1 : updated.player2;
+        updated.battleLog = [{ turn: prev.currentTurn, type: 'system', timestamp: Date.now(),
+          message: player.name + ' rolls D6: +' + roll + ' PTS.',
+          messageVi: player.name + ' tung D6: +' + roll + ' PTS.' }, ...prev.battleLog];
         syncOnlineBattle(updated);
         return updated;
       });
     }, 600));
   };
+
   const executeRollD6Atk = () => chargePlayer(true);
   const executeRollD6Def = () => chargePlayer(false);
 
@@ -984,6 +988,7 @@ export default function BattleScreen() {
         p2EndedTurn: false,
         p1D20: null,
         p2D20: null,
+        d6Results: null,
         p1D6: null,
         p2D6: null,
         activeVfx: null,
@@ -1189,7 +1194,7 @@ export default function BattleScreen() {
             p1IsBoxer={p1Class.extraD20Rolls > 0}
             p1BoxerRolls={boxerRolls}
             p1IsMage={p1Class.id === 'mage'}
-            p1MageRolls={d6P1Rolls}
+            p1MageRolls={battleState.d6Results?.player1 ?? null}
             p1Pts={player1.d12Charge || 0}
             p1PtsMax={player1.weapon.skill2.chargeRequired || 20}
 
@@ -1202,6 +1207,7 @@ export default function BattleScreen() {
             p2HasRolled={turnStep === 'd12'}
             p2IsBoxer={p2Class.extraD20Rolls > 0}
             p2IsMage={p2Class.id === 'mage'}
+            p2MageRolls={battleState.d6Results?.player2 ?? null}
             p2Pts={player2.d12Charge || 0}
             p2PtsMax={player2.weapon.skill2.chargeRequired || 20}
 
