@@ -82,6 +82,7 @@ export interface PlayerState {
   weapon: WeaponInfo;
   skillCharge: number;
   skill1UsedTurn?: number;
+  leafSkillReadyTurn?: number;
   skill2UsedTurn?: number;
   d12Charge?: number;
   isAttacker: boolean;

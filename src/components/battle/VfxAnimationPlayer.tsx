@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface VfxEvent {
@@ -16,6 +16,8 @@ interface VfxAnimationPlayerProps {
 }
 
 export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimationPlayerProps) {
+  const finishRef = useRef(onFinish);
+  finishRef.current = onFinish;
   const [frame, setFrame] = useState(0);
 
   useEffect(() => {
@@ -32,12 +34,12 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
         setFrame(currentFrame);
       } else {
         clearInterval(interval);
-        onFinish?.(activeVfx.id);
+        finishRef.current?.(activeVfx.id);
       }
     }, 130); // 130ms per frame * 4 frames = 520ms punchy, clear animation
 
     return () => clearInterval(interval);
-  }, [activeVfx?.id, onFinish]);
+  }, [activeVfx?.id]);
 
   if (!activeVfx) return null;
 

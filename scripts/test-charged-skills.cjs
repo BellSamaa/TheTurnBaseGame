@@ -12,7 +12,7 @@ require.extensions['.ts'] = (m, f) => m._compile(ts.transpileModule(fs.readFileS
 
 const { WEAPON_DEFINITIONS } = require('../src/lib/constants.ts');
 const { castChargedSkill, skillCost } = require('../src/lib/chargedSkills.ts');
-const make = weapon => ({ id: weapon.id, name: weapon.name, weapon, hp: 100, maxHp: 100, d12Charge: 100, isAttacker: true });
+const make = weapon => ({ id: weapon.id, name: weapon.name, weapon, hp: 100, maxHp: 100, d12Charge: 100, leafSkillReadyTurn: 1, isAttacker: true });
 for (const weapon of Object.values(WEAPON_DEFINITIONS)) {
   const user = make(weapon), foe = make(WEAPON_DEFINITIONS.greatsword);
   const form = Array.isArray(weapon.skill1.triggerNumber) ? weapon.skill1.triggerNumber[0] : undefined;
@@ -44,3 +44,16 @@ assert.equal(rock.petRockHp, 0, 'Rock must be manually summoned');
 const summoned = castChargedSkill(rock, foe, 1, 1);
 assert.equal(summoned.caster.petRockHp, 50);
 console.log('PASS: 18 weapon skills, shared balance, exact costs, once per round, insufficient PTS, ammo, shield, form selection, manual Rock summon');
+
+const leaf = make(WEAPON_DEFINITIONS.fire_headband);
+assert.equal(castChargedSkill({ ...leaf, leafSkillReadyTurn: undefined }, foe, 1, 1), null);
+const fire = castChargedSkill(leaf, foe, 1, 1);
+assert.equal(fire.caster.hp, 95);
+assert.equal(fire.opponent.hp, 100);
+assert.equal(fire.opponent.burnTicks, 3);
+assert.equal(fire.opponent.burnDmgPerTurn, 5);
+const shield = { ...make(WEAPON_DEFINITIONS.spirit_stone), petRockHp: 50 };
+const hit = calculateD20Combat(17,5,CLASS_DEFINITIONS.warrior,CLASS_DEFINITIONS.warrior,sword,shield);
+assert.equal(hit.damage,7); assert.equal(shield.petRockHp,45);
+assert.ok(castChargedSkill({ ...sword, skill1UsedTurn: 1 },foe,1,2));
+console.log('PASS: Leaf D6 condition, 5 HP cost, 3 x 5 burn; Rock absorbs 5 of 12; skill reusable next round');

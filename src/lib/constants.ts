@@ -340,8 +340,8 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Amaterasu',
       nameVi: 'Ngọn Lửa Đen (Amaterasu)',
       diceType: 'd6',
-      description: 'Fires black flames from eyes dealing 5 burn damage for 3 turns. Recoil causes eye bleeding (-3 HP user per cast).',
-      descriptionVi: 'Phóng ra ngọn lửa đen từ mắt gây 5 sát thương cháy trong 3 lượt nhưng bị chảy máu mắt (-3 máu mỗi lần dùng).',
+      description: 'Fires black flames from eyes dealing 5 burn damage for 3 turns. Requires a 2 on this round’s charge D6. Click to cast; costs 5 HP. Damage ticks at the end of each of the next 3 rounds, including defense rounds.',
+      descriptionVi: 'Phóng ra ngọn lửa đen từ mắt gây 5 sát thương cháy trong 3 lượt ở cuối 3 hiệp (kể cả hiệp thủ). Cần D6 sạc ra 2 trong hiệp hiện tại, đủ PTS và bấm dùng; mất 5 HP bản thân.',
       effect: 'headband_amaterasu_5',
     },
     skill2: {
@@ -367,8 +367,8 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Summon Rock Companion',
       nameVi: 'Triệu Hồi Rock (50 Máu)',
       diceType: 'd6',
-      description: 'Summons Rock (50 HP) if absent or defeated; a living Rock keeps its HP. Absorbs up to 5 damage/hit. Deals D6 damage.',
-      descriptionVi: 'Triệu hồi Rock 50 HP nếu chưa có hoặc đã chết; Rock còn sống giữ nguyên HP. Đỡ tối đa 5 sát thương/đòn, gây sát thương D6.',
+      description: 'Summons Rock (50 HP) if absent or defeated; a living Rock keeps its HP. Absorbs up to 5 damage/hit. Follows each owner attack with a separate 2 damage hit.',
+      descriptionVi: 'Triệu hồi Rock 50 HP nếu chưa có hoặc đã chết; Rock còn sống giữ nguyên HP. Đỡ tối đa 5 sát thương/đòn, tấn công riêng 2 sát thương sau mỗi đòn của chủ nhân.',
       effect: 'rock_summon_shield',
     },
     skill2: {

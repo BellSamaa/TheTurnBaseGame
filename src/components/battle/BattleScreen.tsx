@@ -221,6 +221,8 @@ export default function BattleScreen() {
   const [turnBannerText, setTurnBannerText] = useState<string | null>(null);
 
   // Cinematic Skill Banner Queue
+  const seenVfx = useRef(new Set<string>());
+  const seenPopups = useRef(new Set<string>());
   const seenSkillBanners = useRef(new Set<string>(battleState?.activeSkillBanner ? [battleState.activeSkillBanner.id] : []));
   const [skillBannerQueue, setSkillBannerQueue] = useState<SkillActivationEvent[]>([]);
 
@@ -318,11 +320,13 @@ export default function BattleScreen() {
                 (remote.battleLog?.length || 0) !== (current.battleLog?.length || 0);
 
               if (hasChanged) {
-                if (remote.activeVfx && remote.activeVfx.id !== activeVfx?.id) {
+                if (remote.activeVfx && !seenVfx.current.has(remote.activeVfx.id)) {
+                  seenVfx.current.add(remote.activeVfx.id);
                   setActiveVfx(remote.activeVfx);
                 }
 
-                if (remote.damagePopup && remote.damagePopup.id !== damagePopup?.id) {
+                if (remote.damagePopup && !seenPopups.current.has(remote.damagePopup.id)) {
+                  seenPopups.current.add(remote.damagePopup.id);
                   setDamagePopup(remote.damagePopup);
                 }
 
@@ -488,7 +492,7 @@ export default function BattleScreen() {
   const myCurrentPts = myPlayer.d12Charge || 0;
   const myReqPts = myPlayer.weapon.skill2.chargeRequired || 20;
   const canCastSkill2 = myCurrentPts >= skillCost(myPlayer, 2) && myPlayer.skill2UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12' && !(myPlayer.weapon.id === 'revolver' && (myPlayer.bullets ?? 6) <= 0);
-  const canCastSkill1 = myCurrentPts >= skillCost(myPlayer, 1) && myPlayer.skill1UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12';
+  const canCastSkill1 = (myPlayer.weapon.id !== 'fire_headband' || myPlayer.leafSkillReadyTurn === currentTurn) && myCurrentPts >= skillCost(myPlayer, 1) && myPlayer.skill1UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12';
 
   // Add message to battle log (Local state only; actions include logs in their synced state)
   const addLog = (entry: Omit<BattleLogEntry, 'timestamp'>) => {
@@ -547,7 +551,7 @@ export default function BattleScreen() {
 
   // PvE AI Bot Automation (Bot acts automatically ONLY when it's the bot's turn!)
   useEffect(() => {
-    if (!isAiOpponent || phase === 'game_over') return;
+    if (onlineRoomCode || !isAiOpponent || phase === 'game_over') return;
     const botIsAttacker = !p1IsAttacker;
 
     if (turnStep === 'd20_atk' && botIsAttacker && !isRollingD20) {
@@ -568,7 +572,7 @@ export default function BattleScreen() {
     }
     if (turnStep === 'd12') {
       const slot = (player2.d12Charge || 0) >= skillCost(player2, 2) && player2.skill2UsedTurn !== currentTurn ? 2
-        : (player2.d12Charge || 0) >= skillCost(player2, 1) && player2.skill1UsedTurn !== currentTurn ? 1 : null;
+        : (player2.d12Charge || 0) >= skillCost(player2, 1) && player2.skill1UsedTurn !== currentTurn && (player2.weapon.id !== 'fire_headband' || player2.leafSkillReadyTurn === currentTurn) ? 1 : null;
       if (slot) { const t = setTimeout(() => handleCastSkill(slot, true), 850); return () => clearTimeout(t); }
     }
   }, [
@@ -712,6 +716,7 @@ export default function BattleScreen() {
             target: defenderTarget,
             size: 160,
           };
+          seenVfx.current.add(newActiveVfx.id);
           setActiveVfx(newActiveVfx);
 
           if (defenderTarget === 'p1') {
@@ -730,6 +735,7 @@ export default function BattleScreen() {
             type: isCrit ? 'crit' : 'damage',
             subtext: isCrit ? (isEn ? 'CRITICAL HIT 20!' : 'BẠO KÍCH XÚC XẮC 20!') : undefined,
           };
+          seenPopups.current.add(newDamagePopup.id);
           setDamagePopup(newDamagePopup);
 
           logsToAdd.unshift({
@@ -763,6 +769,9 @@ export default function BattleScreen() {
           });
         }
 
+        const rockDamage = attackerState.weapon.id === 'spirit_stone' && (attackerState.petRockHp ?? 0) > 0 ? 2 : 0;
+        if (rockDamage) logsToAdd.unshift({ turn: currentTurn, type: 'damage', timestamp: Date.now() + 2,
+          message: 'Pet Rock follows its owner: 2 damage.', messageVi: 'Lượt Pet Rock: tấn công sau chủ nhân, gây 2 sát thương.' });
         setTurnStep('d6_atk');
 
         setBattleState((prev) => {
@@ -777,11 +786,11 @@ export default function BattleScreen() {
             battleLog: [...logsToAdd, ...prev.battleLog],
             player1: {
               ...(p1IsAttacker ? attackerState : defenderState),
-              hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damage) : prev.player1.hp,
+              hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damage - rockDamage) : prev.player1.hp,
             },
             player2: {
               ...(p1IsAttacker ? defenderState : attackerState),
-              hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damage) : prev.player2.hp,
+              hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damage - rockDamage) : prev.player2.hp,
             },
           };
           syncOnlineBattle(updated);
@@ -815,8 +824,8 @@ export default function BattleScreen() {
           p1D6: isP1 ? points : prev.p1D6,
           p2D6: !isP1 ? points : prev.p2D6,
           d6Results: { player1: isP1 ? rolls : (prev.d6Results?.player1 || []), player2: !isP1 ? rolls : (prev.d6Results?.player2 || []) },
-          player1: isP1 ? { ...prev.player1, d12Charge: (prev.player1.d12Charge || 0) + points } : prev.player1,
-          player2: !isP1 ? { ...prev.player2, d12Charge: (prev.player2.d12Charge || 0) + points } : prev.player2,
+          player1: isP1 ? { ...prev.player1, d12Charge: (prev.player1.d12Charge || 0) + points, leafSkillReadyTurn: rolls.includes(2) ? prev.currentTurn : undefined } : prev.player1,
+          player2: !isP1 ? { ...prev.player2, d12Charge: (prev.player2.d12Charge || 0) + points, leafSkillReadyTurn: rolls.includes(2) ? prev.currentTurn : undefined } : prev.player2,
           battleLog: [{ turn: prev.currentTurn, type: 'system', timestamp: Date.now(),
             message: player.name + ' charges +' + points + ' PTS. Choose skills after both players charge.',
             messageVi: player.name + ' sạc +' + points + ' PTS. Chọn kỹ năng sau khi cả hai sạc xong.' }, ...prev.battleLog],
@@ -846,6 +855,7 @@ export default function BattleScreen() {
   };
 
   const handleCastSkill = (slot: 1 | 2, bot = false) => {
+    if (bot && (onlineRoomCode || !isAiOpponent)) return;
     if (castLockRef.current || syncPendingRef.current || phase === 'game_over' || turnStep !== 'd12') return;
     const isP1 = bot ? false : isP1User;
     if (onlineRoomCode && (isP1 ? battleState.p1EndedTurn : battleState.p2EndedTurn)) return;
@@ -862,6 +872,7 @@ export default function BattleScreen() {
     const vfx: VfxEvent = { id: crypto.randomUUID(), effect: getWeaponVfx(caster.weapon.id, slot === 2), target: isP1 ? 'p2' : 'p1', size: slot === 2 ? 180 : 130 };
     seenSkillBanners.current.add(banner.id);
     setSkillBannerQueue(q => [...q, banner]);
+    seenVfx.current.add(vfx.id);
     setActiveVfx(vfx);
     playWeaponSound(caster.weapon.id);
     setBattleState(prev => {

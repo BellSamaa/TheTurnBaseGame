@@ -300,22 +300,22 @@ export function executeSkill1D6(
 
     case 'fire_headband':
       // Leaf headband: phóng ngọn lửa đen từ mắt gây 5 sát thương cháy trong 3 lượt, chảy máu mắt -3 máu người dùng
-      damage = 5;
-      recoil = 3;
+      damage = 0;
+      recoil = 5;
       user.hp = Math.max(1, user.hp - recoil);
       target.burnTicks = 3;
       target.burnDmgPerTurn = 5;
       statusEffect = 'amaterasu';
-      logTextVi = `Băng Đô Lá phóng ngọn lửa đen Amaterasu gây 5 sát thương thiêu đốt x 3 lượt! Hắc hỏa khiến mắt chảy máu (-3 HP)!`;
+      logTextVi = `Băng Đô Lá phóng ngọn lửa đen Amaterasu gây 5 sát thương thiêu đốt x 3 lượt! Hắc hỏa khiến mắt chảy máu (-5 HP)!`;
       logTextEn = `Leaf Headband unleashes Amaterasu dealing 5 burn damage for 3 turns! Eye strain costs 3 HP!`;
       break;
 
     case 'spirit_stone':
       // The pet rock: triệu hồi rock (50 máu) chặn 5 sát thương cho chủ nhân, dùng D6 gây sát thương
       if ((user.petRockHp ?? 0) <= 0) { user.petRockHp = 50; user.petRockHits = 0; }
-      damage = d6Roll;
-      logTextVi = `Bạn Đá Cưng Rock (${user.petRockHp}/50 Máu, đỡ tối đa 5 sát thương mỗi đòn) và húc đối thủ gây ${damage} sát thương!`;
-      logTextEn = `Pet Rock (${user.petRockHp}/50 HP, absorbs up to 5 dmg/hit) and retaliates for ${damage} damage!`;
+      damage = 0;
+      logTextVi = `Bạn Đá Cưng Rock (${user.petRockHp}/50 Máu, đỡ tối đa 5 sát thương mỗi đòn) và sẽ tấn công riêng 2 sát thương sau mỗi đòn của chủ nhân!`;
+      logTextEn = `Pet Rock (${user.petRockHp}/50 HP, absorbs up to 5 dmg/hit) and follows each owner attack with a separate 2 damage hit!`;
       break;
 
     default:

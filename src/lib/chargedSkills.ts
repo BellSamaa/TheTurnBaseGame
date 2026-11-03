@@ -9,6 +9,7 @@ export function skillCost(player: PlayerState, slot: 1 | 2) {
 
 // Both skills spend the same balance, once, and return immutable player snapshots.
 export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1 | 2, turn: number, form?: number) {
+  if (slot === 1 && user.weapon.id === 'fire_headband' && user.leafSkillReadyTurn !== turn) return null;
   const cost = skillCost(user, slot);
   const usedTurn = slot === 1 ? user.skill1UsedTurn : user.skill2UsedTurn;
   if ((user.d12Charge ?? 0) < cost || usedTurn === turn || user.hp <= 0 || target.hp <= 0) return null;
