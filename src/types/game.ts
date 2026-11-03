@@ -57,9 +57,12 @@ export interface UserAccount {
   id: string;
   username: string;
   email: string;
+  passwordHash?: string;
   bio?: string;
   createdAt: string;
   avatarConfig: CharacterCustomization;
+  tier?: number;
+  rankPoints?: number;
 }
 
 export interface PlayerState {

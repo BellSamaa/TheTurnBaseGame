@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import { BATTLE_TRACKS, LOBBY_BGM } from '@/lib/constants';
 
+// Headless Audio Controller (manages BGM tracks and playback)
 export default function AudioManager() {
-  const { currentPage, settings, updateSettings } = useGameStore();
+  const { currentPage, settings } = useGameStore();
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
   const [currentTrack, setCurrentTrack] = useState<string>(LOBBY_BGM);
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -73,28 +74,40 @@ export default function AudioManager() {
     }
   }, [settings.musicMuted, settings.musicVolume, hasInteracted]);
 
+  // Headless - does not render floating element that collides with header!
+  return null;
+}
+
+// Reusable toolbar component for audio toggles
+export function AudioToolbarControls() {
+  const { settings, updateSettings } = useGameStore();
+
   return (
-    <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       <button
         onClick={() => updateSettings({ musicMuted: !settings.musicMuted })}
-        className="px-2.5 py-1.5 text-[9px] font-pixel bg-slate-900/80 border-2 border-yellow-500/70 text-yellow-300 hover:bg-slate-800 transition shadow-[0_0_10px_rgba(234,179,8,0.3)] flex items-center gap-1.5 cursor-pointer select-none"
-        title="Toggle Music (Bật/Tắt Nhạc)"
+        className={`px-2 py-1 text-[8.5px] font-pixel border transition cursor-pointer select-none flex items-center gap-1 ${
+          settings.musicMuted
+            ? 'bg-red-950/70 border-red-500/60 text-red-300'
+            : 'bg-yellow-950/70 border-yellow-500/70 text-yellow-300 hover:bg-yellow-900/60'
+        }`}
+        title="Toggle Music"
       >
         <span>{settings.musicMuted ? '🔇' : '🎵'}</span>
-        <span className="hidden sm:inline">
-          {settings.musicMuted ? 'MUTE' : 'MUSIC'}
-        </span>
+        <span className="hidden md:inline">{settings.musicMuted ? 'OFF' : 'BGM'}</span>
       </button>
 
       <button
         onClick={() => updateSettings({ sfxMuted: !settings.sfxMuted })}
-        className="px-2.5 py-1.5 text-[9px] font-pixel bg-slate-900/80 border-2 border-cyan-500/70 text-cyan-300 hover:bg-slate-800 transition shadow-[0_0_10px_rgba(6,182,212,0.3)] flex items-center gap-1.5 cursor-pointer select-none"
-        title="Toggle SFX (Bật/Tắt Hiệu Ứng Âm Thanh)"
+        className={`px-2 py-1 text-[8.5px] font-pixel border transition cursor-pointer select-none flex items-center gap-1 ${
+          settings.sfxMuted
+            ? 'bg-red-950/70 border-red-500/60 text-red-300'
+            : 'bg-cyan-950/70 border-cyan-500/70 text-cyan-300 hover:bg-cyan-900/60'
+        }`}
+        title="Toggle SFX"
       >
         <span>{settings.sfxMuted ? '🔕' : '🔊'}</span>
-        <span className="hidden sm:inline">
-          {settings.sfxMuted ? 'SFX OFF' : 'SFX'}
-        </span>
+        <span className="hidden md:inline">{settings.sfxMuted ? 'OFF' : 'SFX'}</span>
       </button>
     </div>
   );

@@ -6,6 +6,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { SPRITE_HELPERS } from '@/lib/constants';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelFrame from '@/components/ui/PixelFrame';
+import CharacterRenderer from '@/components/character/CharacterRenderer';
 
 export default function SpriteContactSheet() {
   const { setPage } = useGameStore();
@@ -59,73 +60,25 @@ export default function SpriteContactSheet() {
         <div className="lg:col-span-4 flex flex-col gap-4">
           <PixelFrame variant="gold" title="LIVE CHARACTER COMPOSITE">
             <div className="flex flex-col items-center p-3">
-              {/* Paper Doll Canvas */}
-              <div className="relative w-48 h-64 bg-slate-950 border-2 border-yellow-500/70 shadow-[inset_0_0_20px_rgba(0,0,0,0.9)] flex items-center justify-center overflow-hidden mb-3">
-                {/* 1. Body */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Image
-                    src={SPRITE_HELPERS.body(selectedBody)}
-                    alt="Body"
-                    width={110}
-                    height={170}
-                    className="object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]"
-                  />
-                </div>
-
-                {/* 2. Pants */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <Image
-                    src={SPRITE_HELPERS.pants(selectedPants)}
-                    alt="Pants"
-                    width={85}
-                    height={85}
-                    className="object-contain translate-y-10"
-                  />
-                </div>
-
-                {/* 3. Shirt */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <Image
-                    src={SPRITE_HELPERS.shirt(selectedShirt)}
-                    alt="Shirt"
-                    width={95}
-                    height={85}
-                    className="object-contain translate-y-0"
-                  />
-                </div>
-
-                {/* 4. Face */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <Image
-                    src={SPRITE_HELPERS.face(selectedFace)}
-                    alt="Face"
-                    width={45}
-                    height={45}
-                    className="object-contain -translate-y-10"
-                  />
-                </div>
-
-                {/* 5. Hair */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <Image
-                    src={SPRITE_HELPERS.hair(selectedHair)}
-                    alt="Hair"
-                    width={90}
-                    height={70}
-                    className="object-contain -translate-y-14"
-                  />
-                </div>
-
-                {/* 6. Accessory */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <Image
-                    src={SPRITE_HELPERS.accessory(selectedAcc)}
-                    alt="Accessory"
-                    width={95}
-                    height={95}
-                    className="object-contain translate-y-1"
-                  />
-                </div>
+              {/* Unified Coordinate CharacterRenderer Canvas */}
+              <div className="relative w-48 h-72 bg-slate-950 border-2 border-yellow-500/70 shadow-[inset_0_0_20px_rgba(0,0,0,0.9)] flex items-center justify-center overflow-hidden mb-3 p-3">
+                <CharacterRenderer
+                  character={{
+                    baseIndex: selectedBody,
+                    hairIndex: selectedHair,
+                    hairColor: '#ffe066',
+                    skinColor: '#f8d5b8',
+                    shirtIndex: selectedShirt,
+                    shirtColor: '#4d94ff',
+                    pantsIndex: selectedPants,
+                    pantsColor: '#2d3748',
+                    accessoryIndex: selectedAcc,
+                    faceIndex: selectedFace,
+                  }}
+                  size="lg"
+                  showAura={true}
+                  auraColor="#38bdf8"
+                />
               </div>
 
               {/* Current Active Assembly Stats */}

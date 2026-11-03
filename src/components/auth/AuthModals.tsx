@@ -8,6 +8,7 @@ import { t } from '@/lib/translations';
 import { SPRITE_HELPERS, CLASS_DEFINITIONS } from '@/lib/constants';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelFrame from '@/components/ui/PixelFrame';
+import CharacterRenderer from '@/components/character/CharacterRenderer';
 
 export default function AuthModals() {
   const {
@@ -47,11 +48,13 @@ export default function AuthModals() {
       setErrorMsg(isEn ? 'Please enter your username.' : 'Vui lòng nhập tên người dùng.');
       return;
     }
-    const success = loginUser(loginUsername.trim(), loginPass);
-    if (!success) {
-      setErrorMsg(isEn ? 'User not found.' : 'Không tìm thấy tài khoản.');
+    const res = loginUser(loginUsername.trim(), loginPass);
+    if (!res.success) {
+      setErrorMsg(res.error || (isEn ? 'User not found.' : 'Không tìm thấy tài khoản.'));
     } else {
       setErrorMsg('');
+      setLoginUsername('');
+      setLoginPass('');
     }
   };
 
@@ -61,15 +64,18 @@ export default function AuthModals() {
       setErrorMsg(isEn ? 'Please enter a username.' : 'Vui lòng nhập tên.');
       return;
     }
-    const success = signupUser(
+    const res = signupUser(
       signupUsername.trim(),
       signupEmail.trim() || `${signupUsername.trim().toLowerCase()}@dicemaniac.rpg`,
       signupPass
     );
-    if (!success) {
-      setErrorMsg(isEn ? 'Username already taken.' : 'Tên tài khoản đã tồn tại.');
+    if (!res.success) {
+      setErrorMsg(res.error || (isEn ? 'Username already taken.' : 'Tên tài khoản đã tồn tại.'));
     } else {
       setErrorMsg('');
+      setSignupUsername('');
+      setSignupEmail('');
+      setSignupPass('');
     }
   };
 
@@ -282,62 +288,9 @@ export default function AuthModals() {
               <div className="flex flex-col md:flex-row gap-4 py-2">
                 {/* Left: Character Paper Doll Preview & Tier */}
                 <div className="flex flex-col items-center md:w-1/3 p-3 bg-black/80 border-2 border-purple-500/60">
-                  {/* Layered Sliced Sprites Character */}
-                  <div className="relative w-32 h-44 bg-slate-950 border border-slate-700 flex items-center justify-center overflow-hidden mb-2 shadow-[inset_0_0_15px_rgba(0,0,0,0.9)]">
-                    {/* Layer 1: Body */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Image
-                        src={SPRITE_HELPERS.body(c.baseIndex)}
-                        alt="Body"
-                        width={90}
-                        height={140}
-                        className="object-contain filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]"
-                      />
-                    </div>
-
-                    {/* Layer 2: Pants */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <Image
-                        src={SPRITE_HELPERS.pants(c.pantsIndex)}
-                        alt="Pants"
-                        width={70}
-                        height={70}
-                        className="object-contain translate-y-7"
-                      />
-                    </div>
-
-                    {/* Layer 3: Shirt */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <Image
-                        src={SPRITE_HELPERS.shirt(c.shirtIndex)}
-                        alt="Shirt"
-                        width={80}
-                        height={70}
-                        className="object-contain -translate-y-1"
-                      />
-                    </div>
-
-                    {/* Layer 4: Face */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <Image
-                        src={SPRITE_HELPERS.face(c.faceIndex)}
-                        alt="Face"
-                        width={40}
-                        height={40}
-                        className="object-contain -translate-y-8"
-                      />
-                    </div>
-
-                    {/* Layer 5: Hair */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <Image
-                        src={SPRITE_HELPERS.hair(c.hairIndex)}
-                        alt="Hair"
-                        width={70}
-                        height={55}
-                        className="object-contain -translate-y-12"
-                      />
-                    </div>
+                  {/* Unified Sliced Sprites Character Renderer */}
+                  <div className="relative w-32 h-48 bg-slate-950 border border-slate-700 flex items-center justify-center overflow-hidden mb-2 shadow-[inset_0_0_15px_rgba(0,0,0,0.9)] p-2">
+                    <CharacterRenderer character={profile.character} size="sm" />
                   </div>
 
                   {/* Tier Frame Badge */}

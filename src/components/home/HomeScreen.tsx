@@ -14,6 +14,8 @@ import {
 import PixelButton from '@/components/ui/PixelButton';
 import ParticleEffect from '@/components/ui/ParticleEffect';
 import PixelFrame from '@/components/ui/PixelFrame';
+import { AudioToolbarControls } from '@/components/audio/AudioManager';
+import CharacterRenderer from '@/components/character/CharacterRenderer';
 
 export default function HomeScreen() {
   const {
@@ -93,13 +95,13 @@ export default function HomeScreen() {
         {/* Floating Sparkles & Particles */}
         <ParticleEffect density={24} />
 
-        {/* Top Header / Status bar */}
-        <header className="relative z-20 w-full px-4 sm:px-8 pt-4 flex flex-wrap items-center justify-between gap-3">
+        {/* Top Header / Unified Navigation Toolbar (Fixed non-overlapping layout) */}
+        <header className="relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-between gap-3 bg-black/60 border-b border-yellow-500/30 backdrop-blur-sm">
           {/* Brand & Version Badge */}
-          <div className="flex items-center gap-3">
-            <div className="text-[10px] sm:text-xs text-yellow-400 font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex items-center gap-2 bg-black/70 px-3 py-1.5 border border-yellow-500/40">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="text-[10px] sm:text-xs text-yellow-400 font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] flex items-center gap-2 bg-black/80 px-3 py-1.5 border border-yellow-500/40">
               <span className="w-2 h-2 inline-block bg-yellow-400 animate-pulse" />
-              <span>DICE MANIAC • RPG v2.0</span>
+              <span>DICE MANIAC</span>
             </div>
 
             {/* Sprite Atlas Inspector Button */}
@@ -109,17 +111,20 @@ export default function HomeScreen() {
               title="Inspect 159 sliced sprites"
             >
               <span>🔍</span>
-              <span className="hidden sm:inline">SPRITE ATLAS (159)</span>
+              <span className="hidden sm:inline">ATLAS (159)</span>
             </button>
           </div>
 
-          {/* Quick Actions & Auth */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right Toolbar: Audio + Lang + Auth Profile */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+            {/* Audio BGM/SFX Toggles */}
+            <AudioToolbarControls />
+
             {/* Language Switcher */}
             <div className="flex border border-slate-700 bg-black/80 p-0.5">
               <button
                 onClick={() => updateSettings({ language: 'en' })}
-                className={`text-[9px] font-pixel px-2 py-1 transition-all ${
+                className={`text-[8.5px] font-pixel px-2 py-1 transition-all ${
                   isEn ? 'bg-yellow-500 text-black font-bold' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -127,7 +132,7 @@ export default function HomeScreen() {
               </button>
               <button
                 onClick={() => updateSettings({ language: 'vi' })}
-                className={`text-[9px] font-pixel px-2 py-1 transition-all ${
+                className={`text-[8.5px] font-pixel px-2 py-1 transition-all ${
                   !isEn ? 'bg-yellow-500 text-black font-bold' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -135,31 +140,27 @@ export default function HomeScreen() {
               </button>
             </div>
 
-            {/* User Auth Profile Badge */}
+            {/* Real User Auth Profile Badge */}
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setAuthModal('profile')}
-                  className="flex items-center gap-2 bg-yellow-950/80 hover:bg-yellow-900/90 border border-yellow-500/70 px-2.5 py-1 transition-all group"
+                  className="flex items-center gap-2 bg-yellow-950/80 hover:bg-yellow-900/90 border border-yellow-500/70 px-2.5 py-1 transition-all group cursor-pointer"
                 >
-                  <div className="relative w-6 h-6 border border-yellow-400 bg-black overflow-hidden flex items-center justify-center">
-                    <img
-                      src={SPRITE_HELPERS.body(currentUser.avatarConfig.baseIndex)}
-                      alt="Avatar"
-                      className="w-10 h-10 object-contain pixelated"
-                    />
+                  <div className="relative w-6 h-8 border border-yellow-400 bg-black overflow-hidden flex items-center justify-center">
+                    <CharacterRenderer character={currentUser.avatarConfig} size="xs" />
                   </div>
                   <div className="text-left">
                     <div className="text-[9px] text-yellow-300 font-pixel leading-tight group-hover:text-yellow-100">
                       {currentUser.username}
                     </div>
-                    <div className="text-[7px] text-slate-400 font-pixel">LEVEL 10</div>
+                    <div className="text-[7px] text-slate-400 font-pixel">TIER {currentUser.tier || 1}</div>
                   </div>
                 </button>
                 <button
                   onClick={logoutUser}
                   title="Logout"
-                  className="text-[9px] text-red-400 font-pixel bg-red-950/60 hover:bg-red-900 border border-red-500/40 px-2 py-1.5 transition-all"
+                  className="text-[9px] text-red-400 font-pixel bg-red-950/60 hover:bg-red-900 border border-red-500/40 px-2 py-1.5 transition-all cursor-pointer"
                 >
                   ✕
                 </button>
@@ -168,13 +169,13 @@ export default function HomeScreen() {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setAuthModal('login')}
-                  className="text-[9px] text-slate-200 font-pixel bg-slate-900/90 hover:bg-slate-800 border border-slate-600 px-3 py-1.5 transition-all"
+                  className="text-[9px] text-slate-200 font-pixel bg-slate-900/90 hover:bg-slate-800 border border-slate-600 px-3 py-1.5 transition-all cursor-pointer"
                 >
                   {isEn ? 'LOGIN' : 'ĐĂNG NHẬP'}
                 </button>
                 <button
                   onClick={() => setAuthModal('signup')}
-                  className="text-[9px] text-black font-pixel bg-yellow-400 hover:bg-yellow-300 border border-yellow-200 px-3 py-1.5 font-bold transition-all"
+                  className="text-[9px] text-black font-pixel bg-yellow-400 hover:bg-yellow-300 border border-yellow-200 px-3 py-1.5 font-bold transition-all cursor-pointer"
                 >
                   {isEn ? 'SIGN UP' : 'ĐĂNG KÝ'}
                 </button>

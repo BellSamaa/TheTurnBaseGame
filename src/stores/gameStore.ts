@@ -37,8 +37,8 @@ interface GameStore {
   accounts: UserAccount[];
   authModal: 'none' | 'login' | 'signup' | 'profile';
   setAuthModal: (m: 'none' | 'login' | 'signup' | 'profile') => void;
-  loginUser: (username: string, pass?: string) => boolean;
-  signupUser: (username: string, email: string, pass?: string) => boolean;
+  loginUser: (username: string, pass?: string) => { success: boolean; error?: string };
+  signupUser: (username: string, email: string, pass?: string) => { success: boolean; error?: string };
   logoutUser: () => void;
   updateUserBio: (bio: string) => void;
 
@@ -104,84 +104,105 @@ export const useGameStore = create<GameStore>()(
       settings: DEFAULT_SETTINGS,
       profile: DEFAULT_PROFILE,
 
-      // Auth Database
-      currentUser: {
-        id: 'user_master',
-        username: 'DiceHero',
-        email: 'hero@dicemaniac.rpg',
-        bio: 'Legendary D20 roller, slayer of dragons and master of dice.',
-        createdAt: '2026-01-01',
-        avatarConfig: DEFAULT_CUSTOMIZATION,
-      },
-      accounts: [
-        {
-          id: 'user_master',
-          username: 'DiceHero',
-          email: 'hero@dicemaniac.rpg',
-          bio: 'Legendary D20 roller, slayer of dragons and master of dice.',
-          createdAt: '2026-01-01',
-          avatarConfig: DEFAULT_CUSTOMIZATION,
-        },
-      ],
+      // Real User Auth Database (No fake bots)
+      currentUser: null,
+      accounts: [],
       authModal: 'none',
 
       setAuthModal: (m) => set({ authModal: m }),
 
-      loginUser: (username) => {
+      loginUser: (username, pass) => {
+        const trimmedUser = username.trim().toLowerCase();
         const acc = get().accounts.find(
-          (a) => a.username.toLowerCase() === username.trim().toLowerCase()
+          (a) => a.username.toLowerCase() === trimmedUser || a.email.toLowerCase() === trimmedUser
         );
-        if (acc) {
-          set({
-            currentUser: acc,
-            profile: {
-              ...get().profile,
-              name: acc.username,
-              character: acc.avatarConfig,
-            },
-            authModal: 'none',
-          });
-          return true;
+        if (!acc) {
+          return {
+            success: false,
+            error: get().settings.language === 'vi'
+              ? 'Tài khoản không tồn tại. Vui lòng bấm Đăng Ký.'
+              : 'User account not found. Please click Sign Up.',
+          };
         }
-        // Auto-create if not exists for frictionless gameplay
-        const newAcc: UserAccount = {
-          id: 'user_' + Date.now(),
-          username: username.trim(),
-          email: `${username.trim().toLowerCase()}@dicemaniac.rpg`,
-          bio: 'New dice warrior embarking on the quest.',
-          createdAt: new Date().toISOString().split('T')[0],
-          avatarConfig: get().profile.character,
-        };
+
+        if (acc.passwordHash && pass && acc.passwordHash !== pass) {
+          return {
+            success: false,
+            error: get().settings.language === 'vi'
+              ? 'Mật khẩu không chính xác. Vui lòng thử lại.'
+              : 'Incorrect password. Please try again.',
+          };
+        }
+
         set({
-          accounts: [...get().accounts, newAcc],
-          currentUser: newAcc,
-          profile: { ...get().profile, name: newAcc.username },
+          currentUser: acc,
+          profile: {
+            ...get().profile,
+            name: acc.username,
+            character: acc.avatarConfig,
+            tier: acc.tier || 1,
+            rank: acc.rankPoints || 1000,
+          },
           authModal: 'none',
         });
-        return true;
+        return { success: true };
       },
 
-      signupUser: (username, email) => {
+      signupUser: (username, email, pass) => {
+        const trimmedUser = username.trim();
+        const trimmedEmail = email.trim();
+
+        if (trimmedUser.length < 3) {
+          return {
+            success: false,
+            error: get().settings.language === 'vi'
+              ? 'Tên người dùng phải có ít nhất 3 ký tự.'
+              : 'Username must be at least 3 characters.',
+          };
+        }
+
+        if (pass && pass.length < 4) {
+          return {
+            success: false,
+            error: get().settings.language === 'vi'
+              ? 'Mật khẩu phải có ít nhất 4 ký tự.'
+              : 'Password must be at least 4 characters.',
+          };
+        }
+
         const existing = get().accounts.find(
-          (a) => a.username.toLowerCase() === username.trim().toLowerCase()
+          (a) =>
+            a.username.toLowerCase() === trimmedUser.toLowerCase() ||
+            (trimmedEmail && a.email.toLowerCase() === trimmedEmail.toLowerCase())
         );
-        if (existing) return false;
+        if (existing) {
+          return {
+            success: false,
+            error: get().settings.language === 'vi'
+              ? 'Tên tài khoản hoặc email này đã được sử dụng.'
+              : 'Username or email is already registered.',
+          };
+        }
 
         const newAcc: UserAccount = {
-          id: 'user_' + Date.now(),
-          username: username.trim(),
-          email: email.trim(),
-          bio: 'New challenger enters the arena.',
+          id: 'user_' + Date.now().toString(36),
+          username: trimmedUser,
+          email: trimmedEmail || `${trimmedUser.toLowerCase()}@dicemaniac.rpg`,
+          passwordHash: pass || '',
+          bio: 'Challenger ready to roll the D20.',
           createdAt: new Date().toISOString().split('T')[0],
           avatarConfig: get().profile.character,
+          tier: 1,
+          rankPoints: 1000,
         };
+
         set({
           accounts: [...get().accounts, newAcc],
           currentUser: newAcc,
           profile: { ...get().profile, name: newAcc.username },
           authModal: 'none',
         });
-        return true;
+        return { success: true };
       },
 
       logoutUser: () => set({ currentUser: null }),

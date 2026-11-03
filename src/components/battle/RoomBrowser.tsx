@@ -28,41 +28,8 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
   // Active Lobby state
   const [currentLobby, setCurrentLobby] = useState<RoomState | null>(null);
 
-  // Mock initial rooms list
-  const [rooms, setRooms] = useState<RoomState[]>([
-    {
-      id: 'ROOM-7742',
-      hostId: 'host_1',
-      hostName: 'DragonSlayer99',
-      guestId: null,
-      guestName: null,
-      mode: 'casual',
-      gameMode: 'classic',
-      status: 'waiting',
-      hostReady: true,
-      guestReady: false,
-      hostClass: 'warrior',
-      hostWeapon: 'greatsword',
-      mapId: 'castle',
-      battleState: null,
-    },
-    {
-      id: 'ROOM-4319',
-      hostId: 'host_2',
-      hostName: 'ShadowQueen',
-      guestId: null,
-      guestName: null,
-      mode: 'ranked',
-      gameMode: 'last_man_standing',
-      status: 'waiting',
-      hostReady: true,
-      guestReady: false,
-      hostClass: 'assassin',
-      hostWeapon: 'dagger',
-      mapId: 'cyberpunk',
-      battleState: null,
-    },
-  ]);
+  // Real rooms list (No fake bots)
+  const [rooms, setRooms] = useState<RoomState[]>([]);
 
   const handleCreateRoom = (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,52 +143,66 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
             </div>
 
             {/* Rooms List */}
-            <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
-              {rooms.map((room) => (
-                <div
-                  key={room.id}
-                  className="p-3 bg-slate-900/90 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:border-purple-400 transition"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold font-pixel text-yellow-300">
-                        {room.id}
-                      </span>
-                      <span className="text-[7.5px] font-pixel px-1.5 py-0.5 bg-purple-900/60 text-purple-300 border border-purple-600">
-                        {isEn ? 'Host: ' : 'Chủ phòng: '}{room.hostName}
-                      </span>
-                      <span className="text-[7.5px] font-pixel px-1.5 py-0.5 bg-slate-800 text-cyan-300">
-                        {room.mode.toUpperCase()}
-                      </span>
+            {rooms.length === 0 ? (
+              <div className="p-6 bg-slate-900/60 border border-slate-700 text-center">
+                <span className="text-3xl mb-2 block">🏰</span>
+                <p className="text-[9px] font-pixel text-yellow-300 mb-1">
+                  {isEn ? 'NO ACTIVE LOBBIES RIGHT NOW' : 'CHƯA CÓ PHÒNG NÀO ĐANG MỞ'}
+                </p>
+                <p className="text-[8px] font-pixel text-slate-400">
+                  {isEn
+                    ? 'Click "+ CREATE ROOM" to host your custom duel, or enter an invite code above!'
+                    : 'Bấm "+ TẠO PHÒNG MỚI" để mở phòng đấu của bạn, hoặc nhập mã phòng ở trên!'}
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
+                {rooms.map((room) => (
+                  <div
+                    key={room.id}
+                    className="p-3 bg-slate-900/90 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:border-purple-400 transition"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold font-pixel text-yellow-300">
+                          {room.id}
+                        </span>
+                        <span className="text-[7.5px] font-pixel px-1.5 py-0.5 bg-purple-900/60 text-purple-300 border border-purple-600">
+                          {isEn ? 'Host: ' : 'Chủ phòng: '}{room.hostName}
+                        </span>
+                        <span className="text-[7.5px] font-pixel px-1.5 py-0.5 bg-slate-800 text-cyan-300">
+                          {room.mode.toUpperCase()}
+                        </span>
+                      </div>
+
+                      <p className="text-[8px] font-pixel text-slate-400 mt-1">
+                        {isEn ? 'Arena: ' : 'Chiến trường: '}
+                        <span className="text-yellow-400">
+                          {isEn
+                            ? MAP_DEFINITIONS.find((m) => m.id === room.mapId)?.name
+                            : MAP_DEFINITIONS.find((m) => m.id === room.mapId)?.nameVi}
+                        </span>
+                      </p>
                     </div>
 
-                    <p className="text-[8px] font-pixel text-slate-400 mt-1">
-                      {isEn ? 'Arena: ' : 'Chiến trường: '}
-                      <span className="text-yellow-400">
-                        {isEn
-                          ? MAP_DEFINITIONS.find((m) => m.id === room.mapId)?.name
-                          : MAP_DEFINITIONS.find((m) => m.id === room.mapId)?.nameVi}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] font-pixel text-emerald-400 font-bold">
+                        {room.guestId ? (isEn ? '2/2 FULL' : '2/2 ĐẦY') : (isEn ? '1/2 WAITING' : '1/2 ĐANG ĐỢI')}
                       </span>
-                    </p>
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-pixel text-emerald-400 font-bold">
-                      {room.guestId ? (isEn ? '2/2 FULL' : '2/2 ĐẦY') : (isEn ? '1/2 WAITING' : '1/2 ĐANG ĐỢI')}
-                    </span>
-
-                    <PixelButton
-                      variant="secondary"
-                      size="sm"
-                      disabled={Boolean(room.guestId)}
-                      onClick={() => handleJoinRoom(room)}
-                    >
-                      {room.guestId ? (isEn ? 'FULL' : 'ĐÃ ĐẦY') : (isEn ? 'JOIN' : 'THAM GIA')}
-                    </PixelButton>
+                      <PixelButton
+                        variant="secondary"
+                        size="sm"
+                        disabled={Boolean(room.guestId)}
+                        onClick={() => handleJoinRoom(room)}
+                      >
+                        {room.guestId ? (isEn ? 'FULL' : 'ĐÃ ĐẦY') : (isEn ? 'JOIN' : 'THAM GIA')}
+                      </PixelButton>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

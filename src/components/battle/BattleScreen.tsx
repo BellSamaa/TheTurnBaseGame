@@ -23,7 +23,7 @@ import type { BattleLogEntry, PlayerState } from '@/types/game';
 import HealthBar from '@/components/ui/HealthBar';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelFrame from '@/components/ui/PixelFrame';
-import DiceRoller3D from './DiceRoller3D';
+import CharacterRenderer from '@/components/character/CharacterRenderer';
 
 export default function BattleScreen() {
   const { battleState, setBattleState, setPage, settings } = useGameStore();
@@ -92,7 +92,7 @@ export default function BattleScreen() {
 
     setIsRollingD20(true);
 
-    // Boxer rolls twice on attack and picks highest
+    // Boxer rolls twice on attack ONLY and picks highest
     let r1 = rollD20();
     let r1Extra = 0;
     if (p1IsAttacker && p1Class.extraD20Rolls > 0) {
@@ -232,9 +232,9 @@ export default function BattleScreen() {
           turn: currentTurn,
           type: 'skill',
           message: isEn
-            ? `SPECIAL TRIGGER! ${player1.name} rolled ${totalP1} activating ${player1.weapon.skill2.name} dealing ${p1Trigger.damage} DMG!`
-            : `KÍCH HOẠT ĐẶC BIỆT! ${player1.name} đổ ra ${totalP1} kích hoạt ${player1.weapon.skill2.nameVi} gây ${p1Trigger.damage} sát thương!`,
-          messageVi: `KÍCH HOẠT ĐẶC BIỆT! ${player1.name} đổ ra ${totalP1} kích hoạt ${player1.weapon.skill2.nameVi} gây ${p1Trigger.damage} sát thương!`,
+            ? `SPECIAL TRIGGER! ${player1.name} rolled face ${totalP1} activating ${player1.weapon.skill2.name} dealing ${p1Trigger.damage} DMG!`
+            : `KÍCH HOẠT ĐẶC BIỆT! ${player1.name} đổ ra mặt ${totalP1} kích hoạt ${player1.weapon.skill2.nameVi} gây ${p1Trigger.damage} sát thương!`,
+          messageVi: `KÍCH HOẠT ĐẶC BIỆT! ${player1.name} đổ ra mặt ${totalP1} kích hoạt ${player1.weapon.skill2.nameVi} gây ${p1Trigger.damage} sát thương!`,
         });
       }
     }, 1000);
@@ -332,7 +332,7 @@ export default function BattleScreen() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between items-center p-2 sm:p-4 overflow-hidden select-none bg-[#07070b]">
+    <div className="relative min-h-screen w-full flex flex-col justify-between items-center p-3 sm:p-5 overflow-hidden select-none bg-[#07070b]">
       {/* 1. Map Arena Background */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -346,40 +346,40 @@ export default function BattleScreen() {
       </div>
 
       {/* 2. Top Header HUD: HP Bars & Turn Status */}
-      <div className="relative z-20 w-full max-w-5xl flex flex-col gap-2">
+      <div className="relative z-20 w-full max-w-5xl flex flex-col gap-2.5">
         {/* Top Status Banner */}
-        <div className="flex items-center justify-between px-3 py-1.5 bg-black/85 border border-yellow-500/60 shadow">
+        <div className="flex items-center justify-between px-3.5 py-1.5 bg-black/85 border-2 border-yellow-500/70 shadow-[0_0_15px_rgba(0,0,0,0.8)]">
           <div className="flex items-center gap-2">
-            <span className="text-[9px] text-yellow-400 font-pixel font-bold">
+            <span className="text-[10px] text-yellow-400 font-pixel font-bold">
               🗺️ {isEn ? mapData.name : mapData.nameVi}
             </span>
           </div>
 
-          <div className="text-[9px] sm:text-[10px] text-yellow-300 font-bold font-pixel tracking-widest animate-pulse">
-            {isEn ? `TURN ${currentTurn} • ATK: ` : `LƯỢT ${currentTurn} • BÊN CÔNG: `}
-            <span className="text-red-400">
+          <div className="text-[10px] sm:text-xs text-yellow-300 font-bold font-pixel tracking-wider animate-pulse">
+            {isEn ? `ROUND ${currentTurn} • ATTACKER: ` : `HIỆP ${currentTurn} • BÊN CÔNG: `}
+            <span className="text-red-400 font-bold">
               {p1IsAttacker ? player1.name : player2.name}
             </span>
           </div>
 
           <button
             onClick={() => setPage('play')}
-            className="text-[8px] font-pixel text-slate-400 hover:text-white px-2 py-1 bg-slate-800 border border-slate-600 transition"
+            className="text-[9px] font-pixel text-slate-400 hover:text-white px-2.5 py-1 bg-slate-900 border border-slate-600 transition"
           >
             {isEn ? 'SURRENDER' : 'ĐẦU HÀNG'}
           </button>
         </div>
 
-        {/* Both Players HP & Stats Bar */}
+        {/* Both Players HP & Stats Bar with Sliced Frames */}
         <div className="grid grid-cols-2 gap-3 sm:gap-6 items-center">
           {/* Player 1 Health HUD */}
-          <div className="relative p-2 bg-black/80 border-2 border-yellow-500/70 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[9px] font-pixel font-bold text-yellow-300 flex items-center gap-1.5">
+          <div className="relative p-2.5 bg-black/85 border-2 border-yellow-500/80 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-pixel font-bold text-yellow-300 flex items-center gap-1.5">
                 <span>{p1IsAttacker ? '⚔️' : '🛡️'}</span>
                 {player1.name} ({isEn ? p1Class.name : p1Class.nameVi})
               </span>
-              <span className="text-[8px] font-pixel font-bold text-cyan-300">
+              <span className="text-[9px] font-pixel font-bold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 border border-cyan-500/50">
                 {isEn ? `CHARGE: ${player1.skillCharge} pts` : `SẠC: ${player1.skillCharge} đ`}
               </span>
             </div>
@@ -391,13 +391,13 @@ export default function BattleScreen() {
           </div>
 
           {/* Player 2 Health HUD */}
-          <div className="relative p-2 bg-black/80 border-2 border-red-500/70 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[9px] font-pixel font-bold text-red-300 flex items-center gap-1.5">
+          <div className="relative p-2.5 bg-black/85 border-2 border-red-500/80 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-pixel font-bold text-red-300 flex items-center gap-1.5">
                 <span>{!p1IsAttacker ? '⚔️' : '🛡️'}</span>
                 {player2.name} ({isEn ? p2Class.name : p2Class.nameVi})
               </span>
-              <span className="text-[8px] font-pixel font-bold text-cyan-300">
+              <span className="text-[9px] font-pixel font-bold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 border border-cyan-500/50">
                 {isEn ? `CHARGE: ${player2.skillCharge} pts` : `SẠC: ${player2.skillCharge} đ`}
               </span>
             </div>
@@ -410,9 +410,9 @@ export default function BattleScreen() {
         </div>
       </div>
 
-      {/* 3. Center Battle Arena: Sliced Layered Characters & 3D Dice */}
-      <div className="relative z-20 w-full max-w-5xl my-auto flex items-center justify-between px-2 sm:px-8">
-        {/* Left: Player 1 Sliced Layered Character Stage */}
+      {/* 3. Center Battle Arena: Characters & Sliced Dice Trays */}
+      <div className="relative z-20 w-full max-w-5xl my-auto flex items-center justify-between px-2 sm:px-6 py-2">
+        {/* Left: Player 1 Stage with Unified CharacterRenderer */}
         <div className="relative flex flex-col items-center">
           {/* Floating Damage Text */}
           <AnimatePresence>
@@ -421,7 +421,7 @@ export default function BattleScreen() {
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: -30, scale: 1.2 }}
                 exit={{ opacity: 0 }}
-                className={`absolute -top-10 font-pixel text-xs sm:text-sm font-bold drop-shadow-[0_2px_4px_#000] z-30 ${
+                className={`absolute -top-12 font-pixel text-sm sm:text-base font-bold drop-shadow-[0_2px_4px_#000] z-40 ${
                   floatingDamage.isHeal ? 'text-emerald-400' : 'text-red-500'
                 }`}
               >
@@ -430,98 +430,84 @@ export default function BattleScreen() {
             )}
           </AnimatePresence>
 
-          {/* Player 1 Sliced Layered Sprite Avatar */}
-          <div
-            className={`
-              relative w-28 h-40 sm:w-36 sm:h-52 flex items-center justify-center transition-all duration-300
-              ${p1IsAttacker ? 'ring-4 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.6)]' : ''}
-            `}
-          >
-            {/* 1. Body */}
-            <img
-              src={SPRITE_HELPERS.body(player1.character.baseIndex)}
-              alt="Player 1 Body"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]"
-            />
-            {/* Body Skin Tint */}
-            <div
-              className="absolute inset-0 z-11 pointer-events-none mix-blend-color opacity-30"
-              style={{ backgroundColor: player1.character.skinColor }}
-            />
-            {/* 2. Pants */}
-            <img
-              src={SPRITE_HELPERS.pants(player1.character.pantsIndex)}
-              alt="Pants"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-20 pointer-events-none"
-            />
-            {/* 3. Shirt */}
-            <img
-              src={SPRITE_HELPERS.shirt(player1.character.shirtIndex)}
-              alt="Shirt"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-30 pointer-events-none"
-            />
-            {/* 4. Face */}
-            <img
-              src={SPRITE_HELPERS.face(player1.character.faceIndex)}
-              alt="Face"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-40 pointer-events-none"
-            />
-            {/* 5. Hair */}
-            <img
-              src={SPRITE_HELPERS.hair(player1.character.hairIndex)}
-              alt="Hair"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-50 pointer-events-none"
-            />
-            {/* 6. Accessory */}
-            <img
-              src={SPRITE_HELPERS.accessory(player1.character.accessoryIndex)}
-              alt="Accessory"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-60 pointer-events-none"
-            />
-          </div>
+          <CharacterRenderer
+            character={player1.character}
+            weapon={player1.weapon}
+            size="md"
+            facing="right"
+            showAura={p1IsAttacker}
+            auraColor="#facc15"
+          />
 
-          <span className="mt-1 text-[8px] font-pixel text-yellow-300 bg-black/80 px-2 py-0.5 border border-yellow-500">
+          <span className="mt-2 text-[9px] font-pixel text-yellow-300 bg-black/85 px-2.5 py-1 border border-yellow-500 shadow">
             {p1IsAttacker ? (isEn ? '⚔️ ATTACKING' : '⚔️ TẤN CÔNG') : (isEn ? '🛡️ DEFENDING' : '🛡️ PHÒNG THỦ')}
           </span>
         </div>
 
-        {/* Center: 3D Dice Rolling Arena */}
-        <div className="relative flex flex-col items-center justify-center gap-2">
-          <div className="p-2 sm:p-4 bg-black/75 border-2 border-yellow-500/60 rounded-none shadow-[0_0_25px_rgba(0,0,0,0.9)] backdrop-blur-sm flex flex-col items-center">
-            <div className="flex items-center gap-3 sm:gap-6">
-              {/* D20 Dice 3D */}
-              <div className="flex flex-col items-center">
-                <DiceRoller3D
-                  diceType="d20"
-                  isRolling={isRollingD20}
-                  targetValue={p1IsAttacker ? d20P1 : d20P2}
-                  label={isEn ? 'D20 COMBAT DIE' : 'XÚC XẮC D20 (CÔNG/THỦ)'}
-                />
-              </div>
-
-              {/* D6 Skill Dice 3D */}
-              <div className="flex flex-col items-center">
-                <DiceRoller3D
-                  diceType="d6"
-                  isRolling={isRollingD6}
-                  targetValue={d6P1}
-                  label={isEn ? 'D6 SKILL DIE' : 'XÚC XẮC D6 (SẠC CHIÊU)'}
-                />
+        {/* Center: Pixel Dice Rolling Arena with Sliced Tray Frames */}
+        <div className="relative flex flex-col items-center justify-center gap-3">
+          <div className="p-3 bg-black/80 border-2 border-yellow-500/70 shadow-[0_0_25px_rgba(0,0,0,0.9)] backdrop-blur-sm flex items-center gap-4 sm:gap-6">
+            {/* D20 Dice Tray Frame */}
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex flex-col items-center justify-center">
+              <img
+                src="/assets/sprites/ui/frames/frame_d20_tray.png"
+                alt="D20 Tray"
+                className="absolute inset-0 w-full h-full object-contain pixelated pointer-events-none drop-shadow"
+              />
+              <div className="relative z-10 flex flex-col items-center justify-center">
+                <span className="text-[7.5px] font-pixel text-yellow-400 mb-1">D20 (ATK/DEF)</span>
+                <div
+                  className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center border-2 transition-all ${
+                    isRollingD20
+                      ? 'border-red-500 animate-spin bg-red-950/60'
+                      : d20P1 !== null && d20P1 === 20
+                      ? 'border-yellow-400 bg-yellow-500/40 shadow-[0_0_15px_#facc15] scale-110'
+                      : 'border-yellow-500/80 bg-slate-950/90'
+                  }`}
+                  style={{ clipPath: 'polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)' }}
+                >
+                  <span className="text-base sm:text-xl font-pixel font-bold text-yellow-300 drop-shadow">
+                    {isRollingD20 ? '?' : d20P1 !== null ? (p1IsAttacker ? d20P1 : d20P2) : '20'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Combat Roll Status Display */}
-            <div className="mt-2 text-center">
-              {d20P1 !== null && d20P2 !== null && (
-                <div className="text-[9px] sm:text-[10px] font-pixel font-bold text-yellow-300 bg-black/90 px-3 py-1 border border-yellow-400 shadow">
-                  P1: {d20P1} pts | P2: {d20P2} pts
+            {/* D6 Dice Tray Frame */}
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex flex-col items-center justify-center">
+              <img
+                src="/assets/sprites/ui/frames/frame_d6_tray.png"
+                alt="D6 Tray"
+                className="absolute inset-0 w-full h-full object-contain pixelated pointer-events-none drop-shadow"
+              />
+              <div className="relative z-10 flex flex-col items-center justify-center">
+                <span className="text-[7.5px] font-pixel text-cyan-400 mb-1">D6 (SKILL)</span>
+                <div
+                  className={`w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center border-2 transition-all ${
+                    isRollingD6
+                      ? 'border-cyan-400 animate-spin bg-cyan-950/60'
+                      : d6P1 !== null
+                      ? 'border-cyan-400 bg-cyan-950/80 shadow-[0_0_12px_#38bdf8]'
+                      : 'border-cyan-500/80 bg-slate-950/90'
+                  }`}
+                >
+                  <span className="text-base sm:text-xl font-pixel font-bold text-cyan-300 drop-shadow">
+                    {isRollingD6 ? '?' : d6P1 !== null ? d6P1 : '6'}
+                  </span>
                 </div>
-              )}
+              </div>
             </div>
           </div>
+
+          {/* Dice Results Banner */}
+          {d20P1 !== null && d20P2 !== null && (
+            <div className="text-[9px] sm:text-[10px] font-pixel font-bold text-yellow-300 bg-black/95 px-3 py-1 border border-yellow-400 shadow">
+              {player1.name}: {d20P1} pts | {player2.name}: {d20P2} pts
+            </div>
+          )}
         </div>
 
-        {/* Right: Player 2 Sliced Layered Character Stage (Mirrored) */}
+        {/* Right: Player 2 Stage with Unified CharacterRenderer */}
         <div className="relative flex flex-col items-center">
           {/* Floating Damage Text */}
           <AnimatePresence>
@@ -530,7 +516,7 @@ export default function BattleScreen() {
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: -30, scale: 1.2 }}
                 exit={{ opacity: 0 }}
-                className={`absolute -top-10 font-pixel text-xs sm:text-sm font-bold drop-shadow-[0_2px_4px_#000] z-30 ${
+                className={`absolute -top-12 font-pixel text-sm sm:text-base font-bold drop-shadow-[0_2px_4px_#000] z-40 ${
                   floatingDamage.isHeal ? 'text-emerald-400' : 'text-red-500'
                 }`}
               >
@@ -539,119 +525,101 @@ export default function BattleScreen() {
             )}
           </AnimatePresence>
 
-          {/* Player 2 Sliced Layered Sprite Avatar (Mirrored) */}
-          <div
-            className={`
-              relative w-28 h-40 sm:w-36 sm:h-52 flex items-center justify-center transition-all duration-300 scale-x-[-1]
-              ${!p1IsAttacker ? 'ring-4 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.6)]' : ''}
-            `}
-          >
-            {/* 1. Body */}
-            <img
-              src={SPRITE_HELPERS.body(player2.character.baseIndex)}
-              alt="Player 2 Body"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]"
-            />
-            {/* Body Skin Tint */}
-            <div
-              className="absolute inset-0 z-11 pointer-events-none mix-blend-color opacity-30"
-              style={{ backgroundColor: player2.character.skinColor }}
-            />
-            {/* 2. Pants */}
-            <img
-              src={SPRITE_HELPERS.pants(player2.character.pantsIndex)}
-              alt="Pants"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-20 pointer-events-none"
-            />
-            {/* 3. Shirt */}
-            <img
-              src={SPRITE_HELPERS.shirt(player2.character.shirtIndex)}
-              alt="Shirt"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-30 pointer-events-none"
-            />
-            {/* 4. Face */}
-            <img
-              src={SPRITE_HELPERS.face(player2.character.faceIndex)}
-              alt="Face"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-40 pointer-events-none"
-            />
-            {/* 5. Hair */}
-            <img
-              src={SPRITE_HELPERS.hair(player2.character.hairIndex)}
-              alt="Hair"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-50 pointer-events-none"
-            />
-            {/* 6. Accessory */}
-            <img
-              src={SPRITE_HELPERS.accessory(player2.character.accessoryIndex)}
-              alt="Accessory"
-              className="absolute inset-0 w-full h-full object-contain pixelated z-60 pointer-events-none"
-            />
-          </div>
+          <CharacterRenderer
+            character={player2.character}
+            weapon={player2.weapon}
+            size="md"
+            facing="left"
+            showAura={!p1IsAttacker}
+            auraColor="#ef4444"
+          />
 
-          <span className="mt-1 text-[8px] font-pixel text-red-300 bg-black/80 px-2 py-0.5 border border-red-500">
+          <span className="mt-2 text-[9px] font-pixel text-red-300 bg-black/85 px-2.5 py-1 border border-red-500 shadow">
             {!p1IsAttacker ? (isEn ? '⚔️ ATTACKING' : '⚔️ TẤN CÔNG') : (isEn ? '🛡️ DEFENDING' : '🛡️ PHÒNG THỦ')}
           </span>
         </div>
       </div>
 
-      {/* 4. Bottom Action Bar & Battle Log (Compact UI) */}
-      <div className="relative z-20 w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-2 sm:gap-3">
-        {/* Left: Skill Cast & Weapon Powers (4 cols) */}
-        <div className="md:col-span-4 bg-black/85 border border-yellow-500/60 p-2.5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-[8.5px] font-pixel font-bold text-yellow-300 mb-1">
-              <span>🗡️ {isEn ? player1.weapon.name : player1.weapon.nameVi}</span>
-              <span className="text-cyan-300">{player1.skillCharge} / {player1.weapon.skill1.chargeRequired} pts</span>
-            </div>
-
-            <p className="text-[7.5px] font-pixel text-slate-400 leading-tight mb-2">
-              {isEn ? player1.weapon.skill1.description : player1.weapon.skill1.descriptionVi}
-            </p>
+      {/* 4. Bottom Action Bar: Separate Skill 1 & Skill 2, Roll Dice, End Turn & Combat Log */}
+      <div className="relative z-20 w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-3">
+        {/* Left: 2 SEPARATE SKILLS (Skill 1 Active & Skill 2 Trigger) (5 cols) */}
+        <div className="md:col-span-5 bg-black/90 border-2 border-yellow-500/70 p-3 flex flex-col justify-between gap-2">
+          {/* Header */}
+          <div className="flex items-center justify-between text-[9px] font-pixel font-bold text-yellow-300 border-b border-slate-800 pb-1.5">
+            <span>🗡️ {isEn ? player1.weapon.name : player1.weapon.nameVi}</span>
+            <span className="text-cyan-300">
+              {player1.skillCharge} / {player1.weapon.skill1.chargeRequired} pts
+            </span>
           </div>
 
-          <PixelButton
-            variant={player1.skillCharge >= player1.weapon.skill1.chargeRequired ? 'gold' : 'frame'}
-            size="sm"
-            disabled={player1.skillCharge < player1.weapon.skill1.chargeRequired}
-            onClick={() => handleCastSkill1('p1')}
-            className="w-full text-[8.5px] font-pixel py-2"
-          >
-            {isEn
-              ? `🔥 UNLEASH SKILL (${player1.weapon.skill1.chargeRequired} PTS)`
-              : `🔥 TUNG TUYỆT KỸ (${player1.weapon.skill1.chargeRequired} ĐIỂM)`}
-          </PixelButton>
+          {/* Skill 1: Charge Threshold Skill */}
+          <div className="p-2 bg-yellow-950/40 border border-yellow-600/70 flex items-center justify-between gap-2">
+            <div className="flex-1">
+              <span className="text-[8.5px] font-pixel font-bold text-yellow-300 block">
+                ⚡ SKILL 1: {isEn ? player1.weapon.skill1.name : player1.weapon.skill1.nameVi}
+              </span>
+              <span className="text-[7.5px] font-pixel text-slate-300">
+                {isEn ? player1.weapon.skill1.description : player1.weapon.skill1.descriptionVi}
+              </span>
+            </div>
+            <button
+              disabled={player1.skillCharge < player1.weapon.skill1.chargeRequired}
+              onClick={() => handleCastSkill1('p1')}
+              className={`px-2.5 py-2 text-[8px] font-pixel font-bold border transition ${
+                player1.skillCharge >= player1.weapon.skill1.chargeRequired
+                  ? 'bg-yellow-400 text-black border-yellow-200 hover:bg-yellow-300 shadow-[0_0_10px_#facc15] cursor-pointer'
+                  : 'bg-slate-900 text-slate-500 border-slate-700 cursor-not-allowed opacity-60'
+              }`}
+            >
+              {player1.skillCharge >= player1.weapon.skill1.chargeRequired
+                ? (isEn ? 'CAST!' : 'TUNG CHIÊU!')
+                : `[${player1.weapon.skill1.chargeRequired} PTS]`}
+            </button>
+          </div>
+
+          {/* Skill 2: Special Face Trigger (Passive/Auto) */}
+          <div className="p-2 bg-cyan-950/40 border border-cyan-600/70 flex items-center justify-between gap-2">
+            <div className="flex-1">
+              <span className="text-[8.5px] font-pixel font-bold text-cyan-300 block">
+                ✨ SKILL 2: {isEn ? player1.weapon.skill2.name : player1.weapon.skill2.nameVi}
+              </span>
+              <span className="text-[7.5px] font-pixel text-slate-300">
+                {isEn ? player1.weapon.skill2.description : player1.weapon.skill2.descriptionVi}
+              </span>
+            </div>
+            <span className="px-2 py-1 text-[7.5px] font-pixel bg-cyan-900/80 text-cyan-200 border border-cyan-500/60 font-bold whitespace-nowrap">
+              {isEn ? `ON DIE ${player1.weapon.skill2.triggerNumber}` : `MẶT ${player1.weapon.skill2.triggerNumber}`}
+            </span>
+          </div>
         </div>
 
-        {/* Center: Action Buttons (D20, D6, End Turn) (4 cols) */}
-        <div className="md:col-span-4 bg-black/85 border border-cyan-500/60 p-2.5 flex flex-col justify-between gap-2">
-          <div className="grid grid-cols-2 gap-2">
-            {/* Roll D20 Button */}
-            <PixelButton
-              variant="danger"
-              size="sm"
-              disabled={isRollingD20 || d20RolledThisTurn}
-              onClick={handleRollD20}
-              className="w-full text-[8px] font-pixel py-2.5 shadow-[0_0_12px_rgba(239,68,68,0.5)]"
-            >
-              {d20RolledThisTurn
-                ? (isEn ? '✓ D20 ROLLED' : '✓ ĐÃ TUNG D20')
-                : (isEn ? '🎲 ROLL D20 (ATK)' : '🎲 TUNG D20 (CÔNG)')}
-            </PixelButton>
+        {/* Center: Action Buttons (D20, D6, End Turn) (3 cols) */}
+        <div className="md:col-span-3 bg-black/90 border-2 border-cyan-500/70 p-3 flex flex-col justify-between gap-2">
+          {/* Roll D20 Button */}
+          <PixelButton
+            variant="danger"
+            size="sm"
+            disabled={isRollingD20 || d20RolledThisTurn}
+            onClick={handleRollD20}
+            className="w-full text-[8.5px] font-pixel py-2.5 shadow-[0_0_12px_rgba(239,68,68,0.5)]"
+          >
+            {d20RolledThisTurn
+              ? (isEn ? '✓ D20 ROLLED' : '✓ ĐÃ TUNG D20')
+              : (isEn ? '🎲 ROLL D20 (ATK/DEF)' : '🎲 TUNG D20 (CÔNG/THỦ)')}
+          </PixelButton>
 
-            {/* Roll D6 Button */}
-            <PixelButton
-              variant="secondary"
-              size="sm"
-              disabled={isRollingD6 || d6RolledThisTurn}
-              onClick={handleRollD6}
-              className="w-full text-[8px] font-pixel py-2.5"
-            >
-              {d6RolledThisTurn
-                ? (isEn ? '✓ D6 ROLLED' : '✓ ĐÃ TUNG D6')
-                : (isEn ? '⚡ ROLL D6 (CHARGE)' : '⚡ TUNG D6 (SẠC)')}
-            </PixelButton>
-          </div>
+          {/* Roll D6 Button */}
+          <PixelButton
+            variant="secondary"
+            size="sm"
+            disabled={isRollingD6 || d6RolledThisTurn}
+            onClick={handleRollD6}
+            className="w-full text-[8.5px] font-pixel py-2.5"
+          >
+            {d6RolledThisTurn
+              ? (isEn ? '✓ D6 ROLLED' : '✓ ĐÃ TUNG D6')
+              : (isEn ? '⚡ ROLL D6 (CHARGE)' : '⚡ TUNG D6 (SẠC CHIÊU)')}
+          </PixelButton>
 
           {/* End Turn Button */}
           <PixelButton
@@ -659,35 +627,34 @@ export default function BattleScreen() {
             size="sm"
             disabled={!d20RolledThisTurn}
             onClick={handleEndTurn}
-            className="w-full text-[9px] font-pixel py-2 font-bold"
+            className="w-full text-[9.5px] font-pixel py-2 font-bold"
           >
             {isEn ? 'END TURN ➔' : 'KẾT THÚC LƯỢT ➔'}
           </PixelButton>
         </div>
 
-        {/* Right: Battle Log Box (4 cols) */}
-        <div className="md:col-span-4 bg-black/85 border border-slate-700 p-2 flex flex-col">
-          <div className="text-[8.5px] font-pixel text-yellow-400 font-bold mb-1 flex items-center justify-between border-b border-slate-800 pb-1">
-            <span>📜 {isEn ? 'COMBAT LOG' : 'NHẬT KÝ CHIẾN ĐẤU'}</span>
-            <span className="text-[7px] text-slate-500 font-pixel">LIVE</span>
+        {/* Right: Sliced Battle Log Box (4 cols) */}
+        <div className="md:col-span-4 bg-black/90 border-2 border-slate-700 p-2.5 flex flex-col justify-between">
+          <div className="relative w-full h-8 mb-1 overflow-hidden border border-slate-800 flex items-center justify-between px-2 bg-slate-950">
+            <span className="text-[8.5px] font-pixel font-bold text-yellow-400">
+              📜 {isEn ? 'COMBAT LOG' : 'NHẬT KÝ CHIẾN ĐẤU'}
+            </span>
+            <span className="text-[7px] text-slate-500 font-pixel">REALTIME</span>
           </div>
 
-          <div className="flex-1 max-h-24 overflow-y-auto space-y-1 text-[7.5px] font-pixel text-slate-300 pr-1">
+          <div className="flex-1 max-h-28 overflow-y-auto space-y-1 text-[7.5px] font-pixel text-slate-300 pr-1">
             {battleLog.slice(0, 8).map((log, idx) => (
               <div
                 key={idx}
-                className={`
-                  p-1 border-l-2
-                  ${
-                    log.type === 'damage'
-                      ? 'border-red-500 bg-red-950/20 text-red-200'
-                      : log.type === 'defend'
-                      ? 'border-cyan-400 bg-cyan-950/20 text-cyan-200'
-                      : log.type === 'skill'
-                      ? 'border-yellow-400 bg-yellow-950/20 text-yellow-200'
-                      : 'border-slate-500 bg-slate-900/30'
-                  }
-                `}
+                className={`p-1 border-l-2 ${
+                  log.type === 'damage'
+                    ? 'border-red-500 bg-red-950/20 text-red-200'
+                    : log.type === 'defend'
+                    ? 'border-cyan-400 bg-cyan-950/20 text-cyan-200'
+                    : log.type === 'skill'
+                    ? 'border-yellow-400 bg-yellow-950/20 text-yellow-200'
+                    : 'border-slate-500 bg-slate-900/30 text-slate-300'
+                }`}
               >
                 {log.message}
               </div>

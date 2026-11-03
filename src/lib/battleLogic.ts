@@ -99,6 +99,9 @@ export function activateSkill1(
 
   // Effects parsing based on weapon effect key
   switch (weapon.skill1.effect) {
+    case 'slash_2':
+      damage = 2;
+      break;
     case 'cleave_18':
       damage = 18;
       break;
@@ -174,6 +177,9 @@ export function checkSkill2Trigger(
   let heal = 0;
 
   switch (weapon.skill2.effect) {
+    case 'cleave_all_5':
+      damage = 5;
+      break;
     case 'strike_12':
       damage = 12;
       break;

@@ -17,55 +17,26 @@ interface Friend {
 }
 
 export default function FriendsList() {
-  const { setPage, settings, startNewBattle } = useGameStore();
+  const { setPage, settings, startNewBattle, accounts, currentUser } = useGameStore();
   const lang = settings.language;
   const isEn = lang === 'en';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [invitedId, setInvitedId] = useState<string | null>(null);
 
-  const [friends, setFriends] = useState<Friend[]>([
-    {
-      id: 'f1',
-      name: 'Bell_Master',
-      status: 'online',
-      rank: 2450,
-      classType: isEn ? 'Assassin' : 'Sát Thủ',
-      wins: 142,
-    },
-    {
-      id: 'f2',
-      name: 'Snow_White',
-      status: 'online',
-      rank: 2180,
-      classType: isEn ? 'Mage' : 'Pháp Sư',
-      wins: 118,
-    },
-    {
-      id: 'f3',
-      name: 'Shiratosi_Gold',
-      status: 'in_battle',
-      rank: 2990,
-      classType: isEn ? 'Boxer' : 'Võ Sĩ',
-      wins: 210,
-    },
-    {
-      id: 'f4',
-      name: 'DragonSlayer',
-      status: 'offline',
-      rank: 1650,
-      classType: isEn ? 'Warrior' : 'Chiến Binh',
-      wins: 65,
-    },
-    {
-      id: 'f5',
-      name: 'TitanShield',
-      status: 'offline',
-      rank: 1820,
-      classType: isEn ? 'Tanker' : 'Đỡ Đòn',
-      wins: 84,
-    },
-  ]);
+  // Initialize friends strictly from other registered accounts - NO FAKE BOTS!
+  const [friends, setFriends] = useState<Friend[]>(() => {
+    return accounts
+      .filter((a) => !currentUser || a.id !== currentUser.id)
+      .map((a) => ({
+        id: a.id,
+        name: a.username,
+        status: 'online' as const,
+        rank: a.rankPoints || 1000,
+        classType: 'Warrior',
+        wins: 0,
+      }));
+  });
 
   const handleInvite = (friend: Friend) => {
     setInvitedId(friend.id);

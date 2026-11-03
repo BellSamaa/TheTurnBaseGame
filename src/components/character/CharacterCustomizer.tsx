@@ -13,6 +13,7 @@ import {
 import type { ClassType, CharacterCustomization } from '@/types/game';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelFrame from '@/components/ui/PixelFrame';
+import CharacterRenderer from './CharacterRenderer';
 
 export default function CharacterCustomizer() {
   const { profile, updateProfile, updateCharacter, setPage, settings, currentUser, updateUserBio } = useGameStore();
@@ -110,67 +111,16 @@ export default function CharacterCustomizer() {
             title={isEn ? 'HERO PREVIEW' : 'HÌNH ẢNH NHÂN VẬT'}
             className="p-4 flex flex-col items-center bg-black/80"
           >
-            {/* Stage Pedestal */}
-            <div className="relative w-full aspect-square max-w-[280px] sm:max-w-[310px] bg-gradient-to-b from-slate-900 via-black to-[#0a0a14] border-2 border-yellow-500/70 shadow-[inset_0_0_25px_rgba(0,0,0,0.95)] flex items-center justify-center overflow-hidden mb-3">
-              {/* Radial Glow */}
-              <div
-                className="absolute w-40 h-40 rounded-full blur-2xl opacity-40 animate-pulse pointer-events-none"
-                style={{ backgroundColor: custom.hairColor }}
+            {/* Stage Pedestal with Unified Coordinate CharacterRenderer */}
+            <div className="relative w-full aspect-square max-w-[280px] sm:max-w-[310px] bg-gradient-to-b from-slate-900 via-black to-[#0a0a14] border-2 border-yellow-500/70 shadow-[inset_0_0_25px_rgba(0,0,0,0.95)] flex flex-col items-center justify-center overflow-hidden mb-3 p-3">
+              <CharacterRenderer
+                character={custom}
+                size="lg"
+                showAura={true}
+                auraColor={custom.hairColor}
               />
-
-              {/* Character Layering Stage (Strict Order: Body -> Pants -> Shirt -> Face -> Hair -> Accessory) */}
-              <div className="relative w-44 h-56 flex items-center justify-center">
-                {/* 1. Body Base (Sliced PNG) */}
-                <img
-                  src={SPRITE_HELPERS.body(custom.baseIndex)}
-                  alt="Hero Body"
-                  className="absolute inset-0 w-full h-full object-contain pixelated z-10 transition-all drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]"
-                />
-
-                {/* Body Tint overlay */}
-                <div
-                  className="absolute inset-0 z-11 pointer-events-none mix-blend-color opacity-30"
-                  style={{ backgroundColor: custom.skinColor }}
-                />
-
-                {/* 2. Pants (Sliced PNG) */}
-                <img
-                  src={SPRITE_HELPERS.pants(custom.pantsIndex)}
-                  alt="Hero Pants"
-                  className="absolute inset-0 w-full h-full object-contain pixelated z-20 pointer-events-none transition-all drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
-                />
-
-                {/* 3. Shirt (Sliced PNG) */}
-                <img
-                  src={SPRITE_HELPERS.shirt(custom.shirtIndex)}
-                  alt="Hero Shirt"
-                  className="absolute inset-0 w-full h-full object-contain pixelated z-30 pointer-events-none transition-all drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
-                />
-
-                {/* 4. Face (Sliced PNG) */}
-                <img
-                  src={SPRITE_HELPERS.face(custom.faceIndex)}
-                  alt="Hero Face"
-                  className="absolute inset-0 w-full h-full object-contain pixelated z-40 pointer-events-none transition-all"
-                />
-
-                {/* 5. Hair (Sliced PNG) */}
-                <img
-                  src={SPRITE_HELPERS.hair(custom.hairIndex)}
-                  alt="Hero Hair"
-                  className="absolute inset-0 w-full h-full object-contain pixelated z-50 pointer-events-none transition-all drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
-                />
-
-                {/* 6. Accessory (Sliced PNG) */}
-                <img
-                  src={SPRITE_HELPERS.accessory(custom.accessoryIndex)}
-                  alt="Hero Accessory"
-                  className="absolute inset-0 w-full h-full object-contain pixelated z-60 pointer-events-none transition-all"
-                />
-              </div>
-
               {/* Pedestal Base */}
-              <div className="absolute bottom-2 w-36 h-4 bg-yellow-600/60 rounded-[50%] blur-[1.5px] border border-yellow-400/80 shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
+              <div className="w-36 h-3 bg-yellow-600/60 rounded-[50%] blur-[1.5px] border border-yellow-400/80 shadow-[0_0_12px_rgba(250,204,21,0.6)] mt-1" />
             </div>
 
             {/* Name Input */}
