@@ -33,7 +33,7 @@ assert.equal(castChargedSkill({ ...gun, bullets: 0 }, foe, 2, 1), null);
 const sword = make(WEAPON_DEFINITIONS.greatsword);
 const blocked = castChargedSkill(sword, { ...foe, dodgeNextSkill: true }, 1, 1);
 assert.equal(blocked.damage, 0); assert.equal(blocked.opponent.dodgeNextSkill, false);
-assert.equal(blocked.caster.d12Charge, 92);
+assert.equal(blocked.caster.d12Charge, 100 - skillCost(sword, 1));
 const ring = make(WEAPON_DEFINITIONS.infinity_ring);
 assert.equal(castChargedSkill(ring, foe, 1, 1, 1), null, 'invalid form costs nothing');
 const { calculateD20Combat } = require('../src/lib/battleLogic.ts');
