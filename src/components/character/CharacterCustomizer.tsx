@@ -8,18 +8,20 @@ import { t } from '@/lib/translations';
 import {
   CLASS_DEFINITIONS,
   COLOR_PALETTES,
+  SPRITE_HELPERS,
 } from '@/lib/constants';
 import type { ClassType, CharacterCustomization } from '@/types/game';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 
 export default function CharacterCustomizer() {
-  const { profile, updateProfile, updateCharacter, setPage, settings } = useGameStore();
+  const { profile, updateProfile, updateCharacter, setPage, settings, currentUser, updateUserBio } = useGameStore();
   const lang = settings.language;
+  const isEn = lang === 'en';
 
   const [activeTab, setActiveTab] = useState<
-    'base' | 'hair' | 'colors' | 'clothes' | 'class' | 'face'
-  >('base');
+    'body' | 'hair' | 'face' | 'shirt' | 'pants' | 'accessory' | 'colors' | 'class'
+  >('body');
 
   const [heroName, setHeroName] = useState(profile.name);
   const [selectedClass, setSelectedClass] = useState<ClassType>(profile.classType);
@@ -28,36 +30,48 @@ export default function CharacterCustomizer() {
 
   const handleSave = () => {
     updateProfile({
-      name: heroName.trim() || 'Hero',
+      name: heroName.trim() || (isEn ? 'Dice Hero' : 'Hiệp Sĩ Xúc Xắc'),
       classType: selectedClass,
       character: custom,
     });
+    updateCharacter(custom);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
   };
 
-  // Pre-configured character base presets
+  // 8 Base Character Archetypes
   const baseCharacters = [
-    { id: 0, name: 'Chiến Binh Lửa', icon: '⚔️' },
-    { id: 1, name: 'Hiệp Sĩ Băng', icon: '🛡️' },
-    { id: 2, name: 'Sát Thủ Bóng Đêm', icon: '🗡️' },
-    { id: 3, name: 'Phù Thủy Ánh Sáng', icon: '✨' },
-    { id: 4, name: 'Cung Thủ Rừng Xanh', icon: '🏹' },
-    { id: 5, name: 'Võ Thần Quyền Năng', icon: '🥊' },
-    { id: 6, name: 'Đấu Sĩ Hoàng Kim', icon: '👑' },
-    { id: 7, name: 'Pháp Sư Cổ Đại', icon: '🔮' },
+    { id: 0, name: isEn ? 'Flame Knight' : 'Hiệp Sĩ Lửa' },
+    { id: 1, name: isEn ? 'Frost Paladin' : 'Hiệp Sĩ Băng' },
+    { id: 2, name: isEn ? 'Shadow Rogue' : 'Sát Thủ Bóng Đêm' },
+    { id: 3, name: isEn ? 'Holy Cleric' : 'Pháp Sư Ánh Sáng' },
+    { id: 4, name: isEn ? 'Forest Ranger' : 'Xạ Thủ Rừng Xanh' },
+    { id: 5, name: isEn ? 'Iron Brawler' : 'Võ Thần Quyền Năng' },
+    { id: 6, name: isEn ? 'Golden Champion' : 'Đấu Sĩ Hoàng Kim' },
+    { id: 7, name: isEn ? 'Archmage' : 'Phù Thủy Cổ Đại' },
+  ];
+
+  const tabs = [
+    { id: 'body', label: isEn ? 'BODY' : 'THÂN', icon: '👤' },
+    { id: 'hair', label: isEn ? 'HAIR' : 'TÓC', icon: '💇' },
+    { id: 'face', label: isEn ? 'FACE' : 'MẶT', icon: '🙂' },
+    { id: 'shirt', label: isEn ? 'SHIRT' : 'ÁO', icon: '👕' },
+    { id: 'pants', label: isEn ? 'PANTS' : 'QUẦN', icon: '👖' },
+    { id: 'accessory', label: isEn ? 'ACC' : 'PHỤ KIỆN', icon: '💍' },
+    { id: 'colors', label: isEn ? 'COLORS' : 'MÀU', icon: '🎨' },
+    { id: 'class', label: isEn ? 'CLASS' : 'NGHỀ', icon: '⚔️' },
   ];
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between items-center p-3 sm:p-6 overflow-x-hidden">
-      {/* Background */}
+    <div className="relative min-h-screen w-full flex flex-col justify-between items-center p-3 sm:p-6 overflow-x-hidden bg-[#07070b]">
+      {/* Background with Dark Blur */}
       <div className="absolute inset-0 z-0">
         <Image
           src="/assets/images/background.png"
           alt="Customizer Background"
           fill
           priority
-          className="object-cover filter brightness-[0.3] contrast-125 blur-sm"
+          className="object-cover filter brightness-[0.25] contrast-125 blur-sm"
         />
         <div className="absolute inset-0 bg-black/60 pointer-events-none" />
       </div>
@@ -73,7 +87,7 @@ export default function CharacterCustomizer() {
           {t('back', lang)}
         </PixelButton>
 
-        <h2 className="text-sm sm:text-lg text-yellow-400 font-pixel drop-shadow">
+        <h2 className="text-sm sm:text-base text-yellow-400 font-pixel drop-shadow">
           {t('customizeHero', lang)}
         </h2>
 
@@ -83,72 +97,86 @@ export default function CharacterCustomizer() {
           onClick={handleSave}
           icon={<span>💾</span>}
         >
-          {saveSuccess ? 'ĐÃ LƯU!' : t('saveHero', lang)}
+          {saveSuccess ? (isEn ? 'SAVED!' : 'ĐÃ LƯU!') : t('saveHero', lang)}
         </PixelButton>
       </div>
 
       {/* Main Studio Layout */}
-      <div className="relative z-20 w-full max-w-5xl my-auto grid grid-cols-1 lg:grid-cols-12 gap-4 py-4">
+      <div className="relative z-20 w-full max-w-5xl my-auto grid grid-cols-1 lg:grid-cols-12 gap-5 py-4">
         {/* Left Column: Character Stage & Preview (5 cols) */}
         <div className="lg:col-span-5 flex flex-col gap-3">
-          <PixelFrame variant="gold" title="HÌNH ẢNH NHÂN VẬT" className="p-4 flex flex-col items-center">
+          <PixelFrame
+            variant="gold"
+            title={isEn ? 'HERO PREVIEW' : 'HÌNH ẢNH NHÂN VẬT'}
+            className="p-4 flex flex-col items-center bg-black/80"
+          >
             {/* Stage Pedestal */}
-            <div className="relative w-full aspect-square max-w-[280px] sm:max-w-[320px] bg-gradient-to-b from-slate-900/90 to-black border-2 border-yellow-500/60 shadow-[inset_0_0_20px_rgba(0,0,0,0.9)] flex items-center justify-center overflow-hidden mb-3">
-              {/* Background Glow */}
+            <div className="relative w-full aspect-square max-w-[280px] sm:max-w-[310px] bg-gradient-to-b from-slate-900 via-black to-[#0a0a14] border-2 border-yellow-500/70 shadow-[inset_0_0_25px_rgba(0,0,0,0.95)] flex items-center justify-center overflow-hidden mb-3">
+              {/* Radial Glow */}
               <div
-                className="absolute w-44 h-44 rounded-full blur-2xl opacity-40 animate-pulse pointer-events-none"
+                className="absolute w-40 h-40 rounded-full blur-2xl opacity-40 animate-pulse pointer-events-none"
                 style={{ backgroundColor: custom.hairColor }}
               />
 
-              {/* Character Layering */}
-              <div className="relative w-48 h-48 flex items-center justify-center">
-                {/* 1. Base Body Sprite */}
-                <div
-                  className="absolute inset-0 transition-all duration-300"
-                  style={{
-                    filter: `drop-shadow(0 4px 6px rgba(0,0,0,0.8))`,
-                  }}
-                >
-                  <Image
-                    src="/assets/images/characters/char-8transparent.png"
-                    alt="Character Base"
-                    fill
-                    className="object-contain"
-                    style={{
-                      transform: `scale(1.3) translateX(-${(custom.baseIndex % 4) * 25}%) translateY(-${Math.floor(custom.baseIndex / 4) * 50}%)`,
-                      transformOrigin: 'top left',
-                    }}
-                  />
-                </div>
+              {/* Character Layering Stage (Strict Order: Body -> Pants -> Shirt -> Face -> Hair -> Accessory) */}
+              <div className="relative w-44 h-56 flex items-center justify-center">
+                {/* 1. Body Base (Sliced PNG) */}
+                <img
+                  src={SPRITE_HELPERS.body(custom.baseIndex)}
+                  alt="Hero Body"
+                  className="absolute inset-0 w-full h-full object-contain pixelated z-10 transition-all drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]"
+                />
 
-                {/* 2. Color tint layer for skin */}
+                {/* Body Tint overlay */}
                 <div
-                  className="absolute inset-0 mix-blend-color opacity-30 pointer-events-none"
+                  className="absolute inset-0 z-11 pointer-events-none mix-blend-color opacity-30"
                   style={{ backgroundColor: custom.skinColor }}
                 />
 
-                {/* 3. Hair layer with tint */}
-                <div
-                  className="absolute inset-0 pointer-events-none transition-all duration-300"
-                  style={{
-                    filter: `drop-shadow(0 0 10px ${custom.hairColor}80)`,
-                  }}
-                >
-                  <div
-                    className="w-full h-full opacity-40 mix-blend-overlay"
-                    style={{ backgroundColor: custom.hairColor }}
-                  />
-                </div>
+                {/* 2. Pants (Sliced PNG) */}
+                <img
+                  src={SPRITE_HELPERS.pants(custom.pantsIndex)}
+                  alt="Hero Pants"
+                  className="absolute inset-0 w-full h-full object-contain pixelated z-20 pointer-events-none transition-all drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+                />
+
+                {/* 3. Shirt (Sliced PNG) */}
+                <img
+                  src={SPRITE_HELPERS.shirt(custom.shirtIndex)}
+                  alt="Hero Shirt"
+                  className="absolute inset-0 w-full h-full object-contain pixelated z-30 pointer-events-none transition-all drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+                />
+
+                {/* 4. Face (Sliced PNG) */}
+                <img
+                  src={SPRITE_HELPERS.face(custom.faceIndex)}
+                  alt="Hero Face"
+                  className="absolute inset-0 w-full h-full object-contain pixelated z-40 pointer-events-none transition-all"
+                />
+
+                {/* 5. Hair (Sliced PNG) */}
+                <img
+                  src={SPRITE_HELPERS.hair(custom.hairIndex)}
+                  alt="Hero Hair"
+                  className="absolute inset-0 w-full h-full object-contain pixelated z-50 pointer-events-none transition-all drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+                />
+
+                {/* 6. Accessory (Sliced PNG) */}
+                <img
+                  src={SPRITE_HELPERS.accessory(custom.accessoryIndex)}
+                  alt="Hero Accessory"
+                  className="absolute inset-0 w-full h-full object-contain pixelated z-60 pointer-events-none transition-all"
+                />
               </div>
 
               {/* Pedestal Base */}
-              <div className="absolute bottom-2 w-36 h-4 bg-yellow-600/60 rounded-[50%] blur-[2px] border border-yellow-400/80 shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
+              <div className="absolute bottom-2 w-36 h-4 bg-yellow-600/60 rounded-[50%] blur-[1.5px] border border-yellow-400/80 shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
             </div>
 
             {/* Name Input */}
             <div className="w-full flex items-center gap-2 mb-2">
-              <span className="text-[10px] text-yellow-400 font-bold whitespace-nowrap">
-                TÊN:
+              <span className="text-[10px] text-yellow-400 font-bold whitespace-nowrap font-pixel">
+                {isEn ? 'NAME:' : 'TÊN:'}
               </span>
               <input
                 type="text"
@@ -156,15 +184,17 @@ export default function CharacterCustomizer() {
                 maxLength={16}
                 onChange={(e) => setHeroName(e.target.value)}
                 className="w-full bg-slate-900 border-2 border-yellow-500/70 px-2.5 py-1.5 text-xs text-yellow-300 font-pixel focus:outline-none focus:border-yellow-400"
-                placeholder="Nhập tên hiệp sĩ..."
+                placeholder={isEn ? 'Enter hero name...' : 'Nhập tên hiệp sĩ...'}
               />
             </div>
 
             {/* Current Class Badge */}
-            <div className="w-full p-2 bg-slate-950/80 border border-slate-700 flex items-center justify-between">
-              <span className="text-[9px] text-slate-400">NGHỀ NGHIỆP:</span>
-              <span className="text-[10px] text-yellow-300 font-bold uppercase">
-                {CLASS_DEFINITIONS[selectedClass]?.nameVi}
+            <div className="w-full p-2 bg-slate-950/90 border border-slate-700 flex items-center justify-between">
+              <span className="text-[8px] text-slate-400 font-pixel">
+                {isEn ? 'CLASS ARCHETYPE:' : 'NGHỀ NGHIỆP:'}
+              </span>
+              <span className="text-[9px] text-yellow-300 font-pixel font-bold uppercase">
+                {isEn ? CLASS_DEFINITIONS[selectedClass]?.name : CLASS_DEFINITIONS[selectedClass]?.nameVi}
               </span>
             </div>
           </PixelFrame>
@@ -173,20 +203,13 @@ export default function CharacterCustomizer() {
         {/* Right Column: Customization Controls & Tabs (7 cols) */}
         <div className="lg:col-span-7 flex flex-col gap-3">
           {/* Navigation Tabs */}
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 bg-black/60 p-1 border-2 border-yellow-500/50">
-            {[
-              { id: 'base', label: 'TƯỚNG' },
-              { id: 'colors', label: 'MÀU SẮC' },
-              { id: 'class', label: 'CLASS' },
-              { id: 'hair', label: 'TÓC' },
-              { id: 'clothes', label: 'TRANG PHỤC' },
-              { id: 'face', label: 'BIỂU CẢM' },
-            ].map((tab) => (
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-1 bg-black/70 p-1 border-2 border-yellow-500/50">
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`
-                  text-[9px] font-pixel py-2 px-1 transition text-center cursor-pointer select-none
+                  text-[8px] font-pixel py-2 px-1 transition text-center cursor-pointer select-none flex flex-col items-center gap-0.5
                   ${
                     activeTab === tab.id
                       ? 'bg-yellow-500 text-black font-bold shadow-[0_0_8px_rgba(234,179,8,0.8)]'
@@ -194,49 +217,228 @@ export default function CharacterCustomizer() {
                   }
                 `}
               >
-                {tab.label}
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
 
           {/* Tab Content Panes */}
-          <PixelFrame variant="cyan" className="p-3 sm:p-4 min-h-[340px]">
-            {/* 1. Base Character Selection */}
-            {activeTab === 'base' && (
+          <PixelFrame variant="cyan" className="p-3 sm:p-4 min-h-[360px] bg-black/80">
+            {/* 1. Body Archetypes (8 Sliced Sprites) */}
+            {activeTab === 'body' && (
               <div>
-                <h4 className="text-[11px] text-yellow-300 font-bold mb-3">
-                  CHỌN KHUÔN MẪU NHÂN VẬT GỐC (8 NHÂN VẬT PIXEL):
+                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
+                  {isEn ? 'SELECT BASE BODY ARCHETYPE (8 PIXEL BODIES):' : 'CHỌN KHUÔN MẪU THÂN GỐC (8 THÂN PIXEL):'}
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {baseCharacters.map((b) => (
-                    <div
+                    <button
                       key={b.id}
                       onClick={() => setCustom({ ...custom, baseIndex: b.id })}
                       className={`
-                        p-2 border-2 cursor-pointer transition text-center flex flex-col items-center justify-center
+                        p-2 border-2 cursor-pointer transition flex flex-col items-center justify-between h-36
                         ${
                           custom.baseIndex === b.id
-                            ? 'border-yellow-400 bg-yellow-950/50 scale-105 shadow-[0_0_10px_rgba(250,204,21,0.5)]'
+                            ? 'border-yellow-400 bg-yellow-950/60 scale-105 shadow-[0_0_10px_rgba(250,204,21,0.5)]'
                             : 'border-slate-700 bg-slate-900/60 hover:border-slate-500'
                         }
                       `}
                     >
-                      <span className="text-2xl mb-1">{b.icon}</span>
-                      <span className="text-[9px] text-yellow-300 font-bold">{b.name}</span>
-                      <span className="text-[8px] text-slate-400">Mẫu #{b.id + 1}</span>
-                    </div>
+                      <div className="relative w-full h-20 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={SPRITE_HELPERS.body(b.id)}
+                          alt={b.name}
+                          className="w-full h-full object-contain pixelated"
+                        />
+                      </div>
+                      <span className="text-[8px] text-yellow-300 font-pixel font-bold text-center mt-1">
+                        {b.name}
+                      </span>
+                      <span className="text-[7px] text-slate-400 font-pixel">#{b.id + 1}</span>
+                    </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* 2. Color Palette Tab (Skin, Hair, Outfit) */}
+            {/* 2. Hair Selection (20 Sliced Hair Sprites) */}
+            {activeTab === 'hair' && (
+              <div>
+                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
+                  {isEn ? 'SELECT HAIRSTYLE (20 PIXEL STYLES):' : 'CHỌN KIỂU TÓC PIXEL (20 MẪU TÓC):'}
+                </h4>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[290px] overflow-y-auto pr-1">
+                  {Array.from({ length: 20 }, (_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCustom({ ...custom, hairIndex: idx })}
+                      className={`
+                        p-1.5 border-2 flex flex-col items-center justify-between transition cursor-pointer h-24
+                        ${
+                          custom.hairIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
+                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
+                        }
+                      `}
+                    >
+                      <div className="relative w-full h-14 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={SPRITE_HELPERS.hair(idx)}
+                          alt={`Hair ${idx + 1}`}
+                          className="w-full h-full object-contain pixelated"
+                        />
+                      </div>
+                      <span className="text-[7.5px] font-pixel text-slate-300">#{idx + 1}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Face Expressions (10 Sliced Faces) */}
+            {activeTab === 'face' && (
+              <div>
+                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
+                  {isEn ? 'SELECT EXPRESSION (10 RPG FACES):' : 'CHỌN BIỂU CẢM MẶT (10 MẪU MẶT RPG):'}
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {Array.from({ length: 10 }, (_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCustom({ ...custom, faceIndex: idx })}
+                      className={`
+                        p-2 border-2 flex flex-col items-center justify-between transition cursor-pointer h-28
+                        ${
+                          custom.faceIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
+                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
+                        }
+                      `}
+                    >
+                      <div className="relative w-full h-16 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={SPRITE_HELPERS.face(idx)}
+                          alt={`Face ${idx + 1}`}
+                          className="w-full h-full object-contain pixelated"
+                        />
+                      </div>
+                      <span className="text-[8px] font-pixel text-slate-300">Face #{idx + 1}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 4. Shirts (20 Sliced Shirts) */}
+            {activeTab === 'shirt' && (
+              <div>
+                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
+                  {isEn ? 'SELECT UPPER BODY SHIRT / ARMOR (20 SPRITES):' : 'CHỌN ÁO GIÁP / THÂN TRÊN (20 MẪU ÁO):'}
+                </h4>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[290px] overflow-y-auto pr-1">
+                  {Array.from({ length: 20 }, (_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCustom({ ...custom, shirtIndex: idx })}
+                      className={`
+                        p-1.5 border-2 flex flex-col items-center justify-between transition cursor-pointer h-24
+                        ${
+                          custom.shirtIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
+                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
+                        }
+                      `}
+                    >
+                      <div className="relative w-full h-14 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={SPRITE_HELPERS.shirt(idx)}
+                          alt={`Shirt ${idx + 1}`}
+                          className="w-full h-full object-contain pixelated"
+                        />
+                      </div>
+                      <span className="text-[7.5px] font-pixel text-slate-300">#{idx + 1}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 5. Pants (20 Sliced Pants) */}
+            {activeTab === 'pants' && (
+              <div>
+                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
+                  {isEn ? 'SELECT LOWER BODY PANTS (20 SPRITES):' : 'CHỌN QUẦN / THÂN DƯỚI (20 MẪU QUẦN):'}
+                </h4>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[290px] overflow-y-auto pr-1">
+                  {Array.from({ length: 20 }, (_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCustom({ ...custom, pantsIndex: idx })}
+                      className={`
+                        p-1.5 border-2 flex flex-col items-center justify-between transition cursor-pointer h-24
+                        ${
+                          custom.pantsIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
+                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
+                        }
+                      `}
+                    >
+                      <div className="relative w-full h-14 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={SPRITE_HELPERS.pants(idx)}
+                          alt={`Pants ${idx + 1}`}
+                          className="w-full h-full object-contain pixelated"
+                        />
+                      </div>
+                      <span className="text-[7.5px] font-pixel text-slate-300">#{idx + 1}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 6. Accessories (20 Sliced Accessories) */}
+            {activeTab === 'accessory' && (
+              <div>
+                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-3">
+                  {isEn ? 'SELECT ACCESSORY (20 SPRITES):' : 'CHỌN PHỤ KIỆN TRANG BỊ (20 MẪU PHỤ KIỆN):'}
+                </h4>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[290px] overflow-y-auto pr-1">
+                  {Array.from({ length: 20 }, (_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCustom({ ...custom, accessoryIndex: idx })}
+                      className={`
+                        p-1.5 border-2 flex flex-col items-center justify-between transition cursor-pointer h-24
+                        ${
+                          custom.accessoryIndex === idx
+                            ? 'border-yellow-400 bg-yellow-950/60 shadow-[0_0_8px_rgba(250,204,21,0.6)]'
+                            : 'border-slate-700 bg-slate-900/80 hover:border-slate-500'
+                        }
+                      `}
+                    >
+                      <div className="relative w-full h-14 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={SPRITE_HELPERS.accessory(idx)}
+                          alt={`Accessory ${idx + 1}`}
+                          className="w-full h-full object-contain pixelated"
+                        />
+                      </div>
+                      <span className="text-[7.5px] font-pixel text-slate-300">#{idx + 1}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 7. Colors Tab (Skin, Hair, Clothes) */}
             {activeTab === 'colors' && (
               <div className="flex flex-col gap-4">
                 {/* Skin Color Picker */}
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[10px] text-yellow-300 font-bold">
+                    <span className="text-[9px] text-yellow-300 font-pixel font-bold">
                       {t('skinColor', lang)}:
                     </span>
                     <span
@@ -262,7 +464,7 @@ export default function CharacterCustomizer() {
                 {/* Hair Color Picker */}
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[10px] text-yellow-300 font-bold">
+                    <span className="text-[9px] text-yellow-300 font-pixel font-bold">
                       {t('hairColor', lang)}:
                     </span>
                     <span
@@ -288,7 +490,7 @@ export default function CharacterCustomizer() {
                 {/* Clothes Color Picker */}
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[10px] text-yellow-300 font-bold">
+                    <span className="text-[9px] text-yellow-300 font-pixel font-bold">
                       {t('clothingColor', lang)}:
                     </span>
                     <span
@@ -319,11 +521,11 @@ export default function CharacterCustomizer() {
               </div>
             )}
 
-            {/* 3. Class Selection (Uses the 6 official 16-bit badges) */}
+            {/* 8. Class Archetype Selection (6 Sliced Class Banners) */}
             {activeTab === 'class' && (
               <div>
-                <h4 className="text-[11px] text-yellow-300 font-bold mb-2">
-                  CHỌN NGHỀ NGHIỆP CHIẾN ĐẤU (6 LỚP CLASS):
+                <h4 className="text-[10px] text-yellow-300 font-pixel font-bold mb-2">
+                  {isEn ? 'CHOOSE FIGHTING CLASS (6 CLASSES):' : 'CHỌN NGHỀ NGHIỆP CHIẾN ĐẤU (6 LỚP CLASS):'}
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {Object.values(CLASS_DEFINITIONS).map((c) => {
@@ -341,120 +543,25 @@ export default function CharacterCustomizer() {
                           }
                         `}
                       >
-                        {/* Class 16-bit Button Image from Picture/ClassUI */}
-                        <div className="relative w-full h-12 mb-1">
-                          <Image
+                        {/* Class Sliced Banner */}
+                        <div className="relative w-full h-12 mb-1 bg-black overflow-hidden border border-slate-700">
+                          <img
                             src={c.image}
                             alt={c.name}
-                            fill
-                            className="object-contain"
+                            className="w-full h-full object-cover pixelated"
                           />
                         </div>
 
-                        <span className="text-[9px] font-bold text-yellow-300 text-center mb-1">
-                          {c.nameVi} ({c.baseHp} HP)
+                        <span className="text-[8.5px] font-bold font-pixel text-yellow-300 text-center mb-1">
+                          {isEn ? c.name : c.nameVi} ({c.baseHp} HP)
                         </span>
 
-                        <p className="text-[7.5px] text-slate-300 leading-tight">
-                          {c.descriptionVi}
+                        <p className="text-[7px] font-pixel text-slate-300 leading-tight">
+                          {isEn ? c.description : c.descriptionVi}
                         </p>
                       </div>
                     );
                   })}
-                </div>
-              </div>
-            )}
-
-            {/* 4. Hair Styles Tab */}
-            {activeTab === 'hair' && (
-              <div>
-                <h4 className="text-[11px] text-yellow-300 font-bold mb-3">
-                  CHỌN KIỂU TÓC PIXEL (BỘ TÓC ĐA DẠNG):
-                </h4>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCustom({ ...custom, hairIndex: idx })}
-                      className={`
-                        p-2.5 border-2 text-center font-pixel text-[9px] transition cursor-pointer
-                        ${
-                          custom.hairIndex === idx
-                            ? 'border-yellow-400 bg-yellow-950/60 text-yellow-300'
-                            : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-500'
-                        }
-                      `}
-                    >
-                      Kiểu Tóc #{idx + 1}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 5. Clothes Tab */}
-            {activeTab === 'clothes' && (
-              <div>
-                <h4 className="text-[11px] text-yellow-300 font-bold mb-3">
-                  CHỌN BỘ TRANG PHỤC (20 ÁO RPG & QUẦN):
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[260px] overflow-y-auto pr-1">
-                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map(
-                    (idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setCustom({ ...custom, shirtIndex: idx })}
-                        className={`
-                          p-2 border-2 text-center font-pixel text-[8.5px] transition cursor-pointer
-                          ${
-                            custom.shirtIndex === idx
-                              ? 'border-yellow-400 bg-yellow-950/60 text-yellow-300'
-                              : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-500'
-                          }
-                        `}
-                      >
-                        Áo Giáp #{idx + 1}
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 6. Expressions / Face Tab */}
-            {activeTab === 'face' && (
-              <div>
-                <h4 className="text-[11px] text-yellow-300 font-bold mb-3">
-                  BIỂU CẢM KHUÔN MẶT (10 BIỂU CẢM PIXEL RPG):
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  {[
-                    'Tự Tin',
-                    'Chiến Đấu',
-                    'Nụ Cười',
-                    'Lạnh Lùng',
-                    'Cuồng Nộ',
-                    'Tập Trung',
-                    'Cười Khẩy',
-                    'Bất Ngờ',
-                    'Ngầu Lòi',
-                    'Thần Thái',
-                  ].map((faceName, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCustom({ ...custom, faceIndex: idx })}
-                      className={`
-                        p-2.5 border-2 text-center font-pixel text-[8.5px] transition cursor-pointer
-                        ${
-                          custom.faceIndex === idx
-                            ? 'border-yellow-400 bg-yellow-950/60 text-yellow-300'
-                            : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-500'
-                        }
-                      `}
-                    >
-                      {faceName}
-                    </button>
-                  ))}
                 </div>
               </div>
             )}

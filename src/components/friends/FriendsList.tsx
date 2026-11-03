@@ -19,6 +19,7 @@ interface Friend {
 export default function FriendsList() {
   const { setPage, settings, startNewBattle } = useGameStore();
   const lang = settings.language;
+  const isEn = lang === 'en';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [invitedId, setInvitedId] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export default function FriendsList() {
       name: 'Bell_Master',
       status: 'online',
       rank: 2450,
-      classType: 'Sát Thủ (Assassin)',
+      classType: isEn ? 'Assassin' : 'Sát Thủ',
       wins: 142,
     },
     {
@@ -37,7 +38,7 @@ export default function FriendsList() {
       name: 'Snow_White',
       status: 'online',
       rank: 2180,
-      classType: 'Pháp Sư (Mage)',
+      classType: isEn ? 'Mage' : 'Pháp Sư',
       wins: 118,
     },
     {
@@ -45,7 +46,7 @@ export default function FriendsList() {
       name: 'Shiratosi_Gold',
       status: 'in_battle',
       rank: 2990,
-      classType: 'Võ Sĩ (Boxer)',
+      classType: isEn ? 'Boxer' : 'Võ Sĩ',
       wins: 210,
     },
     {
@@ -53,7 +54,7 @@ export default function FriendsList() {
       name: 'DragonSlayer',
       status: 'offline',
       rank: 1650,
-      classType: 'Chiến Binh (Warrior)',
+      classType: isEn ? 'Warrior' : 'Chiến Binh',
       wins: 65,
     },
     {
@@ -61,7 +62,7 @@ export default function FriendsList() {
       name: 'TitanShield',
       status: 'offline',
       rank: 1820,
-      classType: 'Đỡ Đòn (Tanker)',
+      classType: isEn ? 'Tanker' : 'Đỡ Đòn',
       wins: 84,
     },
   ]);
@@ -87,7 +88,7 @@ export default function FriendsList() {
       name: searchQuery.trim(),
       status: 'online',
       rank: 1000,
-      classType: 'Chiến Binh (Warrior)',
+      classType: isEn ? 'Warrior' : 'Chiến Binh',
       wins: 0,
     };
 
@@ -96,7 +97,7 @@ export default function FriendsList() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between items-center p-3 sm:p-6 overflow-x-hidden">
+    <div className="relative min-h-screen w-full flex flex-col justify-between items-center p-3 sm:p-6 overflow-x-hidden bg-[#07070b]">
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -104,7 +105,7 @@ export default function FriendsList() {
           alt="Friends Background"
           fill
           priority
-          className="object-cover filter brightness-[0.35] contrast-125 blur-sm"
+          className="object-cover filter brightness-[0.25] contrast-125 blur-sm"
         />
         <div className="absolute inset-0 bg-black/60 pointer-events-none" />
       </div>
@@ -120,8 +121,8 @@ export default function FriendsList() {
           {t('back', lang)}
         </PixelButton>
 
-        <h2 className="text-sm sm:text-lg text-yellow-400 font-pixel drop-shadow">
-          DANH SÁCH BẠN BÈ ({friends.length})
+        <h2 className="text-sm sm:text-base text-yellow-400 font-pixel drop-shadow">
+          {isEn ? `FRIENDS LIST (${friends.length})` : `DANH SÁCH BẠN BÈ (${friends.length})`}
         </h2>
 
         <div className="w-16" />
@@ -130,23 +131,23 @@ export default function FriendsList() {
       {/* Main Container */}
       <div className="relative z-20 w-full max-w-3xl my-auto flex flex-col gap-4 py-4">
         {/* Add Friend Search Box */}
-        <PixelFrame variant="cyan" title="🔍 THÊM BẠN BÈ MỚI">
+        <PixelFrame variant="cyan" title={isEn ? '🔍 ADD NEW FRIEND' : '🔍 THÊM BẠN BÈ MỚI'}>
           <form onSubmit={handleAddFriend} className="flex gap-2 p-1">
             <input
               type="text"
-              placeholder="Nhập tên người chơi hoặc ID..."
+              placeholder={isEn ? 'Enter warrior name or ID...' : 'Nhập tên người chơi hoặc ID...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-900 border-2 border-cyan-500/70 px-3 py-1.5 text-xs text-cyan-300 font-pixel focus:outline-none"
             />
             <PixelButton variant="gold" size="sm" onClick={() => {}}>
-              KẾT BẠN
+              {isEn ? 'ADD FRIEND' : 'KẾT BẠN'}
             </PixelButton>
           </form>
         </PixelFrame>
 
         {/* Friends List Card */}
-        <PixelFrame variant="gold" title="DANH SÁCH CHIẾN HỮU ONLINE">
+        <PixelFrame variant="gold" title={isEn ? 'ACTIVE COMRADES' : 'DANH SÁCH CHIẾN HỮU ONLINE'}>
           <div className="flex flex-col gap-2.5 max-h-[380px] overflow-y-auto pr-1">
             {friends.map((friend) => (
               <div
@@ -167,27 +168,30 @@ export default function FriendsList() {
 
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-yellow-300">
+                      <span className="text-xs font-pixel font-bold text-yellow-300">
                         {friend.name}
                       </span>
-                      <span className="text-[8px] px-1.5 py-0.2 bg-slate-800 text-cyan-300 border border-slate-700">
+                      <span className="text-[7.5px] font-pixel px-1.5 py-0.5 bg-slate-800 text-cyan-300 border border-slate-700">
                         {friend.classType}
                       </span>
                     </div>
 
-                    <p className="text-[9px] text-slate-400 mt-0.5">
-                      Điểm hạng: <span className="text-yellow-400 font-bold">{friend.rank}</span> • Thắng: {friend.wins} trận
+                    <p className="text-[8px] font-pixel text-slate-400 mt-1">
+                      {isEn ? 'Rank Rating: ' : 'Điểm hạng: '}
+                      <span className="text-yellow-400 font-bold">{friend.rank}</span>
+                      {isEn ? ' • Wins: ' : ' • Thắng: '}
+                      {friend.wins} {isEn ? 'matches' : 'trận'}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 self-end sm:self-center">
-                  <span className="text-[8px] text-slate-400">
+                  <span className="text-[7.5px] font-pixel text-slate-400">
                     {friend.status === 'online'
-                      ? 'Đang rảnh'
+                      ? (isEn ? 'Online' : 'Đang rảnh')
                       : friend.status === 'in_battle'
-                      ? 'Đang trong trận'
-                      : 'Ngoại tuyến'}
+                      ? (isEn ? 'In Duel' : 'Đang trong trận')
+                      : (isEn ? 'Offline' : 'Ngoại tuyến')}
                   </span>
 
                   <PixelButton
@@ -196,7 +200,9 @@ export default function FriendsList() {
                     disabled={friend.status === 'offline' || invitedId === friend.id}
                     onClick={() => handleInvite(friend)}
                   >
-                    {invitedId === friend.id ? 'ĐÃ KẾT NỐI!' : 'THÁCH ĐẤU'}
+                    {invitedId === friend.id
+                      ? (isEn ? 'CONNECTED!' : 'ĐÃ KẾT NỐI!')
+                      : (isEn ? 'CHALLENGE' : 'THÁCH ĐẤU')}
                   </PixelButton>
                 </div>
               </div>
@@ -207,8 +213,10 @@ export default function FriendsList() {
 
       {/* Footer */}
       <div className="relative z-20 text-center pb-4">
-        <p className="text-[9px] text-slate-400 font-pixel">
-          Hỗ trợ chơi mạng Realtime qua Supabase & P2P Turn-based
+        <p className="text-[8.5px] text-slate-400 font-pixel">
+          {isEn
+            ? 'Realtime Multiplayer powered by Supabase & P2P Turn-based Engine'
+            : 'Hỗ trợ chơi mạng Realtime qua Supabase & P2P Turn-based'}
         </p>
       </div>
     </div>

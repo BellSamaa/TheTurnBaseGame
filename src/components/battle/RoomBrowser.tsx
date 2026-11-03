@@ -15,6 +15,7 @@ interface RoomBrowserProps {
 export default function RoomBrowser({ onClose }: RoomBrowserProps) {
   const { profile, settings, startNewBattle } = useGameStore();
   const lang = settings.language;
+  const isEn = lang === 'en';
 
   const [activeTab, setActiveTab] = useState<'browse' | 'create' | 'lobby'>('browse');
   const [roomCodeInput, setRoomCodeInput] = useState('');
@@ -26,7 +27,6 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
 
   // Active Lobby state
   const [currentLobby, setCurrentLobby] = useState<RoomState | null>(null);
-  const [isReady, setIsReady] = useState(false);
 
   // Mock initial rooms list
   const [rooms, setRooms] = useState<RoomState[]>([
@@ -110,7 +110,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
       mapId: currentLobby.mapId,
       opponentName:
         currentLobby.hostId === profile.id
-          ? currentLobby.guestName || 'Người Chơi 2'
+          ? currentLobby.guestName || (isEn ? 'Guest Warrior' : 'Người Chơi 2')
           : currentLobby.hostName,
     });
     onClose();
@@ -120,7 +120,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
     <div className="w-full">
       <PixelFrame
         variant="purple"
-        title="🏰 PHÒNG CHƠI ONLINE (SUPABASE REALTIME)"
+        title={isEn ? '🏰 ONLINE LOBBY (SUPABASE REALTIME)' : '🏰 PHÒNG CHƠI ONLINE (SUPABASE REALTIME)'}
         headerRight={
           <button
             onClick={onClose}
@@ -138,7 +138,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
               size="sm"
               onClick={() => setActiveTab('browse')}
             >
-              DANH SÁCH PHÒNG ({rooms.length})
+              {isEn ? `LOBBY BROWSER (${rooms.length})` : `DANH SÁCH PHÒNG (${rooms.length})`}
             </PixelButton>
 
             <PixelButton
@@ -146,7 +146,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
               size="sm"
               onClick={() => setActiveTab('create')}
             >
-              + TẠO PHÒNG MỚI
+              {isEn ? '+ CREATE ROOM' : '+ TẠO PHÒNG MỚI'}
             </PixelButton>
           </div>
         )}
@@ -158,7 +158,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
             <div className="p-2.5 bg-slate-900 border border-slate-700 flex gap-2">
               <input
                 type="text"
-                placeholder="Nhập mã phòng (ví dụ: ROOM-7742)..."
+                placeholder={isEn ? 'Enter Room Code (e.g. ROOM-7742)...' : 'Nhập mã phòng (ví dụ: ROOM-7742)...'}
                 value={roomCodeInput}
                 onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
                 className="w-full bg-slate-950 border border-slate-700 px-3 py-1.5 text-xs text-yellow-300 font-pixel focus:outline-none"
@@ -171,7 +171,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                   if (target) handleJoinRoom(target);
                 }}
               >
-                VÀO PHÒNG
+                {isEn ? 'JOIN CODE' : 'VÀO PHÒNG'}
               </PixelButton>
             </div>
 
@@ -184,28 +184,30 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-yellow-300">
+                      <span className="text-xs font-bold font-pixel text-yellow-300">
                         {room.id}
                       </span>
-                      <span className="text-[8px] px-1.5 py-0.2 bg-purple-900/60 text-purple-300 border border-purple-600">
-                        Chủ phòng: {room.hostName}
+                      <span className="text-[7.5px] font-pixel px-1.5 py-0.5 bg-purple-900/60 text-purple-300 border border-purple-600">
+                        {isEn ? 'Host: ' : 'Chủ phòng: '}{room.hostName}
                       </span>
-                      <span className="text-[8px] px-1.5 py-0.2 bg-slate-800 text-cyan-300">
+                      <span className="text-[7.5px] font-pixel px-1.5 py-0.5 bg-slate-800 text-cyan-300">
                         {room.mode.toUpperCase()}
                       </span>
                     </div>
 
-                    <p className="text-[9px] text-slate-400 mt-1">
-                      Chiến trường:{' '}
+                    <p className="text-[8px] font-pixel text-slate-400 mt-1">
+                      {isEn ? 'Arena: ' : 'Chiến trường: '}
                       <span className="text-yellow-400">
-                        {MAP_DEFINITIONS.find((m) => m.id === room.mapId)?.nameVi}
+                        {isEn
+                          ? MAP_DEFINITIONS.find((m) => m.id === room.mapId)?.name
+                          : MAP_DEFINITIONS.find((m) => m.id === room.mapId)?.nameVi}
                       </span>
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] text-emerald-400 font-bold">
-                      {room.guestId ? '2/2 ĐẦY' : '1/2 ĐANG ĐỢI'}
+                    <span className="text-[8px] font-pixel text-emerald-400 font-bold">
+                      {room.guestId ? (isEn ? '2/2 FULL' : '2/2 ĐẦY') : (isEn ? '1/2 WAITING' : '1/2 ĐANG ĐỢI')}
                     </span>
 
                     <PixelButton
@@ -214,7 +216,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                       disabled={Boolean(room.guestId)}
                       onClick={() => handleJoinRoom(room)}
                     >
-                      {room.guestId ? 'ĐÃ ĐẦY' : 'THAM GIA'}
+                      {room.guestId ? (isEn ? 'FULL' : 'ĐÃ ĐẦY') : (isEn ? 'JOIN' : 'THAM GIA')}
                     </PixelButton>
                   </div>
                 </div>
@@ -228,22 +230,22 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
           <form onSubmit={handleCreateRoom} className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[9px] text-yellow-300 font-bold block mb-1">
-                  CHẾ ĐỘ THI ĐẤU:
+                <label className="text-[8.5px] font-pixel text-yellow-300 font-bold block mb-1">
+                  {isEn ? 'MATCH MODE:' : 'CHẾ ĐỘ THI ĐẤU:'}
                 </label>
                 <select
                   value={newRoomMode}
                   onChange={(e) => setNewRoomMode(e.target.value as MatchType)}
                   className="w-full bg-slate-900 border border-slate-700 p-2 text-xs text-yellow-300 font-pixel"
                 >
-                  <option value="casual">Đấu Thường (Casual)</option>
-                  <option value="ranked">Đấu Hạng (Ranked)</option>
+                  <option value="casual">{isEn ? 'Casual' : 'Đấu Thường (Casual)'}</option>
+                  <option value="ranked">{isEn ? 'Ranked' : 'Đấu Hạng (Ranked)'}</option>
                 </select>
               </div>
 
               <div>
-                <label className="text-[9px] text-yellow-300 font-bold block mb-1">
-                  CHIẾN TRƯỜNG (MAP):
+                <label className="text-[8.5px] font-pixel text-yellow-300 font-bold block mb-1">
+                  {isEn ? 'BATTLE ARENA:' : 'CHIẾN TRƯỜNG (MAP):'}
                 </label>
                 <select
                   value={newRoomMap}
@@ -252,7 +254,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                 >
                   {MAP_DEFINITIONS.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.nameVi}
+                      {isEn ? m.name : m.nameVi}
                     </option>
                   ))}
                 </select>
@@ -261,11 +263,11 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
 
             <div className="flex justify-end gap-2 mt-2">
               <PixelButton variant="frame" size="sm" onClick={() => setActiveTab('browse')}>
-                HỦY BỎ
+                {isEn ? 'CANCEL' : 'HỦY BỎ'}
               </PixelButton>
 
               <PixelButton variant="gold" size="md">
-                TẠO VÀ VÀO PHÒNG
+                {isEn ? 'CREATE & ENTER' : 'TẠO VÀ VÀO PHÒNG'}
               </PixelButton>
             </div>
           </form>
@@ -276,15 +278,15 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
           <div className="flex flex-col gap-4">
             <div className="p-3 bg-purple-950/40 border border-purple-500/70 flex justify-between items-center">
               <div>
-                <span className="text-xs text-yellow-300 font-bold">
-                  PHÒNG: {currentLobby.id}
+                <span className="text-xs font-pixel text-yellow-300 font-bold">
+                  {isEn ? 'LOBBY: ' : 'PHÒNG: '}{currentLobby.id}
                 </span>
-                <p className="text-[9px] text-slate-300 mt-0.5">
-                  Chia sẻ mã phòng này để bạn bè vào tham chiến!
+                <p className="text-[8px] font-pixel text-slate-300 mt-1">
+                  {isEn ? 'Share this room code with your friend to connect!' : 'Chia sẻ mã phòng này để bạn bè vào tham chiến!'}
                 </p>
               </div>
 
-              <span className="text-[9px] px-2 py-1 bg-yellow-500 text-black font-bold">
+              <span className="text-[8px] font-pixel px-2 py-1 bg-yellow-500 text-black font-bold">
                 {currentLobby.mode.toUpperCase()}
               </span>
             </div>
@@ -293,27 +295,35 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Host Slot */}
               <div className="p-3 bg-slate-900 border-2 border-yellow-500">
-                <span className="text-[8px] text-yellow-400 font-bold">👑 CHỦ PHÒNG</span>
-                <h4 className="text-xs font-bold text-white mt-1">{currentLobby.hostName}</h4>
-                <p className="text-[9px] text-cyan-300 mt-0.5">
+                <span className="text-[7.5px] font-pixel text-yellow-400 font-bold">
+                  {isEn ? '👑 HOST' : '👑 CHỦ PHÒNG'}
+                </span>
+                <h4 className="text-xs font-pixel font-bold text-white mt-1">{currentLobby.hostName}</h4>
+                <p className="text-[8px] font-pixel text-cyan-300 mt-1">
                   Class: {currentLobby.hostClass.toUpperCase()}
                 </p>
-                <span className="inline-block mt-2 text-[8px] text-emerald-400 font-bold">
-                  ✓ ĐÃ SẴN SÀNG
+                <span className="inline-block mt-2 text-[7.5px] font-pixel text-emerald-400 font-bold">
+                  {isEn ? '✓ READY' : '✓ ĐÃ SẴN SÀNG'}
                 </span>
               </div>
 
               {/* Guest Slot */}
               <div className="p-3 bg-slate-900 border-2 border-cyan-500">
-                <span className="text-[8px] text-cyan-400 font-bold">⚔️ ĐỐI THỦ</span>
-                <h4 className="text-xs font-bold text-white mt-1">
-                  {currentLobby.guestName || 'Đang chờ người chơi tham gia...'}
+                <span className="text-[7.5px] font-pixel text-cyan-400 font-bold">
+                  {isEn ? '⚔️ CHALLENGER' : '⚔️ ĐỐI THỦ'}
+                </span>
+                <h4 className="text-xs font-pixel font-bold text-white mt-1">
+                  {currentLobby.guestName || (isEn ? 'Waiting for opponent...' : 'Đang chờ người chơi tham gia...')}
                 </h4>
-                <p className="text-[9px] text-cyan-300 mt-0.5">
-                  {currentLobby.guestName ? 'Đã vào phòng' : 'Hãy gửi mã phòng cho bạn bè'}
+                <p className="text-[8px] font-pixel text-cyan-300 mt-1">
+                  {currentLobby.guestName
+                    ? (isEn ? 'Connected in lobby' : 'Đã vào phòng')
+                    : (isEn ? 'Send code to your rival' : 'Hãy gửi mã phòng cho bạn bè')}
                 </p>
-                <span className="inline-block mt-2 text-[8px] text-yellow-400 font-bold">
-                  {currentLobby.guestName ? '✓ ĐÃ KẾT NỐI' : '⏳ ĐANG ĐỢI'}
+                <span className="inline-block mt-2 text-[7.5px] font-pixel text-yellow-400 font-bold">
+                  {currentLobby.guestName
+                    ? (isEn ? '✓ CONNECTED' : '✓ ĐÃ KẾT NỐI')
+                    : (isEn ? '⏳ WAITING...' : '⏳ ĐANG ĐỢI')}
                 </span>
               </div>
             </div>
@@ -328,7 +338,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                   setActiveTab('browse');
                 }}
               >
-                RỜI PHÒNG
+                {isEn ? 'LEAVE ROOM' : 'RỜI PHÒNG'}
               </PixelButton>
 
               <PixelButton
@@ -337,7 +347,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                 onClick={handleStartLobbyBattle}
                 icon={<span>⚔️</span>}
               >
-                BẮT ĐẦU TRẬN ĐẤU NGAY
+                {isEn ? 'START BATTLE NOW' : 'BẮT ĐẦU TRẬN ĐẤU NGAY'}
               </PixelButton>
             </div>
           </div>

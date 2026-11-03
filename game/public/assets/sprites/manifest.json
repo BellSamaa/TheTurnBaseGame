@@ -1,0 +1,2098 @@
+{
+  "total_sprites": 159,
+  "categories": {
+    "bodies": [
+      {
+        "id": "body_01",
+        "path": "/assets/sprites/characters/bodies/body_01.png",
+        "width": 201,
+        "height": 467,
+        "bbox": [
+          129,
+          29,
+          330,
+          496
+        ],
+        "source": "Tám nhân vật pixel nền trong suốt-6.png"
+      },
+      {
+        "id": "body_02",
+        "path": "/assets/sprites/characters/bodies/body_02.png",
+        "width": 235,
+        "height": 467,
+        "bbox": [
+          460,
+          29,
+          695,
+          496
+        ],
+        "source": "Tám nhân vật pixel nền trong suốt-6.png"
+      },
+      {
+        "id": "body_03",
+        "path": "/assets/sprites/characters/bodies/body_03.png",
+        "width": 269,
+        "height": 466,
+        "bbox": [
+          793,
+          30,
+          1062,
+          496
+        ],
+        "source": "Tám nhân vật pixel nền trong suốt-6.png"
+      },
+      {
+        "id": "body_04",
+        "path": "/assets/sprites/characters/bodies/body_04.png",
+        "width": 292,
+        "height": 467,
+        "bbox": [
+          1111,
+          29,
+          1403,
+          496
+        ],
+        "source": "Tám nhân vật pixel nền trong suốt-6.png"
+      },
+      {
+        "id": "body_05",
+        "path": "/assets/sprites/characters/bodies/body_05.png",
+        "width": 194,
+        "height": 462,
+        "bbox": [
+          133,
+          542,
+          327,
+          1004
+        ],
+        "source": "Tám nhân vật pixel nền trong suốt-6.png"
+      },
+      {
+        "id": "body_06",
+        "path": "/assets/sprites/characters/bodies/body_06.png",
+        "width": 219,
+        "height": 463,
+        "bbox": [
+          468,
+          541,
+          687,
+          1004
+        ],
+        "source": "Tám nhân vật pixel nền trong suốt-6.png"
+      },
+      {
+        "id": "body_07",
+        "path": "/assets/sprites/characters/bodies/body_07.png",
+        "width": 243,
+        "height": 462,
+        "bbox": [
+          806,
+          542,
+          1049,
+          1004
+        ],
+        "source": "Tám nhân vật pixel nền trong suốt-6.png"
+      },
+      {
+        "id": "body_08",
+        "path": "/assets/sprites/characters/bodies/body_08.png",
+        "width": 276,
+        "height": 462,
+        "bbox": [
+          1120,
+          542,
+          1396,
+          1004
+        ],
+        "source": "Tám nhân vật pixel nền trong suốt-6.png"
+      }
+    ],
+    "hair": [
+      {
+        "id": "hair_01",
+        "path": "/assets/sprites/characters/hair/hair_01.png",
+        "width": 178,
+        "height": 138,
+        "bbox": [
+          67,
+          50,
+          245,
+          188
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_02",
+        "path": "/assets/sprites/characters/hair/hair_02.png",
+        "width": 198,
+        "height": 158,
+        "bbox": [
+          334,
+          31,
+          532,
+          189
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_03",
+        "path": "/assets/sprites/characters/hair/hair_03.png",
+        "width": 207,
+        "height": 164,
+        "bbox": [
+          595,
+          32,
+          802,
+          196
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_04",
+        "path": "/assets/sprites/characters/hair/hair_04.png",
+        "width": 208,
+        "height": 172,
+        "bbox": [
+          867,
+          22,
+          1075,
+          194
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_05",
+        "path": "/assets/sprites/characters/hair/hair_05.png",
+        "width": 229,
+        "height": 173,
+        "bbox": [
+          1136,
+          22,
+          1365,
+          195
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_06",
+        "path": "/assets/sprites/characters/hair/hair_06.png",
+        "width": 220,
+        "height": 171,
+        "bbox": [
+          40,
+          289,
+          260,
+          460
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_07",
+        "path": "/assets/sprites/characters/hair/hair_07.png",
+        "width": 206,
+        "height": 151,
+        "bbox": [
+          322,
+          310,
+          528,
+          461
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_08",
+        "path": "/assets/sprites/characters/hair/hair_08.png",
+        "width": 211,
+        "height": 159,
+        "bbox": [
+          595,
+          291,
+          806,
+          450
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_09",
+        "path": "/assets/sprites/characters/hair/hair_09.png",
+        "width": 193,
+        "height": 148,
+        "bbox": [
+          878,
+          302,
+          1071,
+          450
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_10",
+        "path": "/assets/sprites/characters/hair/hair_10.png",
+        "width": 234,
+        "height": 264,
+        "bbox": [
+          1139,
+          299,
+          1373,
+          563
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_11",
+        "path": "/assets/sprites/characters/hair/hair_11.png",
+        "width": 201,
+        "height": 171,
+        "bbox": [
+          46,
+          583,
+          247,
+          754
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_12",
+        "path": "/assets/sprites/characters/hair/hair_12.png",
+        "width": 195,
+        "height": 157,
+        "bbox": [
+          330,
+          566,
+          525,
+          723
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_13",
+        "path": "/assets/sprites/characters/hair/hair_13.png",
+        "width": 185,
+        "height": 228,
+        "bbox": [
+          603,
+          570,
+          788,
+          798
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_14",
+        "path": "/assets/sprites/characters/hair/hair_14.png",
+        "width": 225,
+        "height": 232,
+        "bbox": [
+          858,
+          566,
+          1083,
+          798
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_15",
+        "path": "/assets/sprites/characters/hair/hair_15.png",
+        "width": 224,
+        "height": 284,
+        "bbox": [
+          1156,
+          559,
+          1380,
+          843
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_16",
+        "path": "/assets/sprites/characters/hair/hair_16.png",
+        "width": 263,
+        "height": 202,
+        "bbox": [
+          13,
+          849,
+          276,
+          1051
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_17",
+        "path": "/assets/sprites/characters/hair/hair_17.png",
+        "width": 219,
+        "height": 184,
+        "bbox": [
+          313,
+          841,
+          532,
+          1025
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_18",
+        "path": "/assets/sprites/characters/hair/hair_18.png",
+        "width": 165,
+        "height": 269,
+        "bbox": [
+          609,
+          841,
+          774,
+          1110
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_19",
+        "path": "/assets/sprites/characters/hair/hair_19.png",
+        "width": 198,
+        "height": 265,
+        "bbox": [
+          867,
+          841,
+          1065,
+          1106
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      },
+      {
+        "id": "hair_20",
+        "path": "/assets/sprites/characters/hair/hair_20.png",
+        "width": 244,
+        "height": 182,
+        "bbox": [
+          1136,
+          839,
+          1380,
+          1021
+        ],
+        "source": "Bộ tóc pixel đa dạng-1.png"
+      }
+    ],
+    "faces": [
+      {
+        "id": "face_01",
+        "path": "/assets/sprites/characters/faces/face_01.png",
+        "width": 264,
+        "height": 185,
+        "bbox": [
+          94,
+          136,
+          358,
+          321
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      },
+      {
+        "id": "face_02",
+        "path": "/assets/sprites/characters/faces/face_02.png",
+        "width": 265,
+        "height": 227,
+        "bbox": [
+          480,
+          119,
+          745,
+          346
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      },
+      {
+        "id": "face_03",
+        "path": "/assets/sprites/characters/faces/face_03.png",
+        "width": 259,
+        "height": 188,
+        "bbox": [
+          864,
+          130,
+          1123,
+          318
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      },
+      {
+        "id": "face_04",
+        "path": "/assets/sprites/characters/faces/face_04.png",
+        "width": 259,
+        "height": 201,
+        "bbox": [
+          1249,
+          135,
+          1508,
+          336
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      },
+      {
+        "id": "face_05",
+        "path": "/assets/sprites/characters/faces/face_05.png",
+        "width": 265,
+        "height": 195,
+        "bbox": [
+          1631,
+          130,
+          1896,
+          325
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      },
+      {
+        "id": "face_06",
+        "path": "/assets/sprites/characters/faces/face_06.png",
+        "width": 264,
+        "height": 246,
+        "bbox": [
+          94,
+          462,
+          358,
+          708
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      },
+      {
+        "id": "face_07",
+        "path": "/assets/sprites/characters/faces/face_07.png",
+        "width": 300,
+        "height": 202,
+        "bbox": [
+          463,
+          483,
+          763,
+          685
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      },
+      {
+        "id": "face_08",
+        "path": "/assets/sprites/characters/faces/face_08.png",
+        "width": 257,
+        "height": 210,
+        "bbox": [
+          866,
+          492,
+          1123,
+          702
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      },
+      {
+        "id": "face_09",
+        "path": "/assets/sprites/characters/faces/face_09.png",
+        "width": 261,
+        "height": 216,
+        "bbox": [
+          1248,
+          483,
+          1509,
+          699
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      },
+      {
+        "id": "face_10",
+        "path": "/assets/sprites/characters/faces/face_10.png",
+        "width": 272,
+        "height": 222,
+        "bbox": [
+          1631,
+          480,
+          1903,
+          702
+        ],
+        "source": "Mười biểu cảm pixel RPG-2.png"
+      }
+    ],
+    "shirts": [
+      {
+        "id": "shirt_01",
+        "path": "/assets/sprites/characters/shirts/shirt_01.png",
+        "width": 251,
+        "height": 216,
+        "bbox": [
+          27,
+          48,
+          278,
+          264
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_02",
+        "path": "/assets/sprites/characters/shirts/shirt_02.png",
+        "width": 251,
+        "height": 216,
+        "bbox": [
+          307,
+          48,
+          558,
+          264
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_03",
+        "path": "/assets/sprites/characters/shirts/shirt_03.png",
+        "width": 251,
+        "height": 220,
+        "bbox": [
+          582,
+          44,
+          833,
+          264
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_04",
+        "path": "/assets/sprites/characters/shirts/shirt_04.png",
+        "width": 277,
+        "height": 218,
+        "bbox": [
+          846,
+          48,
+          1123,
+          266
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_05",
+        "path": "/assets/sprites/characters/shirts/shirt_05.png",
+        "width": 236,
+        "height": 216,
+        "bbox": [
+          1119,
+          48,
+          1355,
+          264
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_06",
+        "path": "/assets/sprites/characters/shirts/shirt_06.png",
+        "width": 267,
+        "height": 238,
+        "bbox": [
+          15,
+          309,
+          282,
+          547
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_07",
+        "path": "/assets/sprites/characters/shirts/shirt_07.png",
+        "width": 284,
+        "height": 238,
+        "bbox": [
+          278,
+          309,
+          562,
+          547
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_08",
+        "path": "/assets/sprites/characters/shirts/shirt_08.png",
+        "width": 284,
+        "height": 219,
+        "bbox": [
+          558,
+          328,
+          842,
+          547
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_09",
+        "path": "/assets/sprites/characters/shirts/shirt_09.png",
+        "width": 270,
+        "height": 220,
+        "bbox": [
+          852,
+          329,
+          1122,
+          549
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_10",
+        "path": "/assets/sprites/characters/shirts/shirt_10.png",
+        "width": 263,
+        "height": 226,
+        "bbox": [
+          1133,
+          321,
+          1396,
+          547
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_11",
+        "path": "/assets/sprites/characters/shirts/shirt_11.png",
+        "width": 269,
+        "height": 231,
+        "bbox": [
+          13,
+          592,
+          282,
+          823
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_12",
+        "path": "/assets/sprites/characters/shirts/shirt_12.png",
+        "width": 284,
+        "height": 227,
+        "bbox": [
+          278,
+          592,
+          562,
+          819
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_13",
+        "path": "/assets/sprites/characters/shirts/shirt_13.png",
+        "width": 285,
+        "height": 226,
+        "bbox": [
+          558,
+          594,
+          843,
+          820
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_14",
+        "path": "/assets/sprites/characters/shirts/shirt_14.png",
+        "width": 283,
+        "height": 226,
+        "bbox": [
+          839,
+          596,
+          1122,
+          822
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_15",
+        "path": "/assets/sprites/characters/shirts/shirt_15.png",
+        "width": 271,
+        "height": 232,
+        "bbox": [
+          1128,
+          592,
+          1399,
+          824
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_16",
+        "path": "/assets/sprites/characters/shirts/shirt_16.png",
+        "width": 254,
+        "height": 221,
+        "bbox": [
+          24,
+          881,
+          278,
+          1102
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_17",
+        "path": "/assets/sprites/characters/shirts/shirt_17.png",
+        "width": 263,
+        "height": 227,
+        "bbox": [
+          297,
+          881,
+          560,
+          1108
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_18",
+        "path": "/assets/sprites/characters/shirts/shirt_18.png",
+        "width": 276,
+        "height": 227,
+        "bbox": [
+          567,
+          881,
+          843,
+          1108
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_19",
+        "path": "/assets/sprites/characters/shirts/shirt_19.png",
+        "width": 278,
+        "height": 219,
+        "bbox": [
+          839,
+          881,
+          1117,
+          1100
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      },
+      {
+        "id": "shirt_20",
+        "path": "/assets/sprites/characters/shirts/shirt_20.png",
+        "width": 263,
+        "height": 242,
+        "bbox": [
+          1129,
+          866,
+          1392,
+          1108
+        ],
+        "source": "Bộ sprite pixel 20 áo RPG-5.png"
+      }
+    ],
+    "pants": [
+      {
+        "id": "pants_01",
+        "path": "/assets/sprites/characters/pants/pants_01.png",
+        "width": 183,
+        "height": 237,
+        "bbox": [
+          76,
+          43,
+          259,
+          280
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_02",
+        "path": "/assets/sprites/characters/pants/pants_02.png",
+        "width": 164,
+        "height": 235,
+        "bbox": [
+          358,
+          43,
+          522,
+          278
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_03",
+        "path": "/assets/sprites/characters/pants/pants_03.png",
+        "width": 232,
+        "height": 237,
+        "bbox": [
+          588,
+          43,
+          820,
+          280
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_04",
+        "path": "/assets/sprites/characters/pants/pants_04.png",
+        "width": 212,
+        "height": 237,
+        "bbox": [
+          863,
+          43,
+          1075,
+          280
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_05",
+        "path": "/assets/sprites/characters/pants/pants_05.png",
+        "width": 209,
+        "height": 237,
+        "bbox": [
+          1131,
+          43,
+          1340,
+          280
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_06",
+        "path": "/assets/sprites/characters/pants/pants_06.png",
+        "width": 179,
+        "height": 231,
+        "bbox": [
+          78,
+          323,
+          257,
+          554
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_07",
+        "path": "/assets/sprites/characters/pants/pants_07.png",
+        "width": 180,
+        "height": 229,
+        "bbox": [
+          346,
+          323,
+          526,
+          552
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_08",
+        "path": "/assets/sprites/characters/pants/pants_08.png",
+        "width": 182,
+        "height": 205,
+        "bbox": [
+          610,
+          325,
+          792,
+          530
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_09",
+        "path": "/assets/sprites/characters/pants/pants_09.png",
+        "width": 214,
+        "height": 169,
+        "bbox": [
+          862,
+          324,
+          1076,
+          493
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_10",
+        "path": "/assets/sprites/characters/pants/pants_10.png",
+        "width": 206,
+        "height": 154,
+        "bbox": [
+          1133,
+          327,
+          1339,
+          481
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_11",
+        "path": "/assets/sprites/characters/pants/pants_11.png",
+        "width": 215,
+        "height": 195,
+        "bbox": [
+          61,
+          600,
+          276,
+          795
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_12",
+        "path": "/assets/sprites/characters/pants/pants_12.png",
+        "width": 200,
+        "height": 198,
+        "bbox": [
+          336,
+          600,
+          536,
+          798
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_13",
+        "path": "/assets/sprites/characters/pants/pants_13.png",
+        "width": 197,
+        "height": 245,
+        "bbox": [
+          603,
+          577,
+          800,
+          822
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_14",
+        "path": "/assets/sprites/characters/pants/pants_14.png",
+        "width": 206,
+        "height": 225,
+        "bbox": [
+          862,
+          597,
+          1068,
+          822
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_15",
+        "path": "/assets/sprites/characters/pants/pants_15.png",
+        "width": 201,
+        "height": 224,
+        "bbox": [
+          1137,
+          597,
+          1338,
+          821
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_16",
+        "path": "/assets/sprites/characters/pants/pants_16.png",
+        "width": 225,
+        "height": 237,
+        "bbox": [
+          55,
+          856,
+          280,
+          1093
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_17",
+        "path": "/assets/sprites/characters/pants/pants_17.png",
+        "width": 223,
+        "height": 235,
+        "bbox": [
+          327,
+          857,
+          550,
+          1092
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_18",
+        "path": "/assets/sprites/characters/pants/pants_18.png",
+        "width": 195,
+        "height": 235,
+        "bbox": [
+          604,
+          857,
+          799,
+          1092
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_19",
+        "path": "/assets/sprites/characters/pants/pants_19.png",
+        "width": 248,
+        "height": 237,
+        "bbox": [
+          875,
+          857,
+          1123,
+          1094
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      },
+      {
+        "id": "pants_20",
+        "path": "/assets/sprites/characters/pants/pants_20.png",
+        "width": 236,
+        "height": 236,
+        "bbox": [
+          1119,
+          858,
+          1355,
+          1094
+        ],
+        "source": "Bộ sprite pixel quần áo thân dưới-3.png"
+      }
+    ],
+    "accessories": [
+      {
+        "id": "acc_01",
+        "path": "/assets/sprites/characters/accessories/acc_01.png",
+        "width": 237,
+        "height": 106,
+        "bbox": [
+          31,
+          107,
+          268,
+          213
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_02",
+        "path": "/assets/sprites/characters/accessories/acc_02.png",
+        "width": 236,
+        "height": 79,
+        "bbox": [
+          309,
+          119,
+          545,
+          198
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_03",
+        "path": "/assets/sprites/characters/accessories/acc_03.png",
+        "width": 241,
+        "height": 80,
+        "bbox": [
+          581,
+          119,
+          822,
+          199
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_04",
+        "path": "/assets/sprites/characters/accessories/acc_04.png",
+        "width": 116,
+        "height": 160,
+        "bbox": [
+          959,
+          97,
+          1075,
+          257
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_05",
+        "path": "/assets/sprites/characters/accessories/acc_05.png",
+        "width": 212,
+        "height": 114,
+        "bbox": [
+          1149,
+          103,
+          1361,
+          217
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_06",
+        "path": "/assets/sprites/characters/accessories/acc_06.png",
+        "width": 160,
+        "height": 58,
+        "bbox": [
+          70,
+          407,
+          230,
+          465
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_07",
+        "path": "/assets/sprites/characters/accessories/acc_07.png",
+        "width": 213,
+        "height": 201,
+        "bbox": [
+          319,
+          336,
+          532,
+          537
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_08",
+        "path": "/assets/sprites/characters/accessories/acc_08.png",
+        "width": 232,
+        "height": 181,
+        "bbox": [
+          585,
+          351,
+          817,
+          532
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_09",
+        "path": "/assets/sprites/characters/accessories/acc_09.png",
+        "width": 232,
+        "height": 207,
+        "bbox": [
+          861,
+          322,
+          1093,
+          529
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_10",
+        "path": "/assets/sprites/characters/accessories/acc_10.png",
+        "width": 221,
+        "height": 173,
+        "bbox": [
+          1149,
+          346,
+          1370,
+          519
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_11",
+        "path": "/assets/sprites/characters/accessories/acc_11.png",
+        "width": 246,
+        "height": 190,
+        "bbox": [
+          29,
+          604,
+          275,
+          794
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_12",
+        "path": "/assets/sprites/characters/accessories/acc_12.png",
+        "width": 221,
+        "height": 157,
+        "bbox": [
+          313,
+          623,
+          534,
+          780
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_13",
+        "path": "/assets/sprites/characters/accessories/acc_13.png",
+        "width": 226,
+        "height": 135,
+        "bbox": [
+          588,
+          628,
+          814,
+          763
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_14",
+        "path": "/assets/sprites/characters/accessories/acc_14.png",
+        "width": 235,
+        "height": 94,
+        "bbox": [
+          860,
+          661,
+          1095,
+          755
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_15",
+        "path": "/assets/sprites/characters/accessories/acc_15.png",
+        "width": 235,
+        "height": 118,
+        "bbox": [
+          1141,
+          659,
+          1376,
+          777
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_16",
+        "path": "/assets/sprites/characters/accessories/acc_16.png",
+        "width": 184,
+        "height": 187,
+        "bbox": [
+          59,
+          890,
+          243,
+          1077
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_17",
+        "path": "/assets/sprites/characters/accessories/acc_17.png",
+        "width": 201,
+        "height": 108,
+        "bbox": [
+          321,
+          923,
+          522,
+          1031
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_18",
+        "path": "/assets/sprites/characters/accessories/acc_18.png",
+        "width": 238,
+        "height": 197,
+        "bbox": [
+          582,
+          879,
+          820,
+          1076
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_19",
+        "path": "/assets/sprites/characters/accessories/acc_19.png",
+        "width": 220,
+        "height": 99,
+        "bbox": [
+          869,
+          933,
+          1089,
+          1032
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      },
+      {
+        "id": "acc_20",
+        "path": "/assets/sprites/characters/accessories/acc_20.png",
+        "width": 249,
+        "height": 115,
+        "bbox": [
+          1134,
+          933,
+          1383,
+          1048
+        ],
+        "source": "Bộ sprite phụ kiện RPG pixel art-7.png"
+      }
+    ],
+    "classes": [
+      {
+        "id": "class_assassin",
+        "path": "/assets/sprites/ui/classes/class_assassin.png",
+        "width": 2071,
+        "height": 512,
+        "bbox": [
+          50,
+          105,
+          2121,
+          617
+        ],
+        "source": "Nút ASSASSIN pixel art 16-bit-11.png"
+      },
+      {
+        "id": "class_boxer",
+        "path": "/assets/sprites/ui/classes/class_boxer.png",
+        "width": 2092,
+        "height": 499,
+        "bbox": [
+          40,
+          108,
+          2132,
+          607
+        ],
+        "source": "Nút lớp Boxer pixel 16-bit-15.png"
+      },
+      {
+        "id": "class_juggernaut",
+        "path": "/assets/sprites/ui/classes/class_juggernaut.png",
+        "width": 2103,
+        "height": 474,
+        "bbox": [
+          34,
+          125,
+          2137,
+          599
+        ],
+        "source": "Nút Juggernaut pixel art 16-bit-14.png"
+      },
+      {
+        "id": "class_mage",
+        "path": "/assets/sprites/ui/classes/class_mage.png",
+        "width": 2067,
+        "height": 555,
+        "bbox": [
+          53,
+          82,
+          2120,
+          637
+        ],
+        "source": "Nút chọn lớp Pháp sư 16-bit-13.png"
+      },
+      {
+        "id": "class_tanker",
+        "path": "/assets/sprites/ui/classes/class_tanker.png",
+        "width": 2124,
+        "height": 575,
+        "bbox": [
+          24,
+          74,
+          2148,
+          649
+        ],
+        "source": "Nút Tanker pixel art 16-bit-12.png"
+      },
+      {
+        "id": "class_warrior",
+        "path": "/assets/sprites/ui/classes/class_warrior.png",
+        "width": 2039,
+        "height": 489,
+        "bbox": [
+          66,
+          122,
+          2105,
+          611
+        ],
+        "source": "Nút WARRIOR pixel 16-bit viền vàng-16.png"
+      }
+    ],
+    "weapons": [
+      {
+        "id": "weapon_greatsword",
+        "path": "/assets/sprites/weapons/weapon_greatsword.png",
+        "width": 1184,
+        "height": 1134,
+        "bbox": [
+          89,
+          41,
+          1273,
+          1175
+        ],
+        "source": "Đại kiếm bạc hai tay-1.png"
+      },
+      {
+        "id": "weapon_bow",
+        "path": "/assets/sprites/weapons/weapon_bow.png",
+        "width": 805,
+        "height": 1157,
+        "bbox": [
+          269,
+          29,
+          1074,
+          1186
+        ],
+        "source": "Cung gỗ cong với tên đỏ-2.png"
+      },
+      {
+        "id": "weapon_dagger_dragon",
+        "path": "/assets/sprites/weapons/weapon_dagger_dragon.png",
+        "width": 966,
+        "height": 952,
+        "bbox": [
+          286,
+          48,
+          1252,
+          1000
+        ],
+        "source": "Dao găm rồng lửa xanh-8.png"
+      },
+      {
+        "id": "weapon_revolver",
+        "path": "/assets/sprites/weapons/weapon_revolver.png",
+        "width": 1333,
+        "height": 959,
+        "bbox": [
+          106,
+          35,
+          1439,
+          994
+        ],
+        "source": "Súng lục bạc sáu ổ đạn pixel-5.png"
+      },
+      {
+        "id": "weapon_staff",
+        "path": "/assets/sprites/weapons/weapon_staff.png",
+        "width": 382,
+        "height": 995,
+        "bbox": [
+          557,
+          14,
+          939,
+          1009
+        ],
+        "source": "Trượng gỗ phép thuật ngọc lam-4.png"
+      },
+      {
+        "id": "weapon_infinity_ring",
+        "path": "/assets/sprites/weapons/weapon_infinity_ring.png",
+        "width": 1116,
+        "height": 1175,
+        "bbox": [
+          73,
+          48,
+          1189,
+          1223
+        ],
+        "source": "Vòng vô cực hư không-6.png"
+      },
+      {
+        "id": "weapon_spirit_stone",
+        "path": "/assets/sprites/weapons/weapon_spirit_stone.png",
+        "width": 873,
+        "height": 735,
+        "bbox": [
+          316,
+          156,
+          1189,
+          891
+        ],
+        "source": "Đá linh thú giận dữ-10.png"
+      },
+      {
+        "id": "weapon_chronos_watch",
+        "path": "/assets/sprites/weapons/weapon_chronos_watch.png",
+        "width": 924,
+        "height": 1219,
+        "bbox": [
+          114,
+          21,
+          1038,
+          1240
+        ],
+        "source": "Đồng hồ bỏ túi Chronos-7.png"
+      },
+      {
+        "id": "weapon_headband_fire",
+        "path": "/assets/sprites/weapons/weapon_headband_fire.png",
+        "width": 1156,
+        "height": 623,
+        "bbox": [
+          216,
+          209,
+          1372,
+          832
+        ],
+        "source": "Băng đô lá hắc hỏa-9.png"
+      }
+    ],
+    "menu_buttons": [
+      {
+        "id": "btn_menu_play",
+        "path": "/assets/sprites/ui/buttons/btn_menu_play.png",
+        "width": 420,
+        "height": 859,
+        "bbox": [
+          12,
+          17,
+          432,
+          876
+        ],
+        "source": "Bộ nút menu RPG xúc xắc 16-bit-3.png"
+      },
+      {
+        "id": "btn_menu_character",
+        "path": "/assets/sprites/ui/buttons/btn_menu_character.png",
+        "width": 420,
+        "height": 859,
+        "bbox": [
+          455,
+          17,
+          875,
+          876
+        ],
+        "source": "Bộ nút menu RPG xúc xắc 16-bit-3.png"
+      },
+      {
+        "id": "btn_menu_weapons",
+        "path": "/assets/sprites/ui/buttons/btn_menu_weapons.png",
+        "width": 421,
+        "height": 859,
+        "bbox": [
+          899,
+          17,
+          1320,
+          876
+        ],
+        "source": "Bộ nút menu RPG xúc xắc 16-bit-3.png"
+      },
+      {
+        "id": "btn_menu_settings",
+        "path": "/assets/sprites/ui/buttons/btn_menu_settings.png",
+        "width": 419,
+        "height": 859,
+        "bbox": [
+          1343,
+          17,
+          1762,
+          876
+        ],
+        "source": "Bộ nút menu RPG xúc xắc 16-bit-3.png"
+      }
+    ],
+    "modes": [
+      {
+        "id": "mode_ranked",
+        "path": "/assets/sprites/ui/modes/mode_ranked.png",
+        "width": 635,
+        "height": 569,
+        "bbox": [
+          12,
+          8,
+          647,
+          577
+        ],
+        "source": "Bảng chọn chế độ Dice Maniac (1).png"
+      },
+      {
+        "id": "mode_casual",
+        "path": "/assets/sprites/ui/modes/mode_casual.png",
+        "width": 639,
+        "height": 569,
+        "bbox": [
+          663,
+          8,
+          1302,
+          577
+        ],
+        "source": "Bảng chọn chế độ Dice Maniac (1).png"
+      },
+      {
+        "id": "mode_pve",
+        "path": "/assets/sprites/ui/modes/mode_pve.png",
+        "width": 635,
+        "height": 569,
+        "bbox": [
+          12,
+          593,
+          647,
+          1162
+        ],
+        "source": "Bảng chọn chế độ Dice Maniac (1).png"
+      },
+      {
+        "id": "mode_special",
+        "path": "/assets/sprites/ui/modes/mode_special.png",
+        "width": 639,
+        "height": 569,
+        "bbox": [
+          663,
+          593,
+          1302,
+          1162
+        ],
+        "source": "Bảng chọn chế độ Dice Maniac (1).png"
+      }
+    ],
+    "tier_frames": [
+      {
+        "id": "tier_01",
+        "path": "/assets/sprites/ui/frames/tier_01.png",
+        "width": 870,
+        "height": 200,
+        "bbox": [
+          80,
+          11,
+          950,
+          211
+        ],
+        "source": "Khung xúc xắc pixel art 7 cấp-2.png"
+      },
+      {
+        "id": "tier_02",
+        "path": "/assets/sprites/ui/frames/tier_02.png",
+        "width": 898,
+        "height": 200,
+        "bbox": [
+          77,
+          224,
+          975,
+          424
+        ],
+        "source": "Khung xúc xắc pixel art 7 cấp-2.png"
+      },
+      {
+        "id": "tier_03",
+        "path": "/assets/sprites/ui/frames/tier_03.png",
+        "width": 882,
+        "height": 204,
+        "bbox": [
+          75,
+          436,
+          957,
+          640
+        ],
+        "source": "Khung xúc xắc pixel art 7 cấp-2.png"
+      },
+      {
+        "id": "tier_04",
+        "path": "/assets/sprites/ui/frames/tier_04.png",
+        "width": 882,
+        "height": 200,
+        "bbox": [
+          78,
+          653,
+          960,
+          853
+        ],
+        "source": "Khung xúc xắc pixel art 7 cấp-2.png"
+      },
+      {
+        "id": "tier_05",
+        "path": "/assets/sprites/ui/frames/tier_05.png",
+        "width": 926,
+        "height": 205,
+        "bbox": [
+          57,
+          864,
+          983,
+          1069
+        ],
+        "source": "Khung xúc xắc pixel art 7 cấp-2.png"
+      },
+      {
+        "id": "tier_06",
+        "path": "/assets/sprites/ui/frames/tier_06.png",
+        "width": 932,
+        "height": 205,
+        "bbox": [
+          46,
+          1081,
+          978,
+          1286
+        ],
+        "source": "Khung xúc xắc pixel art 7 cấp-2.png"
+      },
+      {
+        "id": "tier_07",
+        "path": "/assets/sprites/ui/frames/tier_07.png",
+        "width": 923,
+        "height": 217,
+        "bbox": [
+          46,
+          1299,
+          969,
+          1516
+        ],
+        "source": "Khung xúc xắc pixel art 7 cấp-2.png"
+      }
+    ],
+    "atlas_elements": [
+      {
+        "id": "atlas_btn_01",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_01.png",
+        "width": 356,
+        "height": 153,
+        "bbox": [
+          398,
+          37,
+          754,
+          190
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_02",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_02.png",
+        "width": 356,
+        "height": 136,
+        "bbox": [
+          14,
+          47,
+          370,
+          183
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_03",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_03.png",
+        "width": 356,
+        "height": 136,
+        "bbox": [
+          782,
+          47,
+          1138,
+          183
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_04",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_04.png",
+        "width": 356,
+        "height": 136,
+        "bbox": [
+          1166,
+          47,
+          1522,
+          183
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_05",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_05.png",
+        "width": 356,
+        "height": 153,
+        "bbox": [
+          398,
+          212,
+          754,
+          365
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_06",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_06.png",
+        "width": 355,
+        "height": 137,
+        "bbox": [
+          14,
+          221,
+          369,
+          358
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_07",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_07.png",
+        "width": 356,
+        "height": 137,
+        "bbox": [
+          782,
+          221,
+          1138,
+          358
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_08",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_08.png",
+        "width": 356,
+        "height": 137,
+        "bbox": [
+          1166,
+          221,
+          1522,
+          358
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_09",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_09.png",
+        "width": 356,
+        "height": 609,
+        "bbox": [
+          398,
+          383,
+          754,
+          992
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_10",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_10.png",
+        "width": 356,
+        "height": 137,
+        "bbox": [
+          14,
+          392,
+          370,
+          529
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_11",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_11.png",
+        "width": 356,
+        "height": 137,
+        "bbox": [
+          782,
+          392,
+          1138,
+          529
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_12",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_12.png",
+        "width": 356,
+        "height": 137,
+        "bbox": [
+          1166,
+          392,
+          1522,
+          529
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_13",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_13.png",
+        "width": 355,
+        "height": 124,
+        "bbox": [
+          14,
+          557,
+          369,
+          681
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_14",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_14.png",
+        "width": 355,
+        "height": 125,
+        "bbox": [
+          782,
+          557,
+          1137,
+          682
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_15",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_15.png",
+        "width": 355,
+        "height": 125,
+        "bbox": [
+          1167,
+          557,
+          1522,
+          682
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_16",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_16.png",
+        "width": 159,
+        "height": 137,
+        "bbox": [
+          112,
+          707,
+          271,
+          844
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_17",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_17.png",
+        "width": 159,
+        "height": 137,
+        "bbox": [
+          880,
+          707,
+          1039,
+          844
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_18",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_18.png",
+        "width": 160,
+        "height": 136,
+        "bbox": [
+          1264,
+          708,
+          1424,
+          844
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_19",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_19.png",
+        "width": 356,
+        "height": 117,
+        "bbox": [
+          782,
+          868,
+          1138,
+          985
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_20",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_20.png",
+        "width": 356,
+        "height": 117,
+        "bbox": [
+          1166,
+          868,
+          1522,
+          985
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      },
+      {
+        "id": "atlas_btn_21",
+        "path": "/assets/sprites/ui/atlas/atlas_btn_21.png",
+        "width": 356,
+        "height": 116,
+        "bbox": [
+          14,
+          869,
+          370,
+          985
+        ],
+        "source": "Atlas nút và ô nhập pixel 16-bit-4.png"
+      }
+    ],
+    "ui_frames": [
+      {
+        "id": "frame_d20_tray",
+        "path": "/assets/sprites/ui/frames/frame_d20_tray.png",
+        "width": 1084,
+        "height": 1098,
+        "bbox": [
+          90,
+          74,
+          1174,
+          1172
+        ],
+        "source": "Khay xúc xắc D20 pixel vàng-3.png"
+      },
+      {
+        "id": "frame_d6_tray",
+        "path": "/assets/sprites/ui/frames/frame_d6_tray.png",
+        "width": 998,
+        "height": 1028,
+        "bbox": [
+          136,
+          101,
+          1134,
+          1129
+        ],
+        "source": "Khay xúc xắc D6 kỹ năng trống-4.png"
+      },
+      {
+        "id": "frame_effect_box",
+        "path": "/assets/sprites/ui/frames/frame_effect_box.png",
+        "width": 736,
+        "height": 700,
+        "bbox": [
+          400,
+          162,
+          1136,
+          862
+        ],
+        "source": "Khung hiệu ứng vuông pixel xanh ngọc-8.png"
+      },
+      {
+        "id": "frame_battle_log",
+        "path": "/assets/sprites/ui/frames/frame_battle_log.png",
+        "width": 2103,
+        "height": 372,
+        "bbox": [
+          35,
+          175,
+          2138,
+          547
+        ],
+        "source": "Khung nhật ký chiến đấu pixel-9.png"
+      },
+      {
+        "id": "frame_hp_gold",
+        "path": "/assets/sprites/ui/frames/frame_hp_gold.png",
+        "width": 1943,
+        "height": 361,
+        "bbox": [
+          114,
+          184,
+          2057,
+          545
+        ],
+        "source": "Khung thanh máu pixel vàng rỗng-1.png"
+      },
+      {
+        "id": "frame_square_cyan",
+        "path": "/assets/sprites/ui/frames/frame_square_cyan.png",
+        "width": 965,
+        "height": 986,
+        "bbox": [
+          148,
+          131,
+          1113,
+          1117
+        ],
+        "source": "Khung vuông pixel ngọc lam rỗng-10.png"
+      },
+      {
+        "id": "frame_skill_slot",
+        "path": "/assets/sprites/ui/frames/frame_skill_slot.png",
+        "width": 1120,
+        "height": 1211,
+        "bbox": [
+          72,
+          21,
+          1192,
+          1232
+        ],
+        "source": "Khung ô kỹ năng pixel tím vàng-7.png"
+      },
+      {
+        "id": "btn_roll_dice",
+        "path": "/assets/sprites/ui/frames/btn_roll_dice.png",
+        "width": 2114,
+        "height": 621,
+        "bbox": [
+          29,
+          55,
+          2143,
+          676
+        ],
+        "source": "Nút ROLL DICE pixel xanh vàng-6.png"
+      },
+      {
+        "id": "btn_end_turn",
+        "path": "/assets/sprites/ui/frames/btn_end_turn.png",
+        "width": 2039,
+        "height": 559,
+        "bbox": [
+          67,
+          87,
+          2106,
+          646
+        ],
+        "source": "Nút kết thúc lượt xanh vàng-5.png"
+      },
+      {
+        "id": "bar_hp_red",
+        "path": "/assets/sprites/ui/frames/bar_hp_red.png",
+        "width": 2066,
+        "height": 151,
+        "bbox": [
+          53,
+          286,
+          2119,
+          437
+        ],
+        "source": "Thanh máu đỏ pixel-2.png"
+      }
+    ]
+  }
+}

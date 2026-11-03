@@ -2,19 +2,39 @@
 
 :root {
   --font-pixel: 'Press Start 2P', monospace;
+  --font-vt323: 'VT323', monospace;
+  --font-vietnam: 'Be Vietnam Pro', sans-serif;
+}
+
+/* English Pixel Font */
+.lang-en,
+.lang-en * {
+  font-family: var(--font-pixel), monospace !important;
+}
+
+/* Vietnamese Retro Pixel Font with full diacritic support */
+.lang-vi,
+.lang-vi * {
+  font-family: var(--font-vt323), var(--font-vietnam), sans-serif !important;
+  letter-spacing: 0.5px;
+}
+
+.lang-vi .text-title {
+  font-family: var(--font-vietnam), sans-serif !important;
+  font-weight: 800;
 }
 
 * {
-  font-family: var(--font-pixel), monospace !important;
   image-rendering: pixelated;
   box-sizing: border-box;
 }
 
-body {
-  background-color: #0b0c10;
+html, body {
+  background-color: #07090e;
   color: #f7fafc;
   overflow-x: hidden;
   user-select: none;
+  scroll-behavior: smooth;
 }
 
 /* Custom Pixel Scrollbars */
@@ -23,104 +43,115 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #11141c;
-  border: 2px solid #2d3748;
+  background: #0d111a;
+  border: 2px solid #1e293b;
 }
 ::-webkit-scrollbar-thumb {
-  background: #e2b714;
-  border: 2px solid #1a202c;
+  background: #eab308;
+  border: 2px solid #0f172a;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #ffd700;
+  background: #facc15;
 }
 
-/* Pixel Art Borders */
-.pixel-box-gold {
-  box-shadow: 
-    0 -4px 0 0 #d69e2e,
-    0 4px 0 0 #d69e2e,
-    -4px 0 0 0 #d69e2e,
-    4px 0 0 0 #d69e2e,
-    0 -8px 0 0 #1a202c,
-    0 8px 0 0 #1a202c,
-    -8px 0 0 0 #1a202c,
-    8px 0 0 0 #1a202c,
-    0 0 15px rgba(234, 179, 8, 0.4);
-}
+/* ============================================================
+   AURAS FOR BELL, SNOW & SHIRATOSI (ALL 3 WITH STUNNING AURAS!)
+   ============================================================ */
 
-.pixel-box-cyan {
-  box-shadow: 
-    0 -4px 0 0 #0bc5ea,
-    0 4px 0 0 #0bc5ea,
-    -4px 0 0 0 #0bc5ea,
-    4px 0 0 0 #0bc5ea,
-    0 -8px 0 0 #1a202c,
-    0 8px 0 0 #1a202c,
-    -8px 0 0 0 #1a202c,
-    8px 0 0 0 #1a202c,
-    0 0 15px rgba(11, 197, 234, 0.4);
-}
-
-.pixel-box-purple {
-  box-shadow: 
-    0 -4px 0 0 #9f7aea,
-    0 4px 0 0 #9f7aea,
-    -4px 0 0 0 #9f7aea,
-    4px 0 0 0 #9f7aea,
-    0 -8px 0 0 #1a202c,
-    0 8px 0 0 #1a202c,
-    -8px 0 0 0 #1a202c,
-    8px 0 0 0 #1a202c,
-    0 0 15px rgba(159, 122, 234, 0.4);
-}
-
-.pixel-box-red {
-  box-shadow: 
-    0 -4px 0 0 #e53e3e,
-    0 4px 0 0 #e53e3e,
-    -4px 0 0 0 #e53e3e,
-    4px 0 0 0 #e53e3e,
-    0 -8px 0 0 #1a202c,
-    0 8px 0 0 #1a202c,
-    -8px 0 0 0 #1a202c,
-    8px 0 0 0 #1a202c,
-    0 0 15px rgba(229, 62, 62, 0.4);
-}
-
-/* Sparkle & Shimmer Animation */
-@keyframes sparkleGlow {
+/* 1. BELL - Crimson Hellfire Aura */
+@keyframes bellFireAura {
   0%, 100% {
-    text-shadow: 0 0 4px #ffd700, 0 0 10px #ffeb3b, 0 0 18px #fff, 0 0 25px #ffd700;
-    color: #fffb8f;
+    color: #ff3344;
+    text-shadow: 
+      0 0 6px #ff0022,
+      0 0 14px #ff3344,
+      0 0 25px rgba(255, 0, 50, 0.8),
+      0 0 40px rgba(255, 30, 0, 0.6);
+    filter: drop-shadow(0 0 8px #ff1744);
     transform: scale(1);
   }
   50% {
-    text-shadow: 0 0 8px #ff9800, 0 0 16px #ffd700, 0 0 24px #ffc107, 0 0 32px #ff9800;
-    color: #ffffff;
-    transform: scale(1.04);
+    color: #ff6b6b;
+    text-shadow: 
+      0 0 10px #ff1744,
+      0 0 22px #ff0055,
+      0 0 35px rgba(255, 50, 0, 0.9),
+      0 0 50px rgba(255, 10, 80, 0.7);
+    filter: drop-shadow(0 0 16px #ff5252);
+    transform: scale(1.06);
   }
 }
 
-.sparkle-shiratosi {
+.aura-bell {
   display: inline-block;
-  color: #ffd700;
   font-weight: bold;
-  animation: sparkleGlow 1.8s infinite ease-in-out;
+  animation: bellFireAura 1.8s infinite ease-in-out;
+  letter-spacing: 1px;
 }
 
-.author-bell {
-  color: #ff3333;
-  text-shadow: 0 0 8px rgba(255, 51, 51, 0.6);
-  font-weight: bold;
+/* 2. SNOW - Frostbite Glacial Aura */
+@keyframes snowIceAura {
+  0%, 100% {
+    color: #ffffff;
+    text-shadow: 
+      0 0 6px #e0f7fa,
+      0 0 14px #80deea,
+      0 0 26px rgba(0, 229, 255, 0.85),
+      0 0 42px rgba(178, 235, 242, 0.6);
+    filter: drop-shadow(0 0 8px #00e5ff);
+    transform: scale(1);
+  }
+  50% {
+    color: #e0f2fe;
+    text-shadow: 
+      0 0 12px #ffffff,
+      0 0 24px #4dd0e1,
+      0 0 38px rgba(0, 240, 255, 1),
+      0 0 55px rgba(128, 222, 234, 0.8);
+    filter: drop-shadow(0 0 18px #38bdf8);
+    transform: scale(1.06);
+  }
 }
 
-.author-snow {
-  color: #ffffff;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+.aura-snow {
+  display: inline-block;
   font-weight: bold;
+  animation: snowIceAura 2s infinite ease-in-out;
+  letter-spacing: 1px;
 }
 
-/* Floating animation */
+/* 3. SHIRATOSI - Radiant Solar Golden Aura */
+@keyframes shiratosiGoldAura {
+  0%, 100% {
+    color: #ffe066;
+    text-shadow: 
+      0 0 6px #ffd700,
+      0 0 14px #ffc107,
+      0 0 28px rgba(255, 215, 0, 0.9),
+      0 0 45px rgba(255, 160, 0, 0.7);
+    filter: drop-shadow(0 0 10px #f59e0b);
+    transform: scale(1);
+  }
+  50% {
+    color: #ffffff;
+    text-shadow: 
+      0 0 12px #fffbeb,
+      0 0 24px #ffd700,
+      0 0 38px rgba(255, 235, 59, 1),
+      0 0 60px rgba(245, 158, 11, 0.9);
+    filter: drop-shadow(0 0 20px #fbbf24);
+    transform: scale(1.07);
+  }
+}
+
+.aura-shiratosi {
+  display: inline-block;
+  font-weight: bold;
+  animation: shiratosiGoldAura 1.9s infinite ease-in-out;
+  letter-spacing: 1px;
+}
+
+/* Floating Animations */
 @keyframes floatY {
   0%, 100% {
     transform: translateY(0px);
@@ -134,35 +165,16 @@ body {
   animation: floatY 3s ease-in-out infinite;
 }
 
-/* Pulse Glow */
-@keyframes pulseGlow {
-  0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
-  }
-  50% {
-    filter: drop-shadow(0 0 22px rgba(255, 215, 0, 0.95));
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 2s infinite ease-in-out;
-}
-
-/* Dice roll shake */
+/* Dice Shake */
 @keyframes shakeAnimation {
   0% { transform: translate(1px, 1px) rotate(0deg); }
-  10% { transform: translate(-1px, -2px) rotate(-1deg); }
-  20% { transform: translate(-3px, 0px) rotate(1deg); }
-  30% { transform: translate(3px, 2px) rotate(0deg); }
-  40% { transform: translate(1px, -1px) rotate(1deg); }
-  50% { transform: translate(-1px, 2px) rotate(-1deg); }
-  60% { transform: translate(-3px, 1px) rotate(0deg); }
-  70% { transform: translate(3px, 1px) rotate(-1deg); }
-  80% { transform: translate(-1px, -1px) rotate(1deg); }
-  90% { transform: translate(1px, 2px) rotate(0deg); }
-  100% { transform: translate(1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-2px, 0px) rotate(1deg); }
+  40% { transform: translate(2px, -1px) rotate(-1deg); }
+  60% { transform: translate(-2px, 1px) rotate(0deg); }
+  80% { transform: translate(1px, -1px) rotate(1deg); }
+  100% { transform: translate(0px, 0px) rotate(0deg); }
 }
 
 .animate-dice-shake {
-  animation: shakeAnimation 0.5s infinite;
+  animation: shakeAnimation 0.4s infinite;
 }

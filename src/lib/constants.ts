@@ -1,32 +1,55 @@
 import type { ClassInfo, WeaponInfo, MapInfo, CharacterCustomization } from '@/types/game';
 
 // ============================================================
-// Asset path helpers
+// Asset path helpers & Sliced Sprites
 // ============================================================
 export const ASSET_PATHS = {
   images: '/assets/images',
   background: '/assets/images/background.png',
   logo: '/assets/images/logo.png',
-  characters: '/assets/images/characters',
-  classui: '/assets/images/classui',
-  frames: '/assets/images/frames',
   maps: '/assets/images/maps',
-  weapons: '/assets/images/weapons',
   models: '/assets/models',
   music: '/assets/music',
+  // Sliced sprites directory
+  sprites: {
+    root: '/assets/sprites',
+    bodies: '/assets/sprites/characters/bodies',
+    hair: '/assets/sprites/characters/hair',
+    faces: '/assets/sprites/characters/faces',
+    shirts: '/assets/sprites/characters/shirts',
+    pants: '/assets/sprites/characters/pants',
+    accessories: '/assets/sprites/characters/accessories',
+    classes: '/assets/sprites/ui/classes',
+    weapons: '/assets/sprites/weapons',
+    buttons: '/assets/sprites/ui/buttons',
+    modes: '/assets/sprites/ui/modes',
+    frames: '/assets/sprites/ui/frames',
+    atlas: '/assets/sprites/ui/atlas',
+  },
 } as const;
 
+// Helper to get sliced asset paths
+export const SPRITE_HELPERS = {
+  body: (idx: number) => `${ASSET_PATHS.sprites.bodies}/body_${String((idx % 8) + 1).padStart(2, '0')}.png`,
+  hair: (idx: number) => `${ASSET_PATHS.sprites.hair}/hair_${String((idx % 20) + 1).padStart(2, '0')}.png`,
+  face: (idx: number) => `${ASSET_PATHS.sprites.faces}/face_${String((idx % 10) + 1).padStart(2, '0')}.png`,
+  shirt: (idx: number) => `${ASSET_PATHS.sprites.shirts}/shirt_${String((idx % 20) + 1).padStart(2, '0')}.png`,
+  pants: (idx: number) => `${ASSET_PATHS.sprites.pants}/pants_${String((idx % 20) + 1).padStart(2, '0')}.png`,
+  accessory: (idx: number) => `${ASSET_PATHS.sprites.accessories}/acc_${String((idx % 20) + 1).padStart(2, '0')}.png`,
+  tier: (idx: number) => `${ASSET_PATHS.sprites.frames}/tier_${String(Math.min(7, Math.max(1, idx))).padStart(2, '0')}.png`,
+};
+
 // ============================================================
-// Class Definitions (Theo đúng luật chơi chi tiết)
+// Class Definitions (Uses individual sliced class banners)
 // ============================================================
 export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
   assassin: {
     id: 'assassin',
     name: 'Assassin',
     nameVi: 'Sát Thủ',
-    description: 'Tăng 50% sát thương gây ra, giảm 1/4 HP tối đa (còn 75 HP).',
+    description: '+50% damage dealt, -25% Max HP (75 HP). High lethality glass cannon.',
     descriptionVi: 'Tăng 50% sát thương gây ra, giảm 1/4 HP tối đa (còn 75 HP).',
-    image: `${ASSET_PATHS.classui}/class-assassin.png`,
+    image: `${ASSET_PATHS.sprites.classes}/class_assassin.png`,
     hpModifier: 0.75,
     damageModifier: 1.5,
     damageReduction: 1.0,
@@ -38,9 +61,9 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     id: 'tanker',
     name: 'Tanker',
     nameVi: 'Đỡ Đòn',
-    description: 'Giáp vững như bàn thạch. Giảm 30% toàn bộ sát thương nhận vào.',
+    description: 'Fortress armor. Reduces all incoming damage by 30%.',
     descriptionVi: 'Giáp vững như bàn thạch. Giảm 30% toàn bộ sát thương nhận vào.',
-    image: `${ASSET_PATHS.classui}/class-tanker.png`,
+    image: `${ASSET_PATHS.sprites.classes}/class_tanker.png`,
     hpModifier: 1.0,
     damageModifier: 1.0,
     damageReduction: 0.7,
@@ -52,9 +75,9 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     id: 'juggernaut',
     name: 'Juggernaut',
     nameVi: 'Khổng Lồ',
-    description: 'Tăng 50% HP tối đa (lên 150 HP), giảm 1/4 sát thương gây ra (còn 75%).',
+    description: '+50% Max HP (150 HP), -25% damage dealt. Unstoppable titan.',
     descriptionVi: 'Tăng 50% HP tối đa (lên 150 HP), giảm 1/4 sát thương gây ra (còn 75%).',
-    image: `${ASSET_PATHS.classui}/class-juggernaut.png`,
+    image: `${ASSET_PATHS.sprites.classes}/class_juggernaut.png`,
     hpModifier: 1.5,
     damageModifier: 0.75,
     damageReduction: 1.0,
@@ -66,9 +89,9 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     id: 'mage',
     name: 'Mage',
     nameVi: 'Pháp Sư',
-    description: 'Bậc thầy nguyên tố. Được phép tung xúc xắc kỹ năng (D6) thêm 1 lần mỗi lượt.',
+    description: 'Arcane master. Rolls skill dice (D6) one extra time every turn (2 D6 rolls).',
     descriptionVi: 'Bậc thầy nguyên tố. Được phép tung xúc xắc kỹ năng (D6) thêm 1 lần mỗi lượt.',
-    image: `${ASSET_PATHS.classui}/class-mage.png`,
+    image: `${ASSET_PATHS.sprites.classes}/class_mage.png`,
     hpModifier: 1.0,
     damageModifier: 1.0,
     damageReduction: 1.0,
@@ -80,9 +103,9 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     id: 'boxer',
     name: 'Boxer',
     nameVi: 'Võ Sĩ Quyền Anh',
-    description: 'Cú đấm thép. Tung xúc xắc tấn công D20 2 lần sau đó lấy kết quả to hơn!',
+    description: 'Iron fist. Rolls attack D20 twice and takes the higher roll!',
     descriptionVi: 'Cú đấm thép. Tung xúc xắc tấn công D20 2 lần sau đó lấy kết quả to hơn!',
-    image: `${ASSET_PATHS.classui}/class-boxer.png`,
+    image: `${ASSET_PATHS.sprites.classes}/class_boxer.png`,
     hpModifier: 1.0,
     damageModifier: 1.0,
     damageReduction: 1.0,
@@ -94,9 +117,9 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     id: 'warrior',
     name: 'Warrior',
     nameVi: 'Chiến Binh',
-    description: 'Chiến binh toàn diện. Máu gốc 120 HP, tấn công ổn định không điểm yếu.',
+    description: 'Balanced combatant with 120 base HP and solid attack power.',
     descriptionVi: 'Chiến binh toàn diện. Máu gốc 120 HP, tấn công ổn định không điểm yếu.',
-    image: `${ASSET_PATHS.classui}/class-warrior.png`,
+    image: `${ASSET_PATHS.sprites.classes}/class_warrior.png`,
     hpModifier: 1.2,
     damageModifier: 1.0,
     damageReduction: 1.0,
@@ -107,21 +130,21 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
 };
 
 // ============================================================
-// 9 Weapons với 2 kỹ năng (Skill 1: mốc sạc D6 15-30, Skill 2: đổ ra số chỉ định)
+// 9 Weapons (Uses individual sliced weapon sprites)
 // ============================================================
 export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
   greatsword: {
     id: 'greatsword',
     name: 'Silver Greatsword',
     nameVi: 'Đại Kiếm Bạc',
-    image: `${ASSET_PATHS.weapons}/weapon-greatsword.png`,
-    description: 'Thanh đại kiếm hai tay cổ xưa rèn từ bạc thánh.',
+    image: `${ASSET_PATHS.sprites.weapons}/weapon_greatsword.png`,
+    description: 'Ancient two-handed greatsword forged from consecrated silver.',
     descriptionVi: 'Thanh đại kiếm hai tay cổ xưa rèn từ bạc thánh.',
     skill1: {
       name: 'Judgement Cleave',
       nameVi: 'Nhát Chém Phán Quyết',
       chargeRequired: 20,
-      description: 'Chém nhát chí mạng gây thêm 18 sát thương bỏ qua phòng thủ.',
+      description: 'Deals 18 true damage bypassing enemy defense.',
       descriptionVi: 'Chém nhát chí mạng gây thêm 18 sát thương bỏ qua phòng thủ.',
       effect: 'cleave_18',
     },
@@ -129,7 +152,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Holy Blade Strike',
       nameVi: 'Thánh Kiếm Trảm',
       triggerNumber: 6,
-      description: 'Khi đổ ra mặt 6: Kích hoạt ngay lập tức đòn chém thánh gây 12 sát thương!',
+      description: 'Trigger on rolling face 6: Deals 12 holy damage immediately!',
       descriptionVi: 'Khi đổ ra mặt 6: Kích hoạt ngay lập tức đòn chém thánh gây 12 sát thương!',
       effect: 'strike_12',
     },
@@ -138,14 +161,14 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     id: 'bow',
     name: 'Curved Wood Bow',
     nameVi: 'Cung Gỗ Cong Tên Đỏ',
-    image: `${ASSET_PATHS.weapons}/weapon-bow.png`,
-    description: 'Cung tiễn săn thú thần với mũi tên đỏ tẩm độc.',
+    image: `${ASSET_PATHS.sprites.weapons}/weapon_bow.png`,
+    description: 'Celestial hunting bow with crimson barbed arrows.',
     descriptionVi: 'Cung tiễn săn thú thần với mũi tên đỏ tẩm độc.',
     skill1: {
       name: 'Rain of Arrows',
       nameVi: 'Mưa Tên Đỏ',
       chargeRequired: 16,
-      description: 'Bắn loạt tên lửa gây 15 sát thương lên kẻ địch.',
+      description: 'Volley of fire arrows dealing 15 damage.',
       descriptionVi: 'Bắn loạt tên lửa gây 15 sát thương lên kẻ địch.',
       effect: 'arrow_rain_15',
     },
@@ -153,7 +176,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Piercing Heart',
       nameVi: 'Tên Xuyên Tim',
       triggerNumber: 1,
-      description: 'Khi đổ ra mặt 1: Kích hoạt ngắm bắn chính xác gây ngay 10 sát thương chuẩn!',
+      description: 'Trigger on rolling face 1: Deals 10 direct puncture damage!',
       descriptionVi: 'Khi đổ ra mặt 1: Kích hoạt ngắm bắn chính xác gây ngay 10 sát thương chuẩn!',
       effect: 'piercing_10',
     },
@@ -162,14 +185,14 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     id: 'dagger',
     name: 'Blue Flame Dragon Dagger',
     nameVi: 'Dao Găm Rồng Lửa Xanh',
-    image: `${ASSET_PATHS.weapons}/weapon-dagger-dragon.png`,
-    description: 'Lưỡi đoản đao rèn từ vảy rồng băng lam rực cháy.',
+    image: `${ASSET_PATHS.sprites.weapons}/weapon_dagger_dragon.png`,
+    description: 'Forged from frosted azure dragon scales imbued with blue flame.',
     descriptionVi: 'Lưỡi đoản đao rèn từ vảy rồng băng lam rực cháy.',
     skill1: {
       name: 'Dragon Fang Rush',
       nameVi: 'Nanh Rồng Vồ Mồi',
       chargeRequired: 18,
-      description: 'Ám sát chớp nhoáng gây 20 sát thương.',
+      description: 'Lightning assassination dealing 20 damage.',
       descriptionVi: 'Ám sát chớp nhoáng gây 20 sát thương.',
       effect: 'dragon_rush_20',
     },
@@ -177,7 +200,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Blue Flame Burn',
       nameVi: 'Lửa Lam Thiêu Rụi',
       triggerNumber: 4,
-      description: 'Khi đổ ra mặt 4: Thiêu đốt đối thủ gây 11 sát thương thiêu đốt!',
+      description: 'Trigger on rolling face 4: Incinerates foe for 11 flame damage!',
       descriptionVi: 'Khi đổ ra mặt 4: Thiêu đốt đối thủ gây 11 sát thương thiêu đốt!',
       effect: 'burn_11',
     },
@@ -186,14 +209,14 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     id: 'revolver',
     name: 'Silver Six-Chamber Revolver',
     nameVi: 'Súng Lục Bạc Sáu Ổ Đạn',
-    image: `${ASSET_PATHS.weapons}/weapon-revolver.png`,
-    description: 'Súng lục phong cách miền tây cổ điển với đạn bạc nổ tung.',
+    image: `${ASSET_PATHS.sprites.weapons}/weapon_revolver.png`,
+    description: 'Western six-shooter loaded with explosive silver hollow-points.',
     descriptionVi: 'Súng lục phong cách miền tây cổ điển với đạn bạc nổ tung.',
     skill1: {
       name: 'Fan The Hammer',
       nameVi: 'Xả Trọn Ổ Đạn',
       chargeRequired: 24,
-      description: 'Bắn liên tiếp cả ổ 6 viên đạn bạc gây 26 sát thương dữ dội!',
+      description: 'Empties the entire cylinder dealing 26 devastating damage!',
       descriptionVi: 'Bắn liên tiếp cả ổ 6 viên đạn bạc gây 26 sát thương dữ dội!',
       effect: 'fan_hammer_26',
     },
@@ -201,7 +224,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Roulette Shot',
       nameVi: 'Phát Bắn Định Mệnh',
       triggerNumber: 6,
-      description: 'Khi đổ ra mặt 6: Viên đạn may mắn nổ tung gây 16 sát thương bộc phá!',
+      description: 'Trigger on rolling face 6: Lucky critical blast for 16 damage!',
       descriptionVi: 'Khi đổ ra mặt 6: Viên đạn may mắn nổ tung gây 16 sát thương bộc phá!',
       effect: 'roulette_16',
     },
@@ -210,14 +233,14 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     id: 'staff',
     name: 'Cyan Arcane Staff',
     nameVi: 'Trượng Gỗ Phép Ngọc Lam',
-    image: `${ASSET_PATHS.weapons}/weapon-staff.png`,
-    description: 'Gậy phép cổ thụ đính ngọc lam hội tụ linh khí đất trời.',
+    image: `${ASSET_PATHS.sprites.weapons}/weapon_staff.png`,
+    description: 'Elder wood staff topped with glowing cyan mana crystal.',
     descriptionVi: 'Gậy phép cổ thụ đính ngọc lam hội tụ linh khí đất trời.',
     skill1: {
       name: 'Arcane Nova',
       nameVi: 'Bão Ma Pháp Ngọc Lam',
       chargeRequired: 22,
-      description: 'Bùng nổ năng lượng ma thuật gây 22 sát thương và hồi 8 HP.',
+      description: 'Unleashes arcane blast dealing 22 damage and heals 8 HP.',
       descriptionVi: 'Bùng nổ năng lượng ma thuật gây 22 sát thương và hồi 8 HP.',
       effect: 'arcane_nova_22',
     },
@@ -225,7 +248,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Mana Barrier',
       nameVi: 'Khiên Ma Lực',
       triggerNumber: 3,
-      description: 'Khi đổ ra mặt 3: Tạo khiên hấp thu và hồi lại 12 HP!',
+      description: 'Trigger on rolling face 3: Creates protective shield healing 12 HP!',
       descriptionVi: 'Khi đổ ra mặt 3: Tạo khiên hấp thu và hồi lại 12 HP!',
       effect: 'heal_12',
     },
@@ -234,14 +257,14 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     id: 'infinity_ring',
     name: 'Void Infinity Ring',
     nameVi: 'Vòng Vô Cực Hư Không',
-    image: `${ASSET_PATHS.weapons}/weapon-infinity-ring.png`,
-    description: 'Chiếc nhẫn xoắn ốc chứa đựng bí mật của không gian và thời gian.',
+    image: `${ASSET_PATHS.sprites.weapons}/weapon_infinity_ring.png`,
+    description: 'Spiraling artifact bending space and time.',
     descriptionVi: 'Chiếc nhẫn xoắn ốc chứa đựng bí mật của không gian và thời gian.',
     skill1: {
       name: 'Black Hole Surge',
       nameVi: 'Xoáy Lỗ Đen Hư Không',
       chargeRequired: 25,
-      description: 'Hút cạn sinh lực kẻ thù: gây 24 sát thương và giảm 5 điểm sạc của đối thủ!',
+      description: 'Siphons life dealing 24 damage and drains 5 enemy charge points!',
       descriptionVi: 'Hút cạn sinh lực kẻ thù: gây 24 sát thương và giảm 5 điểm sạc của đối thủ!',
       effect: 'void_surge_24',
     },
@@ -249,7 +272,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Warp Distortion',
       nameVi: 'Bẻ Cong Chiều Không Gian',
       triggerNumber: 5,
-      description: 'Khi đổ ra mặt 5: Dịch chuyển thực tại gây ngay 13 sát thương hư không!',
+      description: 'Trigger on rolling face 5: Distorts reality dealing 13 void damage!',
       descriptionVi: 'Khi đổ ra mặt 5: Dịch chuyển thực tại gây ngay 13 sát thương hư không!',
       effect: 'warp_13',
     },
@@ -258,14 +281,14 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     id: 'spirit_stone',
     name: 'Raging Beast Soul Stone',
     nameVi: 'Đá Linh Thú Giận Dữ',
-    image: `${ASSET_PATHS.weapons}/weapon-spirit-stone.png`,
-    description: 'Hòn đá phong ấn linh hồn thú cổ đại đang gầm thét cuồng nộ.',
+    image: `${ASSET_PATHS.sprites.weapons}/weapon_spirit_stone.png`,
+    description: 'Ancient relic sealing the howling roar of primeval beasts.',
     descriptionVi: 'Hòn đá phong ấn linh hồn thú cổ đại đang gầm thét cuồng nộ.',
     skill1: {
       name: 'Beast Awakening',
       nameVi: 'Linh Thú Thức Tỉnh',
       chargeRequired: 20,
-      description: 'Triệu hồi cuồng thú giẫm nát phòng tuyến gây 21 sát thương.',
+      description: 'Summons raging spirit beast dealing 21 crush damage.',
       descriptionVi: 'Triệu hồi cuồng thú giẫm nát phòng tuyến gây 21 sát thương.',
       effect: 'beast_21',
     },
@@ -273,7 +296,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Primal Roar',
       nameVi: 'Tiếng Gầm Nguyên Thủy',
       triggerNumber: 2,
-      description: 'Khi đổ ra mặt 2: Tiếng gầm chấn động gây 9 sát thương và tăng 5 điểm sạc!',
+      description: 'Trigger on rolling face 2: Shockwave dealing 9 damage & gives +5 charge!',
       descriptionVi: 'Khi đổ ra mặt 2: Tiếng gầm chấn động gây 9 sát thương và tăng 5 điểm sạc!',
       effect: 'roar_9',
     },
@@ -282,14 +305,14 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     id: 'chronos_watch',
     name: 'Chronos Pocket Watch',
     nameVi: 'Đồng Hồ Bỏ Túi Chronos',
-    image: `${ASSET_PATHS.weapons}/weapon-chronos-watch.png`,
-    description: 'Bảo vật của thần thời gian có thể quay ngược kim đồng hồ sinh mệnh.',
+    image: `${ASSET_PATHS.sprites.weapons}/weapon_chronos_watch.png`,
+    description: 'Timeless heirloom capable of turning back the gears of destiny.',
     descriptionVi: 'Bảo vật của thần thời gian có thể quay ngược kim đồng hồ sinh mệnh.',
     skill1: {
       name: 'Time Dilation',
       nameVi: 'Ngưng Đọng Thời Gian',
       chargeRequired: 30,
-      description: 'Dừng thời gian gây 20 sát thương và hồi phục ngay 20 HP!',
+      description: 'Halts time dealing 20 damage and heals 20 HP instantly!',
       descriptionVi: 'Dừng thời gian gây 20 sát thương và hồi phục ngay 20 HP!',
       effect: 'time_stop_20',
     },
@@ -297,7 +320,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Rewind Fate',
       nameVi: 'Đảo Ngược Vận Mệnh',
       triggerNumber: 1,
-      description: 'Khi đổ ra mặt 1: Quay ngược dòng thời gian lập tức hồi phục 15 HP!',
+      description: 'Trigger on rolling face 1: Rewinds time restoring 15 HP!',
       descriptionVi: 'Khi đổ ra mặt 1: Quay ngược dòng thời gian lập tức hồi phục 15 HP!',
       effect: 'rewind_15',
     },
@@ -306,14 +329,14 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     id: 'fire_headband',
     name: 'Dark Flame Leaf Headband',
     nameVi: 'Băng Đô Lá Hắc Hỏa',
-    image: `${ASSET_PATHS.weapons}/weapon-headband-fire.png`,
-    description: 'Chiếc băng đô dệt từ sợi lá ma thuật bốc cháy lửa địa ngục.',
+    image: `${ASSET_PATHS.sprites.weapons}/weapon_headband_fire.png`,
+    description: 'Woven from enchanted embers burning with inextinguishable hellfire.',
     descriptionVi: 'Chiếc băng đô dệt từ sợi lá ma thuật bốc cháy lửa địa ngục.',
     skill1: {
       name: 'Hellfire Burst',
       nameVi: 'Bộc Phá Hắc Hỏa',
       chargeRequired: 19,
-      description: 'Phóng luồng lửa đen hủy diệt gây 21 sát thương thiêu đốt!',
+      description: 'Unleashes dark flame dealing 21 incinerating damage!',
       descriptionVi: 'Phóng luồng lửa đen hủy diệt gây 21 sát thương thiêu đốt!',
       effect: 'hellfire_21',
     },
@@ -321,7 +344,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Blazing Will',
       nameVi: 'Ý Chí Rực Lửa',
       triggerNumber: 5,
-      description: 'Khi đổ ra mặt 5: Bừng cháy ý chí chiến đấu gây ngay 14 sát thương!',
+      description: 'Trigger on rolling face 5: Flame eruption dealing 14 fire damage!',
       descriptionVi: 'Khi đổ ra mặt 5: Bừng cháy ý chí chiến đấu gây ngay 14 sát thương!',
       effect: 'blaze_14',
     },
@@ -329,7 +352,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
 };
 
 // ============================================================
-// 9 Chiến trường (Maps)
+// 9 Battle Arena Maps
 // ============================================================
 export const MAP_DEFINITIONS: MapInfo[] = [
   {
@@ -397,7 +420,6 @@ export const MAP_DEFINITIONS: MapInfo[] = [
   },
 ];
 
-// Music playlist
 export const BATTLE_TRACKS = [
   `${ASSET_PATHS.music}/battle-music-1.mp3`,
   `${ASSET_PATHS.music}/battle-music-2.mp3`,
@@ -407,57 +429,32 @@ export const BATTLE_TRACKS = [
 
 export const LOBBY_BGM = `${ASSET_PATHS.music}/bg-music.mp3`;
 
-// Default Character Customization
 export const DEFAULT_CUSTOMIZATION: CharacterCustomization = {
   baseIndex: 0,
   hairIndex: 0,
-  hairColor: '#ffe066', // Blonde
-  skinColor: '#f8d5b8', // Light skin
+  hairColor: '#ffe066',
+  skinColor: '#f8d5b8',
   shirtIndex: 0,
-  shirtColor: '#4d94ff', // Blue shirt
+  shirtColor: '#4d94ff',
   pantsIndex: 0,
-  pantsColor: '#2d3748', // Dark pants
+  pantsColor: '#2d3748',
   accessoryIndex: 0,
   faceIndex: 0,
 };
 
-// Preset colors for skin, hair, and clothing
 export const COLOR_PALETTES = {
   skin: [
-    '#fceae6', // Fair
-    '#f8d5b8', // Light
-    '#e0a878', // Medium Tan
-    '#b87333', // Deep Tan
-    '#8b5a2b', // Dark Brown
-    '#4a2c11', // Deep Dark
-    '#90d7ff', // Mystic Blue
-    '#c4a8ff', // Elf Lilac
+    '#fceae6', '#f8d5b8', '#e0a878', '#b87333',
+    '#8b5a2b', '#4a2c11', '#90d7ff', '#c4a8ff',
   ],
   hair: [
-    '#1a1a1a', // Black
-    '#4a2e18', // Chestnut
-    '#8B4513', // Auburn
-    '#ffe066', // Gold Blonde
-    '#ffffff', // Platinum White
-    '#ff4d4d', // Crimson Red
-    '#ff79c6', // Sakura Pink
-    '#50fa7b', // Emerald Green
-    '#8be9fd', // Cyan
-    '#bd93f9', // Royal Purple
-    '#ffb86c', // Fiery Orange
+    '#1a1a1a', '#4a2e18', '#8B4513', '#ffe066',
+    '#ffffff', '#ff4d4d', '#ff79c6', '#50fa7b',
+    '#8be9fd', '#bd93f9', '#ffb86c',
   ],
   clothes: [
-    '#e53e3e', // Red
-    '#dd6b20', // Orange
-    '#d69e2e', // Yellow Gold
-    '#38a169', // Emerald
-    '#319795', // Teal
-    '#3182ce', // Royal Blue
-    '#805ad5', // Purple
-    '#d53f8c', // Magenta
-    '#ffffff', // Pure White
-    '#718096', // Slate Grey
-    '#1a202c', // Dark Charcoal
-    '#975a16', // Leather Brown
+    '#e53e3e', '#dd6b20', '#d69e2e', '#38a169',
+    '#319795', '#3182ce', '#805ad5', '#d53f8c',
+    '#ffffff', '#718096', '#1a202c', '#975a16',
   ],
 };

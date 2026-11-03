@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Press_Start_2P } from 'next/font/google';
+import { Press_Start_2P, VT323, Be_Vietnam_Pro } from 'next/font/google';
 import './globals.css';
 
 const pixelFont = Press_Start_2P({
@@ -9,9 +9,23 @@ const pixelFont = Press_Start_2P({
   display: 'swap',
 });
 
+const vt323Font = VT323({
+  weight: '400',
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-vt323',
+  display: 'swap',
+});
+
+const vietnamFont = Be_Vietnam_Pro({
+  weight: ['400', '600', '700', '800'],
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-vietnam',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'DICE MANIAC - RPG Turn-Base Game',
-  description: 'Game đối kháng xúc xắc 20 mặt Turn-Base RPG Fantasy đỉnh cao',
+  title: 'DICE MANIAC - 1v1 Turn-Based RPG Dice Combat',
+  description: 'Epic 1v1 turn-based RPG with 3D D20 and D6 dice physics, custom characters, 6 classes, and 9 legendary weapons.',
   icons: {
     icon: '/assets/images/logo.png',
   },
@@ -23,16 +37,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${pixelFont.variable} dark select-none`}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="font-pixel antialiased bg-black text-slate-100 min-h-screen overflow-x-hidden">
+    <html
+      lang="en"
+      className={`${pixelFont.variable} ${vt323Font.variable} ${vietnamFont.variable} dark select-none scroll-smooth`}
+    >
+      <body className="antialiased bg-[#07090e] text-slate-100 min-h-screen overflow-x-hidden">
         {children}
       </body>
     </html>

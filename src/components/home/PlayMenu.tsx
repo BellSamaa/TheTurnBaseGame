@@ -13,6 +13,7 @@ import RoomBrowser from '@/components/battle/RoomBrowser';
 export default function PlayMenu() {
   const { setPage, settings, startNewBattle } = useGameStore();
   const lang = settings.language;
+  const isEn = lang === 'en';
 
   const [activeModal, setActiveModal] = useState<
     'none' | 'rewards' | 'quests' | 'ranked_modes' | 'casual_modes' | 'rooms'
@@ -21,7 +22,7 @@ export default function PlayMenu() {
   const [rewardClaimed, setRewardClaimed] = useState(false);
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between items-center overflow-hidden p-4 sm:p-6">
+    <div className="relative min-h-screen w-full flex flex-col justify-between items-center overflow-hidden p-4 sm:p-6 bg-[#07070b]">
       {/* Background with overlay */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -29,7 +30,7 @@ export default function PlayMenu() {
           alt="Play Background"
           fill
           priority
-          className="object-cover filter brightness-[0.4] contrast-[1.1] blur-[2px]"
+          className="object-cover filter brightness-[0.3] contrast-[1.1] blur-[2px]"
         />
         <div className="absolute inset-0 bg-black/60 pointer-events-none" />
       </div>
@@ -45,7 +46,7 @@ export default function PlayMenu() {
           {t('back', lang)}
         </PixelButton>
 
-        <h2 className="text-base sm:text-xl text-yellow-400 font-pixel drop-shadow-[0_0_10px_rgba(234,179,8,0.6)]">
+        <h2 className="text-base sm:text-lg text-yellow-400 font-pixel drop-shadow-[0_0_10px_rgba(234,179,8,0.6)]">
           {t('play', lang)}
         </h2>
 
@@ -67,14 +68,16 @@ export default function PlayMenu() {
           >
             <div className="flex flex-col items-center text-center p-2">
               <span className="text-3xl mb-2">⚔️</span>
-              <h3 className="text-sm sm:text-base font-bold text-yellow-300 mb-1">
+              <h3 className="text-xs sm:text-sm font-bold font-pixel text-yellow-300 mb-1">
                 {t('ranked', lang)}
               </h3>
-              <p className="text-[9px] sm:text-[10px] text-slate-300 leading-relaxed mb-4">
-                Tranh đoạt điểm xếp hạng danh vọng! Ghép đấu với các cao thủ và nhận danh hiệu.
+              <p className="text-[8.5px] sm:text-[9.5px] text-slate-300 font-pixel leading-relaxed mb-4">
+                {isEn
+                  ? 'Compete for tier ranking and glory! Climb from Bronze to Grandmaster.'
+                  : 'Tranh đoạt điểm xếp hạng danh vọng! Ghép đấu với các cao thủ và nhận danh hiệu.'}
               </p>
-              <PixelButton variant="gold" size="sm" className="w-full">
-                VÀO ĐẤU HẠNG
+              <PixelButton variant="gold" size="sm" className="w-full font-pixel text-[9px]">
+                {isEn ? 'ENTER RANKED' : 'VÀO ĐẤU HẠNG'}
               </PixelButton>
             </div>
           </PixelFrame>
@@ -93,14 +96,16 @@ export default function PlayMenu() {
           >
             <div className="flex flex-col items-center text-center p-2">
               <span className="text-3xl mb-2">🎲</span>
-              <h3 className="text-sm sm:text-base font-bold text-cyan-300 mb-1">
+              <h3 className="text-xs sm:text-sm font-bold font-pixel text-cyan-300 mb-1">
                 {t('casual', lang)}
               </h3>
-              <p className="text-[9px] sm:text-[10px] text-slate-300 leading-relaxed mb-4">
-                Đấu luyện tập, Last Man Standing, hoặc so tài cùng trí tuệ nhân tạo PvE không sợ rớt hạng.
+              <p className="text-[8.5px] sm:text-[9.5px] text-slate-300 font-pixel leading-relaxed mb-4">
+                {isEn
+                  ? 'Casual practice, Last Man Standing, or challenge tactical AI without rank penalties.'
+                  : 'Đấu luyện tập, Last Man Standing, hoặc so tài cùng trí tuệ nhân tạo PvE không sợ rớt hạng.'}
               </p>
-              <PixelButton variant="secondary" size="sm" className="w-full">
-                VÀO ĐẤU THƯỜNG
+              <PixelButton variant="secondary" size="sm" className="w-full font-pixel text-[9px]">
+                {isEn ? 'ENTER CASUAL' : 'VÀO ĐẤU THƯỜNG'}
               </PixelButton>
             </div>
           </PixelFrame>
@@ -119,14 +124,16 @@ export default function PlayMenu() {
           >
             <div className="flex flex-col items-center text-center p-2">
               <span className="text-3xl mb-2">🚪</span>
-              <h3 className="text-sm sm:text-base font-bold text-purple-300 mb-1">
+              <h3 className="text-xs sm:text-sm font-bold font-pixel text-purple-300 mb-1">
                 {t('createRoom', lang)}
               </h3>
-              <p className="text-[9px] sm:text-[10px] text-slate-300 leading-relaxed mb-4">
-                Tạo phòng riêng hoặc nhập mã phòng để thi đấu trực tiếp qua mạng với bạn bè!
+              <p className="text-[8.5px] sm:text-[9.5px] text-slate-300 font-pixel leading-relaxed mb-4">
+                {isEn
+                  ? 'Create a custom lobby or enter room code to challenge friends online via Supabase!'
+                  : 'Tạo phòng riêng hoặc nhập mã phòng để thi đấu trực tiếp qua mạng với bạn bè!'}
               </p>
-              <PixelButton variant="frame" size="sm" className="w-full border-purple-500 text-purple-200">
-                PHÒNG CHƠI ONLINE
+              <PixelButton variant="frame" size="sm" className="w-full border-purple-500 text-purple-200 font-pixel text-[9px]">
+                {isEn ? 'ONLINE LOBBY' : 'PHÒNG CHƠI ONLINE'}
               </PixelButton>
             </div>
           </PixelFrame>
@@ -144,10 +151,12 @@ export default function PlayMenu() {
               className="h-full flex flex-col items-center justify-center text-center p-2"
             >
               <span className="text-2xl mb-1">🎁</span>
-              <h4 className="text-[10px] sm:text-xs text-yellow-300 font-bold mb-1">
+              <h4 className="text-[9.5px] sm:text-xs text-yellow-300 font-bold font-pixel mb-1">
                 {t('rewards', lang)}
               </h4>
-              <span className="text-[8px] text-emerald-400 animate-pulse">SẴN SÀNG NHẬN</span>
+              <span className="text-[7.5px] font-pixel text-emerald-400 animate-pulse">
+                {isEn ? 'READY TO CLAIM' : 'SẴN SÀNG NHẬN'}
+              </span>
             </PixelFrame>
           </motion.div>
 
@@ -161,10 +170,12 @@ export default function PlayMenu() {
               className="h-full flex flex-col items-center justify-center text-center p-2"
             >
               <span className="text-2xl mb-1">📜</span>
-              <h4 className="text-[10px] sm:text-xs text-cyan-300 font-bold mb-1">
+              <h4 className="text-[9.5px] sm:text-xs text-cyan-300 font-bold font-pixel mb-1">
                 {t('quests', lang)}
               </h4>
-              <span className="text-[8px] text-yellow-400">3/5 HOÀN THÀNH</span>
+              <span className="text-[7.5px] font-pixel text-yellow-400">
+                {isEn ? '3/5 COMPLETED' : '3/5 HOÀN THÀNH'}
+              </span>
             </PixelFrame>
           </motion.div>
         </div>
@@ -176,10 +187,10 @@ export default function PlayMenu() {
           variant="danger"
           size="lg"
           onClick={() => startNewBattle({ mode: 'pve' })}
-          className="w-full py-3.5 text-xs shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+          className="w-full py-3.5 text-xs font-pixel shadow-[0_0_15px_rgba(239,68,68,0.5)]"
           icon={<span>⚡</span>}
         >
-          CHƠI NHANH VS MÁY (PVE)
+          {isEn ? 'INSTANT BOT BATTLE (PVE)' : 'CHƠI NHANH VS MÁY (PVE)'}
         </PixelButton>
       </div>
 
@@ -215,20 +226,22 @@ export default function PlayMenu() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="w-full max-w-md"
             >
-              <PixelFrame variant="gold" title="🎁 PHẦN THƯỞNG HẰNG NGÀY">
+              <PixelFrame variant="gold" title={isEn ? '🎁 DAILY BOUNTY' : '🎁 PHẦN THƯỞNG HẰNG NGÀY'}>
                 <div className="flex flex-col items-center text-center py-4">
-                  <div className="w-20 h-20 relative mb-4 animate-float">
-                    <span className="text-6xl">🪙</span>
+                  <div className="w-16 h-16 relative mb-3 animate-float flex items-center justify-center">
+                    <span className="text-5xl">🪙</span>
                   </div>
-                  <h4 className="text-sm font-bold text-yellow-300 mb-2">
-                    Túi Vàng Xúc Xắc Huyền Thoại
+                  <h4 className="text-xs font-bold font-pixel text-yellow-300 mb-2">
+                    {isEn ? 'Legendary Dice Coin Pouch' : 'Túi Vàng Xúc Xắc Huyền Thoại'}
                   </h4>
-                  <p className="text-[10px] text-slate-300 mb-6">
-                    +500 Vàng & 1 Vé Tung Xúc Xắc Hoàng Kim miễn phí mỗi ngày!
+                  <p className="text-[9px] text-slate-300 font-pixel mb-6">
+                    {isEn
+                      ? '+500 Gold & 1 Golden D20 Reroll Ticket free every day!'
+                      : '+500 Vàng & 1 Vé Tung Xúc Xắc Hoàng Kim miễn phí mỗi ngày!'}
                   </p>
                   {rewardClaimed ? (
-                    <div className="text-emerald-400 text-xs font-bold py-2">
-                      ✅ ĐÃ NHẬN THƯỞNG HÔM NAY!
+                    <div className="text-emerald-400 text-[10px] font-pixel font-bold py-2">
+                      {isEn ? '✅ CLAIMED TODAY!' : '✅ ĐÃ NHẬN THƯỞNG HÔM NAY!'}
                     </div>
                   ) : (
                     <PixelButton
@@ -236,16 +249,16 @@ export default function PlayMenu() {
                       size="md"
                       onClick={() => setRewardClaimed(true)}
                     >
-                      NHẬN THƯỞNG NGAY
+                      {isEn ? 'CLAIM REWARD' : 'NHẬN THƯỞNG NGAY'}
                     </PixelButton>
                   )}
-                  <div className="mt-6">
+                  <div className="mt-5">
                     <PixelButton
                       variant="frame"
                       size="sm"
                       onClick={() => setActiveModal('none')}
                     >
-                      ĐÓNG
+                      {t('close', lang)}
                     </PixelButton>
                   </div>
                 </div>
@@ -262,30 +275,46 @@ export default function PlayMenu() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="w-full max-w-lg"
             >
-              <PixelFrame variant="cyan" title="📜 NHIỆM VỤ THỬ THÁCH">
+              <PixelFrame variant="cyan" title={isEn ? '📜 QUEST ARCHIVES' : '📜 NHIỆM VỤ THỬ THÁCH'}>
                 <div className="flex flex-col gap-3 py-2 text-left">
                   <div className="p-3 bg-slate-900/90 border border-slate-700 flex justify-between items-center">
                     <div>
-                      <p className="text-xs text-yellow-300 font-bold mb-1">Thắng 3 trận đấu</p>
-                      <p className="text-[9px] text-slate-400">Tiến độ: 2/3 trận</p>
+                      <p className="text-[10px] text-yellow-300 font-pixel font-bold mb-1">
+                        {isEn ? 'Win 3 Battles' : 'Thắng 3 trận đấu'}
+                      </p>
+                      <p className="text-[8px] text-slate-400 font-pixel">
+                        {isEn ? 'Progress: 2/3 matches' : 'Tiến độ: 2/3 trận'}
+                      </p>
                     </div>
-                    <span className="text-[10px] text-cyan-300 font-bold">+100 EXP</span>
+                    <span className="text-[9px] text-cyan-300 font-pixel font-bold">+100 EXP</span>
                   </div>
 
                   <div className="p-3 bg-slate-900/90 border border-slate-700 flex justify-between items-center">
                     <div>
-                      <p className="text-xs text-yellow-300 font-bold mb-1">Tung ra mặt 20 (D20 Critical)</p>
-                      <p className="text-[9px] text-slate-400">Tiến độ: 1/1 (Hoàn thành)</p>
+                      <p className="text-[10px] text-yellow-300 font-pixel font-bold mb-1">
+                        {isEn ? 'Roll a Natural 20 (Critical)' : 'Tung ra mặt 20 (D20 Critical)'}
+                      </p>
+                      <p className="text-[8px] text-slate-400 font-pixel">
+                        {isEn ? 'Progress: 1/1 (Done)' : 'Tiến độ: 1/1 (Hoàn thành)'}
+                      </p>
                     </div>
-                    <PixelButton variant="gold" size="sm">NHẬN</PixelButton>
+                    <PixelButton variant="gold" size="sm">
+                      {isEn ? 'CLAIM' : 'NHẬN'}
+                    </PixelButton>
                   </div>
 
                   <div className="p-3 bg-slate-900/90 border border-slate-700 flex justify-between items-center">
                     <div>
-                      <p className="text-xs text-yellow-300 font-bold mb-1">Kích hoạt Kỹ năng Vũ khí 2 lần</p>
-                      <p className="text-[9px] text-slate-400">Tiến độ: 2/2 (Hoàn thành)</p>
+                      <p className="text-[10px] text-yellow-300 font-pixel font-bold mb-1">
+                        {isEn ? 'Trigger Weapon Skill twice' : 'Kích hoạt Kỹ năng Vũ khí 2 lần'}
+                      </p>
+                      <p className="text-[8px] text-slate-400 font-pixel">
+                        {isEn ? 'Progress: 2/2 (Done)' : 'Tiến độ: 2/2 (Hoàn thành)'}
+                      </p>
                     </div>
-                    <PixelButton variant="gold" size="sm">NHẬN</PixelButton>
+                    <PixelButton variant="gold" size="sm">
+                      {isEn ? 'CLAIM' : 'NHẬN'}
+                    </PixelButton>
                   </div>
                 </div>
 
@@ -295,7 +324,7 @@ export default function PlayMenu() {
                     size="sm"
                     onClick={() => setActiveModal('none')}
                   >
-                    ĐÓNG
+                    {t('close', lang)}
                   </PixelButton>
                 </div>
               </PixelFrame>

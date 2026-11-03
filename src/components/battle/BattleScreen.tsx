@@ -9,6 +9,7 @@ import { t } from '@/lib/translations';
 import {
   CLASS_DEFINITIONS,
   MAP_DEFINITIONS,
+  SPRITE_HELPERS,
 } from '@/lib/constants';
 import {
   rollD20,
@@ -27,6 +28,7 @@ import DiceRoller3D from './DiceRoller3D';
 export default function BattleScreen() {
   const { battleState, setBattleState, setPage, settings } = useGameStore();
   const lang = settings.language;
+  const isEn = lang === 'en';
 
   // Dice rolling state
   const [isRollingD20, setIsRollingD20] = useState(false);
@@ -49,7 +51,7 @@ export default function BattleScreen() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white font-pixel">
         <PixelButton variant="gold" onClick={() => setPage('home')}>
-          VỀ TRANG CHỦ
+          {isEn ? 'BACK TO HOME' : 'VỀ TRANG CHỦ'}
         </PixelButton>
       </div>
     );
@@ -119,187 +121,138 @@ export default function BattleScreen() {
       const defenderClass = p1IsAttacker ? p2Class : p1Class;
       const defenderTarget = p1IsAttacker ? 'p2' : 'p1';
 
-      const combat = calculateD20Combat(
+      const combatResult = calculateD20Combat({
         attackerRoll,
         defenderRoll,
         attackerClass,
-        defenderClass
-      );
+        defenderClass,
+      });
 
-      // Apply damage
-      if (combat.isHit) {
+      if (combatResult.isHit) {
         setFloatingDamage({
           target: defenderTarget,
-          text: `-${combat.damage} HP`,
+          text: `-${combatResult.damageDealt} HP`,
         });
 
         setBattleState((prev) => {
           if (!prev) return null;
-          const targetPlayer = p1IsAttacker ? 'player2' : 'player1';
           return {
             ...prev,
-            [targetPlayer]: {
-              ...prev[targetPlayer],
-              hp: Math.max(0, prev[targetPlayer].hp - combat.damage),
+            player1: {
+              ...prev.player1,
+              hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damageDealt) : prev.player1.hp,
+            },
+            player2: {
+              ...prev.player2,
+              hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damageDealt) : prev.player2.hp,
             },
           };
+        });
+
+        addLog({
+          turn: currentTurn,
+          type: 'damage',
+          message: isEn
+            ? `HIT! Attacker ${attackerRoll} > Defender ${defenderRoll}. Dealt ${combatResult.damageDealt} damage!`
+            : `ĐÁNH TRÚNG! Công ${attackerRoll} > Thủ ${defenderRoll}. Gây ${combatResult.damageDealt} sát thương!`,
+          messageVi: `ĐÁNH TRÚNG! Công ${attackerRoll} > Thủ ${defenderRoll}. Gây ${combatResult.damageDealt} sát thương!`,
         });
       } else {
         setFloatingDamage({
           target: defenderTarget,
-          text: 'ĐỠ ĐÒN (0 DMG)',
+          text: isEn ? 'BLOCKED!' : 'ĐỠ ĐÒN!',
+        });
+
+        addLog({
+          turn: currentTurn,
+          type: 'defend',
+          message: isEn
+            ? `BLOCKED! Attacker ${attackerRoll} <= Defender ${defenderRoll}. 0 damage dealt.`
+            : `PHÒNG THỦ THÀNH CÔNG! Công ${attackerRoll} <= Thủ ${defenderRoll}. Không gây sát thương.`,
+          messageVi: `PHÒNG THỦ THÀNH CÔNG! Công ${attackerRoll} <= Thủ ${defenderRoll}. Không gây sát thương.`,
         });
       }
 
-      addLog({
-        turn: currentTurn,
-        type: combat.isHit ? 'damage' : 'defend',
-        message: `${p1IsAttacker ? player1.name : player2.name} tấn công: ${combat.logTextVi}`,
-        messageVi: `${p1IsAttacker ? player1.name : player2.name} tấn công: ${combat.logTextVi}`,
-      });
-
-      setTimeout(() => setFloatingDamage(null), 1800);
-    }, 1800);
+      setTimeout(() => setFloatingDamage(null), 1600);
+    }, 1200);
   };
 
-  // Handler: ROLL D6 (Skill Charge & Special Trigger)
+  // Handler: ROLL D6 (Skill Charge)
   const handleRollD6 = () => {
     if (isRollingD6 || d6RolledThisTurn || phase === 'game_over') return;
 
     setIsRollingD6(true);
 
-    // Mage rolls extra D6
-    const rollP1 = rollD6();
-    const rollP1Extra = p1Class.extraD6Rolls > 0 ? rollD6() : 0;
-    const totalP1D6 = rollP1 + rollP1Extra;
+    // Mage rolls D6 twice
+    const rollsP1 = [rollD6()];
+    if (p1Class.extraD6Rolls > 0) rollsP1.push(rollD6());
+    const totalP1 = rollsP1.reduce((a, b) => a + b, 0);
 
-    const rollP2 = rollD6();
-    const rollP2Extra = p2Class.extraD6Rolls > 0 ? rollD6() : 0;
-    const totalP2D6 = rollP2 + rollP2Extra;
+    const rollsP2 = [rollD6()];
+    if (p2Class.extraD6Rolls > 0) rollsP2.push(rollD6());
+    const totalP2 = rollsP2.reduce((a, b) => a + b, 0);
 
-    setD6P1(rollP1);
-    setD6P2(rollP2);
+    setD6P1(totalP1);
+    setD6P2(totalP2);
 
     setTimeout(() => {
       setIsRollingD6(false);
       setD6RolledThisTurn(true);
 
-      // Add charge points
       setBattleState((prev) => {
         if (!prev) return null;
         return {
           ...prev,
-          player1: {
-            ...prev.player1,
-            skillCharge: prev.player1.skillCharge + totalP1D6,
-          },
-          player2: {
-            ...prev.player2,
-            skillCharge: prev.player2.skillCharge + totalP2D6,
-          },
+          player1: { ...prev.player1, skillCharge: prev.player1.skillCharge + totalP1 },
+          player2: { ...prev.player2, skillCharge: prev.player2.skillCharge + totalP2 },
         };
       });
 
       addLog({
         turn: currentTurn,
         type: 'skill',
-        message: `Xúc xắc D6: ${player1.name} nhận +${totalP1D6} điểm sạc | ${player2.name} nhận +${totalP2D6} điểm sạc.`,
-        messageVi: `Xúc xắc D6: ${player1.name} nhận +${totalP1D6} điểm sạc | ${player2.name} nhận +${totalP2D6} điểm sạc.`,
+        message: isEn
+          ? `D6 Roll: ${player1.name} +${totalP1} charge, ${player2.name} +${totalP2} charge!`
+          : `Tung D6: ${player1.name} nhận +${totalP1} điểm sạc, ${player2.name} nhận +${totalP2} điểm!`,
+        messageVi: `Tung D6: ${player1.name} nhận +${totalP1} điểm sạc, ${player2.name} nhận +${totalP2} điểm!`,
       });
 
-      // Check Skill 2 Special triggers
-      const p1Skill2 = checkSkill2Trigger(rollP1, player1, player2);
-      if (p1Skill2.triggered) {
-        if (p1Skill2.damage > 0) {
-          setFloatingDamage({ target: 'p2', text: `-${p1Skill2.damage} HP (SKILL 2)` });
-          setBattleState((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  player2: {
-                    ...prev.player2,
-                    hp: Math.max(0, prev.player2.hp - p1Skill2.damage),
-                  },
-                }
-              : null
-          );
-        }
-        if (p1Skill2.heal > 0) {
-          setFloatingDamage({ target: 'p1', text: `+${p1Skill2.heal} HP`, isHeal: true });
-          setBattleState((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  player1: {
-                    ...prev.player1,
-                    hp: Math.min(prev.player1.maxHp, prev.player1.hp + p1Skill2.heal),
-                  },
-                }
-              : null
-          );
-        }
+      // Check weapon skill 2 trigger
+      const p1Trigger = checkSkill2Trigger(player1.weapon, totalP1);
+      if (p1Trigger.triggered) {
+        setFloatingDamage({ target: 'p2', text: `-${p1Trigger.damage} HP (SKILL 2!)` });
+        setBattleState((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            player2: { ...prev.player2, hp: Math.max(0, prev.player2.hp - p1Trigger.damage) },
+          };
+        });
         addLog({
           turn: currentTurn,
           type: 'skill',
-          message: `${player1.name}: ${p1Skill2.logTextVi}`,
-          messageVi: `${player1.name}: ${p1Skill2.logTextVi}`,
+          message: isEn
+            ? `SPECIAL TRIGGER! ${player1.name} rolled ${totalP1} activating ${player1.weapon.skill2.name} dealing ${p1Trigger.damage} DMG!`
+            : `KÍCH HOẠT ĐẶC BIỆT! ${player1.name} đổ ra ${totalP1} kích hoạt ${player1.weapon.skill2.nameVi} gây ${p1Trigger.damage} sát thương!`,
+          messageVi: `KÍCH HOẠT ĐẶC BIỆT! ${player1.name} đổ ra ${totalP1} kích hoạt ${player1.weapon.skill2.nameVi} gây ${p1Trigger.damage} sát thương!`,
         });
       }
-
-      const p2Skill2 = checkSkill2Trigger(rollP2, player2, player1);
-      if (p2Skill2.triggered) {
-        if (p2Skill2.damage > 0) {
-          setFloatingDamage({ target: 'p1', text: `-${p2Skill2.damage} HP (SKILL 2)` });
-          setBattleState((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  player1: {
-                    ...prev.player1,
-                    hp: Math.max(0, prev.player1.hp - p2Skill2.damage),
-                  },
-                }
-              : null
-          );
-        }
-        if (p2Skill2.heal > 0) {
-          setFloatingDamage({ target: 'p2', text: `+${p2Skill2.heal} HP`, isHeal: true });
-          setBattleState((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  player2: {
-                    ...prev.player2,
-                    hp: Math.min(prev.player2.maxHp, prev.player2.hp + p2Skill2.heal),
-                  },
-                }
-              : null
-          );
-        }
-        addLog({
-          turn: currentTurn,
-          type: 'skill',
-          message: `${player2.name}: ${p2Skill2.logTextVi}`,
-          messageVi: `${player2.name}: ${p2Skill2.logTextVi}`,
-        });
-      }
-
-      setTimeout(() => setFloatingDamage(null), 1800);
-    }, 1800);
+    }, 1000);
   };
 
-  // Handler: Activate Skill 1 (Point Threshold)
+  // Handler: CAST SKILL 1 (Charge threshold skill)
   const handleCastSkill1 = (caster: 'p1' | 'p2') => {
     const user = caster === 'p1' ? player1 : player2;
-    const target = caster === 'p1' ? player2 : player1;
+    const opponent = caster === 'p1' ? player2 : player1;
 
-    const res = activateSkill1(user, target);
-    if (!res.success) return;
+    if (user.skillCharge < user.weapon.skill1.chargeRequired) return;
+
+    const res = activateSkill1(user.weapon);
 
     if (res.damage > 0) {
       setFloatingDamage({
         target: caster === 'p1' ? 'p2' : 'p1',
-        text: `-${res.damage} HP (TUYỆT KỸ)`,
+        text: `-${res.damage} HP`,
       });
     }
 
@@ -328,7 +281,9 @@ export default function BattleScreen() {
     addLog({
       turn: currentTurn,
       type: 'skill',
-      message: `${user.name} kích hoạt: ${res.logTextVi}`,
+      message: isEn
+        ? `${user.name} unleashes: ${user.weapon.skill1.name} dealing ${res.damage} DMG!`
+        : `${user.name} kích hoạt: ${res.logTextVi}`,
       messageVi: `${user.name} kích hoạt: ${res.logTextVi}`,
     });
 
@@ -369,41 +324,39 @@ export default function BattleScreen() {
     addLog({
       turn: currentTurn + 1,
       type: 'system',
-      message: `--- BẮT ĐẦU HIỆP ${currentTurn + 1}: ${
-        !p1IsAttacker ? player1.name : player2.name
-      } LÀ BÊN TẤN CÔNG! ---`,
-      messageVi: `--- BẮT ĐẦU HIỆP ${currentTurn + 1}: ${
-        !p1IsAttacker ? player1.name : player2.name
-      } LÀ BÊN TẤN CÔNG! ---`,
+      message: isEn
+        ? `--- ROUND ${currentTurn + 1}: ${!p1IsAttacker ? player1.name : player2.name} IS NOW ATTACKING! ---`
+        : `--- BẮT ĐẦU HIỆP ${currentTurn + 1}: ${!p1IsAttacker ? player1.name : player2.name} LÀ BÊN TẤN CÔNG! ---`,
+      messageVi: `--- BẮT ĐẦU HIỆP ${currentTurn + 1}: ${!p1IsAttacker ? player1.name : player2.name} LÀ BÊN TẤN CÔNG! ---`,
     });
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between items-center p-2 sm:p-4 overflow-hidden select-none">
+    <div className="relative min-h-screen w-full flex flex-col justify-between items-center p-2 sm:p-4 overflow-hidden select-none bg-[#07070b]">
       {/* 1. Map Arena Background */}
       <div className="absolute inset-0 z-0">
         <Image
           src={mapData.image}
-          alt={mapData.nameVi}
+          alt={mapData.name}
           fill
           priority
-          className="object-cover filter brightness-[0.8] contrast-[1.1]"
+          className="object-cover filter brightness-[0.7] contrast-[1.15]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/70 pointer-events-none" />
       </div>
 
       {/* 2. Top Header HUD: HP Bars & Turn Status */}
       <div className="relative z-20 w-full max-w-5xl flex flex-col gap-2">
         {/* Top Status Banner */}
-        <div className="flex items-center justify-between px-3 py-1 bg-black/80 border border-yellow-500/60 shadow">
+        <div className="flex items-center justify-between px-3 py-1.5 bg-black/85 border border-yellow-500/60 shadow">
           <div className="flex items-center gap-2">
-            <span className="text-[9px] text-yellow-400 font-bold">
-              🗺️ {mapData.nameVi}
+            <span className="text-[9px] text-yellow-400 font-pixel font-bold">
+              🗺️ {isEn ? mapData.name : mapData.nameVi}
             </span>
           </div>
 
-          <div className="text-[10px] text-yellow-300 font-bold font-pixel tracking-widest animate-pulse">
-            LƯỢT {currentTurn} • BÊN CÔNG:{' '}
+          <div className="text-[9px] sm:text-[10px] text-yellow-300 font-bold font-pixel tracking-widest animate-pulse">
+            {isEn ? `TURN ${currentTurn} • ATK: ` : `LƯỢT ${currentTurn} • BÊN CÔNG: `}
             <span className="text-red-400">
               {p1IsAttacker ? player1.name : player2.name}
             </span>
@@ -411,23 +364,23 @@ export default function BattleScreen() {
 
           <button
             onClick={() => setPage('play')}
-            className="text-[9px] text-slate-400 hover:text-white px-2 py-0.5 bg-slate-800 border border-slate-600"
+            className="text-[8px] font-pixel text-slate-400 hover:text-white px-2 py-1 bg-slate-800 border border-slate-600 transition"
           >
-            ĐẦU HÀNG / THOÁT
+            {isEn ? 'SURRENDER' : 'ĐẦU HÀNG'}
           </button>
         </div>
 
         {/* Both Players HP & Stats Bar */}
         <div className="grid grid-cols-2 gap-3 sm:gap-6 items-center">
           {/* Player 1 Health HUD */}
-          <div className="relative p-2 bg-black/75 border-2 border-yellow-500/70 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
+          <div className="relative p-2 bg-black/80 border-2 border-yellow-500/70 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-bold text-yellow-300 flex items-center gap-1.5">
+              <span className="text-[9px] font-pixel font-bold text-yellow-300 flex items-center gap-1.5">
                 <span>{p1IsAttacker ? '⚔️' : '🛡️'}</span>
-                {player1.name} ({p1Class.nameVi})
+                {player1.name} ({isEn ? p1Class.name : p1Class.nameVi})
               </span>
-              <span className="text-[9px] font-bold text-cyan-300">
-                SẠC: {player1.skillCharge} đ
+              <span className="text-[8px] font-pixel font-bold text-cyan-300">
+                {isEn ? `CHARGE: ${player1.skillCharge} pts` : `SẠC: ${player1.skillCharge} đ`}
               </span>
             </div>
             <HealthBar
@@ -438,14 +391,14 @@ export default function BattleScreen() {
           </div>
 
           {/* Player 2 Health HUD */}
-          <div className="relative p-2 bg-black/75 border-2 border-red-500/70 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+          <div className="relative p-2 bg-black/80 border-2 border-red-500/70 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-bold text-red-300 flex items-center gap-1.5">
+              <span className="text-[9px] font-pixel font-bold text-red-300 flex items-center gap-1.5">
                 <span>{!p1IsAttacker ? '⚔️' : '🛡️'}</span>
-                {player2.name} ({p2Class.nameVi})
+                {player2.name} ({isEn ? p2Class.name : p2Class.nameVi})
               </span>
-              <span className="text-[9px] font-bold text-cyan-300">
-                SẠC: {player2.skillCharge} đ
+              <span className="text-[8px] font-pixel font-bold text-cyan-300">
+                {isEn ? `CHARGE: ${player2.skillCharge} pts` : `SẠC: ${player2.skillCharge} đ`}
               </span>
             </div>
             <HealthBar
@@ -457,9 +410,9 @@ export default function BattleScreen() {
         </div>
       </div>
 
-      {/* 3. Center Battle Arena: Characters & 3D Dice */}
+      {/* 3. Center Battle Arena: Sliced Layered Characters & 3D Dice */}
       <div className="relative z-20 w-full max-w-5xl my-auto flex items-center justify-between px-2 sm:px-8">
-        {/* Left: Player 1 Character Sprite Stage */}
+        {/* Left: Player 1 Sliced Layered Character Stage */}
         <div className="relative flex flex-col items-center">
           {/* Floating Damage Text */}
           <AnimatePresence>
@@ -468,7 +421,7 @@ export default function BattleScreen() {
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: -30, scale: 1.2 }}
                 exit={{ opacity: 0 }}
-                className={`absolute -top-10 font-pixel text-sm sm:text-base font-bold drop-shadow-[0_2px_4px_#000] z-30 ${
+                className={`absolute -top-10 font-pixel text-xs sm:text-sm font-bold drop-shadow-[0_2px_4px_#000] z-30 ${
                   floatingDamage.isHeal ? 'text-emerald-400' : 'text-red-500'
                 }`}
               >
@@ -477,33 +430,64 @@ export default function BattleScreen() {
             )}
           </AnimatePresence>
 
+          {/* Player 1 Sliced Layered Sprite Avatar */}
           <div
             className={`
-              relative w-28 h-36 sm:w-40 sm:h-52 flex items-center justify-center transition-all duration-300
+              relative w-28 h-40 sm:w-36 sm:h-52 flex items-center justify-center transition-all duration-300
               ${p1IsAttacker ? 'ring-4 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.6)]' : ''}
             `}
           >
-            <Image
-              src="/assets/images/characters/char-8transparent.png"
-              alt="Player 1"
-              fill
-              className="object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]"
-              style={{
-                transform: `scale(1.3) translateX(-${(player1.character.baseIndex % 4) * 25}%) translateY(-${Math.floor(player1.character.baseIndex / 4) * 50}%)`,
-                transformOrigin: 'top left',
-              }}
+            {/* 1. Body */}
+            <img
+              src={SPRITE_HELPERS.body(player1.character.baseIndex)}
+              alt="Player 1 Body"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]"
+            />
+            {/* Body Skin Tint */}
+            <div
+              className="absolute inset-0 z-11 pointer-events-none mix-blend-color opacity-30"
+              style={{ backgroundColor: player1.character.skinColor }}
+            />
+            {/* 2. Pants */}
+            <img
+              src={SPRITE_HELPERS.pants(player1.character.pantsIndex)}
+              alt="Pants"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-20 pointer-events-none"
+            />
+            {/* 3. Shirt */}
+            <img
+              src={SPRITE_HELPERS.shirt(player1.character.shirtIndex)}
+              alt="Shirt"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-30 pointer-events-none"
+            />
+            {/* 4. Face */}
+            <img
+              src={SPRITE_HELPERS.face(player1.character.faceIndex)}
+              alt="Face"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-40 pointer-events-none"
+            />
+            {/* 5. Hair */}
+            <img
+              src={SPRITE_HELPERS.hair(player1.character.hairIndex)}
+              alt="Hair"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-50 pointer-events-none"
+            />
+            {/* 6. Accessory */}
+            <img
+              src={SPRITE_HELPERS.accessory(player1.character.accessoryIndex)}
+              alt="Accessory"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-60 pointer-events-none"
             />
           </div>
 
-          <span className="mt-1 text-[9px] font-pixel text-yellow-300 bg-black/80 px-2 py-0.5 border border-yellow-500">
-            {p1IsAttacker ? '⚔️ TẤN CÔNG' : '🛡️ PHÒNG THỦ'}
+          <span className="mt-1 text-[8px] font-pixel text-yellow-300 bg-black/80 px-2 py-0.5 border border-yellow-500">
+            {p1IsAttacker ? (isEn ? '⚔️ ATTACKING' : '⚔️ TẤN CÔNG') : (isEn ? '🛡️ DEFENDING' : '🛡️ PHÒNG THỦ')}
           </span>
         </div>
 
         {/* Center: 3D Dice Rolling Arena */}
         <div className="relative flex flex-col items-center justify-center gap-2">
-          {/* Tray Frame Images */}
-          <div className="p-2 sm:p-4 bg-black/70 border-2 border-yellow-500/60 rounded-none shadow-[0_0_25px_rgba(0,0,0,0.9)] backdrop-blur-sm flex flex-col items-center">
+          <div className="p-2 sm:p-4 bg-black/75 border-2 border-yellow-500/60 rounded-none shadow-[0_0_25px_rgba(0,0,0,0.9)] backdrop-blur-sm flex flex-col items-center">
             <div className="flex items-center gap-3 sm:gap-6">
               {/* D20 Dice 3D */}
               <div className="flex flex-col items-center">
@@ -511,7 +495,7 @@ export default function BattleScreen() {
                   diceType="d20"
                   isRolling={isRollingD20}
                   targetValue={p1IsAttacker ? d20P1 : d20P2}
-                  label="XÚC XẮC D20 (CÔNG/THỦ)"
+                  label={isEn ? 'D20 COMBAT DIE' : 'XÚC XẮC D20 (CÔNG/THỦ)'}
                 />
               </div>
 
@@ -521,7 +505,7 @@ export default function BattleScreen() {
                   diceType="d6"
                   isRolling={isRollingD6}
                   targetValue={d6P1}
-                  label="XÚC XẮC D6 (SẠC CHIÊU)"
+                  label={isEn ? 'D6 SKILL DIE' : 'XÚC XẮC D6 (SẠC CHIÊU)'}
                 />
               </div>
             </div>
@@ -529,15 +513,15 @@ export default function BattleScreen() {
             {/* Combat Roll Status Display */}
             <div className="mt-2 text-center">
               {d20P1 !== null && d20P2 !== null && (
-                <div className="text-[10px] sm:text-xs font-bold text-yellow-300 bg-black/90 px-3 py-1 border border-yellow-400 shadow">
-                  P1: {d20P1} điểm | P2: {d20P2} điểm
+                <div className="text-[9px] sm:text-[10px] font-pixel font-bold text-yellow-300 bg-black/90 px-3 py-1 border border-yellow-400 shadow">
+                  P1: {d20P1} pts | P2: {d20P2} pts
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Right: Player 2 Character Sprite Stage (Mirrored) */}
+        {/* Right: Player 2 Sliced Layered Character Stage (Mirrored) */}
         <div className="relative flex flex-col items-center">
           {/* Floating Damage Text */}
           <AnimatePresence>
@@ -546,7 +530,7 @@ export default function BattleScreen() {
                 initial={{ opacity: 0, y: 10, scale: 0.8 }}
                 animate={{ opacity: 1, y: -30, scale: 1.2 }}
                 exit={{ opacity: 0 }}
-                className={`absolute -top-10 font-pixel text-sm sm:text-base font-bold drop-shadow-[0_2px_4px_#000] z-30 ${
+                className={`absolute -top-10 font-pixel text-xs sm:text-sm font-bold drop-shadow-[0_2px_4px_#000] z-30 ${
                   floatingDamage.isHeal ? 'text-emerald-400' : 'text-red-500'
                 }`}
               >
@@ -555,26 +539,58 @@ export default function BattleScreen() {
             )}
           </AnimatePresence>
 
+          {/* Player 2 Sliced Layered Sprite Avatar (Mirrored) */}
           <div
             className={`
-              relative w-28 h-36 sm:w-40 sm:h-52 flex items-center justify-center transition-all duration-300 scale-x-[-1]
+              relative w-28 h-40 sm:w-36 sm:h-52 flex items-center justify-center transition-all duration-300 scale-x-[-1]
               ${!p1IsAttacker ? 'ring-4 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.6)]' : ''}
             `}
           >
-            <Image
-              src="/assets/images/characters/char-8transparent.png"
-              alt="Player 2"
-              fill
-              className="object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]"
-              style={{
-                transform: `scale(1.3) translateX(-${(player2.character.baseIndex % 4) * 25}%) translateY(-${Math.floor(player2.character.baseIndex / 4) * 50}%)`,
-                transformOrigin: 'top left',
-              }}
+            {/* 1. Body */}
+            <img
+              src={SPRITE_HELPERS.body(player2.character.baseIndex)}
+              alt="Player 2 Body"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-10 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.9)]"
+            />
+            {/* Body Skin Tint */}
+            <div
+              className="absolute inset-0 z-11 pointer-events-none mix-blend-color opacity-30"
+              style={{ backgroundColor: player2.character.skinColor }}
+            />
+            {/* 2. Pants */}
+            <img
+              src={SPRITE_HELPERS.pants(player2.character.pantsIndex)}
+              alt="Pants"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-20 pointer-events-none"
+            />
+            {/* 3. Shirt */}
+            <img
+              src={SPRITE_HELPERS.shirt(player2.character.shirtIndex)}
+              alt="Shirt"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-30 pointer-events-none"
+            />
+            {/* 4. Face */}
+            <img
+              src={SPRITE_HELPERS.face(player2.character.faceIndex)}
+              alt="Face"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-40 pointer-events-none"
+            />
+            {/* 5. Hair */}
+            <img
+              src={SPRITE_HELPERS.hair(player2.character.hairIndex)}
+              alt="Hair"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-50 pointer-events-none"
+            />
+            {/* 6. Accessory */}
+            <img
+              src={SPRITE_HELPERS.accessory(player2.character.accessoryIndex)}
+              alt="Accessory"
+              className="absolute inset-0 w-full h-full object-contain pixelated z-60 pointer-events-none"
             />
           </div>
 
-          <span className="mt-1 text-[9px] font-pixel text-red-300 bg-black/80 px-2 py-0.5 border border-red-500">
-            {!p1IsAttacker ? '⚔️ TẤN CÔNG' : '🛡️ PHÒNG THỦ'}
+          <span className="mt-1 text-[8px] font-pixel text-red-300 bg-black/80 px-2 py-0.5 border border-red-500">
+            {!p1IsAttacker ? (isEn ? '⚔️ ATTACKING' : '⚔️ TẤN CÔNG') : (isEn ? '🛡️ DEFENDING' : '🛡️ PHÒNG THỦ')}
           </span>
         </div>
       </div>
@@ -584,13 +600,13 @@ export default function BattleScreen() {
         {/* Left: Skill Cast & Weapon Powers (4 cols) */}
         <div className="md:col-span-4 bg-black/85 border border-yellow-500/60 p-2.5 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between text-[9px] font-bold text-yellow-300 mb-1">
-              <span>🗡️ {player1.weapon.nameVi}</span>
-              <span className="text-cyan-300">{player1.skillCharge} / {player1.weapon.skill1.chargeRequired} đ</span>
+            <div className="flex items-center justify-between text-[8.5px] font-pixel font-bold text-yellow-300 mb-1">
+              <span>🗡️ {isEn ? player1.weapon.name : player1.weapon.nameVi}</span>
+              <span className="text-cyan-300">{player1.skillCharge} / {player1.weapon.skill1.chargeRequired} pts</span>
             </div>
 
-            <p className="text-[8px] text-slate-400 leading-tight mb-2">
-              {player1.weapon.skill1.descriptionVi}
+            <p className="text-[7.5px] font-pixel text-slate-400 leading-tight mb-2">
+              {isEn ? player1.weapon.skill1.description : player1.weapon.skill1.descriptionVi}
             </p>
           </div>
 
@@ -599,9 +615,11 @@ export default function BattleScreen() {
             size="sm"
             disabled={player1.skillCharge < player1.weapon.skill1.chargeRequired}
             onClick={() => handleCastSkill1('p1')}
-            className="w-full text-[9px] py-2"
+            className="w-full text-[8.5px] font-pixel py-2"
           >
-            🔥 TUNG TUYỆT KỸ ({player1.weapon.skill1.chargeRequired} ĐIỂM)
+            {isEn
+              ? `🔥 UNLEASH SKILL (${player1.weapon.skill1.chargeRequired} PTS)`
+              : `🔥 TUNG TUYỆT KỸ (${player1.weapon.skill1.chargeRequired} ĐIỂM)`}
           </PixelButton>
         </div>
 
@@ -614,9 +632,11 @@ export default function BattleScreen() {
               size="sm"
               disabled={isRollingD20 || d20RolledThisTurn}
               onClick={handleRollD20}
-              className="w-full text-[9px] py-2.5 shadow-[0_0_12px_rgba(239,68,68,0.5)]"
+              className="w-full text-[8px] font-pixel py-2.5 shadow-[0_0_12px_rgba(239,68,68,0.5)]"
             >
-              {d20RolledThisTurn ? '✓ ĐÃ TUNG D20' : '🎲 TUNG D20 (CÔNG)'}
+              {d20RolledThisTurn
+                ? (isEn ? '✓ D20 ROLLED' : '✓ ĐÃ TUNG D20')
+                : (isEn ? '🎲 ROLL D20 (ATK)' : '🎲 TUNG D20 (CÔNG)')}
             </PixelButton>
 
             {/* Roll D6 Button */}
@@ -625,9 +645,11 @@ export default function BattleScreen() {
               size="sm"
               disabled={isRollingD6 || d6RolledThisTurn}
               onClick={handleRollD6}
-              className="w-full text-[9px] py-2.5"
+              className="w-full text-[8px] font-pixel py-2.5"
             >
-              {d6RolledThisTurn ? '✓ ĐÃ TUNG D6' : '⚡ TUNG D6 (SẠC)'}
+              {d6RolledThisTurn
+                ? (isEn ? '✓ D6 ROLLED' : '✓ ĐÃ TUNG D6')
+                : (isEn ? '⚡ ROLL D6 (CHARGE)' : '⚡ TUNG D6 (SẠC)')}
             </PixelButton>
           </div>
 
@@ -637,20 +659,20 @@ export default function BattleScreen() {
             size="sm"
             disabled={!d20RolledThisTurn}
             onClick={handleEndTurn}
-            className="w-full text-[10px] py-2 font-bold"
+            className="w-full text-[9px] font-pixel py-2 font-bold"
           >
-            KẾT THÚC LƯỢT ➔
+            {isEn ? 'END TURN ➔' : 'KẾT THÚC LƯỢT ➔'}
           </PixelButton>
         </div>
 
         {/* Right: Battle Log Box (4 cols) */}
         <div className="md:col-span-4 bg-black/85 border border-slate-700 p-2 flex flex-col">
-          <div className="text-[9px] text-yellow-400 font-bold mb-1 flex items-center justify-between border-b border-slate-800 pb-1">
-            <span>📜 NHẬT KÝ CHIẾN ĐẤU</span>
-            <span className="text-[7.5px] text-slate-500">REALTIME</span>
+          <div className="text-[8.5px] font-pixel text-yellow-400 font-bold mb-1 flex items-center justify-between border-b border-slate-800 pb-1">
+            <span>📜 {isEn ? 'COMBAT LOG' : 'NHẬT KÝ CHIẾN ĐẤU'}</span>
+            <span className="text-[7px] text-slate-500 font-pixel">LIVE</span>
           </div>
 
-          <div className="flex-1 max-h-24 overflow-y-auto space-y-1 text-[8px] text-slate-300 pr-1">
+          <div className="flex-1 max-h-24 overflow-y-auto space-y-1 text-[7.5px] font-pixel text-slate-300 pr-1">
             {battleLog.slice(0, 8).map((log, idx) => (
               <div
                 key={idx}
@@ -685,7 +707,11 @@ export default function BattleScreen() {
             >
               <PixelFrame
                 variant={winnerId === player1.id ? 'gold' : 'red'}
-                title={winnerId === player1.id ? '👑 CHIẾN THẮNG HUY HOÀNG!' : '💀 BẠN ĐÃ THẤT BẠI!'}
+                title={
+                  winnerId === player1.id
+                    ? (isEn ? '👑 GLORIOUS VICTORY!' : '👑 CHIẾN THẮNG HUY HOÀNG!')
+                    : (isEn ? '💀 DEFEATED IN COMBAT!' : '💀 BẠN ĐÃ THẤT BẠI!')
+                }
               >
                 <div className="flex flex-col items-center text-center py-4">
                   <span className="text-6xl mb-3 animate-float">
@@ -693,17 +719,23 @@ export default function BattleScreen() {
                   </span>
 
                   <h3
-                    className={`text-base sm:text-lg font-bold mb-2 ${
+                    className={`text-sm sm:text-base font-pixel font-bold mb-2 ${
                       winnerId === player1.id ? 'text-yellow-400' : 'text-red-500'
                     }`}
                   >
-                    {winnerId === player1.id ? 'VICTORY - CHIẾN THẮNG!' : 'DEFEAT - THẤT TRẬN!'}
+                    {winnerId === player1.id
+                      ? (isEn ? 'VICTORY - TRIUMPH!' : 'VICTORY - CHIẾN THẮNG!')
+                      : (isEn ? 'DEFEAT - CRUSHED!' : 'DEFEAT - THẤT TRẬN!')}
                   </h3>
 
-                  <p className="text-[10px] text-slate-300 mb-6">
+                  <p className="text-[9px] font-pixel text-slate-300 mb-6">
                     {winnerId === player1.id
-                      ? `Chúc mừng ${player1.name}! Bạn đã hạ gục ${player2.name} sau ${currentTurn} lượt đấu cam go!`
-                      : `${player2.name} đã đánh bại bạn! Hãy nâng cấp kỹ năng và thử lại.`}
+                      ? (isEn
+                          ? `Congratulations ${player1.name}! You defeated ${player2.name} in round ${currentTurn}!`
+                          : `Chúc mừng ${player1.name}! Bạn đã hạ gục ${player2.name} sau ${currentTurn} lượt đấu cam go!`)
+                      : (isEn
+                          ? `${player2.name} has bested you! Refine your tactics and roll again.`
+                          : `${player2.name} đã đánh bại bạn! Hãy nâng cấp kỹ năng và thử lại.`)}
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-3 w-full">
@@ -711,18 +743,18 @@ export default function BattleScreen() {
                       variant="gold"
                       size="md"
                       onClick={() => setPage('play')}
-                      className="w-full"
+                      className="w-full text-xs font-pixel"
                     >
-                      CHƠI TIẾP TRẬN MỚI
+                      {isEn ? 'PLAY ANOTHER MATCH' : 'CHƠI TIẾP TRẬN MỚI'}
                     </PixelButton>
 
                     <PixelButton
                       variant="frame"
                       size="md"
                       onClick={() => setPage('home')}
-                      className="w-full"
+                      className="w-full text-xs font-pixel"
                     >
-                      VỀ TRANG CHỦ
+                      {t('home', lang)}
                     </PixelButton>
                   </div>
                 </div>

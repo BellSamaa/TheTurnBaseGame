@@ -23,12 +23,13 @@ interface ModeCard {
   badgeText: string;
   descriptionVi: string;
   descriptionEn: string;
-  imageIcon: string;
+  spriteImage: string;
 }
 
 export default function GameModeSelector({ matchType, onClose }: GameModeSelectorProps) {
   const { settings, startNewBattle } = useGameStore();
   const lang = settings.language;
+  const isEn = lang === 'en';
 
   const [selectedMode, setSelectedMode] = useState<GameMode>('pve');
   const [selectedMap, setSelectedMap] = useState<string>(MAP_DEFINITIONS[0].id);
@@ -41,8 +42,8 @@ export default function GameModeSelector({ matchType, onClose }: GameModeSelecto
       icon: '🤖',
       badgeText: 'HOT',
       descriptionVi: 'Đấu trí 1v1 với Boss AI thông minh. Rèn luyện xúc xắc và thử nghiệm các vũ khí mới!',
-      descriptionEn: 'Challenge a tactical AI bot. Perfect to master your weapon skills.',
-      imageIcon: '/assets/images/frames/frame-effect-box.png',
+      descriptionEn: 'Challenge a tactical AI bot. Perfect to master your weapon skills and dice rolls.',
+      spriteImage: '/assets/sprites/ui/modes/mode_pve.png',
     },
     {
       id: 'last_man_standing',
@@ -52,7 +53,7 @@ export default function GameModeSelector({ matchType, onClose }: GameModeSelecto
       badgeText: 'HARDCORE',
       descriptionVi: 'Đấu đến giọt máu cuối cùng. Mỗi hiệp tăng sát thương xúc xắc gấp bội!',
       descriptionEn: 'Fight to the death. Dice damage multipliers increase every round!',
-      imageIcon: '/assets/images/frames/frame-d20-tray.png',
+      spriteImage: '/assets/sprites/ui/modes/mode_special.png',
     },
     {
       id: 'classic',
@@ -61,8 +62,8 @@ export default function GameModeSelector({ matchType, onClose }: GameModeSelecto
       icon: '⚔️',
       badgeText: 'PVP',
       descriptionVi: 'Chơi cùng bạn bè trên cùng một máy (Pass & Play) hoặc thử thách đối thủ.',
-      descriptionEn: 'Pass & play on the same screen or local competitive mode.',
-      imageIcon: '/assets/images/frames/frame-hp-bar-gold.png',
+      descriptionEn: 'Pass & play on the same device or local competitive 1v1 duel.',
+      spriteImage: '/assets/sprites/ui/modes/mode_casual.png',
     },
   ];
 
@@ -75,6 +76,8 @@ export default function GameModeSelector({ matchType, onClose }: GameModeSelecto
     onClose();
   };
 
+  const selectedMapInfo = MAP_DEFINITIONS.find((m) => m.id === selectedMap) || MAP_DEFINITIONS[0];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto">
       <motion.div
@@ -85,7 +88,11 @@ export default function GameModeSelector({ matchType, onClose }: GameModeSelecto
       >
         <PixelFrame
           variant={matchType === 'ranked' ? 'gold' : 'cyan'}
-          title={`${matchType === 'ranked' ? '🏆 ĐẤU HẠNG (RANKED)' : '🎲 ĐẤU THƯỜNG (CASUAL)'}`}
+          title={
+            matchType === 'ranked'
+              ? (isEn ? '🏆 RANKED MATCHMAKING' : '🏆 ĐẤU HẠNG (RANKED)')
+              : (isEn ? '🎲 CASUAL MATCHMAKING' : '🎲 ĐẤU THƯỜNG (CASUAL)')
+          }
           headerRight={
             <button
               onClick={onClose}
@@ -95,23 +102,8 @@ export default function GameModeSelector({ matchType, onClose }: GameModeSelecto
             </button>
           }
         >
-          {/* Decorative Mode Frame Banner */}
-          <div className="relative w-full h-24 sm:h-32 mb-4 border-2 border-yellow-500/50 overflow-hidden bg-slate-950">
-            <Image
-              src="/assets/images/frames/frame-mode-select.png"
-              alt="Mode Select Frame"
-              fill
-              className="object-cover object-center filter brightness-90 contrast-125"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 flex items-center justify-center">
-              <span className="text-xs sm:text-base text-yellow-300 font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,1)] uppercase tracking-wider text-center px-4">
-                {t('selectMode', lang)}
-              </span>
-            </div>
-          </div>
-
-          {/* Mode Selection Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+          {/* Mode Selection Cards (Uses Sliced Mode Sprites) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5 mt-2">
             {modes.map((mode) => {
               const isSelected = selectedMode === mode.id;
               return (
@@ -128,28 +120,33 @@ export default function GameModeSelector({ matchType, onClose }: GameModeSelecto
                     }
                   `}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">{mode.icon}</span>
+                  {/* Sliced Mode Thumbnail Header */}
+                  <div className="relative w-full h-24 mb-2.5 overflow-hidden bg-black border border-slate-700 flex items-center justify-center">
+                    <img
+                      src={mode.spriteImage}
+                      alt={mode.nameEn}
+                      className="w-full h-full object-cover pixelated"
+                    />
                     <span
-                      className={`text-[8px] font-bold px-1.5 py-0.5 ${
-                        isSelected ? 'bg-yellow-500 text-black' : 'bg-slate-700 text-slate-300'
+                      className={`absolute top-1.5 right-1.5 text-[7.5px] font-pixel font-bold px-1.5 py-0.5 ${
+                        isSelected ? 'bg-yellow-500 text-black' : 'bg-black/80 text-yellow-400 border border-yellow-500/40'
                       }`}
                     >
                       {mode.badgeText}
                     </span>
                   </div>
 
-                  <h4 className="text-[11px] font-bold text-yellow-300 mb-2 leading-tight">
-                    {lang === 'vi' ? mode.nameVi : mode.nameEn}
+                  <h4 className="text-[10px] font-bold font-pixel text-yellow-300 mb-1.5 leading-tight">
+                    {isEn ? mode.nameEn : mode.nameVi}
                   </h4>
 
-                  <p className="text-[9px] text-slate-300 leading-normal mb-3">
-                    {lang === 'vi' ? mode.descriptionVi : mode.descriptionEn}
+                  <p className="text-[8px] text-slate-300 font-pixel leading-normal mb-3">
+                    {isEn ? mode.descriptionEn : mode.descriptionVi}
                   </p>
 
                   <div className="mt-auto pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span className="text-[8px] text-slate-400">
-                      {isSelected ? '✓ ĐANG CHỌN' : 'CHỌN'}
+                    <span className="text-[7.5px] font-pixel text-slate-400">
+                      {isSelected ? (isEn ? '✓ SELECTED' : '✓ ĐANG CHỌN') : (isEn ? 'SELECT' : 'CHỌN')}
                     </span>
                   </div>
                 </div>
@@ -158,13 +155,15 @@ export default function GameModeSelector({ matchType, onClose }: GameModeSelecto
           </div>
 
           {/* Map / Arena Selector */}
-          <div className="mb-5 p-3 bg-slate-950/80 border border-slate-800">
+          <div className="mb-5 p-3 bg-slate-950/90 border border-slate-800">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] text-yellow-400 font-bold">
-                🗺️ CHỌN CHIẾN TRƯỜNG ({MAP_DEFINITIONS.length} ĐẤU TRƯỜNG):
+              <span className="text-[9px] text-yellow-400 font-pixel font-bold">
+                {isEn
+                  ? `🗺️ SELECT BATTLE ARENA (${MAP_DEFINITIONS.length} REALMS):`
+                  : `🗺️ CHỌN CHIẾN TRƯỜNG (${MAP_DEFINITIONS.length} ĐẤU TRƯỜNG):`}
               </span>
-              <span className="text-[9px] text-cyan-300">
-                {MAP_DEFINITIONS.find((m) => m.id === selectedMap)?.nameVi}
+              <span className="text-[8px] text-cyan-300 font-pixel">
+                {isEn ? selectedMapInfo.name : selectedMapInfo.nameVi}
               </span>
             </div>
 
@@ -181,11 +180,11 @@ export default function GameModeSelector({ matchType, onClose }: GameModeSelecto
                         : 'border-slate-700 opacity-60 hover:opacity-100'
                     }
                   `}
-                  title={map.nameVi}
+                  title={isEn ? map.name : map.nameVi}
                 >
                   <Image
                     src={map.image}
-                    alt={map.nameVi}
+                    alt={map.name}
                     fill
                     className="object-cover"
                   />

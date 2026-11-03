@@ -10,7 +10,7 @@ export interface ClassInfo {
   nameVi: string;
   description: string;
   descriptionVi: string;
-  image: string;
+  image: string; // Sliced class banner
   hpModifier: number;
   damageModifier: number;
   damageReduction: number;
@@ -33,7 +33,7 @@ export interface WeaponInfo {
   id: string;
   name: string;
   nameVi: string;
-  image: string;
+  image: string; // Sliced weapon sprite
   description: string;
   descriptionVi: string;
   skill1: WeaponSkill & { chargeRequired: number };
@@ -41,16 +41,25 @@ export interface WeaponInfo {
 }
 
 export interface CharacterCustomization {
-  baseIndex: number;
-  hairIndex: number;
+  baseIndex: number; // 0-7: body_01.png to body_08.png
+  hairIndex: number; // 0-19: hair_01.png to hair_20.png
   hairColor: string;
   skinColor: string;
-  shirtIndex: number;
+  shirtIndex: number; // 0-19: shirt_01.png to shirt_20.png
   shirtColor: string;
-  pantsIndex: number;
+  pantsIndex: number; // 0-19: pants_01.png to pants_20.png
   pantsColor: string;
-  accessoryIndex: number;
-  faceIndex: number;
+  accessoryIndex: number; // 0-19: acc_01.png to acc_20.png
+  faceIndex: number; // 0-9: face_01.png to face_10.png
+}
+
+export interface UserAccount {
+  id: string;
+  username: string;
+  email: string;
+  bio?: string;
+  createdAt: string;
+  avatarConfig: CharacterCustomization;
 }
 
 export interface PlayerState {
@@ -127,7 +136,16 @@ export interface RoomState {
   battleState: BattleState | null;
 }
 
-export type GamePage = 'home' | 'play' | 'character' | 'weapons' | 'friends' | 'settings' | 'battle';
+export type GamePage =
+  | 'home'
+  | 'play'
+  | 'character'
+  | 'weapons'
+  | 'friends'
+  | 'settings'
+  | 'battle'
+  | 'preview';
+
 export type PlaySubPage = 'main' | 'rewards' | 'quests' | 'ranked' | 'casual' | 'create_room';
 export type Language = 'en' | 'vi';
 
@@ -154,6 +172,8 @@ export interface PlayerProfile {
   weaponId: string;
   character: CharacterCustomization;
   rank: number;
+  tier: number; // 1-7 (tier_01 to tier_07)
   wins: number;
   losses: number;
+  highestD20: number;
 }
