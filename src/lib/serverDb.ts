@@ -257,7 +257,7 @@ export function getRoomByCode(code: string): DbOnlineRoom | null {
   const room = db.rooms[upper];
   if (!room) return null;
 
-  if (Date.now() - room.lastActive > 2 * 60 * 60 * 1000) {
+  if (Date.now() - room.lastActive > (room.status === 'playing' ? 2 * 60 * 60 * 1000 : 5 * 60 * 1000)) {
     delete db.rooms[upper];
     saveDatabase();
     return null;
@@ -294,6 +294,7 @@ export async function getRoomByCodeAsync(code: string): Promise<DbOnlineRoom | n
       createdAt: Number(data.created_at || Date.now()),
       lastActive: Number(data.last_active || Date.now()),
     };
+    if (room.status !== 'playing' && Date.now() - room.lastActive > 5 * 60 * 1000) return null;
     return room;
   } catch (err) {
     throw err;
@@ -303,7 +304,9 @@ export async function getRoomByCodeAsync(code: string): Promise<DbOnlineRoom | n
 export async function listOpenRooms(): Promise<DbOnlineRoom[]> {
   const sb = getSupabaseClient();
   if (sb) {
-    const { data, error } = await sb.from('rooms').select('code').eq('status', 'waiting');
+    const { error: cleanupError } = await sb.from('rooms').delete().neq('status', 'playing').lt('last_active', Date.now() - 5 * 60 * 1000);
+    if (cleanupError) throw new Error(cleanupError.message);
+    const { data, error } = await sb.from('rooms').select('code').eq('status', 'waiting').gt('last_active', Date.now() - 5 * 60 * 1000);
     if (error) throw new Error(error.message);
     const rooms = await Promise.all((data || []).map(r => getRoomByCodeAsync(r.code)));
     return rooms.filter((r): r is DbOnlineRoom => r !== null);
@@ -312,7 +315,7 @@ export async function listOpenRooms(): Promise<DbOnlineRoom[]> {
   const db = loadDatabase();
   const now = Date.now();
   return Object.values(db.rooms)
-    .filter((r) => r.status === 'waiting' && now - r.lastActive < 30 * 60 * 1000)
+    .filter((r) => r.status === 'waiting' && now - r.lastActive < 5 * 60 * 1000)
     .sort((a, b) => b.createdAt - a.createdAt);
 }
 

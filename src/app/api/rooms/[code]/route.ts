@@ -38,6 +38,23 @@ export async function POST(req: Request, context: RouteContext) {
     const body = await req.json();
     const { action } = body;
 
+    if (action === 'heartbeat') {
+      if (body.userId !== room.host.id) return NextResponse.json({ success: false }, { status: 403 });
+      await updateRoom(room);
+      return NextResponse.json({ success: true });
+    }
+    if (action === 'return_lobby') {
+      if (body.userId !== room.host.id && body.userId !== room.guest?.id) return NextResponse.json({ success: false }, { status: 403 });
+      if (room.status === 'playing' && !room.battleState?.winnerId) return NextResponse.json({ success: false, error: 'Match still in progress' }, { status: 409 });
+      if (room.status === 'finished' || room.status === 'playing') {
+        room.status = room.guest ? 'ready' : 'waiting';
+        room.host.isReady = false;
+        if (room.guest) room.guest.isReady = false;
+        await updateRoom(room);
+      }
+      return NextResponse.json({ success: true, room });
+    }
+
     // 1. JOIN ROOM
     if (action === 'join') {
       const { guest } = body;
@@ -98,7 +115,7 @@ export async function POST(req: Request, context: RouteContext) {
         }, { status: 409 });
       }
       if (body.userId !== room.host.id) return NextResponse.json({ success: false, error: 'Chỉ chủ phòng hiện tại được bắt đầu trận. Hãy vào lại phòng để cập nhật. / Only the current host can start.' }, { status: 403 });
-      if (room.battleState) return NextResponse.json({ success: true, room });
+      if (room.status === 'playing' && room.battleState) return NextResponse.json({ success: true, room });
       if (!room.host.isReady || !room.guest?.isReady) return NextResponse.json({ success: false, error: 'Both players must be ready' }, { status: 409 });
       if (!room.guest) {
         return NextResponse.json(
@@ -175,7 +192,7 @@ export async function POST(req: Request, context: RouteContext) {
     if (action === 'battle_update') {
       const { battleState } = body;
       if (body.userId !== room.host.id && body.userId !== room.guest?.id) return NextResponse.json({ success: false }, { status: 403 });
-      if (!room.battleState || body.expectedRevision !== (room.battleState.revision ?? 0)) return NextResponse.json({ success: false, room }, { status: 409 });
+      if (room.status !== 'playing' || !room.battleState || body.expectedRevision !== (room.battleState.revision ?? 0)) return NextResponse.json({ success: false, room }, { status: 409 });
       if (battleState && battleState.id === room.battleState.id) {
         battleState.revision = (room.battleState.revision ?? 0) + 1;
         room.battleState = battleState;

@@ -204,3 +204,14 @@ html, body {
 .animate-enchant-glow {
   animation: enchantGlow 2.5s ease-in-out infinite;
 }
+
+/* Clear action guidance and short, non-blocking combat accents. */
+.action-beacon { outline: 2px solid #fde68a; outline-offset: 3px; animation: action-beacon 1.4s ease-in-out infinite; }
+@keyframes action-beacon { 0%,100% { filter: brightness(1.08); box-shadow: 0 0 12px #facc1580; } 50% { filter: brightness(1.3); box-shadow: 0 0 26px #facc15c0; } }
+.combat-impact { position: absolute; top: 22%; left: 50%; width: 140px; height: 140px; margin-left: -70px; pointer-events: none; z-index: 35; animation: impact-burst .65s ease-out both; }
+.combat-guard { border: 5px double #67e8f9; border-radius: 48% 48% 60% 60%; background: radial-gradient(ellipse, #22d3ee50, transparent 65%); box-shadow: 0 0 25px #22d3ee, inset 0 0 20px #67e8f9; }
+.combat-strike i { position: absolute; top: 45%; left: 0; width: 100%; height: 7px; background: linear-gradient(90deg, transparent, #fff7ed, #fb923c, transparent); transform: rotate(-35deg); box-shadow: 0 0 12px #f97316; }
+.combat-strike i:nth-child(2) { top: 30%; transform: rotate(35deg); }
+.combat-strike i:nth-child(3) { top: 60%; width: 80%; transform: rotate(-35deg); }
+@keyframes impact-burst { 0% { opacity: 0; scale: .3; rotate: -12deg; } 25% { opacity: 1; scale: 1.1; rotate: 0deg; } 100% { opacity: 0; scale: 1.5; } }
+@media (prefers-reduced-motion: reduce) { .action-beacon { animation: none; box-shadow: 0 0 15px #facc15; } .combat-impact { animation: none; opacity: .5; } }

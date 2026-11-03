@@ -173,10 +173,14 @@ export default function BattleScreen() {
     settings,
     currentUser,
     onlineRoomCode,
+    setOnlineRoomCode,
   } = useGameStore();
 
   const lang = settings.language;
   const isEn = lang === 'en';
+
+  const [lobbyError, setLobbyError] = useState('');
+  const [returningToLobby, setReturningToLobby] = useState(false);
 
   // Rolling states
   const [turnStep, setTurnStep] = useState<'d20_atk' | 'd20_def' | 'd6_atk' | 'd6_def' | 'd12'>(
@@ -485,7 +489,7 @@ export default function BattleScreen() {
   const myPlayer = isP1User ? player1 : player2;
   const myCurrentPts = myPlayer.d12Charge || 0;
   const myReqPts = myPlayer.weapon.skill2.chargeRequired || 20;
-  const canCastSkill2 = myCurrentPts >= myReqPts && !d12RolledThisTurn && turnStep === 'd12';
+  const canCastSkill2 = myCurrentPts >= myReqPts && !d12RolledThisTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12';
 
   // Add message to battle log (Local state only; actions include logs in their synced state)
   const addLog = (entry: Omit<BattleLogEntry, 'timestamp'>) => {
@@ -1229,6 +1233,24 @@ export default function BattleScreen() {
     setTimeout(() => setIsEndingTurn(false), 500);
   };
 
+  const returnToLobby = async () => {
+    if (!onlineRoomCode) { setPage('home'); return; }
+    if (syncPendingRef.current) { setLobbyError(isEn ? 'Saving result. Try again shortly.' : 'Đang lưu kết quả. Hãy thử lại sau giây lát.'); return; }
+    setReturningToLobby(true);
+    setLobbyError('');
+    try {
+      const response = await fetch('/api/rooms/' + onlineRoomCode, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'return_lobby', userId: currentUser?.id }),
+      });
+      if (response.status === 404) { setOnlineRoomCode(null); setPage('play'); return; }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Please retry');
+      setPage('play');
+    } catch (err) { setLobbyError(err instanceof Error ? err.message : 'Connection failed'); }
+    finally { setReturningToLobby(false); }
+  };
+
   // Forfeit Handler
   const handleConfirmForfeit = () => {
     setForfeitModalOpen(false);
@@ -1415,6 +1437,7 @@ export default function BattleScreen() {
           <div className="relative flex flex-col items-center">
             <AnimatePresence>
               {damagePopup?.target === 'p1' && <PixelDamagePopup event={damagePopup} />}
+              {damagePopup?.target === 'p1' && <div key={'impact-' + damagePopup.id} aria-hidden="true" className={'combat-impact ' + (damagePopup.type === 'block' ? 'combat-guard' : 'combat-strike')}><i /><i /><i /></div>}
             </AnimatePresence>
 
             {/* Character Sprite with Direct VFX Overlay */}
@@ -1457,6 +1480,7 @@ export default function BattleScreen() {
           <div className="relative flex flex-col items-center">
             <AnimatePresence>
               {damagePopup?.target === 'p2' && <PixelDamagePopup event={damagePopup} />}
+              {damagePopup?.target === 'p2' && <div key={'impact-' + damagePopup.id} aria-hidden="true" className={'combat-impact ' + (damagePopup.type === 'block' ? 'combat-guard' : 'combat-strike')}><i /><i /><i /></div>}
             </AnimatePresence>
 
             {/* Character Sprite with Direct VFX Overlay */}
@@ -1492,6 +1516,15 @@ export default function BattleScreen() {
 
       {/* 4. Bottom Tactical Command Center */}
       <footer className="relative z-20 w-full px-2 sm:px-4 py-2 bg-black/92 border-t-2 border-yellow-500/70 flex flex-col items-center gap-2">
+        <div role="status" aria-live="polite" className="text-center text-xs sm:text-sm font-bold text-yellow-200 py-1">
+          {bothPlayersHaveRolled
+            ? hasLocalPlayerEndedTurn
+              ? (isEn ? 'Waiting for your opponent to finish…' : 'Đang chờ đối thủ kết thúc lượt…')
+              : (isEn ? '▼ END TURN to continue · Skill 2 is optional when glowing' : '▼ Bấm KẾT THÚC LƯỢT để tiếp tục · Có thể dùng Skill 2 khi sáng')
+            : canLocalRoll
+              ? '▼ ' + rollButtonTitle
+              : rollButtonTitle}
+        </div>
         {/* ============================================================ */}
         {/* THE 4 CENTERED ADJACENT BUTTONS */}
         {/* Left Pair: ROLL DICE + END TURN | Right Pair: SKILL 1 (Indicator) + SKILL 2 (Action) */}
@@ -1508,7 +1541,7 @@ export default function BattleScreen() {
                 className={`w-full ${
                   !canLocalRoll
                     ? 'opacity-40 grayscale pointer-events-none'
-                    : 'hover:scale-[1.02] ring-2 ring-yellow-400 shadow-[0_0_15px_#facc15] animate-pulse'
+                    : 'action-beacon hover:scale-[1.02] ring-2 ring-yellow-400'
                 }`}
                 title={rollButtonTitle}
               />
@@ -1519,7 +1552,7 @@ export default function BattleScreen() {
               className={`w-full transition-all duration-300 ${
                 !bothPlayersHaveRolled || hasLocalPlayerEndedTurn
                   ? 'opacity-30 grayscale pointer-events-none cursor-not-allowed'
-                  : 'opacity-100 ring-2 ring-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.8)] animate-pulse'
+                  : 'action-beacon opacity-100 ring-2 ring-yellow-400'
               }`}
             >
               <PixelSpriteButton
@@ -1733,10 +1766,10 @@ export default function BattleScreen() {
               className="w-full max-w-md bg-[#0a0d17] border-2 border-yellow-500 p-6 text-center shadow-[0_0_35px_rgba(250,204,21,0.6)]"
             >
               <h2 className="text-xl sm:text-2xl font-pixel text-yellow-400 drop-shadow mb-2">
-                {winnerId === player1.id ? (isEn ? 'VICTORY!' : 'CHIẾN THẮNG!') : (isEn ? 'DEFEAT!' : 'THẤT BẠI!')}
+                {winnerId === myPlayer.id ? (isEn ? 'VICTORY!' : 'CHIẾN THẮNG!') : (isEn ? 'DEFEAT!' : 'THẤT BẠI!')}
               </h2>
               <p className="text-[10px] font-pixel text-slate-300 mb-6">
-                {winnerId === player1.id
+                {winnerId === myPlayer.id
                   ? isEn
                     ? 'You have dominated the dice arena!'
                     : 'Bạn đã thống trị đấu trường xúc xắc!'
@@ -1747,11 +1780,13 @@ export default function BattleScreen() {
               <PixelButton
                 variant="gold"
                 size="md"
-                onClick={() => setPage('home')}
-                className="w-full font-pixel"
+                onClick={returnToLobby}
+                disabled={returningToLobby}
+                className="w-full font-pixel action-beacon"
               >
-                {isEn ? 'RETURN TO HOME' : 'VỀ TRANG CHỦ'}
+                {onlineRoomCode ? (isEn ? 'RETURN TO ROOM · PLAY AGAIN' : 'VỀ PHÒNG · CHƠI TIẾP') : (isEn ? 'RETURN TO HOME' : 'VỀ TRANG CHỦ')}
               </PixelButton>
+              {lobbyError && <p role="alert" className="mt-3 text-sm text-red-300">{lobbyError}</p>}
             </motion.div>
           </div>
         )}

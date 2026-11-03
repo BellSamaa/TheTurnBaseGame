@@ -14,13 +14,13 @@ import RoomBrowser from '@/components/battle/RoomBrowser';
 import { playClickSound } from '@/lib/soundEffects';
 
 export default function PlayMenu() {
-  const { setPage, settings, currentUser, setAuthModal } = useGameStore();
+  const { setPage, settings, currentUser, setAuthModal, onlineRoomCode } = useGameStore();
   const lang = settings.language;
   const isEn = lang === 'en';
 
   const [activeModal, setActiveModal] = useState<
     'none' | 'mode_selector' | 'rooms'
-  >('none');
+  > (onlineRoomCode ? 'rooms' : 'none');
 
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-between items-center overflow-hidden p-3 sm:p-5 bg-[#07090e] select-none">

@@ -17,7 +17,7 @@ interface RoomBrowserProps {
 }
 
 export default function RoomBrowser({ onClose }: RoomBrowserProps) {
-  const { profile, settings, currentUser, setOnlineRoomCode, setBattleState, setPage, setAuthModal } = useGameStore();
+  const { profile, settings, currentUser, setOnlineRoomCode, setBattleState, setPage, setAuthModal, onlineRoomCode } = useGameStore();
   const lang = settings.language;
   const isEn = lang === 'en';
 
@@ -36,6 +36,28 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
   const [copiedCode, setCopiedCode] = useState(false);
 
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Restore the existing room after a completed match.
+  useEffect(() => {
+    if (!onlineRoomCode) return;
+    let cancelled = false;
+    fetch('/api/rooms/' + onlineRoomCode, { cache: 'no-store' }).then(r => r.json()).then(data => {
+      if (cancelled) return;
+      if (data.room) { setCurrentLobby(data.room); setActiveTab('lobby'); }
+      else setOnlineRoomCode(null);
+    }).catch(() => setErrorMessage(isEn ? 'Cannot reconnect. Try again.' : 'Không thể nối lại phòng. Hãy thử lại.'));
+    return () => { cancelled = true; };
+  }, [onlineRoomCode, setOnlineRoomCode, isEn]);
+
+  useEffect(() => {
+    if (!currentLobby || currentLobby.host.id !== currentUser?.id) return;
+    const heartbeat = () => fetch('/api/rooms/' + currentLobby.code, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'heartbeat', userId: currentUser.id }),
+    }).catch(() => {});
+    const timer = setInterval(heartbeat, 30000);
+    return () => clearInterval(timer);
+  }, [currentLobby?.code, currentUser?.id]);
 
   // 1. Fetch public rooms list from server
   const fetchRooms = async () => {
@@ -83,6 +105,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
           // Room closed or deleted
           setErrorMessage(isEn ? 'Host left or room was closed.' : 'Chủ phòng đã rời hoặc phòng đã đóng.');
           setCurrentLobby(null);
+          setOnlineRoomCode(null);
           setActiveTab('browse');
         }
       } catch {
@@ -246,7 +269,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
   const handleLeaveRoom = async () => {
     if (currentLobby && currentUser) {
       try {
-        await fetch(`/api/rooms/${currentLobby.code}`, {
+        const res = await fetch(`/api/rooms/${currentLobby.code}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -254,13 +277,17 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
             userId: currentUser.id,
           }),
         });
+        if (!res.ok && res.status !== 404) throw new Error('Leave failed');
       } catch {
-        // Ignore
+        setErrorMessage(isEn ? 'Could not leave room. Please retry.' : 'Chưa thể rời phòng. Vui lòng thử lại.');
+        return false;
       }
     }
+    setOnlineRoomCode(null);
     setCurrentLobby(null);
     setActiveTab('browse');
     fetchRooms();
+    return true;
   };
 
   const copyRoomCode = () => {
@@ -281,7 +308,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
           title={isEn ? '🏰 ONLINE MULTIPLAYER 1V1 (REAL PLAYERS)' : '🏰 ĐẤU TRỰC TUYẾN 1V1 VỚI NGƯỜI THẬT'}
           headerRight={
             <button
-              onClick={onClose}
+              onClick={async () => { if (await handleLeaveRoom()) onClose(); }}
               className="text-slate-400 hover:text-white text-xs font-pixel px-2 py-1 bg-slate-800 border border-slate-600 cursor-pointer"
             >
               ✕
@@ -597,7 +624,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                     className={`px-3 py-2 text-[9px] font-pixel border-2 transition cursor-pointer select-none ${
                       (isHost ? currentLobby.host.isReady : currentLobby.guest?.isReady)
                         ? 'bg-emerald-950 text-emerald-300 border-emerald-500 shadow-[0_0_10px_#10b981]'
-                        : 'bg-yellow-950 text-yellow-300 border-yellow-500 hover:bg-yellow-900'
+                        : 'action-beacon bg-yellow-950 text-yellow-300 border-yellow-500 hover:bg-yellow-900'
                     }`}
                   >
                     {(isHost ? currentLobby.host.isReady : currentLobby.guest?.isReady)
@@ -611,7 +638,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                       disabled={!bothReady || isLoading}
                       className={`px-4 py-2 text-[9px] font-pixel border-2 transition cursor-pointer select-none font-bold ${
                         bothReady && !isLoading
-                          ? 'bg-yellow-400 text-black border-yellow-200 shadow-[0_0_15px_#facc15] hover:scale-105'
+                          ? 'action-beacon bg-yellow-400 text-black border-yellow-200 shadow-[0_0_15px_#facc15] hover:scale-105'
                           : 'bg-slate-900 text-slate-500 border-slate-700 cursor-not-allowed opacity-50'
                       }`}
                     >
