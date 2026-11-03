@@ -221,6 +221,7 @@ export default function BattleScreen() {
   const [turnBannerText, setTurnBannerText] = useState<string | null>(null);
 
   // Cinematic Skill Banner Queue
+  const seenSkillBanners = useRef(new Set<string>(battleState?.activeSkillBanner ? [battleState.activeSkillBanner.id] : []));
   const [skillBannerQueue, setSkillBannerQueue] = useState<SkillActivationEvent[]>([]);
 
   // Centered combat log modal
@@ -325,11 +326,9 @@ export default function BattleScreen() {
                   setDamagePopup(remote.damagePopup);
                 }
 
-                if (remote.activeSkillBanner) {
-                  setSkillBannerQueue((prev) => {
-                    if (prev.some((e) => e.id === remote.activeSkillBanner!.id)) return prev;
-                    return [...prev, remote.activeSkillBanner!];
-                  });
+                if (remote.activeSkillBanner && !seenSkillBanners.current.has(remote.activeSkillBanner.id)) {
+                  seenSkillBanners.current.add(remote.activeSkillBanner.id);
+                  setSkillBannerQueue(prev => [...prev, remote.activeSkillBanner!]);
                 }
 
                 // If both rolled D20, calculate combat formula
@@ -861,6 +860,7 @@ export default function BattleScreen() {
     const banner: SkillActivationEvent = { id: crypto.randomUUID(), weaponId: caster.weapon.id,
       skillNameEn: skill.name, casterName: caster.name, auraColor: getWeaponAuraColor(caster.weapon.id) };
     const vfx: VfxEvent = { id: crypto.randomUUID(), effect: getWeaponVfx(caster.weapon.id, slot === 2), target: isP1 ? 'p2' : 'p1', size: slot === 2 ? 180 : 130 };
+    seenSkillBanners.current.add(banner.id);
     setSkillBannerQueue(q => [...q, banner]);
     setActiveVfx(vfx);
     playWeaponSound(caster.weapon.id);
@@ -966,6 +966,7 @@ export default function BattleScreen() {
         p1D6: null,
         p2D6: null,
         activeVfx: null,
+        activeSkillBanner: null,
         damagePopup: null,
         player1: {
           ...prev.player1,
@@ -1279,7 +1280,7 @@ export default function BattleScreen() {
           {bothPlayersHaveRolled
             ? hasLocalPlayerEndedTurn
               ? (isEn ? 'Waiting for your opponent to finish…' : 'Đang chờ đối thủ kết thúc lượt…')
-              : (isEn ? '▼ END TURN to continue · Both skills are optional; each costs shared PTS' : '▼ Bấm KẾT THÚC LƯỢT để tiếp tục · Hai kỹ năng dùng chung PTS; bấm để dùng khi sáng')
+              : (isEn ? '▼ END TURN / SKILL' : '▼ KẾT THÚC LƯỢT / DÙNG SKILL')
             : canLocalRoll
               ? '▼ ' + rollButtonTitle
               : rollButtonTitle}
@@ -1339,15 +1340,17 @@ export default function BattleScreen() {
               const skill = slot === 1 ? myPlayer.weapon.skill1 : myPlayer.weapon.skill2;
               const enabled = (slot === 1 ? canCastSkill1 : canCastSkill2) && phase !== 'game_over';
               const used = (slot === 1 ? myPlayer.skill1UsedTurn : myPlayer.skill2UsedTurn) === currentTurn;
-              return <div key={slot} className="w-full min-w-0">
+              return <div key={slot} tabIndex={0} className="group relative w-full min-w-0" aria-label={(isEn ? skill.name : skill.nameVi) + ": " + (isEn ? skill.description : skill.descriptionVi)}>
                 <button onClick={() => handleCastSkill(slot)} disabled={!enabled}
-                  className={'w-full min-h-14 px-2 py-2 border-2 text-xs font-bold transition ' + (enabled ? 'action-beacon border-yellow-300 bg-purple-950 text-yellow-200 cursor-pointer' : 'border-slate-700 bg-slate-950 text-slate-400')}
+                  className={'w-full h-[38px] sm:h-[44px] px-2 border-2 font-pixel text-[8px] sm:text-[9px] font-bold transition ' + (enabled ? 'action-beacon border-yellow-300 bg-purple-950 text-yellow-200 cursor-pointer' : 'border-slate-700 bg-slate-950 text-slate-400')}
                   title={isEn ? skill.description : skill.descriptionVi}>
                   <span className="block">SKILL {slot} · {skillCost(myPlayer, slot)} PTS</span>
-                  <span className="block">{isEn ? skill.name : skill.nameVi}</span>
-                  <span className="block text-[10px]">{used ? (isEn ? 'USED THIS ROUND' : 'ĐÃ DÙNG HIỆP NÀY') : enabled ? (isEn ? 'CLICK TO CAST' : 'BẤM ĐỂ DÙNG') : myCurrentPts + '/' + skillCost(myPlayer, slot) + ' PTS'}</span>
+                  <span className="block text-[10px]">{used ? '✓' : enabled ? '⚡' : myCurrentPts + '/' + skillCost(myPlayer, slot)}</span>
                 </button>
-                <p className="text-[11px] text-slate-300 mt-2 leading-relaxed">{isEn ? skill.description : skill.descriptionVi}</p>
+                <div role="tooltip" className="absolute bottom-full right-0 mb-2 z-50 hidden group-hover:block group-focus-within:block w-64 max-w-[75vw] p-3 border border-yellow-500/70 bg-slate-950 shadow-xl text-xs text-slate-200 leading-relaxed after:absolute after:top-full after:left-0 after:h-2 after:w-full">
+                  <strong className="text-yellow-300">{isEn ? skill.name : skill.nameVi} · {skillCost(myPlayer, slot)} PTS</strong>
+                  <p className="mt-1">{isEn ? skill.description : skill.descriptionVi}</p>
+                  <p className="mt-1 text-cyan-300">{isEn ? 'Shared PTS · Once per round' : 'Dùng chung PTS · 1 lần/hiệp'}</p>
                 {slot === 1 && Array.isArray(skill.triggerNumber) && <select
                   aria-label={isEn ? 'Choose Skill 1 form' : 'Chọn dạng Skill 1'}
                   value={selectedSkillForm != null && skill.triggerNumber.includes(selectedSkillForm) ? selectedSkillForm : skill.triggerNumber[0]}
@@ -1355,12 +1358,13 @@ export default function BattleScreen() {
                   className="w-full mt-1 bg-slate-900 text-yellow-200 border border-slate-500 text-xs p-1">
                   {skill.triggerNumber.map(form => <option key={form} value={form}>{({ infinity_ring: { 3: 'Aoi · Stun', 4: 'Akai · 10 DMG', 6: 'Infinity · Shield' }, dagger: { 1: 'Throw · Burn', 2: 'Multi Slash · Buff' }, chronos_watch: { 2: 'Time Anchor', 4: 'Fate Seal', 6: 'Time Lock' } } as Record<string, Record<number, string>>)[myPlayer.weapon.id]?.[form] || form}</option>)}
                 </select>}
+                </div>
               </div>;
             })}
           </div>
         </div>
 
-        <p className="text-xs text-cyan-200">{isEn ? 'SHARED PTS: ' : 'PTS DÙNG CHUNG: '}{myCurrentPts} · {isEn ? 'D6 charges only · Each skill once per round · Unspent PTS carry over' : 'D6 chỉ sạc điểm · Mỗi kỹ năng 1 lần/hiệp · Điểm dư giữ lại'}</p>
+        <p className="text-xs text-cyan-200">PTS: {myCurrentPts}</p>
         {/* Expandable Compact Battle Log Strip */}
         <div className="w-full max-w-4xl flex items-center justify-between px-3 py-1 bg-[#060810]/90 border border-slate-700 text-[7px] sm:text-[8px] font-pixel">
           <div className="flex items-center gap-2 truncate">

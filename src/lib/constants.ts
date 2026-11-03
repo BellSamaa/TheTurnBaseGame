@@ -331,7 +331,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     id: 'fire_headband',
     name: 'Leaf Headband',
     nameVi: 'Vũ Khí Leaf Headband',
-    tier: 'legendary',
+    tier: 'secret',
     image: `${ASSET_PATHS.sprites.weapons}/weapon_headband_fire.png`,
     description: 'Shinobi headband inscribed with eternal dark flame seals and celestial meteor jutsus.',
     descriptionVi: 'Băng đô làng lá bí truyền triệu hồi ngọn hắc hỏa Amaterasu và nhẫn thuật thiên thạch.',

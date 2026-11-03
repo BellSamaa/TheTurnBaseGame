@@ -30,7 +30,7 @@ export default function CinematicSkillBanner({
       playUltimateAuraSound();
       const timer = setTimeout(() => {
         onFinishOne(currentEvent.id);
-      }, 1900);
+      }, 1200);
       return () => clearTimeout(timer);
     }
   }, [currentEvent?.id]);
@@ -69,7 +69,7 @@ export default function CinematicSkillBanner({
             className="text-[9px] sm:text-xs font-pixel text-yellow-200 tracking-widest uppercase mb-1 drop-shadow"
             style={{ textShadow: '1px 1px 2px #000' }}
           >
-            ✦ {currentEvent.casterName} UNLEASHES ULTIMATE ✦
+            ✦ {currentEvent.casterName} CASTS ✦
           </motion.div>
 
           {/* English Skill Name in Grand Pixel Typography */}
