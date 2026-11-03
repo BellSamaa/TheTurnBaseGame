@@ -472,7 +472,7 @@ export function executeSkill2D12(
 
     case 'spirit_stone':
       // The pet rock: tích đủ 25 PTS D6 (hoặc sau 5 lần bị đánh): Rock phình to x2 lăn đến kẻ địch gây sát thương bằng D20
-      if (pts >= cost || user.petRockEnraged || (user.petRockHits ?? 0) >= 5) {
+      if (pts >= cost) {
         user.d12Charge = Math.max(0, pts - cost);
         const roll = rollD20();
         const rollBack = Math.random() < 0.15; // 15% chance to roll back to summoner

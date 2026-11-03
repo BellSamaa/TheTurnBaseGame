@@ -81,6 +81,8 @@ export interface PlayerState {
   classType: ClassType;
   weapon: WeaponInfo;
   skillCharge: number;
+  skill1UsedTurn?: number;
+  skill2UsedTurn?: number;
   d12Charge?: number;
   isAttacker: boolean;
   character: CharacterCustomization;
