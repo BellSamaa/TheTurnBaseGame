@@ -53,6 +53,33 @@
       "bio": "Challenger ready to roll the D20 in Dice Maniac.",
       "createdAt": "2026-11-03",
       "updatedAt": "2026-11-03T11:24:36.707Z"
+    },
+    "bell": {
+      "id": "user_mw0ngdm6_pqye",
+      "username": "Bell",
+      "email": "truongthanhlong2005@gmail.com",
+      "passwordHash": "password123",
+      "avatarConfig": {
+        "baseIndex": 0,
+        "hairIndex": 0,
+        "hairColor": "#ffe066",
+        "skinColor": "#f8d5b8",
+        "shirtIndex": 0,
+        "shirtColor": "#4d94ff",
+        "pantsIndex": 0,
+        "pantsColor": "#1a202c",
+        "accessoryIndex": -1,
+        "faceIndex": 0
+      },
+      "selectedClass": "warrior",
+      "selectedWeapon": "greatsword",
+      "tier": 1,
+      "rankPoints": 1000,
+      "wins": 0,
+      "losses": 0,
+      "bio": "Challenger ready to roll the D20 in Dice Maniac.",
+      "createdAt": "2026-11-03",
+      "updatedAt": "2026-11-03T12:14:00.174Z"
     }
   },
   "rooms": {}

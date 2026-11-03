@@ -25,43 +25,49 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
     }
 
     setFrame(0);
+    let currentFrame = 0;
     const interval = setInterval(() => {
-      setFrame((prev) => {
-        if (prev >= 3) {
-          clearInterval(interval);
-          onFinish?.(activeVfx.id);
-          return 3;
-        }
-        return prev + 1;
-      });
-    }, 110); // 110ms per frame * 4 frames = 440ms crisp animation
+      currentFrame += 1;
+      if (currentFrame <= 3) {
+        setFrame(currentFrame);
+      } else {
+        clearInterval(interval);
+        onFinish?.(activeVfx.id);
+      }
+    }, 130); // 130ms per frame * 4 frames = 520ms punchy, clear animation
 
     return () => clearInterval(interval);
-  }, [activeVfx?.id]);
+  }, [activeVfx?.id, onFinish]);
 
   if (!activeVfx) return null;
 
-  const size = activeVfx.size || 140;
+  const size = activeVfx.size || 160;
 
   return (
     <AnimatePresence>
       <motion.div
         key={activeVfx.id}
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1.15, opacity: 1 }}
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1.25, opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="pointer-events-none select-none z-40 flex items-center justify-center"
+        className="pointer-events-none select-none z-50 flex items-center justify-center relative"
         style={{
           width: size,
           height: size,
         }}
       >
-        <img
-          src={`/assets/vfx/frames/${activeVfx.effect}/${frame}.png`}
-          alt={activeVfx.effect}
-          className="w-full h-full object-contain filter drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]"
-          style={{ imageRendering: 'pixelated' }}
-        />
+        {/* Render all 4 frames to ensure immediate browser caching without blank delay */}
+        {[0, 1, 2, 3].map((f) => (
+          <img
+            key={f}
+            src={`/assets/vfx/frames/${activeVfx.effect}/${f}.png`}
+            alt={`${activeVfx.effect}-${f}`}
+            className={`absolute inset-0 w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(250,204,21,0.9)] transition-opacity duration-75 ${
+              frame === f ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ imageRendering: 'pixelated' }}
+          />
+        ))}
       </motion.div>
     </AnimatePresence>
   );

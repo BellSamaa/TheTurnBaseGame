@@ -177,11 +177,6 @@ export default function AuthModals() {
                     size="md"
                     className="w-full py-2.5 cursor-pointer"
                     disabled={isLoading}
-                    onClick={() => {
-                      if (loginUsername.trim()) {
-                        handleLogin({ preventDefault: () => {} } as React.FormEvent);
-                      }
-                    }}
                   >
                     {isLoading
                       ? (isEn ? 'CONNECTING...' : 'ĐANG ĐĂNG NHẬP...')
@@ -280,11 +275,6 @@ export default function AuthModals() {
                     size="md"
                     className="w-full py-2.5 cursor-pointer"
                     disabled={isLoading}
-                    onClick={() => {
-                      if (signupUsername.trim()) {
-                        handleSignup({ preventDefault: () => {} } as React.FormEvent);
-                      }
-                    }}
                   >
                     {isLoading
                       ? (isEn ? 'CREATING HERO...' : 'ĐANG KHỞI TẠO...')

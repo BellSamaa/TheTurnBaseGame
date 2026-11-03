@@ -156,6 +156,7 @@ export default function BattleScreen() {
   const isEn = lang === 'en';
 
   // Rolling states
+  const [turnStep, setTurnStep] = useState<'idle' | 'd20_atk' | 'd20_def' | 'd6_atk' | 'd6_def' | 'd12'>('idle');
   const [isRollingD20, setIsRollingD20] = useState(false);
   const [isRollingD6, setIsRollingD6] = useState(false);
   const [isRollingD12, setIsRollingD12] = useState(false);
@@ -364,11 +365,11 @@ export default function BattleScreen() {
 
   const hasLocalPlayerRolled = onlineRoomCode
     ? (isP1User ? !!battleState.p1HasRolled : !!battleState.p2HasRolled)
-    : d20RolledThisTurn;
+    : (d20RolledThisTurn || turnStep !== 'idle');
 
   const bothPlayersHaveRolled = onlineRoomCode
     ? (!!battleState.p1HasRolled && !!battleState.p2HasRolled)
-    : d20RolledThisTurn;
+    : (d20RolledThisTurn && turnStep === 'd12');
 
   const myPlayer = isP1User ? player1 : player2;
   const myCurrentPts = myPlayer.d12Charge || 0;
@@ -431,12 +432,9 @@ export default function BattleScreen() {
     return () => clearInterval(timer);
   }, [currentTurn, hasLocalPlayerRolled, phase]);
 
-  // Handler: ROLL DICE (Simultaneously rolls D20 & D6, auto-triggers Skill 1 if matching!)
+  // Handler: ROLL DICE (Sequential Turn Flow: D20 ATK > D20 DEF > D6 ATK > D6 DEF > D12)
   const handleRollD20 = () => {
-    if (isRollingD20 || hasLocalPlayerRolled || phase === 'game_over') return;
-
-    setIsRollingD20(true);
-    setIsRollingD6(true);
+    if (turnStep !== 'idle' || isRollingD20 || hasLocalPlayerRolled || phase === 'game_over') return;
 
     if (onlineRoomCode) {
       // ONLINE MULTIPLAYER
@@ -453,90 +451,109 @@ export default function BattleScreen() {
         setBoxerRolls(boxerData);
       }
 
+      // Step 1: D20
+      setTurnStep(p1IsAttacker ? (isP1User ? 'd20_atk' : 'd20_def') : (isP1User ? 'd20_def' : 'd20_atk'));
+      setIsRollingD20(true);
+
       addTimer(
         setTimeout(() => {
           setIsRollingD20(false);
-          setIsRollingD6(false);
           setD20RolledThisTurn(true);
-          setD6RolledThisTurn(true);
 
-          setBattleState((prev) => {
-            if (!prev) return null;
-            const isP1 = isP1User;
-            const updatedP1Rolled = isP1 ? true : !!prev.p1HasRolled;
-            const updatedP2Rolled = !isP1 ? true : !!prev.p2HasRolled;
-            const p1ValD20 = isP1 ? finalD20 : prev.p1D20;
-            const p2ValD20 = !isP1 ? finalD20 : prev.p2D20;
-            const p1ValD6 = isP1 ? myD6 : prev.p1D6;
-            const p2ValD6 = !isP1 ? myD6 : prev.p2D6;
+          // Step 2: D6
+          setTurnStep(p1IsAttacker ? (isP1User ? 'd6_atk' : 'd6_def') : (isP1User ? 'd6_def' : 'd6_atk'));
+          setIsRollingD6(true);
 
-            const bothNowRolled = updatedP1Rolled && updatedP2Rolled;
+          addTimer(
+            setTimeout(() => {
+              setIsRollingD6(false);
+              setD6RolledThisTurn(true);
+              setTurnStep('d12');
 
-            let resolvedDmg = 0;
-            let isHit = false;
-            let targetSide: 'p1' | 'p2' = 'p2';
+              setBattleState((prev) => {
+                if (!prev) return null;
+                const isP1 = isP1User;
+                const updatedP1Rolled = isP1 ? true : !!prev.p1HasRolled;
+                const updatedP2Rolled = !isP1 ? true : !!prev.p2HasRolled;
+                const p1ValD20 = isP1 ? finalD20 : prev.p1D20;
+                const p2ValD20 = !isP1 ? finalD20 : prev.p2D20;
+                const p1ValD6 = isP1 ? myD6 : prev.p1D6;
+                const p2ValD6 = !isP1 ? myD6 : prev.p2D6;
 
-            if (bothNowRolled && p1ValD20 != null && p2ValD20 != null) {
-              const atk = prev.player1.isAttacker ? p1ValD20 : p2ValD20;
-              const def = prev.player1.isAttacker ? p2ValD20 : p1ValD20;
-              isHit = atk > def;
-              resolvedDmg = Math.max(0, atk - def);
-              targetSide = prev.player1.isAttacker ? 'p2' : 'p1';
+                const bothNowRolled = updatedP1Rolled && updatedP2Rolled;
 
-              setCombatFormula({
-                isHit,
-                damage: resolvedDmg,
-                atkRoll: atk,
-                defRoll: def,
-              });
+                let resolvedDmg = 0;
+                let isHit = false;
+                let targetSide: 'p1' | 'p2' = 'p2';
 
-              if (isHit && resolvedDmg > 0) {
-                const atkWeapon = prev.player1.isAttacker ? prev.player1.weapon.id : prev.player2.weapon.id;
-                playWeaponSound(atkWeapon);
-                setActiveVfx({
-                  id: String(Date.now()),
-                  effect: getWeaponVfx(atkWeapon, false),
-                  target: targetSide,
-                });
+                if (bothNowRolled && p1ValD20 != null && p2ValD20 != null) {
+                  const atk = prev.player1.isAttacker ? p1ValD20 : p2ValD20;
+                  const def = prev.player1.isAttacker ? p2ValD20 : p1ValD20;
+                  isHit = atk > def;
+                  resolvedDmg = Math.max(0, atk - def);
+                  targetSide = prev.player1.isAttacker ? 'p2' : 'p1';
 
-                if (targetSide === 'p1') {
-                  setP1IsHit(true);
-                  setTimeout(() => setP1IsHit(false), 400);
-                } else {
-                  setP2IsHit(true);
-                  setTimeout(() => setP2IsHit(false), 400);
+                  setCombatFormula({
+                    isHit,
+                    damage: resolvedDmg,
+                    atkRoll: atk,
+                    defRoll: def,
+                  });
+
+                  if (isHit && resolvedDmg > 0) {
+                    const atkWeapon = prev.player1.isAttacker ? prev.player1.weapon.id : prev.player2.weapon.id;
+                    playWeaponSound(atkWeapon);
+                    setActiveVfx({
+                      id: String(Date.now()),
+                      effect: getWeaponVfx(atkWeapon, false),
+                      target: targetSide,
+                      size: 160,
+                    });
+
+                    if (targetSide === 'p1') {
+                      setP1IsHit(true);
+                      setTimeout(() => setP1IsHit(false), 400);
+                    } else {
+                      setP2IsHit(true);
+                      setTimeout(() => setP2IsHit(false), 400);
+                    }
+                  } else {
+                    playBlockSound();
+                  }
                 }
-              } else {
-                playBlockSound();
-              }
-            }
 
-            const updated: BattleState = {
-              ...prev,
-              p1HasRolled: updatedP1Rolled,
-              p2HasRolled: updatedP2Rolled,
-              p1D20: p1ValD20,
-              p2D20: p2ValD20,
-              p1D6: p1ValD6,
-              p2D6: p2ValD6,
-              player1: {
-                ...prev.player1,
-                hp: bothNowRolled && targetSide === 'p1' ? Math.max(0, prev.player1.hp - resolvedDmg) : prev.player1.hp,
-                d12Charge: isP1 ? (prev.player1.d12Charge || 0) + myD6 : prev.player1.d12Charge,
-              },
-              player2: {
-                ...prev.player2,
-                hp: bothNowRolled && targetSide === 'p2' ? Math.max(0, prev.player2.hp - resolvedDmg) : prev.player2.hp,
-                d12Charge: !isP1 ? (prev.player2.d12Charge || 0) + myD6 : prev.player2.d12Charge,
-              },
-            };
-            syncOnlineBattle(updated);
-            return updated;
-          });
+                const updated: BattleState = {
+                  ...prev,
+                  p1HasRolled: updatedP1Rolled,
+                  p2HasRolled: updatedP2Rolled,
+                  p1D20: p1ValD20,
+                  p2D20: p2ValD20,
+                  p1D6: p1ValD6,
+                  p2D6: p2ValD6,
+                  player1: {
+                    ...prev.player1,
+                    hp: bothNowRolled && targetSide === 'p1' ? Math.max(0, prev.player1.hp - resolvedDmg) : prev.player1.hp,
+                    d12Charge: isP1 ? (prev.player1.d12Charge || 0) + myD6 : prev.player1.d12Charge,
+                  },
+                  player2: {
+                    ...prev.player2,
+                    hp: bothNowRolled && targetSide === 'p2' ? Math.max(0, prev.player2.hp - resolvedDmg) : prev.player2.hp,
+                    d12Charge: !isP1 ? (prev.player2.d12Charge || 0) + myD6 : prev.player2.d12Charge,
+                  },
+                };
+                syncOnlineBattle(updated);
+                return updated;
+              });
+            }, 600)
+          );
         }, 800)
       );
     } else {
-      // PVE MODE: Roll for both sides simultaneously!
+      // PVE MODE: Full Sequential Flow: D20 ATK > D20 DEF > D6 ATK > D6 DEF > D12
+      setIsRollingD20(true);
+      setIsRollingD6(false);
+
+      // Pre-compute rolls
       let r1 = rollD20();
       let boxerData: { r1: number; r2: number; chosen: number } | null = null;
       if (p1IsAttacker && p1Class.extraD20Rolls > 0) {
@@ -554,130 +571,240 @@ export default function BattleScreen() {
       }
       setBoxerRolls(boxerData);
 
+      const calculatedAtk = p1IsAttacker ? r1 : r2;
+      const calculatedDef = p1IsAttacker ? r2 : r1;
+
       const r6_1 = rollD6();
       const r6_2 = rollD6();
 
-      const calculatedAtk = p1IsAttacker ? r1 : r2;
-      const calculatedDef = p1IsAttacker ? r2 : r1;
-      setAtkRoll(calculatedAtk);
-      setDefRoll(calculatedDef);
+      // ==========================================
+      // STEP 1: D20 ATK (Attacker rolls D20)
+      // ==========================================
+      setTurnStep('d20_atk');
+      setAtkRoll(null);
+      setDefRoll(null);
 
       addTimer(
         setTimeout(() => {
-          setIsRollingD20(false);
-          setIsRollingD6(false);
-          setD20RolledThisTurn(true);
-          setD6RolledThisTurn(true);
+          // Attacker D20 lands!
+          setAtkRoll(calculatedAtk);
 
-          const attackerClass = p1IsAttacker ? p1Class : p2Class;
-          const defenderClass = p1IsAttacker ? p2Class : p1Class;
-          const attackerState = p1IsAttacker ? player1 : player2;
-          const defenderState = p1IsAttacker ? player2 : player1;
-          const defenderTarget = p1IsAttacker ? 'p2' : 'p1';
+          // ==========================================
+          // STEP 2: D20 DEF (Defender rolls D20)
+          // ==========================================
+          setTurnStep('d20_def');
 
-          const combatResult = calculateD20Combat(
-            calculatedAtk,
-            calculatedDef,
-            attackerClass,
-            defenderClass,
-            attackerState,
-            defenderState
+          addTimer(
+            setTimeout(() => {
+              // Defender D20 lands!
+              setDefRoll(calculatedDef);
+
+              // Resolve D20 Combat!
+              const attackerClass = p1IsAttacker ? p1Class : p2Class;
+              const defenderClass = p1IsAttacker ? p2Class : p1Class;
+              const attackerState = p1IsAttacker ? player1 : player2;
+              const defenderState = p1IsAttacker ? player2 : player1;
+              const defenderTarget = p1IsAttacker ? 'p2' : 'p1';
+
+              const combatResult = calculateD20Combat(
+                calculatedAtk,
+                calculatedDef,
+                attackerClass,
+                defenderClass,
+                attackerState,
+                defenderState
+              );
+
+              setCombatFormula({
+                isHit: combatResult.isHit,
+                damage: combatResult.damage,
+                atkRoll: calculatedAtk,
+                defRoll: calculatedDef,
+              });
+
+              if (combatResult.isHit) {
+                playWeaponSound(attackerState.weapon.id);
+                setActiveVfx({
+                  id: String(Date.now()),
+                  effect: getWeaponVfx(attackerState.weapon.id, false),
+                  target: defenderTarget,
+                  size: 160,
+                });
+
+                if (defenderTarget === 'p1') {
+                  setP1IsHit(true);
+                  setTimeout(() => setP1IsHit(false), 400);
+                } else {
+                  setP2IsHit(true);
+                  setTimeout(() => setP2IsHit(false), 400);
+                }
+
+                const isCrit = calculatedAtk === 20;
+                setDamagePopup({
+                  id: String(Date.now()),
+                  target: defenderTarget,
+                  text: isCrit ? `CRIT! -${combatResult.damage} DMG` : `-${combatResult.damage} DMG`,
+                  type: isCrit ? 'crit' : 'damage',
+                  subtext: isCrit ? (isEn ? 'CRITICAL HIT 20!' : 'BẠO KÍCH XÚC XẮC 20!') : undefined,
+                });
+
+                addLog({
+                  turn: currentTurn,
+                  type: 'damage',
+                  message: isEn ? combatResult.logTextEn : combatResult.logTextVi,
+                  messageVi: combatResult.logTextVi,
+                });
+              } else {
+                playBlockSound();
+                setDamagePopup({
+                  id: String(Date.now()),
+                  target: defenderTarget,
+                  text: combatResult.isDodged
+                    ? (isEn ? 'EVADED!' : 'NÉ ĐÒN!')
+                    : combatResult.isImmune
+                    ? (isEn ? 'IMMUNE!' : 'MIỄN NHIỄM!')
+                    : (isEn ? 'BLOCKED!' : 'ĐỠ ĐÒN THÀNH CÔNG!'),
+                  type: 'block',
+                  subtext: isEn ? `${calculatedAtk} ≤ ${calculatedDef}` : `Công ${calculatedAtk} ≤ Thủ ${calculatedDef}`,
+                });
+
+                addLog({
+                  turn: currentTurn,
+                  type: 'defend',
+                  message: isEn ? combatResult.logTextEn : combatResult.logTextVi,
+                  messageVi: combatResult.logTextVi,
+                });
+              }
+
+              // Apply D20 damage to battleState
+              setBattleState((prev) => {
+                if (!prev) return null;
+                return {
+                  ...prev,
+                  p1D20: r1,
+                  p2D20: r2,
+                  d20Results: { attacker: calculatedAtk, defender: calculatedDef, boxerExtra: boxerData?.r2 },
+                  player1: {
+                    ...prev.player1,
+                    hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damage) : prev.player1.hp,
+                  },
+                  player2: {
+                    ...prev.player2,
+                    hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damage) : prev.player2.hp,
+                  },
+                };
+              });
+
+              // ==========================================
+              // STEP 3: D6 ATK (Attacker rolls D6)
+              // ==========================================
+              addTimer(
+                setTimeout(() => {
+                  setTurnStep('d6_atk');
+                  setIsRollingD6(true);
+
+                  addTimer(
+                    setTimeout(() => {
+                      // Attacker D6 lands!
+                      if (p1IsAttacker) {
+                        setD6P1Rolls([r6_1]);
+                      } else {
+                        setD6P2Rolls([r6_2]);
+                      }
+
+                      // Auto-trigger Skill 1 for Attacker
+                      const atkD6 = p1IsAttacker ? r6_1 : r6_2;
+                      const p1SkillRes = executeSkill1D6(atkD6, player1, player2);
+                      const extraSkill1Dmg = p1SkillRes.damage;
+
+                      if (extraSkill1Dmg > 0 || p1SkillRes.logTextEn) {
+                        addLog({
+                          turn: currentTurn,
+                          type: 'skill',
+                          message: isEn ? p1SkillRes.logTextEn : p1SkillRes.logTextVi,
+                          messageVi: p1SkillRes.logTextVi,
+                        });
+                      }
+
+                      setBattleState((prev) => {
+                        if (!prev) return null;
+                        return {
+                          ...prev,
+                          p1D6: p1IsAttacker ? r6_1 : prev.p1D6,
+                          p2D6: !p1IsAttacker ? r6_2 : prev.p2D6,
+                          player1: {
+                            ...prev.player1,
+                            d12Charge: p1IsAttacker ? (prev.player1.d12Charge || 0) + r6_1 : prev.player1.d12Charge,
+                          },
+                          player2: {
+                            ...prev.player2,
+                            hp: p1IsAttacker ? Math.max(0, prev.player2.hp - extraSkill1Dmg) : prev.player2.hp,
+                            d12Charge: !p1IsAttacker ? (prev.player2.d12Charge || 0) + r6_2 : prev.player2.d12Charge,
+                          },
+                        };
+                      });
+
+                      // ==========================================
+                      // STEP 4: D6 DEF (Defender rolls D6)
+                      // ==========================================
+                      addTimer(
+                        setTimeout(() => {
+                          setTurnStep('d6_def');
+
+                          addTimer(
+                            setTimeout(() => {
+                              // Defender D6 lands!
+                              if (p1IsAttacker) {
+                                setD6P2Rolls([r6_2]);
+                              } else {
+                                setD6P1Rolls([r6_1]);
+                              }
+
+                              const defD6 = p1IsAttacker ? r6_2 : r6_1;
+                              executeSkill1D6(defD6, player2, player1);
+
+                              setBattleState((prev) => {
+                                if (!prev) return null;
+                                return {
+                                  ...prev,
+                                  p1HasRolled: true,
+                                  p2HasRolled: true,
+                                  p1D6: r6_1,
+                                  p2D6: r6_2,
+                                  player1: {
+                                    ...prev.player1,
+                                    d12Charge: !p1IsAttacker ? (prev.player1.d12Charge || 0) + r6_1 : prev.player1.d12Charge,
+                                  },
+                                  player2: {
+                                    ...prev.player2,
+                                    d12Charge: p1IsAttacker ? (prev.player2.d12Charge || 0) + r6_2 : prev.player2.d12Charge,
+                                  },
+                                };
+                              });
+
+                              // ==========================================
+                              // STEP 5: D12 Phase (Skill 2 available / End Turn ready)
+                              // ==========================================
+                              addTimer(
+                                setTimeout(() => {
+                                  setTurnStep('d12');
+                                  setIsRollingD20(false);
+                                  setIsRollingD6(false);
+                                  setD20RolledThisTurn(true);
+                                  setD6RolledThisTurn(true);
+                                }, 350)
+                              );
+                            }, 650)
+                          );
+                        }, 400)
+                      );
+                    }, 650)
+                  );
+                }, 400)
+              );
+            }, 750)
           );
-
-          setCombatFormula({
-            isHit: combatResult.isHit,
-            damage: combatResult.damage,
-            atkRoll: calculatedAtk,
-            defRoll: calculatedDef,
-          });
-
-          // Play Weapon AnimationKit VFX and Sound on D20 Hit
-          if (combatResult.isHit) {
-            playWeaponSound(attackerState.weapon.id);
-            setActiveVfx({
-              id: String(Date.now()),
-              effect: getWeaponVfx(attackerState.weapon.id, false),
-              target: defenderTarget,
-            });
-
-            if (defenderTarget === 'p1') {
-              setP1IsHit(true);
-              setTimeout(() => setP1IsHit(false), 400);
-            } else {
-              setP2IsHit(true);
-              setTimeout(() => setP2IsHit(false), 400);
-            }
-
-            const isCrit = calculatedAtk === 20;
-            setDamagePopup({
-              id: String(Date.now()),
-              target: defenderTarget,
-              text: isCrit ? `CRIT! -${combatResult.damage} DMG` : `-${combatResult.damage} DMG`,
-              type: isCrit ? 'crit' : 'damage',
-              subtext: isCrit ? (isEn ? 'CRITICAL HIT 20!' : 'BẠO KÍCH XÚC XẮC 20!') : undefined,
-            });
-
-            addLog({
-              turn: currentTurn,
-              type: 'damage',
-              message: isEn ? combatResult.logTextEn : combatResult.logTextVi,
-              messageVi: combatResult.logTextVi,
-            });
-          } else {
-            playBlockSound();
-            setDamagePopup({
-              id: String(Date.now()),
-              target: defenderTarget,
-              text: combatResult.isDodged
-                ? (isEn ? 'EVADED!' : 'NÉ ĐÒN!')
-                : combatResult.isImmune
-                ? (isEn ? 'IMMUNE!' : 'MIỄN NHIỄM!')
-                : (isEn ? 'BLOCKED!' : 'ĐỠ ĐÒN THÀNH CÔNG!'),
-              type: 'block',
-              subtext: isEn ? `${calculatedAtk} ≤ ${calculatedDef}` : `Công ${calculatedAtk} ≤ Thủ ${calculatedDef}`,
-            });
-
-            addLog({
-              turn: currentTurn,
-              type: 'defend',
-              message: isEn ? combatResult.logTextEn : combatResult.logTextVi,
-              messageVi: combatResult.logTextVi,
-            });
-          }
-
-          // AUTO-RESOLVE SKILL 1 (Based on rolled D6)
-          const p1SkillRes = executeSkill1D6(r6_1, player1, player2);
-          let extraSkill1DmgToP2 = p1SkillRes.damage;
-
-          setBattleState((prev) => {
-            if (!prev) return null;
-            const updated: BattleState = {
-              ...prev,
-              p1HasRolled: true,
-              p2HasRolled: true,
-              p1D20: r1,
-              p2D20: r2,
-              p1D6: r6_1,
-              p2D6: r6_2,
-              d20Results: { attacker: calculatedAtk, defender: calculatedDef, boxerExtra: boxerData?.r2 },
-              player1: {
-                ...prev.player1,
-                hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damage) : prev.player1.hp,
-                isBleeding: defenderTarget === 'p1' ? false : prev.player1.isBleeding,
-                d12Charge: (prev.player1.d12Charge || 0) + r6_1,
-              },
-              player2: {
-                ...prev.player2,
-                hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damage - extraSkill1DmgToP2) : Math.max(0, prev.player2.hp - extraSkill1DmgToP2),
-                isBleeding: p1SkillRes.logTextEn.includes('Bleed') ? true : prev.player2.isBleeding,
-                d12Charge: (prev.player2.d12Charge || 0) + r6_2,
-              },
-            };
-            return updated;
-          });
-
-          addTimer(setTimeout(() => setDamagePopup(null), 1600));
-        }, 800)
+        }, 750)
       );
     }
   };
@@ -836,6 +963,7 @@ export default function BattleScreen() {
     }
 
     // Reset Turn Flags
+    setTurnStep('idle');
     setD20RolledThisTurn(false);
     setD6RolledThisTurn(false);
     setD12RolledThisTurn(false);
@@ -843,6 +971,7 @@ export default function BattleScreen() {
     setDefRoll(null);
     setBoxerRolls(null);
     setD6P1Rolls(null);
+    setD6P2Rolls(null);
     setD12P1Rolls(null);
     setCombatFormula(null);
 
@@ -1055,6 +1184,7 @@ export default function BattleScreen() {
         {/* Dice Arena Tray (Symmetrical Dual Trays with Authentic frame_dual_dice_premium.png) */}
         <div className="w-full max-w-4xl mx-auto my-auto py-2">
           <PixelDice
+            turnStep={turnStep}
             p1Name={player1.name}
             p1IsAttacker={p1IsAttacker}
             p1D20={battleState.p1D20 ?? (p1IsAttacker ? atkRoll : defRoll)}
@@ -1176,11 +1306,11 @@ export default function BattleScreen() {
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 p-2 bg-[#090d19]/95 border-2 border-yellow-500/80 shadow-[0_0_25px_rgba(0,0,0,0.9)] max-w-4xl w-full">
           {/* --- LEFT GROUP: ROLL DICE & END TURN --- */}
           <div className="flex flex-col sm:flex-row items-center gap-1.5 flex-1 min-w-[240px]">
-            {/* 1. ROLL DICE BUTTON (Rolls both D20 and D6 simultaneously!) */}
+            {/* 1. ROLL DICE BUTTON (Sequential Turn Flow) */}
             <div className="w-full">
               <PixelSpriteButton
                 sprite="roll_dice"
-                disabled={isRollingD20 || hasLocalPlayerRolled || phase === 'game_over'}
+                disabled={isRollingD20 || isRollingD6 || hasLocalPlayerRolled || phase === 'game_over' || turnStep !== 'idle'}
                 onClick={handleRollD20}
                 className={`w-full ${hasLocalPlayerRolled ? 'opacity-40 grayscale pointer-events-none' : 'hover:scale-[1.02]'}`}
                 title={hasLocalPlayerRolled ? (isEn ? '✓ You Rolled' : '✓ Đã Tung') : (isEn ? 'Roll Dice' : 'Tung Xúc Xắc')}

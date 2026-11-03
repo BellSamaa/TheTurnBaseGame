@@ -8,6 +8,9 @@ import ThreeDiceCanvas from './ThreeDiceCanvas';
 import { playDiceRollSound } from '@/lib/soundEffects';
 
 export interface PixelDiceProps {
+  // Turn Phase Stepper: D20 atk > D20 def > D6 atk > D6 def > D12
+  turnStep?: 'idle' | 'd20_atk' | 'd20_def' | 'd6_atk' | 'd6_def' | 'd12';
+
   // P1 Dice State
   p1Name: string;
   p1IsAttacker: boolean;
@@ -52,6 +55,7 @@ export interface PixelDiceProps {
 }
 
 export default function PixelDice({
+  turnStep = 'idle',
   p1Name,
   p1IsAttacker,
   p1D20,
@@ -83,6 +87,25 @@ export default function PixelDice({
   isOnline = false,
   isEn = true,
 }: PixelDiceProps) {
+  // Granular dice rolling per step
+  const p1D20Rolling =
+    (turnStep === 'd20_atk' && p1IsAttacker) ||
+    (turnStep === 'd20_def' && !p1IsAttacker) ||
+    (p1IsRolling && turnStep === 'idle');
+
+  const p1D6Rolling =
+    (turnStep === 'd6_atk' && p1IsAttacker) ||
+    (turnStep === 'd6_def' && !p1IsAttacker);
+
+  const p2D20Rolling =
+    (turnStep === 'd20_atk' && !p1IsAttacker) ||
+    (turnStep === 'd20_def' && p1IsAttacker) ||
+    (p2IsRolling && turnStep === 'idle');
+
+  const p2D6Rolling =
+    (turnStep === 'd6_atk' && !p1IsAttacker) ||
+    (turnStep === 'd6_def' && p1IsAttacker);
+
   // Shuffling numbers during rolling animation
   const [shuffleP1D20, setShuffleP1D20] = useState(20);
   const [shuffleP1D6, setShuffleP1D6] = useState(6);
@@ -91,32 +114,117 @@ export default function PixelDice({
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (p1IsRolling) {
+    if (p1D20Rolling) {
       playDiceRollSound();
       timer = setInterval(() => {
         setShuffleP1D20(Math.floor(Math.random() * 20) + 1);
+      }, 50);
+    }
+    return () => clearInterval(timer);
+  }, [p1D20Rolling]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (p1D6Rolling) {
+      playDiceRollSound();
+      timer = setInterval(() => {
         setShuffleP1D6(Math.floor(Math.random() * 6) + 1);
       }, 50);
     }
     return () => clearInterval(timer);
-  }, [p1IsRolling]);
+  }, [p1D6Rolling]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (p2IsRolling) {
+    if (p2D20Rolling) {
       playDiceRollSound();
       timer = setInterval(() => {
         setShuffleP2D20(Math.floor(Math.random() * 20) + 1);
+      }, 50);
+    }
+    return () => clearInterval(timer);
+  }, [p2D20Rolling]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (p2D6Rolling) {
+      playDiceRollSound();
+      timer = setInterval(() => {
         setShuffleP2D6(Math.floor(Math.random() * 6) + 1);
       }, 50);
     }
     return () => clearInterval(timer);
-  }, [p2IsRolling]);
+  }, [p2D6Rolling]);
 
   const bothHaveRolled = p1HasRolled && p2HasRolled;
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col items-center gap-1.5 select-none">
+      {/* 5-Step Turn Flow Stepper: D20 atk > D20 def > D6 atk > D6 def > D12 */}
+      <div className="w-full flex items-center justify-center gap-1 sm:gap-2 px-2 py-1 bg-[#060814]/90 border border-yellow-500/50 rounded-sm shadow-md overflow-x-auto select-none">
+        <div
+          className={`px-2 py-0.5 text-[7px] sm:text-[8px] font-pixel rounded-xs transition-all flex items-center gap-1 ${
+            turnStep === 'd20_atk'
+              ? 'bg-red-600 text-white font-bold ring-2 ring-red-400 shadow-[0_0_12px_#ef4444] animate-pulse scale-105'
+              : 'bg-slate-900/90 text-slate-400 border border-slate-700/60'
+          }`}
+        >
+          <span>⚔️</span>
+          <span>1. D20 ATK</span>
+        </div>
+
+        <span className="text-yellow-500/60 font-pixel text-[8px]">›</span>
+
+        <div
+          className={`px-2 py-0.5 text-[7px] sm:text-[8px] font-pixel rounded-xs transition-all flex items-center gap-1 ${
+            turnStep === 'd20_def'
+              ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-400 shadow-[0_0_12px_#3b82f6] animate-pulse scale-105'
+              : 'bg-slate-900/90 text-slate-400 border border-slate-700/60'
+          }`}
+        >
+          <span>🛡️</span>
+          <span>2. D20 DEF</span>
+        </div>
+
+        <span className="text-yellow-500/60 font-pixel text-[8px]">›</span>
+
+        <div
+          className={`px-2 py-0.5 text-[7px] sm:text-[8px] font-pixel rounded-xs transition-all flex items-center gap-1 ${
+            turnStep === 'd6_atk'
+              ? 'bg-amber-600 text-white font-bold ring-2 ring-amber-400 shadow-[0_0_12px_#f59e0b] animate-pulse scale-105'
+              : 'bg-slate-900/90 text-slate-400 border border-slate-700/60'
+          }`}
+        >
+          <span>✨</span>
+          <span>3. D6 ATK</span>
+        </div>
+
+        <span className="text-yellow-500/60 font-pixel text-[8px]">›</span>
+
+        <div
+          className={`px-2 py-0.5 text-[7px] sm:text-[8px] font-pixel rounded-xs transition-all flex items-center gap-1 ${
+            turnStep === 'd6_def'
+              ? 'bg-teal-600 text-white font-bold ring-2 ring-teal-400 shadow-[0_0_12px_#14b8a6] animate-pulse scale-105'
+              : 'bg-slate-900/90 text-slate-400 border border-slate-700/60'
+          }`}
+        >
+          <span>🔰</span>
+          <span>4. D6 DEF</span>
+        </div>
+
+        <span className="text-yellow-500/60 font-pixel text-[8px]">›</span>
+
+        <div
+          className={`px-2 py-0.5 text-[7px] sm:text-[8px] font-pixel rounded-xs transition-all flex items-center gap-1 ${
+            turnStep === 'd12'
+              ? 'bg-purple-600 text-white font-bold ring-2 ring-purple-400 shadow-[0_0_12px_#a855f7] animate-pulse scale-105'
+              : 'bg-slate-900/90 text-slate-400 border border-slate-700/60'
+          }`}
+        >
+          <span>⚡</span>
+          <span>5. D12</span>
+        </div>
+      </div>
       {/* Symmetrical Dual Trays Arena Container */}
       <div className="w-full grid grid-cols-1 md:grid-cols-11 gap-2 items-center">
         {/* ============================================================ */}
@@ -209,8 +317,8 @@ export default function PixelDice({
                 <ThreeDiceCanvas
                   diceType="d20"
                   theme={p1IsAttacker ? 'red' : 'gold'}
-                  isRolling={p1IsRolling}
-                  value={p1IsRolling ? shuffleP1D20 : (p1D20 ?? 20)}
+                  isRolling={p1D20Rolling}
+                  value={p1D20Rolling ? shuffleP1D20 : (p1D20 ?? 20)}
                   size={58}
                 />
               )}
@@ -230,10 +338,10 @@ export default function PixelDice({
                 className="text-[8.5px] sm:text-[9.5px] font-pixel font-bold text-yellow-300 drop-shadow truncate"
                 style={{ textShadow: '1px 1px 0px #000, -1px -1px 0px #000' }}
               >
-                {p1IsRolling
+                {p1D20Rolling
                   ? `D20: ${shuffleP1D20}`
-                  : p1HasRolled
-                  ? `${p1IsAttacker ? 'ATK' : 'DEF'}: ${p1D20 ?? '--'}`
+                  : p1D20 != null
+                  ? `${p1IsAttacker ? 'ATK' : 'DEF'}: ${p1D20}`
                   : `${p1IsAttacker ? 'D20 ATK' : 'D20 DEF'}`}
               </span>
             </div>
@@ -248,7 +356,7 @@ export default function PixelDice({
                 height: '56.5%',
               }}
             >
-              {p1IsMage && p1MageRolls && p1MageRolls.length > 1 && !p1IsRolling ? (
+              {p1IsMage && p1MageRolls && p1MageRolls.length > 1 && !p1D6Rolling ? (
                 <div className="flex items-center gap-1 scale-90">
                   <ThreeDiceCanvas diceType="d6" theme="cyan" isRolling={false} value={p1MageRolls[0]} size={36} />
                   <span className="text-[9px] font-pixel text-cyan-300">+</span>
@@ -258,8 +366,8 @@ export default function PixelDice({
                 <ThreeDiceCanvas
                   diceType="d6"
                   theme="cyan"
-                  isRolling={p1IsRolling}
-                  value={p1IsRolling ? shuffleP1D6 : (p1D6 ?? 6)}
+                  isRolling={p1D6Rolling}
+                  value={p1D6Rolling ? shuffleP1D6 : (p1D6 ?? 6)}
                   size={52}
                 />
               )}
@@ -279,10 +387,10 @@ export default function PixelDice({
                 className="text-[8.5px] sm:text-[9.5px] font-pixel font-bold text-cyan-300 drop-shadow truncate"
                 style={{ textShadow: '1px 1px 0px #000, -1px -1px 0px #000' }}
               >
-                {p1IsRolling
+                {p1D6Rolling
                   ? `D6: ${shuffleP1D6}`
-                  : p1HasRolled
-                  ? `D6: +${p1D6 ?? 0} PTS`
+                  : p1D6 != null
+                  ? `D6: +${p1D6} PTS`
                   : `D6 (${p1Pts}/${p1PtsMax})`}
               </span>
             </div>
@@ -409,8 +517,8 @@ export default function PixelDice({
                 <ThreeDiceCanvas
                   diceType="d20"
                   theme={!p1IsAttacker ? 'red' : 'gold'}
-                  isRolling={p2IsRolling}
-                  value={p2IsRolling ? shuffleP2D20 : (p2D20 ?? 20)}
+                  isRolling={p2D20Rolling}
+                  value={p2D20Rolling ? shuffleP2D20 : (p2D20 ?? 20)}
                   size={58}
                 />
               )}
@@ -430,10 +538,10 @@ export default function PixelDice({
                 className="text-[8.5px] sm:text-[9.5px] font-pixel font-bold text-yellow-300 drop-shadow truncate"
                 style={{ textShadow: '1px 1px 0px #000, -1px -1px 0px #000' }}
               >
-                {p2IsRolling
+                {p2D20Rolling
                   ? `D20: ${shuffleP2D20}`
-                  : p2HasRolled
-                  ? `${!p1IsAttacker ? 'ATK' : 'DEF'}: ${p2D20 ?? '--'}`
+                  : p2D20 != null
+                  ? `${!p1IsAttacker ? 'ATK' : 'DEF'}: ${p2D20}`
                   : `${!p1IsAttacker ? 'D20 ATK' : 'D20 DEF'}`}
               </span>
             </div>
@@ -448,7 +556,7 @@ export default function PixelDice({
                 height: '56.5%',
               }}
             >
-              {p2IsMage && p2MageRolls && p2MageRolls.length > 1 && !p2IsRolling ? (
+              {p2IsMage && p2MageRolls && p2MageRolls.length > 1 && !p2D6Rolling ? (
                 <div className="flex items-center gap-1 scale-90">
                   <ThreeDiceCanvas diceType="d6" theme="cyan" isRolling={false} value={p2MageRolls[0]} size={36} />
                   <span className="text-[9px] font-pixel text-cyan-300">+</span>
@@ -458,8 +566,8 @@ export default function PixelDice({
                 <ThreeDiceCanvas
                   diceType="d6"
                   theme="cyan"
-                  isRolling={p2IsRolling}
-                  value={p2IsRolling ? shuffleP2D6 : (p2D6 ?? 6)}
+                  isRolling={p2D6Rolling}
+                  value={p2D6Rolling ? shuffleP2D6 : (p2D6 ?? 6)}
                   size={52}
                 />
               )}
@@ -479,10 +587,10 @@ export default function PixelDice({
                 className="text-[8.5px] sm:text-[9.5px] font-pixel font-bold text-cyan-300 drop-shadow truncate"
                 style={{ textShadow: '1px 1px 0px #000, -1px -1px 0px #000' }}
               >
-                {p2IsRolling
+                {p2D6Rolling
                   ? `D6: ${shuffleP2D6}`
-                  : p2HasRolled
-                  ? `D6: +${p2D6 ?? 0} PTS`
+                  : p2D6 != null
+                  ? `D6: +${p2D6} PTS`
                   : `D6 (${p2Pts}/${p2PtsMax})`}
               </span>
             </div>
