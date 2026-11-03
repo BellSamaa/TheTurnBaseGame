@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Press_Start_2P, VT323, Be_Vietnam_Pro } from 'next/font/google';
 import './globals.css';
 
@@ -22,6 +22,8 @@ const vietnamFont = Be_Vietnam_Pro({
   variable: '--font-vietnam',
   display: 'swap',
 });
+
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 
 export const metadata: Metadata = {
   title: 'DICE MANIAC - 1v1 Turn-Based RPG Dice Combat',

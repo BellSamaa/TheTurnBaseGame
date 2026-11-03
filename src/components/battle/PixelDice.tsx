@@ -240,7 +240,7 @@ export default function PixelDice({
         </div>
       </div>
       {/* Symmetrical Dual Trays Arena Container */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-11 gap-2 items-center">
+      <div className="dice-trays w-full grid grid-cols-1 md:grid-cols-11 gap-2 items-center">
         {/* ============================================================ */}
         {/* LEFT SIDE: PLAYER 1 AUTHENTIC DUAL DICE TRAY (Cols 5) */}
         {/* ============================================================ */}

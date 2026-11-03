@@ -85,7 +85,7 @@ export default function GlobalAccountsModal({
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="relative w-full max-w-3xl max-h-[85vh] bg-[#0c101c] border-2 border-yellow-500 shadow-[0_0_35px_rgba(250,204,21,0.4)] flex flex-col overflow-hidden text-slate-100"
+          className="global-directory relative w-full max-w-3xl max-h-[90dvh] bg-[#0c101c] border-2 border-yellow-500 shadow-[0_0_35px_rgba(250,204,21,0.4)] flex flex-col overflow-hidden text-slate-100"
         >
           {/* Header */}
           <div className="p-3 sm:p-4 bg-black/70 border-b-2 border-yellow-500/70 flex items-center justify-between gap-3">

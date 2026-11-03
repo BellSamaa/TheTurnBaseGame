@@ -303,8 +303,8 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
   const bothReady = currentLobby && currentLobby.guest && currentLobby.host.isReady && currentLobby.guest.isReady;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md select-none">
-      <div className="w-full max-w-2xl">
+    <div className="room-browser fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md select-none">
+      <div className="w-full max-w-2xl max-h-[92dvh] overflow-y-auto overscroll-contain">
         <PixelFrame
           variant="purple"
           title={isEn ? '🏰 ONLINE MULTIPLAYER 1V1 (REAL PLAYERS)' : '🏰 ĐẤU TRỰC TUYẾN 1V1 VỚI NGƯỜI THẬT'}

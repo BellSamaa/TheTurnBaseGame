@@ -176,6 +176,7 @@ export default function BattleScreen() {
   const lang = settings.language;
   const isEn = lang === 'en';
 
+  const [openSkillInfo, setOpenSkillInfo] = useState<1 | 2 | null>(null);
   const [meteorCost, setMeteorCost] = useState(20);
   const [selectedSkillForm, setSelectedSkillForm] = useState<number | undefined>();
   const castLockRef = useRef(false);
@@ -1064,7 +1065,7 @@ export default function BattleScreen() {
   // Skill 1 trigger glow & vibrate detection (Auto-triggers on matching D6 roll!)
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-[#07090e] select-none text-slate-100">
+    <div className="battle-screen relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-[#07090e] select-none text-slate-100">
       {/* 1. Background Arena Map */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -1111,7 +1112,7 @@ export default function BattleScreen() {
       )}
 
       {/* 2. Top Combat HUD Header (Clean, unboxed, with ruby filigree divider) */}
-      <header className="relative z-20 w-full px-3 py-2 bg-black/85 border-b-2 border-yellow-500/60 backdrop-blur-md flex items-center justify-between gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+      <header className="battle-hud relative z-20 w-full px-3 py-2 bg-black/85 border-b-2 border-yellow-500/60 backdrop-blur-md flex items-center justify-between gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
         {/* Left: Player 1 Health */}
         <div className="flex-1 max-w-[280px] flex flex-col items-center">
           <div className="flex items-center justify-between w-full px-1 text-[9px] font-pixel mb-1">
@@ -1204,7 +1205,7 @@ export default function BattleScreen() {
         </div>
 
         {/* Characters Podiums with Equipped Weapon Item Slot underneath & AnimationKit VFX Overlay */}
-        <div className="w-full flex items-end justify-between px-2 sm:px-8 mt-auto mb-1">
+        <div className="battle-fighters w-full flex items-end justify-between px-2 sm:px-8 mt-auto mb-1">
           {/* LEFT: Player 1 Character + Item Slot */}
           <div className="relative flex flex-col items-center">
             <AnimatePresence>
@@ -1287,7 +1288,7 @@ export default function BattleScreen() {
       </main>
 
       {/* 4. Bottom Tactical Command Center */}
-      <footer className="relative z-20 w-full px-2 sm:px-4 py-2 bg-black/92 border-t-2 border-yellow-500/70 flex flex-col items-center gap-2">
+      <footer className="battle-controls relative z-20 w-full px-2 sm:px-4 py-2 bg-black/92 border-t-2 border-yellow-500/70 flex flex-col items-center gap-2">
         <div role="status" aria-live="polite" className="text-center text-xs sm:text-sm font-bold text-yellow-200 py-1">
           {bothPlayersHaveRolled
             ? hasLocalPlayerEndedTurn
@@ -1301,9 +1302,9 @@ export default function BattleScreen() {
         {/* THE 4 CENTERED ADJACENT BUTTONS */}
         {/* Left Pair: ROLL DICE + END TURN | Right Pair: SKILL 1 (Indicator) + SKILL 2 (Action) */}
         {/* ============================================================ */}
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 p-2 bg-[#090d19]/95 border-2 border-yellow-500/80 shadow-[0_0_25px_rgba(0,0,0,0.9)] max-w-4xl w-full">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-center gap-2 sm:gap-4 p-2 bg-[#090d19]/95 border-2 border-yellow-500/80 shadow-[0_0_25px_rgba(0,0,0,0.9)] max-w-4xl w-full">
           {/* --- LEFT GROUP: ROLL DICE & END TURN --- */}
-          <div className="flex flex-col sm:flex-row items-center gap-1.5 flex-1 min-w-[240px]">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row items-start gap-2 flex-1 min-w-0 w-full sm:min-w-[240px]">
             {/* 1. ROLL DICE BUTTON (Sequential Turn Flow) */}
             <div className="w-full">
               <PixelSpriteButton
@@ -1347,7 +1348,7 @@ export default function BattleScreen() {
           <div className="hidden sm:block w-[2px] h-12 bg-yellow-500/50" />
 
           {/* --- RIGHT GROUP: SKILL 1 (Passive Display) & SKILL 2 (Active Button) --- */}
-          <div className="flex flex-col sm:flex-row items-center gap-1.5 flex-1 min-w-[240px]">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row items-start gap-2 flex-1 min-w-0 w-full sm:min-w-[240px]">
             {([1, 2] as const).map(slot => {
               const skill = slot === 1 ? myPlayer.weapon.skill1 : myPlayer.weapon.skill2;
               const enabled = (slot === 1 ? canCastSkill1 : canCastSkill2) && phase !== 'game_over';
@@ -1359,7 +1360,10 @@ export default function BattleScreen() {
                   <span className="block">SKILL {slot} · {skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</span>
                   <span className="block text-[10px]">{used ? '✓' : enabled ? '⚡' : myCurrentPts + '/' + skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)}</span>
                 </button>
-                <div role="tooltip" className="absolute bottom-full right-0 mb-2 z-50 hidden group-hover:block group-focus-within:block w-64 max-w-[75vw] p-3 border border-yellow-500/70 bg-slate-950 shadow-xl text-xs text-slate-200 leading-relaxed after:absolute after:top-full after:left-0 after:h-2 after:w-full">
+                <button type="button" className="skill-info-toggle" aria-expanded={openSkillInfo === slot} aria-controls={'skill-info-' + slot} onClick={() => setOpenSkillInfo(openSkillInfo === slot ? null : slot)}>{isEn ? 'ⓘ Details / Form' : 'ⓘ Chi tiết / Dạng'}</button>
+                {openSkillInfo === slot && <button type="button" className="skill-info-backdrop" aria-label={isEn ? 'Close skill details' : 'Đóng thông tin kỹ năng'} onClick={() => setOpenSkillInfo(null)} />}
+                <div id={'skill-info-' + slot} role="tooltip" className={'skill-popover absolute bottom-full right-0 mb-2 z-50 hidden group-hover:block group-focus-within:block w-64 max-w-[75vw] p-3 border border-yellow-500/70 bg-slate-950 shadow-xl text-xs text-slate-200 leading-relaxed after:absolute after:top-full after:left-0 after:h-2 after:w-full ' + (openSkillInfo === slot ? 'skill-popover-open' : '')}>
+                  <button type="button" className="skill-info-close" onClick={() => setOpenSkillInfo(null)}>{isEn ? 'Close ✕' : 'Đóng ✕'}</button>
                   <strong className="text-yellow-300">{isEn ? skill.name : skill.nameVi} · {skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</strong>
                   <p className="mt-1">{isEn ? skill.description : skill.descriptionVi}</p>
                   <p className="mt-1 text-cyan-300">{isEn ? 'Shared PTS · Once per round' : 'Dùng chung PTS · 1 lần/hiệp'}</p>

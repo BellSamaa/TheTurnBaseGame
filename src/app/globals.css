@@ -215,3 +215,51 @@ html, body {
 .combat-strike i:nth-child(3) { top: 60%; width: 80%; transform: rotate(-35deg); }
 @keyframes impact-burst { 0% { opacity: 0; scale: .3; rotate: -12deg; } 25% { opacity: 1; scale: 1.1; rotate: 0deg; } 100% { opacity: 0; scale: 1.5; } }
 @media (prefers-reduced-motion: reduce) { .action-beacon { animation: none; box-shadow: 0 0 15px #facc15; } .combat-impact { animation: none; opacity: .5; } }
+
+/* Mobile controls: keep native zoom, reserve safe areas, and expose hover actions by tap. */
+.skill-info-toggle, .skill-info-close { display: none; }
+@media (max-width: 639px), (pointer: coarse) {
+  button, a, select { touch-action: manipulation; }
+  input, textarea, select { font-size: 16px !important; }
+  button { min-height: 44px; }
+  .min-h-screen { min-height: 100svh; }
+  .skill-info-toggle { display: block; width: 100%; min-height: 44px; font-size: 12px; color: #a5f3fc; }
+  .skill-popover { display: none !important; }
+  .skill-popover.skill-popover-open { display: block !important; position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); top: auto; width: auto; max-width: none; max-height: 65dvh; overflow-y: auto; z-index: 80; font-size: 14px; box-shadow: 0 0 0 100vmax #0009; }
+  .skill-info-close { display: block; margin-left: auto; color: #fde68a; min-width: 72px; }
+  .skill-popover select { min-height: 44px; }
+  .battle-screen { min-height: 100svh; padding-top: env(safe-area-inset-top); }
+  .battle-controls { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .battle-controls button { min-height: 44px; }
+  .battle-hud { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 6px; padding: 6px; }
+  .battle-hud > div { min-width: 0; }
+  .battle-hud > div:nth-child(2) { max-width: 105px; }
+  .battle-hud > div:nth-child(2) > span:nth-child(2) { display: none; }
+  .battle-hud > div:nth-child(2) > span:first-child { font-size: 9px; }
+  .battle-hud button { font-size: 7px; padding: 4px; }
+  .battle-fighters { gap: 8px; padding: 0 4px; }
+  .battle-fighters > div { width: calc(50% - 4px); min-width: 0; }
+  .battle-fighters > div > div:last-child { width: 100%; max-width: 100%; }
+  .dice-trays { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 6px; }
+  .dice-trays > :nth-child(2) { grid-column: 1 / -1; grid-row: 2; flex-direction: row; gap: 12px; }
+  .dice-trays > :nth-child(3) { grid-column: 2; grid-row: 1; }
+  .dice-trays > div { min-width: 0; }
+  .dice-trays .font-pixel { font-size: 7px; }
+  .room-browser { padding: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)); }
+  .global-directory > div:first-child { flex-wrap: wrap; }
+  .global-directory h3 { flex-wrap: wrap; font-size: 10px; }
+}
+@media (max-width: 639px) {
+  .battle-controls > div:last-child { gap: 4px; padding: 4px; }
+  .battle-controls > div:last-child > div { min-width: 0; }
+  .battle-controls > div:last-child button { font-size: 7px; white-space: normal; flex-shrink: 0; max-width: 90px; }
+}
+
+.skill-info-backdrop { display: none; }
+@media (max-width: 639px), (pointer: coarse) { .skill-info-backdrop { display: block; position: fixed; inset: 0; z-index: 70; background: transparent; border: 0; width: 100%; height: 100%; } }
+/* Keep the directory close control beside its title on narrow screens. */
+@media (max-width: 639px) {
+ .global-directory > div:first-child { display: grid; grid-template-columns: minmax(0,1fr) 44px; }
+ .global-directory > div:first-child > div { min-width: 0; }
+ .global-directory > div:first-child > button { width: 44px; }
+}
