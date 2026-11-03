@@ -121,17 +121,17 @@ export default function BattleScreen() {
       const defenderClass = p1IsAttacker ? p2Class : p1Class;
       const defenderTarget = p1IsAttacker ? 'p2' : 'p1';
 
-      const combatResult = calculateD20Combat({
+      const combatResult = calculateD20Combat(
         attackerRoll,
         defenderRoll,
         attackerClass,
-        defenderClass,
-      });
+        defenderClass
+      );
 
       if (combatResult.isHit) {
         setFloatingDamage({
           target: defenderTarget,
-          text: `-${combatResult.damageDealt} HP`,
+          text: `-${combatResult.damage} HP`,
         });
 
         setBattleState((prev) => {
@@ -140,11 +140,11 @@ export default function BattleScreen() {
             ...prev,
             player1: {
               ...prev.player1,
-              hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damageDealt) : prev.player1.hp,
+              hp: defenderTarget === 'p1' ? Math.max(0, prev.player1.hp - combatResult.damage) : prev.player1.hp,
             },
             player2: {
               ...prev.player2,
-              hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damageDealt) : prev.player2.hp,
+              hp: defenderTarget === 'p2' ? Math.max(0, prev.player2.hp - combatResult.damage) : prev.player2.hp,
             },
           };
         });
@@ -153,9 +153,9 @@ export default function BattleScreen() {
           turn: currentTurn,
           type: 'damage',
           message: isEn
-            ? `HIT! Attacker ${attackerRoll} > Defender ${defenderRoll}. Dealt ${combatResult.damageDealt} damage!`
-            : `ĐÁNH TRÚNG! Công ${attackerRoll} > Thủ ${defenderRoll}. Gây ${combatResult.damageDealt} sát thương!`,
-          messageVi: `ĐÁNH TRÚNG! Công ${attackerRoll} > Thủ ${defenderRoll}. Gây ${combatResult.damageDealt} sát thương!`,
+            ? `HIT! Attacker ${attackerRoll} > Defender ${defenderRoll}. Dealt ${combatResult.damage} damage!`
+            : `ĐÁNH TRÚNG! Công ${attackerRoll} > Thủ ${defenderRoll}. Gây ${combatResult.damage} sát thương!`,
+          messageVi: `ĐÁNH TRÚNG! Công ${attackerRoll} > Thủ ${defenderRoll}. Gây ${combatResult.damage} sát thương!`,
         });
       } else {
         setFloatingDamage({
@@ -218,7 +218,7 @@ export default function BattleScreen() {
       });
 
       // Check weapon skill 2 trigger
-      const p1Trigger = checkSkill2Trigger(player1.weapon, totalP1);
+      const p1Trigger = checkSkill2Trigger(totalP1, player1, player2);
       if (p1Trigger.triggered) {
         setFloatingDamage({ target: 'p2', text: `-${p1Trigger.damage} HP (SKILL 2!)` });
         setBattleState((prev) => {
@@ -247,7 +247,7 @@ export default function BattleScreen() {
 
     if (user.skillCharge < user.weapon.skill1.chargeRequired) return;
 
-    const res = activateSkill1(user.weapon);
+    const res = activateSkill1(user, opponent);
 
     if (res.damage > 0) {
       setFloatingDamage({
