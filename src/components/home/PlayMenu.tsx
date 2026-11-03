@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
 import { t } from '@/lib/translations';
 import PixelButton from '@/components/ui/PixelButton';
+import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import GameModeSelector from './GameModeSelector';
@@ -37,23 +38,19 @@ export default function PlayMenu() {
 
       {/* Top Header Bar */}
       <header className="relative z-20 w-full max-w-4xl flex items-center justify-between pb-3 border-b-2 border-yellow-500/50">
-        <PixelButton
-          variant="secondary"
-          size="sm"
+        <PixelSpriteButton
+          sprite="back"
           onClick={() => {
-            playClickSound();
             setPage('home');
           }}
-          icon={<PixelIcon name="arrowLeft" size={12} color="#001a22" />}
-        >
-          {t('back', lang)}
-        </PixelButton>
+          className="w-28 sm:w-36"
+        />
 
         <h2 className="text-base sm:text-lg text-yellow-400 font-pixel drop-shadow-[0_0_10px_rgba(234,179,8,0.6)]">
           {t('play', lang)}
         </h2>
 
-        <div className="w-16" />
+        <div className="w-28 sm:w-36" />
       </header>
 
       {/* Main Mode Options */}
@@ -85,9 +82,7 @@ export default function PlayMenu() {
                   ? 'Choose between PvE AI Bot, Rank Last Man Standing, Ranked PvP, or view Party mode.'
                   : 'Lựa chọn đấu với Boss AI PvE, Rank Last Man Standing, Đấu Hạng PvP hoặc chế độ Nhóm.'}
               </p>
-              <PixelButton variant="gold" size="sm" className="w-full font-pixel text-[8.5px]">
-                {isEn ? 'CHOOSE MODE & ARENA' : 'VÀO CHỌN CHẾ ĐỘ'}
-              </PixelButton>
+              <PixelSpriteButton sprite="start" className="w-44 sm:w-52 mx-auto" />
             </div>
           </PixelFrame>
         </motion.div>
@@ -119,9 +114,7 @@ export default function PlayMenu() {
                   ? 'Create or join custom 1v1 rooms via room codes for direct online battles with real players.'
                   : 'Tạo hoặc tham gia phòng riêng bằng mã phòng để so tài trực tiếp với người chơi khác.'}
               </p>
-              <PixelButton variant="secondary" size="sm" className="w-full font-pixel text-[8.5px]">
-                {isEn ? 'ENTER ONLINE LOBBY' : 'VÀO SẢNH TRỰC TUYẾN'}
-              </PixelButton>
+              <PixelSpriteButton sprite="join_room" className="w-44 sm:w-52 mx-auto" />
             </div>
           </PixelFrame>
         </motion.div>

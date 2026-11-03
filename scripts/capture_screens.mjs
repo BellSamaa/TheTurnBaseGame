@@ -81,6 +81,23 @@ async function main() {
     // Wait for page load
     await sleep(2000);
 
+    // 0. Capture Home Screen with Authentic Sliced RPG Buttons
+    console.log('0. Capturing Home Screen with authentic RPG buttons...');
+    await evaluate(`window.__gameStore.getState().setPage('home');`);
+    await sleep(1000);
+    await captureScreenshot('test_home_buttons.png', 1920, 1080);
+
+    // 0b. Capture Online Lobby Modal (Create & Join)
+    console.log('0b. Capturing Online Lobby Modal...');
+    await evaluate(`window.__gameStore.getState().setPage('play');`);
+    await sleep(800);
+    await evaluate(`
+      const onlineCard = document.querySelectorAll('main > div')[1];
+      if (onlineCard) onlineCard.click();
+    `);
+    await sleep(800);
+    await captureScreenshot('test_online_lobby.png', 1920, 1080);
+
     // 1. Capture Menu & Mode Selector
     console.log('1. Navigating to Play Menu & Mode Selector...');
     await evaluate(`window.__gameStore.getState().setPage('play');`);
@@ -135,14 +152,20 @@ async function main() {
     console.log('4. Rolling D20 and D6 in Battle...');
     await evaluate(`
       (() => {
-        const rollD20Btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('ROLL D20') || b.textContent.includes('TUNG D20'));
+        const rollD20Btn = Array.from(document.querySelectorAll('button')).find(
+          b => b.title?.toLowerCase().includes('roll') ||
+               b.querySelector('img[alt="ROLL DICE"]') ||
+               b.textContent.includes('ROLL D20')
+        );
         if (rollD20Btn) rollD20Btn.click();
         const rollD6Btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('ROLL D6') || b.textContent.includes('TUNG D6'));
         if (rollD6Btn) rollD6Btn.click();
       })()
     `);
-    // Wait for dice roll animations and damage calculation to settle
-    await sleep(2200);
+    // Wait for dice roll animations (900ms) to settle and capture damage popup
+    await sleep(1300);
+    await captureScreenshot('test_battle_damage.png', 1920, 1080);
+    await sleep(900);
     await captureScreenshot('test_battle_rolled.png', 1920, 1080);
 
     // 5. Capture Battle Screen: 3. Skill Activation / Victory Modal

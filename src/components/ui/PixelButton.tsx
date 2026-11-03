@@ -16,6 +16,7 @@ interface PixelButtonProps {
   className?: string;
   onClick?: () => void;
   frameBg?: string; // Optional custom sprite button background
+  type?: 'button' | 'submit' | 'reset';
 }
 
 const VARIANT_STYLES: Record<
@@ -82,6 +83,7 @@ export default function PixelButton({
   className = '',
   onClick,
   frameBg,
+  type = 'button',
 }: PixelButtonProps) {
   const { settings } = useGameStore();
 
@@ -112,7 +114,7 @@ export default function PixelButton({
 
   return (
     <motion.button
-      type="button"
+      type={type}
       disabled={disabled}
       onClick={handleClick}
       whileHover={disabled ? undefined : { scale: 1.04 }}

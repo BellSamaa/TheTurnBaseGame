@@ -8,6 +8,7 @@ import { t } from '@/lib/translations';
 import type { GameMode, MatchType } from '@/types/game';
 import { MAP_DEFINITIONS } from '@/lib/constants';
 import PixelButton from '@/components/ui/PixelButton';
+import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { playClickSound } from '@/lib/soundEffects';
@@ -291,19 +292,14 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
             </span>
 
             <div className="flex items-center gap-2">
-              <PixelButton variant="frame" size="sm" onClick={onClose}>
-                {t('back', lang)}
-              </PixelButton>
+              <PixelSpriteButton sprite="back" onClick={onClose} className="w-28 sm:w-32" />
 
-              <PixelButton
-                variant="gold"
-                size="md"
+              <PixelSpriteButton
+                sprite="start"
                 onClick={handleStartGame}
                 disabled={!activeMode.isAvailable}
-                icon={<PixelIcon name="sword" size={12} color="#2d1802" />}
-              >
-                {t('startFight', lang)}
-              </PixelButton>
+                className="w-36 sm:w-44"
+              />
             </div>
           </div>
         </PixelFrame>

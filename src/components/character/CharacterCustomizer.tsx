@@ -12,6 +12,7 @@ import {
 } from '@/lib/constants';
 import type { ClassType, CharacterCustomization } from '@/types/game';
 import PixelButton from '@/components/ui/PixelButton';
+import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import CharacterRenderer from './CharacterRenderer';
@@ -131,14 +132,11 @@ export default function CharacterCustomizer() {
 
       {/* Top Header Bar */}
       <header className="relative z-20 w-full max-w-5xl flex items-center justify-between pb-3 border-b-2 border-yellow-500/50">
-        <PixelButton
-          variant="secondary"
-          size="sm"
+        <PixelSpriteButton
+          sprite="back"
           onClick={handleBack}
-          icon={<PixelIcon name="arrowLeft" size={12} color="#001a22" />}
-        >
-          {t('back', lang)}
-        </PixelButton>
+          className="w-28 sm:w-32"
+        />
 
         <h2 className="text-sm sm:text-base text-yellow-400 font-pixel drop-shadow">
           {t('customizeHero', lang)}
@@ -150,14 +148,12 @@ export default function CharacterCustomizer() {
               ● {isEn ? 'UNSAVED CHANGES' : 'CHƯA LƯU'}
             </span>
           )}
-          <PixelButton
-            variant="success"
-            size="sm"
+          <PixelSpriteButton
+            sprite="confirm"
             onClick={handleSave}
-            icon={<PixelIcon name="save" size={12} color="#002200" />}
-          >
-            {saveSuccess ? (isEn ? 'SAVED!' : 'ĐÃ LƯU!') : t('saveHero', lang)}
-          </PixelButton>
+            className="w-32 sm:w-36"
+            title={saveSuccess ? (isEn ? 'SAVED!' : 'ĐÃ LƯU!') : t('saveHero', lang)}
+          />
         </div>
       </header>
 
@@ -675,29 +671,25 @@ export default function CharacterCustomizer() {
                   </p>
 
                   <div className="flex gap-2 justify-center">
-                    <PixelButton
-                      variant="danger"
-                      size="sm"
+                    <PixelSpriteButton
+                      sprite="cancel"
                       onClick={() => {
                         handleCancel();
                         setShowExitConfirm(false);
                         setPage('home');
                       }}
-                    >
-                      {isEn ? 'DISCARD & EXIT' : 'BỎ LƯU & THOÁT'}
-                    </PixelButton>
+                      className="w-32 sm:w-36"
+                    />
 
-                    <PixelButton
-                      variant="gold"
-                      size="sm"
+                    <PixelSpriteButton
+                      sprite="confirm"
                       onClick={() => {
                         handleSave();
                         setShowExitConfirm(false);
                         setPage('home');
                       }}
-                    >
-                      {isEn ? 'SAVE & EXIT' : 'LƯU & THOÁT'}
-                    </PixelButton>
+                      className="w-32 sm:w-36"
+                    />
                   </div>
                 </div>
               </PixelFrame>

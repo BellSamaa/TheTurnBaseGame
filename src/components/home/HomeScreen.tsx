@@ -10,7 +10,7 @@ import {
   WEAPON_DEFINITIONS,
   MAP_DEFINITIONS,
 } from '@/lib/constants';
-import PixelButton from '@/components/ui/PixelButton';
+import PixelSpriteButton, { SpriteButtonName } from '@/components/ui/PixelSpriteButton';
 import ParticleEffect from '@/components/ui/ParticleEffect';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
@@ -31,54 +31,39 @@ export default function HomeScreen() {
   const lang = settings.language;
   const isEn = lang === 'en';
 
-  const menuItems = [
+  const menuItems: { id: string; sprite: SpriteButtonName; onClick: () => void }[] = [
     {
       id: 'play',
-      label: t('play', lang),
-      iconName: 'sword' as const,
-      variant: 'primary' as const,
+      sprite: 'play',
       onClick: () => {
-        playClickSound();
         setPage('play');
       },
     },
     {
       id: 'character',
-      label: t('character', lang),
-      iconName: 'user' as const,
-      variant: 'gold' as const,
+      sprite: 'character',
       onClick: () => {
-        playClickSound();
         setPage('character');
       },
     },
     {
       id: 'weapons',
-      label: t('weapons', lang),
-      iconName: 'dagger' as const,
-      variant: 'secondary' as const,
+      sprite: 'weapons',
       onClick: () => {
-        playClickSound();
         setPage('weapons');
       },
     },
     {
       id: 'friends',
-      label: t('friends', lang),
-      iconName: 'users' as const,
-      variant: 'frame' as const,
+      sprite: 'friends',
       onClick: () => {
-        playClickSound();
         setPage('friends');
       },
     },
     {
       id: 'settings',
-      label: t('settings', lang),
-      iconName: 'gear' as const,
-      variant: 'frame' as const,
+      sprite: 'settings',
       onClick: () => {
-        playClickSound();
         setPage('settings');
       },
     },
@@ -250,24 +235,21 @@ export default function HomeScreen() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="w-full max-w-md"
           >
-            <PixelFrame variant="gold" className="p-4 sm:p-5 backdrop-blur-md bg-[#0c101c]/90 border-2 border-yellow-500/80">
-              <div className="flex flex-col gap-2.5">
+            <PixelFrame variant="gold" className="p-3 sm:p-4 backdrop-blur-md bg-[#0c101c]/90 border-2 border-yellow-500/80">
+              <div className="flex flex-col gap-2 items-center">
                 {menuItems.map((item, idx) => (
                   <motion.div
                     key={item.id}
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.3 + idx * 0.07 }}
+                    className="w-full flex justify-center"
                   >
-                    <PixelButton
-                      variant={item.variant}
-                      size="lg"
+                    <PixelSpriteButton
+                      sprite={item.sprite}
                       onClick={item.onClick}
-                      className="w-full text-xs sm:text-sm py-3 font-pixel"
-                      icon={<PixelIcon name={item.iconName} size={16} />}
-                    >
-                      {item.label}
-                    </PixelButton>
+                      className="w-[280px] sm:w-[320px] max-w-full"
+                    />
                   </motion.div>
                 ))}
               </div>

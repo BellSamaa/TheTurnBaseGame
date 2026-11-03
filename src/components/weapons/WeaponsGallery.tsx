@@ -7,6 +7,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { t } from '@/lib/translations';
 import { WEAPON_DEFINITIONS } from '@/lib/constants';
 import PixelButton from '@/components/ui/PixelButton';
+import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { playClickSound } from '@/lib/soundEffects';
@@ -46,24 +47,20 @@ export default function WeaponsGallery() {
 
       {/* Top Header */}
       <header className="relative z-20 w-full max-w-5xl flex items-center justify-between pb-3 border-b-2 border-yellow-500/40">
-        <PixelButton
-          variant="secondary"
-          size="sm"
+        <PixelSpriteButton
+          sprite="back"
           onClick={() => {
-            playClickSound();
             setPage('home');
           }}
-          icon={<PixelIcon name="arrowLeft" size={12} color="#001a22" />}
-        >
-          {t('back', lang)}
-        </PixelButton>
+          className="w-28 sm:w-32"
+        />
 
         <h2 className="text-xs sm:text-base text-yellow-400 font-pixel drop-shadow flex items-center gap-2">
           <PixelIcon name="dagger" size={16} color="#facc15" />
           <span>{isEn ? 'ARMORY VAULT (9 LEGENDARY WEAPONS)' : 'KHO BÁU BẢO KHÍ (9 VŨ KHÍ HUYỀN THOẠI)'}</span>
         </h2>
 
-        <div className="w-16" />
+        <div className="w-28 sm:w-32" />
       </header>
 
       {/* Main Armory Content */}
@@ -179,20 +176,21 @@ export default function WeaponsGallery() {
             </div>
 
             {/* Equip Button */}
-            <PixelButton
-              variant={isCurrentlyEquipped ? 'frame' : 'gold'}
-              size="md"
-              disabled={isCurrentlyEquipped}
-              onClick={() => handleEquip(selectedWeapon.id)}
-              className="w-full text-xs font-pixel py-3 mt-2"
-              icon={isCurrentlyEquipped ? <PixelIcon name="check" size={14} /> : <PixelIcon name="dagger" size={14} />}
-            >
-              {equipSuccess
-                ? (isEn ? 'EQUIPPED!' : 'ĐÃ TRANG BỊ!')
-                : isCurrentlyEquipped
-                ? (isEn ? 'CURRENTLY EQUIPPED' : 'ĐANG TRANG BỊ')
-                : (isEn ? 'EQUIP WEAPON' : 'TRANG BỊ VŨ KHÍ NÀY')}
-            </PixelButton>
+            <div className="flex justify-center mt-3">
+              <PixelSpriteButton
+                sprite={isCurrentlyEquipped ? 'confirm' : 'weapons'}
+                disabled={isCurrentlyEquipped}
+                onClick={() => handleEquip(selectedWeapon.id)}
+                className="w-44 sm:w-52"
+                title={
+                  equipSuccess
+                    ? (isEn ? 'EQUIPPED!' : 'ĐÃ TRANG BỊ!')
+                    : isCurrentlyEquipped
+                    ? (isEn ? 'CURRENTLY EQUIPPED' : 'ĐANG TRANG BỊ')
+                    : (isEn ? 'EQUIP WEAPON' : 'TRANG BỊ VŨ KHÍ NÀY')
+                }
+              />
+            </div>
           </PixelFrame>
         </div>
       </main>

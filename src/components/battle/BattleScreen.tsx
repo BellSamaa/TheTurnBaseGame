@@ -22,10 +22,12 @@ import {
 import type { BattleLogEntry } from '@/types/game';
 import HealthBar from '@/components/ui/HealthBar';
 import PixelButton from '@/components/ui/PixelButton';
+import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
 import PixelDice from './PixelDice';
+import PixelDamagePopup, { DamageEvent } from './PixelDamagePopup';
 import {
   playHitSound,
   playBlockSound,
@@ -64,12 +66,7 @@ export default function BattleScreen() {
   // Character hit reactions & floating text
   const [p1IsHit, setP1IsHit] = useState(false);
   const [p2IsHit, setP2IsHit] = useState(false);
-  const [floatingDamage, setFloatingDamage] = useState<{
-    target: 'p1' | 'p2';
-    text: string;
-    isHeal?: boolean;
-    isCrit?: boolean;
-  } | null>(null);
+  const [damagePopup, setDamagePopup] = useState<DamageEvent | null>(null);
 
   // Turn transition slide banner
   const [turnBannerText, setTurnBannerText] = useState<string | null>(null);
@@ -194,9 +191,13 @@ export default function BattleScreen() {
             setTimeout(() => setP2IsHit(false), 400);
           }
 
-          setFloatingDamage({
+          const isCrit = calculatedAtk === 20;
+          setDamagePopup({
+            id: String(Date.now()),
             target: defenderTarget,
-            text: `-${combatResult.damage} HP`,
+            text: isCrit ? `CRIT! -${combatResult.damage} DMG` : `-${combatResult.damage} DMG`,
+            type: isCrit ? 'crit' : 'damage',
+            subtext: isCrit ? (isEn ? 'CRITICAL HIT 20!' : 'BẠO KÍCH XÚC XẮC 20!') : undefined,
           });
 
           setBattleState((prev) => {
@@ -224,9 +225,12 @@ export default function BattleScreen() {
           });
         } else {
           playBlockSound();
-          setFloatingDamage({
+          setDamagePopup({
+            id: String(Date.now()),
             target: defenderTarget,
-            text: isEn ? 'BLOCKED!' : 'ĐỠ ĐÒN!',
+            text: isEn ? 'BLOCKED!' : 'ĐỠ ĐÒN THÀNH CÔNG!',
+            type: 'block',
+            subtext: isEn ? `${calculatedAtk} ≤ ${calculatedDef}` : `Công ${calculatedAtk} ≤ Thủ ${calculatedDef}`,
           });
 
           addLog({
@@ -239,7 +243,7 @@ export default function BattleScreen() {
           });
         }
 
-        addTimer(setTimeout(() => setFloatingDamage(null), 1600));
+        addTimer(setTimeout(() => setDamagePopup(null), 1600));
       }, 900)
     );
   };
@@ -291,7 +295,13 @@ export default function BattleScreen() {
           setP2IsHit(true);
           setTimeout(() => setP2IsHit(false), 400);
 
-          setFloatingDamage({ target: 'p2', text: `-${p1Trigger.damage} HP (SKILL 2!)`, isCrit: true });
+          setDamagePopup({
+            id: String(Date.now()),
+            target: 'p2',
+            text: `-${p1Trigger.damage} SKILL DMG`,
+            type: 'skill',
+            subtext: isEn ? 'PASSIVE DIE TRIGGER!' : 'KÍCH HOẠT MẶT ĐẶC BIỆT!',
+          });
           setBattleState((prev) => {
             if (!prev) return null;
             return {
@@ -331,10 +341,20 @@ export default function BattleScreen() {
         setTimeout(() => setP1IsHit(false), 400);
       }
 
-      setFloatingDamage({
+      setDamagePopup({
+        id: String(Date.now()),
         target: caster === 'p1' ? 'p2' : 'p1',
-        text: `-${res.damage} HP`,
-        isCrit: true,
+        text: `-${res.damage} DMG`,
+        type: 'crit',
+        subtext: isEn ? `SKILL: ${user.weapon.skill1.name}` : `KỸ NĂNG: ${user.weapon.skill1.nameVi}`,
+      });
+    } else if (res.heal > 0) {
+      setDamagePopup({
+        id: String(Date.now()),
+        target: caster === 'p1' ? 'p1' : 'p2',
+        text: `+${res.heal} HP`,
+        type: 'heal',
+        subtext: isEn ? 'RESTORATION' : 'HỒI MÁU',
       });
     }
 
@@ -369,7 +389,7 @@ export default function BattleScreen() {
       messageVi: `${user.name} kích hoạt: ${res.logTextVi}`,
     });
 
-    addTimer(setTimeout(() => setFloatingDamage(null), 1800));
+    addTimer(setTimeout(() => setDamagePopup(null), 1800));
   };
 
   // Handler: END TURN (With Debounce Protection)
@@ -609,23 +629,10 @@ export default function BattleScreen() {
         <div className="w-full flex items-end justify-between px-2 sm:px-8">
           {/* LEFT: Player 1 Character on Ground Baseline */}
           <div className="relative flex flex-col items-center">
-            {/* Floating Combat Numbers */}
+            {/* Floating Pixel Combat Damage Numbers */}
             <AnimatePresence>
-              {floatingDamage?.target === 'p1' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                  animate={{ opacity: 1, y: -35, scale: 1.25 }}
-                  exit={{ opacity: 0 }}
-                  className={`absolute -top-14 font-pixel text-base font-bold drop-shadow-[0_2px_4px_#000] z-40 ${
-                    floatingDamage.isHeal
-                      ? 'text-emerald-400'
-                      : floatingDamage.isCrit
-                      ? 'text-yellow-300 animate-pulse'
-                      : 'text-red-500'
-                  }`}
-                >
-                  {floatingDamage.text}
-                </motion.div>
+              {damagePopup?.target === 'p1' && (
+                <PixelDamagePopup event={damagePopup} />
               )}
             </AnimatePresence>
 
@@ -653,6 +660,7 @@ export default function BattleScreen() {
           <div className="my-auto px-1 sm:px-4">
             <PixelDice
               isRollingD20={isRollingD20}
+              d20RolledThisTurn={d20RolledThisTurn}
               atkRoll={atkRoll}
               defRoll={defRoll}
               boxerRolls={boxerRolls}
@@ -660,6 +668,7 @@ export default function BattleScreen() {
               p1Name={player1.name}
               p2Name={player2.name}
               isRollingD6={isRollingD6}
+              d6RolledThisTurn={d6RolledThisTurn}
               d6P1Rolls={d6P1Rolls}
               d6P2Rolls={d6P2Rolls}
               p1IsMage={p1Class.extraD6Rolls > 0}
@@ -671,23 +680,10 @@ export default function BattleScreen() {
 
           {/* RIGHT: Player 2 Character on Ground Baseline */}
           <div className="relative flex flex-col items-center">
-            {/* Floating Combat Numbers */}
+            {/* Floating Pixel Combat Damage Numbers */}
             <AnimatePresence>
-              {floatingDamage?.target === 'p2' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                  animate={{ opacity: 1, y: -35, scale: 1.25 }}
-                  exit={{ opacity: 0 }}
-                  className={`absolute -top-14 font-pixel text-base font-bold drop-shadow-[0_2px_4px_#000] z-40 ${
-                    floatingDamage.isHeal
-                      ? 'text-emerald-400'
-                      : floatingDamage.isCrit
-                      ? 'text-yellow-300 animate-pulse'
-                      : 'text-red-500'
-                  }`}
-                >
-                  {floatingDamage.text}
-                </motion.div>
+              {damagePopup?.target === 'p2' && (
+                <PixelDamagePopup event={damagePopup} />
               )}
             </AnimatePresence>
 
@@ -779,20 +775,15 @@ export default function BattleScreen() {
         </div>
 
         {/* Center: Action Buttons (D20, D6, End Turn) (3 cols) */}
-        <div className="md:col-span-3 bg-[#0c101c]/95 border-2 border-cyan-500/80 p-2.5 flex flex-col justify-between gap-2 shadow-[0_0_15px_rgba(0,0,0,0.8)]">
-          {/* Roll D20 Button */}
-          <PixelButton
-            variant="danger"
-            size="sm"
+        <div className="md:col-span-3 bg-[#0c101c]/95 border-2 border-cyan-500/80 p-2.5 flex flex-col justify-between items-center gap-2 shadow-[0_0_15px_rgba(0,0,0,0.8)]">
+          {/* Authentic Sliced Roll Dice Button */}
+          <PixelSpriteButton
+            sprite="roll_dice"
             disabled={isRollingD20 || d20RolledThisTurn}
             onClick={handleRollD20}
-            icon={<PixelIcon name="dice20" size={12} color="#fff" />}
-            className="w-full text-[8px] font-pixel py-2 shadow-[0_0_10px_rgba(239,68,68,0.4)]"
-          >
-            {d20RolledThisTurn
-              ? (isEn ? '✓ D20 ROLLED' : '✓ ĐÃ TUNG D20')
-              : (isEn ? 'ROLL D20 (ATK/DEF)' : 'TUNG D20 (CÔNG/THỦ)')}
-          </PixelButton>
+            className="w-full max-w-[210px]"
+            title={d20RolledThisTurn ? (isEn ? '✓ D20 Rolled' : '✓ Đã tung D20') : (isEn ? 'Roll D20' : 'Tung D20')}
+          />
 
           {/* Roll D6 Button */}
           <PixelButton
@@ -801,23 +792,21 @@ export default function BattleScreen() {
             disabled={isRollingD6 || d6RolledThisTurn}
             onClick={handleRollD6}
             icon={<PixelIcon name="dice6" size={12} color="#001a22" />}
-            className="w-full text-[8px] font-pixel py-2"
+            className="w-full max-w-[210px] text-[8px] font-pixel py-1.5"
           >
             {d6RolledThisTurn
-              ? (isEn ? '✓ D6 ROLLED' : '✓ ĐÃ TUNG D6')
-              : (isEn ? 'ROLL D6 (CHARGE)' : 'TUNG D6 (SẠC CHIÊU)')}
+              ? (isEn ? '✓ D6 CHARGED' : '✓ ĐÃ SẠC D6')
+              : (isEn ? '⚡ ROLL D6 CHARGE' : '⚡ TUNG D6 SẠC CHIÊU')}
           </PixelButton>
 
-          {/* End Turn Button with Debounce Protection */}
-          <PixelButton
-            variant={d20RolledThisTurn ? 'success' : 'frame'}
-            size="sm"
+          {/* Authentic Sliced End Turn Button */}
+          <PixelSpriteButton
+            sprite="end_turn"
             disabled={!d20RolledThisTurn || isEndingTurn}
             onClick={handleEndTurn}
-            className="w-full text-[8.5px] font-pixel py-2 font-bold"
-          >
-            {isEn ? 'END TURN ➔' : 'KẾT THÚC LƯỢT ➔'}
-          </PixelButton>
+            className="w-full max-w-[210px]"
+            title={isEn ? 'End Turn' : 'Kết thúc lượt'}
+          />
         </div>
 
         {/* Right: Expandable Battle Log (4 cols) */}
