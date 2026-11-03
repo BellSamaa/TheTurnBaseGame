@@ -1,0 +1,11 @@
+{
+  "name": "dice-maniac-turnbase-game",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix game run dev",
+    "build": "npm --prefix game run build",
+    "start": "npm --prefix game run start",
+    "lint": "npm --prefix game run lint"
+  }
+}

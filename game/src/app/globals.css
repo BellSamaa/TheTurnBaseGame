@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+:root {
+  --font-pixel: 'Press Start 2P', monospace;
+}
+
+* {
+  font-family: var(--font-pixel), monospace !important;
+  image-rendering: pixelated;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0b0c10;
+  color: #f7fafc;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* Custom Pixel Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #11141c;
+  border: 2px solid #2d3748;
+}
+::-webkit-scrollbar-thumb {
+  background: #e2b714;
+  border: 2px solid #1a202c;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ffd700;
+}
+
+/* Pixel Art Borders */
+.pixel-box-gold {
+  box-shadow: 
+    0 -4px 0 0 #d69e2e,
+    0 4px 0 0 #d69e2e,
+    -4px 0 0 0 #d69e2e,
+    4px 0 0 0 #d69e2e,
+    0 -8px 0 0 #1a202c,
+    0 8px 0 0 #1a202c,
+    -8px 0 0 0 #1a202c,
+    8px 0 0 0 #1a202c,
+    0 0 15px rgba(234, 179, 8, 0.4);
+}
+
+.pixel-box-cyan {
+  box-shadow: 
+    0 -4px 0 0 #0bc5ea,
+    0 4px 0 0 #0bc5ea,
+    -4px 0 0 0 #0bc5ea,
+    4px 0 0 0 #0bc5ea,
+    0 -8px 0 0 #1a202c,
+    0 8px 0 0 #1a202c,
+    -8px 0 0 0 #1a202c,
+    8px 0 0 0 #1a202c,
+    0 0 15px rgba(11, 197, 234, 0.4);
+}
+
+.pixel-box-purple {
+  box-shadow: 
+    0 -4px 0 0 #9f7aea,
+    0 4px 0 0 #9f7aea,
+    -4px 0 0 0 #9f7aea,
+    4px 0 0 0 #9f7aea,
+    0 -8px 0 0 #1a202c,
+    0 8px 0 0 #1a202c,
+    -8px 0 0 0 #1a202c,
+    8px 0 0 0 #1a202c,
+    0 0 15px rgba(159, 122, 234, 0.4);
+}
+
+.pixel-box-red {
+  box-shadow: 
+    0 -4px 0 0 #e53e3e,
+    0 4px 0 0 #e53e3e,
+    -4px 0 0 0 #e53e3e,
+    4px 0 0 0 #e53e3e,
+    0 -8px 0 0 #1a202c,
+    0 8px 0 0 #1a202c,
+    -8px 0 0 0 #1a202c,
+    8px 0 0 0 #1a202c,
+    0 0 15px rgba(229, 62, 62, 0.4);
+}
+
+/* Sparkle & Shimmer Animation */
+@keyframes sparkleGlow {
+  0%, 100% {
+    text-shadow: 0 0 4px #ffd700, 0 0 10px #ffeb3b, 0 0 18px #fff, 0 0 25px #ffd700;
+    color: #fffb8f;
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 0 0 8px #ff9800, 0 0 16px #ffd700, 0 0 24px #ffc107, 0 0 32px #ff9800;
+    color: #ffffff;
+    transform: scale(1.04);
+  }
+}
+
+.sparkle-shiratosi {
+  display: inline-block;
+  color: #ffd700;
+  font-weight: bold;
+  animation: sparkleGlow 1.8s infinite ease-in-out;
+}
+
+.author-bell {
+  color: #ff3333;
+  text-shadow: 0 0 8px rgba(255, 51, 51, 0.6);
+  font-weight: bold;
+}
+
+.author-snow {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  font-weight: bold;
+}
+
+/* Floating animation */
+@keyframes floatY {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: floatY 3s ease-in-out infinite;
+}
+
+/* Pulse Glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px rgba(255, 215, 0, 0.95));
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+/* Dice roll shake */
+@keyframes shakeAnimation {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.animate-dice-shake {
+  animation: shakeAnimation 0.5s infinite;
+}
