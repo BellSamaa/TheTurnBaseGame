@@ -33,6 +33,25 @@ export default function GameMasterPage() {
     }
   }, []);
 
+  React.useEffect(() => {
+    let cancelled = false;
+    const verify = async () => {
+      const user = useGameStore.getState().currentUser;
+      if (!user) return;
+      try {
+        const response = await fetch('/api/auth/session', { cache: 'no-store' });
+        const session = await response.json();
+        if (cancelled || useGameStore.getState().currentUser !== user) return;
+        if (response.status === 401 || (response.ok && session.userId !== user.id)) {
+          useGameStore.setState({ currentUser: null, authModal: 'login' });
+        }
+      } catch { /* Network failure is not proof of logout. */ }
+    };
+    void verify();
+    window.addEventListener('focus', verify);
+    return () => { cancelled = true; window.removeEventListener('focus', verify); };
+  }, []);
+
   return (
     <main className={`relative min-h-screen w-full bg-black text-slate-100 overflow-x-hidden ${langClass}`}>
       {/* Global Audio Controller (BGM, Battle Music, Mute, Volume) */}

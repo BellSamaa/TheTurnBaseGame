@@ -27,12 +27,14 @@ export default function FriendsList() {
       const res = await fetch('/api/social', { cache: 'no-store' });
       const body = await res.json();
       if (version !== requestVersion.current) return;
-      setLoginRequired(res.status === 401 || (res.ok && body.actorId !== currentUser.id));
+      const expired = res.status === 401 || (res.ok && body.actorId !== currentUser.id);
+      setLoginRequired(expired);
+      if (expired) useGameStore.setState({ currentUser: null });
       if (!res.ok) throw new Error(body.error);
       if (body.actorId !== currentUser.id) throw new Error(en ? 'Please sign in again.' : 'Vui lòng đăng nhập lại.');
       setData(body); setError('');
     } catch (e) { if (version === requestVersion.current) setError(e instanceof Error ? e.message : 'Connection failed'); }
-  }, [currentUser?.id, en]);
+  }, [currentUser, en]);
   useEffect(() => {
     setData(null); refresh();
     const timer = setInterval(refresh, 5000);

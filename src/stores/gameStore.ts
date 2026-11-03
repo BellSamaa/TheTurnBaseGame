@@ -123,6 +123,11 @@ export const useGameStore = create<GameStore>()(
           });
           const data = await res.json();
           if (res.ok && data.success && data.user) {
+            const sessionResponse = await fetch('/api/auth/session', { cache: 'no-store', credentials: 'same-origin' });
+            const session = await sessionResponse.json();
+            if (!sessionResponse.ok || session.userId !== data.user.id) {
+              return { success: false, error: get().settings.language === 'vi' ? 'Trình duyệt chưa lưu được phiên đăng nhập. Hãy cho phép cookie và thử lại trên cùng địa chỉ game.' : 'Session cookie was not saved. Allow cookies and retry on the same game URL.' };
+            }
             const u = data.user;
             set({
               currentUser: u,
@@ -148,28 +153,7 @@ export const useGameStore = create<GameStore>()(
             };
           }
         } catch {
-          // Offline fallback: check local accounts in storage
-          const acc = get().accounts.find(
-            (a) => a.username.toLowerCase() === trimmedUser.toLowerCase()
-          );
-          if (acc) {
-            if (acc.passwordHash && pass && acc.passwordHash !== pass) {
-              return {
-                success: false,
-                error: get().settings.language === 'vi' ? 'Mật khẩu không chính xác.' : 'Incorrect password.',
-              };
-            }
-            set({
-              currentUser: acc,
-              profile: { ...get().profile, id: acc.id, name: acc.username, character: acc.avatarConfig },
-              authModal: 'none',
-            });
-            return { success: true };
-          }
-          return {
-            success: false,
-            error: get().settings.language === 'vi' ? 'Không thể kết nối đến máy chủ.' : 'Could not connect to server.',
-          };
+          return { success: false, error: get().settings.language === 'vi' ? 'Không thể xác nhận đăng nhập với máy chủ. Vui lòng thử lại.' : 'Could not verify server sign-in. Please retry.' };
         }
       },
 
@@ -210,6 +194,11 @@ export const useGameStore = create<GameStore>()(
           });
           const data = await res.json();
           if (res.ok && data.success && data.user) {
+            const sessionResponse = await fetch('/api/auth/session', { cache: 'no-store', credentials: 'same-origin' });
+            const session = await sessionResponse.json();
+            if (!sessionResponse.ok || session.userId !== data.user.id) {
+              return { success: false, error: get().settings.language === 'vi' ? 'Trình duyệt chưa lưu được phiên đăng nhập. Hãy cho phép cookie và thử lại trên cùng địa chỉ game.' : 'Session cookie was not saved. Allow cookies and retry on the same game URL.' };
+            }
             const u = data.user;
             set({
               currentUser: u,
@@ -232,25 +221,7 @@ export const useGameStore = create<GameStore>()(
             };
           }
         } catch {
-          // Local fallback
-          const newAcc: UserAccount = {
-            id: 'user_' + Date.now().toString(36),
-            username: trimmedUser,
-            email: trimmedEmail || `${trimmedUser.toLowerCase()}@dicemaniac.rpg`,
-            passwordHash: pass || '',
-            bio: 'Challenger ready to roll the D20.',
-            createdAt: new Date().toISOString().split('T')[0],
-            avatarConfig: get().profile.character,
-            tier: 1,
-            rankPoints: 1000,
-          };
-          set({
-            accounts: [...get().accounts, newAcc],
-            currentUser: newAcc,
-            profile: { ...get().profile, id: newAcc.id, name: newAcc.username },
-            authModal: 'none',
-          });
-          return { success: true };
+          return { success: false, error: get().settings.language === 'vi' ? 'Không thể tạo tài khoản trên máy chủ. Vui lòng thử lại.' : 'Could not create server account. Please retry.' };
         }
       },
 

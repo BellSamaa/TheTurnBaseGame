@@ -1,0 +1,20 @@
+const fs=require('fs'),path=require('path'),ts=require('typescript'),Module=require('module'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..'),resolve=Module._resolveFilename;
+Module._resolveFilename=function(r,p,...a){return resolve.call(this,r.startsWith('@/')?path.join(root,'src',r.slice(2)):r,p,...a)};
+require.extensions['.ts']=(m,f)=>m._compile(ts.transpileModule(fs.readFileSync(f,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,f);
+const {useGameStore:store}=require('../src/stores/gameStore.ts');
+(async()=>{
+const user={id:'alice',username:'Alice'};
+store.setState({currentUser:null,accounts:[{...user,passwordHash:'password'}]});
+global.fetch=async()=>{throw Error('offline')};
+assert.equal((await store.getState().loginUser('Alice','password')).success,false);
+assert.equal(store.getState().currentUser,null);
+assert.equal((await store.getState().signupUser('Alice','a@example.test','password')).success,false);
+global.fetch=async url=>Response.json(url.endsWith('/session')?{userId:null}:{success:true,user},{status:url.endsWith('/session')?401:200});
+assert.equal((await store.getState().loginUser('Alice','password')).success,false);
+assert.equal(store.getState().currentUser,null);
+global.fetch=async url=>Response.json(url.endsWith('/session')?{userId:'alice'}:{success:true,user});
+assert.equal((await store.getState().loginUser('Alice','password')).success,true);
+assert.equal(store.getState().currentUser.id,'alice');
+console.log('PASS: offline login/signup rejected, missing cookie rejected, matching server session accepted');
+})().catch(e=>{console.error(e);process.exitCode=1});
