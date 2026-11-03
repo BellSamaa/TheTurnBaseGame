@@ -88,7 +88,16 @@ export async function POST(req: Request, context: RouteContext) {
 
     // 3. START BATTLE (When both ready)
     if (action === 'start_battle') {
-      if (body.userId !== room.host.id) return NextResponse.json({ success: false, error: 'Host only' }, { status: 403 });
+      // Tabs opened before the deployment do not send userId with Start.
+      // Do not misreport an outdated client as a non-host or bypass the host check.
+      if (typeof body.userId !== 'string' || !body.userId.trim()) {
+        return NextResponse.json({
+          success: false,
+          code: 'CLIENT_UPDATE_REQUIRED',
+          error: 'Trang game đang dùng bản cũ. Nhấn Ctrl+Shift+R rồi vào lại phòng bằng mã phòng. / Reload this page and rejoin the room.',
+        }, { status: 409 });
+      }
+      if (body.userId !== room.host.id) return NextResponse.json({ success: false, error: 'Chỉ chủ phòng hiện tại được bắt đầu trận. Hãy vào lại phòng để cập nhật. / Only the current host can start.' }, { status: 403 });
       if (room.battleState) return NextResponse.json({ success: true, room });
       if (!room.host.isReady || !room.guest?.isReady) return NextResponse.json({ success: false, error: 'Both players must be ready' }, { status: 409 });
       if (!room.guest) {
