@@ -311,5 +311,5 @@ button:focus-visible,select:focus-visible,a:focus-visible { outline:2px solid #6
 .weapon-stand-left { transform:translateX(calc(-50% + 30px)); }
 .weapon-stand-right { transform:translateX(calc(-50% - 30px)); }
 .weapon-stand img { display:block; width:100%; height:100%; object-fit:cover; image-rendering:pixelated; }
-.weapon-stand-left img { transform:scaleX(-1); }
+.weapon-stand-right img { transform:scaleX(-1); }
 @media(max-width:639px) { .weapon-stand { width:210px; height:180px; bottom:12px; opacity:.48; } .weapon-stand-left { transform:translateX(calc(-50% + 16px)); } .weapon-stand-right { transform:translateX(calc(-50% - 16px)); } }
