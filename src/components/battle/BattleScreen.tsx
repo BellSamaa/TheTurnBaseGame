@@ -19,6 +19,7 @@ import {
 import type { BattleLogEntry, BattleState, PlayerState } from '@/types/game';
 import { normalAttackEffect, skillPresentation, skillEffectPlan } from '@/lib/skillPresentation';
 import { castChargedSkill, skillCost } from '@/lib/chargedSkills';
+import WeaponStand from './WeaponStand';
 import { RockHealthBar, RockCompanion } from './RockCompanion';
 import HealthBar from '@/components/ui/HealthBar';
 import PixelButton from '@/components/ui/PixelButton';
@@ -1189,9 +1190,11 @@ export default function BattleScreen() {
                 )}
               </div>
 
+              <WeaponStand weaponId={player1.weapon.id} side="left" />
               <RockCompanion player={player1} side="right" />
               {player1.immuneDamageNext && <div aria-label="Immune" className="infinity-guard" />}
               <CharacterRenderer
+                className="battle-character-foreground"
                 character={player1.character}
                 weapon={['spirit_stone', 'pet_rock'].includes(player1.weapon.id) ? undefined : player1.weapon}
                 size="md"
@@ -1234,9 +1237,11 @@ export default function BattleScreen() {
                 )}
               </div>
 
+              <WeaponStand weaponId={player2.weapon.id} side="right" />
               <RockCompanion player={player2} side="left" />
               {player2.immuneDamageNext && <div aria-label="Immune" className="infinity-guard" />}
               <CharacterRenderer
+                className="battle-character-foreground"
                 character={player2.character}
                 weapon={['spirit_stone', 'pet_rock'].includes(player2.weapon.id) ? undefined : player2.weapon}
                 size="md"
