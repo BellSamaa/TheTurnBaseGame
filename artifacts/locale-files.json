@@ -1,0 +1,150 @@
+{
+  "src\\components\\battle\\BattleScreen.tsx": [
+    "Lượt Pet Rock: tấn công sau chủ nhân, gây 2 sát thương."
+  ],
+  "src\\components\\battle\\BuffCard.tsx": [
+    "Buff úp",
+    " · Đã dùng",
+    "VẬN MỆNH CỦA BẠN",
+    "1 trong 20 buff · Chỉ bạn biết lá bài này",
+    "NHẬN THẺ",
+    "Đang rút thẻ…"
+  ],
+  "src\\components\\battle\\DiceRoller3D.tsx": [
+    "ĐANG TUNG...",
+    "SẴN SÀNG"
+  ],
+  "src\\components\\battle\\LastManStandingRulesModal.tsx": [
+    "Bản thử nghiệm hiện có: 3–4 người, 200 HP gốc, sát thương 15 + chênh lệch D20. Sạc D6 → dùng skill/chọn mục tiêu → Công/Thủ → 5 giây can thiệp (3 PTS đổi ±1 Công) → kết thúc lượt. Hạ gục hồi 30 HP và nhận 5 PTS. Mỗi người có 1 trong 20 buff ẩn, lật một lần đúng điều kiện. Vòng bo từ vòng 8 gây 10 HP, mỗi vòng tăng 5. Bom nổ sau 2 vòng. Buff Im Lặng cấm skill, can thiệp PTS và buff trong vòng đó.",
+    "Danh sách 20 buff"
+  ],
+  "src\\components\\battle\\LmsBattle.tsx": [
+    "Mất kết nối",
+    "LAST MAN STANDING · VÒNG",
+    "PHÒNG",
+    "người sống",
+    "CAN THIỆP · ",
+    "CÔNG",
+    "/ THỦ",
+    "Chọn đối thủ",
+    " · BẠN",
+    "ĐÃ BỊ LOẠI",
+    "HÒA: không còn người sống",
+    "CHIẾN THẮNG: ",
+    "Lượt của bạn",
+    "Bạn cần tung phòng thủ",
+    "Đang chờ ",
+    "BUFF CỦA BẠN ·",
+    "Ẩn",
+    "ĐÃ DÙNG",
+    "CHƯA LẬT",
+    "Chọn lá buff",
+    "Buff đầu trận",
+    "Buff vòng 30",
+    "Chọn mục tiêu bên dưới nếu buff yêu cầu. Mỗi buff dùng một lần; server kiểm tra điều kiện lúc bấm.",
+    "Mục tiêu buff",
+    "Tùy chọn buff",
+    "D20 Công / đổi PTS thành HP",
+    "D20 Thủ",
+    "Đổi HP thành PTS",
+    "PTS muốn mua",
+    "LẬT BUFF",
+    "Vòng bo từ vòng",
+    ". Buff người khác:",
+    "ÚP",
+    "Mục tiêu",
+    "CHỌN MỤC TIÊU",
+    "Dạng Skill 1",
+    "30 PTS · 30 dame + hoảng loạn",
+    "Cầu tím 50",
+    "Thiên không 30 + khóa",
+    "Khóa Skill 1",
+    "Khóa Skill 2",
+    "TUNG D20 CÔNG",
+    "TUNG D20 THỦ",
+    "+1 CÔNG · 3 PTS",
+    "−1 CÔNG · 3 PTS",
+    "TÍNH SÁT THƯƠNG",
+    "KẾT THÚC LƯỢT",
+    "VỀ PHÒNG",
+    "Nhật ký trận"
+  ],
+  "src\\components\\battle\\PixelDice.tsx": [
+    "Khung xúc xắc pixel đôi cao cấp"
+  ],
+  "src\\components\\battle\\PveTower.tsx": [
+    "Mất kết nối",
+    "Lỗi kết nối",
+    "← Quay lại",
+    "THÁP XÚC XẮC · TẦNG",
+    "Đăng nhập để lưu phần thưởng",
+    "BẮT ĐẦU CHUỖI MỚI",
+    "TẦNG ĐÃ VƯỢT QUA",
+    "ĐỐI THỦ ĐANG TẤN CÔNG",
+    "LƯỢT CỦA BẠN",
+    "ĐỐI THỦ",
+    "· Công",
+    "/ Thủ",
+    "Thưởng tầng: ◆",
+    "ĐI TIẾP TẦNG",
+    "Dạng Skill 1",
+    "Dạng Skill 2",
+    "Khóa skill",
+    "Khóa Skill 1",
+    "Khóa Skill 2",
+    "CHỌN ĐỐI THỦ",
+    "TUNG D20 CÔNG",
+    "TUNG D20 THỦ",
+    "KẾT THÚC LƯỢT",
+    "Nhật ký"
+  ],
+  "src\\components\\battle\\RankLobby.tsx": [
+    "Đóng ✕",
+    "ĐẤU HẠNG 1V1",
+    "điểm cho sao kế tiếp",
+    "Ghép trận với người chơi thật. Thắng/thua thay đổi điểm, sao và rank.",
+    "Quà rank & khung",
+    "TÌM TRẬN"
+  ],
+  "src\\components\\battle\\RankResult.tsx": [
+    "THĂNG HẠNG!",
+    "XUỐNG HẠNG",
+    "THÊM SAO!",
+    "MẤT SAO",
+    "KẾT QUẢ XẾP HẠNG",
+    "điểm",
+    "điểm cho sao tiếp theo",
+    "TIẾP TỤC"
+  ],
+  "src\\components\\battle\\RoomBrowser.tsx": [
+    "Lời mời phòng #",
+    "· Vào phòng",
+    "Mời bạn bè",
+    "Chọn bạn bè",
+    "Đã gửi lời mời",
+    "Mời vào phòng",
+    "Sinh tồn xếp hạng",
+    "PvP vui vẻ",
+    "LMS · 3–4 người",
+    "PvP thường · 1v1",
+    "· PvE cùng bạn bè sẽ phát triển sau"
+  ],
+  "src\\components\\home\\GameModeSelector.tsx": [
+    "Leo chuỗi đối thủ, nhận Gem và EXP; tầng cao có Ruby.",
+    "Mở bảng Rank để xem sao, quà hạng và bắt đầu tìm trận.",
+    "Tạo hoặc vào phòng sinh tồn 3–4 người. Tất cả sẵn sàng rồi chủ phòng bắt đầu.",
+    "Chế độ đang phát triển.",
+    "Xem luật LMS"
+  ],
+  "src\\components\\progression\\AccountPanel.tsx": [
+    "Lỗi kết nối",
+    "thắng /",
+    "Quà rank",
+    "Đã nhận",
+    "Chưa đạt",
+    "Nhận quà"
+  ],
+  "src\\components\\ui\\HealthBar.tsx": [
+    "Khung thanh máu pixel vàng ngọc"
+  ]
+}

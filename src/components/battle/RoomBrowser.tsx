@@ -1,4 +1,5 @@
 'use client';
+import {tx} from '@/lib/uiLocale';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useGameStore } from '@/stores/gameStore';
@@ -349,8 +350,8 @@ export default function RoomBrowser({
           )}
 
               <div className="flex flex-wrap gap-2 p-2">
-              {invitations.map(inv=><button className="border border-cyan-500 px-3 py-2 text-cyan-200" key={inv.id} onClick={()=>handleJoinRoom(inv.room_code)}>Lời mời phòng #{inv.room_code} · Vào phòng</button>)}
-              {currentLobby&&<><select className="bg-slate-900 p-2" aria-label="Mời bạn bè" value={inviteTarget} onChange={e=>setInviteTarget(e.target.value)}><option value="">Chọn bạn bè</option>{friendOptions.map(f=><option key={f.id} value={f.userId||f.id}>{f.name}</option>)}</select><button className="border border-yellow-400 px-3 py-2" disabled={!inviteTarget} onClick={async()=>{const r=await fetch('/api/room-invites',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:currentLobby.code,target:inviteTarget})});const b=await r.json();setErrorMessage(r.ok?'Đã gửi lời mời':b.error);}}>Mời vào phòng</button></>}
+              {invitations.map(inv=><button className="border border-cyan-500 px-3 py-2 text-cyan-200" key={inv.id} onClick={()=>handleJoinRoom(inv.room_code)}>{tx("Lời mời phòng #") + " "}{inv.room_code}{" " + tx("· Vào phòng")}</button>)}
+              {currentLobby&&<><select className="bg-slate-900 p-2" aria-label={tx("Mời bạn bè")} value={inviteTarget} onChange={e=>setInviteTarget(e.target.value)}><option value="">{tx("Chọn bạn bè")}</option>{friendOptions.map(f=><option key={f.id} value={f.userId||f.id}>{f.name}</option>)}</select><button className="border border-yellow-400 px-3 py-2" disabled={!inviteTarget} onClick={async()=>{const r=await fetch('/api/room-invites',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:currentLobby.code,target:inviteTarget})});const b=await r.json();setErrorMessage(r.ok?tx("Đã gửi lời mời"):b.error);}}>{tx("Mời vào phòng")}</button></>}
             </div>
           {/* Navigation Tabs */}
           {activeTab !== 'lobby' && (
@@ -469,7 +470,7 @@ export default function RoomBrowser({
                   <label className="text-[8.5px] font-pixel text-yellow-300 font-bold block mb-1">
                     {isEn ? 'MATCH MODE:' : 'CHẾ ĐỘ THI ĐẤU:'}
                   </label>
-                  <p className="text-yellow-200">{initialGameMode==='last_man_standing'?'Sinh tồn xếp hạng':'PvP vui vẻ'}</p>
+                  <p className="text-yellow-200">{initialGameMode==='last_man_standing'?tx("Sinh tồn xếp hạng"):tx("PvP vui vẻ")}</p>
                 </div>
 
                 <div>
@@ -490,7 +491,7 @@ export default function RoomBrowser({
                 </div>
                 <div>
                   <label className="text-[8.5px] font-pixel text-yellow-300 font-bold block mb-1">{isEn ? 'ROOM TYPE:' : 'LOẠI PHÒNG:'}</label>
-                  <p className="text-cyan-200">{initialGameMode==='last_man_standing'?'LMS · 3–4 người':'PvP thường · 1v1'} · PvE cùng bạn bè sẽ phát triển sau</p>
+                  <p className="text-cyan-200">{initialGameMode==='last_man_standing'?tx("LMS · 3–4 người"):tx("PvP thường · 1v1")}{" " + tx("· PvE cùng bạn bè sẽ phát triển sau")}</p>
                 </div>
               </div>
 

@@ -1,0 +1,171 @@
+ · BẠN| · YOU
+ · Đã dùng| · Used
++1 CÔNG · 3 PTS|+1 ATK · 3 PTS
+−1 CÔNG · 3 PTS|−1 ATK · 3 PTS
+. Buff người khác:|. Other buffs:
+/ THỦ|/ DEF
+/ Thủ|/ DEF
+1 trong 20 buff · Chỉ bạn biết lá bài này|1 of 20 buffs · Only you know this card
+30 PTS · 30 dame + hoảng loạn|30 PTS · 30 damage + Panic
+BUFF CỦA BẠN ·|YOUR BUFF ·
+Buff vòng 30|Round 30 buff
+Buff úp|Hidden buff
+Buff đầu trận|Starting buff
+Bạn cần tung phòng thủ|Roll your defense die
+BẮT ĐẦU CHUỖI MỚI|START A NEW RUN
+CAN THIỆP ·|CLASH ·
+CHIẾN THẮNG:|WINNER:
+CHƯA LẬT|HIDDEN
+CHỌN MỤC TIÊU|SELECT TARGET
+CHỌN ĐỐI THỦ|SELECT OPPONENT
+Chưa đạt|Locked
+Chế độ đang phát triển.|This mode is in development.
+Chọn bạn bè|Select a friend
+Chọn lá buff|Select buff card
+Chọn mục tiêu bên dưới nếu buff yêu cầu. Mỗi buff dùng một lần; server kiểm tra điều kiện lúc bấm.|Choose a target below when required. Each buff is single-use; the server checks its activation conditions.
+Chọn đối thủ|Choose an opponent
+CÔNG|ATK
+Cầu tím 50|Purple · 50 damage
+D20 Công / đổi PTS thành HP|Attack D20 / convert PTS to HP
+D20 Thủ|Defense D20
+Danh sách 20 buff|The 20 buffs
+Dạng Skill 1|Skill 1 form
+Dạng Skill 2|Skill 2 form
+Ghép trận với người chơi thật. Thắng/thua thay đổi điểm, sao và rank.|Match real players. Wins and losses change your points, stars and rank.
+HÒA: không còn người sống|DRAW: no survivors
+Khung thanh máu pixel vàng ngọc|Gold ruby health frame
+Khung xúc xắc pixel đôi cao cấp|Premium dual dice frame
+Khóa Skill 1|Lock Skill 1
+Khóa Skill 2|Lock Skill 2
+Khóa skill|Lock skill
+KẾT QUẢ XẾP HẠNG|RANKED RESULT
+KẾT THÚC LƯỢT|END TURN
+LAST MAN STANDING · VÒNG|LAST MAN STANDING · ROUND
+LMS · 3–4 người|LMS · 3–4 players
+Leo chuỗi đối thủ, nhận Gem và EXP; tầng cao có Ruby.|Climb through stronger opponents for Gems and EXP; higher floors award Rubies.
+LƯỢT CỦA BẠN|YOUR TURN
+Lượt Pet Rock: tấn công sau chủ nhân, gây 2 sát thương.|Pet Rock follows its owner for 2 damage.
+Lượt của bạn|Your turn
+LẬT BUFF|REVEAL BUFF
+Lỗi kết nối|Connection error
+Lời mời phòng #|Room invitation #
+MẤT SAO|STAR LOST
+Mất kết nối|Connection lost
+Mời bạn bè|Invite friends
+Mời vào phòng|Invite to room
+Mở bảng Rank để xem sao, quà hạng và bắt đầu tìm trận.|Open Ranked to view your stars, rewards and matchmaking.
+Mục tiêu|Target
+Mục tiêu buff|Buff target
+NHẬN THẺ|KEEP CARD
+Nhận quà|Claim reward
+Nhật ký|Battle log
+Nhật ký trận|Battle log
+PHÒNG|ROOM
+PTS muốn mua|PTS to purchase
+PvP thường · 1v1|Casual PvP · 1v1
+PvP vui vẻ|Casual PvP
+Quà rank|Rank rewards
+Quà rank & khung|Rank rewards & frames
+Sinh tồn xếp hạng|Ranked survival
+SẴN SÀNG|READY
+THÁP XÚC XẮC · TẦNG|DICE TOWER · FLOOR
+THÊM SAO!|STAR GAINED!
+THĂNG HẠNG!|RANK UP!
+TIẾP TỤC|CONTINUE
+TUNG D20 CÔNG|ROLL ATTACK D20
+TUNG D20 THỦ|ROLL DEFENSE D20
+Thiên không 30 + khóa|Purple Sky · 30 damage + lock
+Thưởng tầng: ◆|Floor reward: ◆
+TÌM TRẬN|FIND MATCH
+TÍNH SÁT THƯƠNG|RESOLVE DAMAGE
+Tùy chọn buff|Buff option
+Tạo hoặc vào phòng sinh tồn 3–4 người. Tất cả sẵn sàng rồi chủ phòng bắt đầu.|Create or join a 3–4 player survival room. The host starts once everyone is ready.
+TẦNG ĐÃ VƯỢT QUA|FLOOR CLEARED
+Vòng bo từ vòng|Sudden death starts at round
+VẬN MỆNH CỦA BẠN|DRAW YOUR DESTINY
+VỀ PHÒNG|RETURN TO LOBBY
+XUỐNG HẠNG|RANK DOWN
+Xem luật LMS|Read LMS rules
+người sống|survivors
+thắng /|wins /
+· Công|· ATK
+· PvE cùng bạn bè sẽ phát triển sau|· Cooperative PvE is coming later
+· Vào phòng|· Join room
+ÚP|HIDDEN
+ĐANG TUNG...|ROLLING...
+ĐI TIẾP TẦNG|CONTINUE TO FLOOR
+Đang chờ|Waiting for
+Đang rút thẻ…|Drawing your card…
+ĐÃ BỊ LOẠI|ELIMINATED
+ĐÃ DÙNG|USED
+Đã gửi lời mời|Invitation sent
+Đã nhận|Claimed
+Đóng ✕|Close ✕
+Đăng nhập để lưu phần thưởng|Sign in to save rewards
+ĐẤU HẠNG 1V1|RANKED 1V1
+ĐỐI THỦ|OPPONENT
+ĐỐI THỦ ĐANG TẤN CÔNG|OPPONENT ATTACKING
+Đổi HP thành PTS|Convert HP to PTS
+điểm|points
+điểm cho sao kế tiếp|points to the next star
+điểm cho sao tiếp theo|points to the next star
+Ẩn|Hidden
+← Quay lại|← Back
+Đồng|Bronze
+Sắt|Iron
+Vàng|Gold
+Kim Cương|Diamond
+Bạch Kim|Platinum
+Huyền Thoại Xúc Sắc|Dice Legend
+Xúc Sắc Hoàng Kim|Golden Dice
+Vua trò chơi|King of Games
+Khung avatar|Avatar frames
+Khung Rank|Rank frame
+Chưa đủ điều kiện dùng skill|Skill requirements are not met
+Vui lòng đăng nhập|Please sign in
+Đăng nhập để lưu PvE và phần thưởng|Sign in to save PvE progress and rewards
+Trận đã cập nhật, tải lại để tiếp tục|The battle changed. Reload to continue.
+Trận đã cập nhật, hãy thử lại|The battle changed. Please try again.
+Cần thắng tầng này|Clear this floor first
+Không thể hành động|You cannot act now
+Chưa đến lượt bạn|It is not your turn
+Chưa đến lượt phòng thủ|It is not your defense turn
+Đã sạc đủ|Charging is complete
+Chọn người còn sống|Select a living opponent
+Dùng skill trước khi tung Công|Use skills before rolling Attack
+Chọn mục tiêu skill|Select a skill target
+Vòng này cấm kỹ năng|Skills are disabled this round
+Chọn mục tiêu trước|Select a target first
+Chưa kết thúc đòn đánh|This attack is not finished
+Hành động không hợp lệ|Invalid action
+Chờ hết 5 giây can thiệp|Wait for the 5-second Clash window to end
+Can thiệp cần 3 PTS trong 5 giây|Clash costs 3 PTS and is available for 5 seconds
+Buff đã dùng hoặc đang bị cấm|This buff is used or disabled
+Chỉ khi bạn sắp bị đánh trúng|Only when you are about to take a hit
+Chỉ khi nhận đòn chí tử|Only against a lethal hit
+Sau khi bạn tung Thủ|After rolling your defense
+Chọn đối thủ còn sống|Select a living opponent
+Đầu vòng mới, trước D6|At the start of a new round, before D6
+Cuối lượt|At the end of a turn
+Đầu lượt, chọn người khác|At the start of a turn, select another player
+Sau khi có kết quả D20|After a D20 result
+Thủ phải >15|Defense must be greater than 15
+Công phải >15|Attack must be greater than 15
+Hai người khác giao chiến|During a clash between two other players
+Trận còn diễn ra|While the match is ongoing
+Cuối vòng|At the end of a round
+Buff không tồn tại|Unknown buff
+Chưa đạt rank này|You have not reached this rank
+Bạn chưa sở hữu khung|You do not own this frame
+lật|revealed
+Công|Attack
+Thủ|Defense
+Sát thương cuối:|Final damage:
+hạ gục|eliminated
+Vòng 30: mỗi người còn sống nhận thêm một buff bí mật.|Round 30: each survivor draws one additional hidden buff.
+Bom nổ:|Bomb explosion:
+Vòng bo: tất cả|Sudden death: everyone
+D20 khởi đầu:|Initiative D20:
+Tầng|Floor
+Khung rank|Rank frame
+thua|losses

@@ -1,4 +1,5 @@
 'use client';
+import {tx} from '@/lib/uiLocale';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
@@ -115,7 +116,7 @@ export default function HealthBar({
         {/* Overlay: Authentic Pixel Gold-Ruby Frame Sprite */}
         <img
           src="/assets/sprites/ui/frames/frame_hp_gold_ruby_tight.png"
-          alt="Khung thanh máu pixel vàng ngọc"
+          alt={tx("Khung thanh máu pixel vàng ngọc")}
           className="absolute inset-0 w-full h-full object-fill pointer-events-none select-none z-30"
         />
       </div>

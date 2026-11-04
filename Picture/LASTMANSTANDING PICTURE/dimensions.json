@@ -1,0 +1,62 @@
+{
+  "end_turn_button.png": {
+    "width": 2172,
+    "height": 724,
+    "alpha": true
+  },
+  "buff_hidden.png": {
+    "width": 1024,
+    "height": 1536,
+    "alpha": true
+  },
+  "d6_tray.png": {
+    "width": 1254,
+    "height": 1254,
+    "alpha": true
+  },
+  "player_panel.png": {
+    "width": 2172,
+    "height": 724,
+    "alpha": true
+  },
+  "sudden_death_icon.png": {
+    "width": 1312,
+    "height": 1199,
+    "alpha": true
+  },
+  "d20_tray.png": {
+    "width": 1254,
+    "height": 1254,
+    "alpha": true
+  },
+  "mode_title.png": {
+    "width": 1774,
+    "height": 887,
+    "alpha": true
+  },
+  "hp_frame.png": {
+    "width": 2172,
+    "height": 724,
+    "alpha": true
+  },
+  "roll_button.png": {
+    "width": 2172,
+    "height": 724,
+    "alpha": true
+  },
+  "clash_badge.png": {
+    "width": 1263,
+    "height": 1246,
+    "alpha": true
+  },
+  "skill_slot.png": {
+    "width": 1254,
+    "height": 1254,
+    "alpha": true
+  },
+  "hp_fill.png": {
+    "width": 2172,
+    "height": 724,
+    "alpha": true
+  }
+}

@@ -243,7 +243,7 @@ export default function SettingsPanel() {
                     {isEn ? '1. BASIC PARAMETERS:' : '1. THÔNG TIN CƠ BẢN:'}
                   </h4>
                   <p>• {isEn ? 'Genre: 1v1 Turn-Based RPG Combat' : 'Thể loại: Turn-base đối kháng 1v1.'}</p>
-                  <p>• {isEn ? 'Base HP: 100 Health Points' : 'Chỉ số cơ bản: Máu (HP) gốc của nhân vật là 100.'}</p>
+                  <p>• {isEn ? 'Base HP: 150 (Rank / PvP / PvE); 200 in LMS' : 'Chỉ số cơ bản: Máu gốc 150 (Rank / PvP / PvE); LMS giữ 200.'}</p>
                   <p>• {isEn ? 'D20 Die (20 faces): Attack & Defense combat resolution' : 'Xúc xắc D20 (20 mặt): Phân định Tấn công và Phòng thủ.'}</p>
                   <p>• {isEn ? 'D6 Die (6 faces): Weapon Skill Charge accumulation' : 'Xúc xắc D6 (6 mặt): Dùng để sạc và kích hoạt Kỹ năng (Skill).'}</p>
                 </div>
@@ -271,9 +271,9 @@ export default function SettingsPanel() {
                   <h4 className="text-red-400 font-bold mb-1">
                     {isEn ? '4. THE 6 CHARACTER CLASSES:' : '4. HỆ THỐNG CLASS NGHỀ NGHIỆP:'}
                   </h4>
-                  <p>• <b>Assassin:</b> +50% DMG, -25% Max HP (75 HP).</p>
+                  <p>• <b>Assassin:</b> +50% DMG, -25% Max HP (113 HP; LMS 150).</p>
                   <p>• <b>Tanker:</b> Reduces incoming damage by 30%.</p>
-                  <p>• <b>Juggernaut:</b> +50% Max HP (150 HP), -25% DMG.</p>
+                  <p>• <b>Juggernaut:</b> +50% Max HP (225 HP; LMS 300), -25% DMG.</p>
                   <p>• <b>Mage:</b> Rolls skill D6 an extra time each turn (2 D6 rolls).</p>
                   <p>• <b>Boxer:</b> Rolls attack D20 twice and takes the higher roll.</p>
                   <p>• <b>Warrior:</b> 120 Base HP, balanced attack and defense.</p>

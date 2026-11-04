@@ -1,4 +1,5 @@
 'use client';
+import {tx} from '@/lib/uiLocale';
 
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import {levelProgress,rankProgress} from '@/lib/progression';
@@ -203,7 +204,7 @@ export default function GlobalAccountsModal({
                             {user.username}<span className={'ml-2 text-[8px] ' + (user.presence === 'offline' ? 'text-slate-500' : user.presence === 'battle' ? 'text-red-300' : 'text-emerald-300')}>{({online: '● Online', offline: '○ Offline', lobby: isEn ? '● Lobby' : '● Trong phòng', battle: isEn ? '⚔ In battle' : '⚔ Đang đấu', unknown: isEn ? 'Status unavailable' : 'Chưa có trạng thái'})[user.presence || 'unknown']}</span>
                           </span>
                           <span className="text-[8px] font-pixel text-yellow-400 bg-yellow-950/70 border border-yellow-500/40 px-1 py-0.2 whitespace-nowrap">
-                            {rankProgress(user.rankPoints).name} · LV {levelProgress(user.exp).level}
+                            {tx(rankProgress(user.rankPoints).name)} · LV {levelProgress(user.exp).level}
                           </span>
                         </div>
 

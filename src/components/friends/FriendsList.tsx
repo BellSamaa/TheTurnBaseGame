@@ -1,4 +1,5 @@
 'use client';
+import {tx} from '@/lib/uiLocale';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import {levelProgress,rankProgress} from '@/lib/progression';
 import type {CharacterCustomization} from '@/types/game';
@@ -59,7 +60,7 @@ export default function FriendsList() {
   const button = (label: string, action: string, id: string) => <button disabled={busy} className="px-3 py-2 border border-cyan-600 text-cyan-200 hover:bg-cyan-950 disabled:opacity-40" onClick={() => act(action, { id })}>{label}</button>;
   const input = 'min-w-0 flex-1 bg-slate-950 border border-slate-600 rounded px-3 py-2 text-sm';
   const submit = 'px-4 py-2 bg-yellow-400 text-black font-bold disabled:opacity-40';
-  const list = (people: Person[], action: string, label: string, accept?: string) => people.length ? people.map(p => <div key={p.id} className="flex flex-wrap gap-2 justify-between items-center border-b border-slate-800 py-3"><span className="flex items-center gap-2">{p.avatar_config&&<PlayerAvatar character={p.avatar_config} frame={p.equipped_frame||0} size={48}/>}<span>{p.tag ? `[${p.tag}] ` : ''}{p.name}{p.userId&&<small className="block">{rankProgress(p.rank_points).name} · LV {levelProgress(p.exp).level}</small>}</span></span><div className="flex gap-2">{accept && button(en ? 'Accept' : 'Chấp nhận', accept, p.id)}{button(label, action, p.id)}</div></div>) : <p className="text-slate-500 py-3">{en ? 'Nothing here yet.' : 'Chưa có mục nào.'}</p>;
+  const list = (people: Person[], action: string, label: string, accept?: string) => people.length ? people.map(p => <div key={p.id} className="flex flex-wrap gap-2 justify-between items-center border-b border-slate-800 py-3"><span className="flex items-center gap-2">{p.avatar_config&&<PlayerAvatar character={p.avatar_config} frame={p.equipped_frame||0} size={48}/>}<span>{p.tag ? `[${p.tag}] ` : ''}{p.name}{p.userId&&<small className="block">{tx(rankProgress(p.rank_points).name)} · LV {levelProgress(p.exp).level}</small>}</span></span><div className="flex gap-2">{accept && button(en ? 'Accept' : 'Chấp nhận', accept, p.id)}{button(label, action, p.id)}</div></div>) : <p className="text-slate-500 py-3">{en ? 'Nothing here yet.' : 'Chưa có mục nào.'}</p>;
   return <div className="social-screen min-h-screen bg-[#07090e] text-slate-200 p-4 sm:p-8">
     <div className="max-w-3xl mx-auto space-y-4">
       <header className="flex justify-between items-center"><PixelSpriteButton sprite="back" className="w-28 sm:w-36" title={en ? 'Back' : 'Quay lại'} onClick={() => setPage('home')} /><h1 className="font-pixel text-yellow-300 text-sm">{en ? 'FRIENDS & CLAN' : 'BẠN BÈ & CLAN'}</h1></header>

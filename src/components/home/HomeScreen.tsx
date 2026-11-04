@@ -1,4 +1,5 @@
 'use client';
+import {tx} from '@/lib/uiLocale';
 
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import {rankProgress} from '@/lib/progression';
@@ -125,7 +126,7 @@ export default function HomeScreen() {
                     <div className="text-[10px] sm:text-xs text-yellow-300 font-pixel leading-tight group-hover:text-yellow-100">
                       {currentUser.username}
                     </div>
-                    <div className="text-[8px] text-slate-400 font-pixel">{rankProgress(accountProgress.rankPoints).name}</div>
+                    <div className="text-[8px] text-slate-400 font-pixel">{tx(rankProgress(accountProgress.rankPoints).name)}</div>
                   </div>
                 </button>
                 <button

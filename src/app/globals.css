@@ -12,28 +12,16 @@
   font-family: var(--font-pixel), monospace !important;
 }
 
-/* Vietnamese Retro Pixel Font with full diacritic support & size boost */
+/* Vietnamese font with full diacritics and matching visual weight. */
 .lang-vi,
 .lang-vi * {
-  font-family: var(--font-vt323), var(--font-vietnam), sans-serif !important;
-  letter-spacing: 0.7px;
+  font-family: var(--font-vietnam), Arial, sans-serif !important;
+  font-size-adjust: .6;
+  letter-spacing: .015em;
 }
-
-.lang-vi {
-  font-size: 1.15em;
-}
-
-.lang-vi .font-pixel {
-  font-size: 1.18em;
-  letter-spacing: 0.8px;
-  line-height: 1.35;
-}
-
-.lang-vi .text-title {
-  font-family: var(--font-vietnam), sans-serif !important;
-  font-weight: 800;
-  font-size: 1.15em;
-}
+.lang-vi { font-size: 1rem; }
+.lang-vi .font-pixel { font-weight: 800; line-height: 1.5; }
+.lang-vi .text-title { font-weight: 800; }
 
 * {
   image-rendering: pixelated;
@@ -330,3 +318,5 @@ button:focus-visible,select:focus-visible,a:focus-visible { outline:2px solid #6
 .lms-seat-0 .buff-card-tooltip,.lms-seat-2 .buff-card-tooltip{left:0;right:auto;transform:none}.lms-seat-1 .buff-card-tooltip,.lms-seat-3 .buff-card-tooltip{right:0;left:auto;transform:none}
 .progress-modal p,.account-panel p,.account-panel small,.rank-gifts,.rank-gifts *,.buff-card-tooltip,.buff-card-tooltip *,.lms-buff p,.lms-buff>span,.pve-status p,.pve-duel p{font-family:var(--font-vietnam),Arial,sans-serif !important;line-height:1.6}.progress-modal p,.account-panel p{font-size:14px}
 .home-toolbar{flex-wrap:wrap}
+
+.lang-vi button,.lang-vi select,.lang-vi input{line-height:1.5}.lang-vi .lms-controls,.lang-vi .rank-lobby,.lang-vi .account-panel{overflow-wrap:anywhere}.lms-seat .flex.gap-1{flex-wrap:wrap;justify-content:center}

@@ -1,0 +1,37 @@
+[
+  {
+    "order": 1,
+    "name": "Sắt",
+    "file": "01_Sat.png"
+  },
+  {
+    "order": 2,
+    "name": "Vàng",
+    "file": "02_Vang.png"
+  },
+  {
+    "order": 3,
+    "name": "Kim Cương",
+    "file": "03_Kim_Cuong.png"
+  },
+  {
+    "order": 4,
+    "name": "Bạch Kim",
+    "file": "04_Bach_Kim.png"
+  },
+  {
+    "order": 5,
+    "name": "Huyền Thoại Xúc Sắc",
+    "file": "05_Huyen_Thoai_Xuc_Sac.png"
+  },
+  {
+    "order": 6,
+    "name": "Xúc Sắc Hoàng Kim",
+    "file": "06_Xuc_Sac_Hoang_Kim.png"
+  },
+  {
+    "order": 7,
+    "name": "Vua trò chơi",
+    "file": "07_Vua_Tro_Choi.png"
+  }
+]

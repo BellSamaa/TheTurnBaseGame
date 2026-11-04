@@ -2,25 +2,26 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useGameStore } from '@/stores/gameStore';
-import { BATTLE_TRACKS, LOBBY_BGM } from '@/lib/constants';
+import { BATTLE_TRACKS, LOBBY_BGM, LMS_BGM } from '@/lib/constants';
 
 let globalBgmAudio: HTMLAudioElement | null = null;
 
 // Headless Audio Controller (manages BGM tracks and playback)
 export default function AudioManager() {
-  const { currentPage, settings } = useGameStore();
+  const { currentPage, settings, battleState } = useGameStore();
   const [currentTrack, setCurrentTrack] = useState<string>(LOBBY_BGM);
 
   // Pick track based on currentPage (battle vs menu)
   useEffect(() => {
-    if (currentPage === 'battle') {
+    if (currentPage === 'battle' && battleState?.lms) {setCurrentTrack(LMS_BGM);}
+    else if (currentPage === 'battle'||currentPage==='pve') {
       const randomBattleTrack =
         BATTLE_TRACKS[Math.floor(Math.random() * BATTLE_TRACKS.length)];
       setCurrentTrack(randomBattleTrack);
     } else {
       setCurrentTrack(LOBBY_BGM);
     }
-  }, [currentPage]);
+  }, [currentPage, Boolean(battleState?.lms)]);
 
   // Audio setup & resilient playback
   useEffect(() => {

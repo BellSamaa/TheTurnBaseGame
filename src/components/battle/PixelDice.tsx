@@ -1,4 +1,5 @@
 'use client';
+import {tx} from '@/lib/uiLocale';
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -296,7 +297,7 @@ export default function PixelDice({
             <div className="absolute inset-0 pointer-events-none z-20">
               <img
                 src="/assets/sprites/ui/frames/frame_dual_dice_premium.png"
-                alt="Khung xúc xắc pixel đôi cao cấp"
+                alt={tx("Khung xúc xắc pixel đôi cao cấp")}
                 className="w-full h-full object-contain pointer-events-none select-none"
               />
             </div>
@@ -504,7 +505,7 @@ export default function PixelDice({
             <div className="absolute inset-0 pointer-events-none z-20">
               <img
                 src="/assets/sprites/ui/frames/frame_dual_dice_premium.png"
-                alt="Khung xúc xắc pixel đôi cao cấp"
+                alt={tx("Khung xúc xắc pixel đôi cao cấp")}
                 className="w-full h-full object-contain pointer-events-none select-none"
               />
             </div>

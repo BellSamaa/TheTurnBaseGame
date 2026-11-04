@@ -1,4 +1,5 @@
 'use client';
+import {tx} from '@/lib/uiLocale';
 
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -277,8 +278,8 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
             })}
           </div>
 
-          <p className="mode-guidance">{selectedModeId==='pve'?'Leo chuỗi đối thủ, nhận Gem và EXP; tầng cao có Ruby.':selectedModeId==='rank_pvp'?'Mở bảng Rank để xem sao, quà hạng và bắt đầu tìm trận.':selectedModeId==='last_man_standing'?'Tạo hoặc vào phòng sinh tồn 3–4 người. Tất cả sẵn sàng rồi chủ phòng bắt đầu.':'Chế độ đang phát triển.'}</p>
-          {selectedModeId==='last_man_standing'&&<button className="text-cyan-300 underline mb-3" onClick={()=>setShowLmsRules(true)}>Xem luật LMS</button>}
+          <p className="mode-guidance">{selectedModeId==='pve'?tx("Leo chuỗi đối thủ, nhận Gem và EXP; tầng cao có Ruby."):selectedModeId==='rank_pvp'?tx("Mở bảng Rank để xem sao, quà hạng và bắt đầu tìm trận."):selectedModeId==='last_man_standing'?tx("Tạo hoặc vào phòng sinh tồn 3–4 người. Tất cả sẵn sàng rồi chủ phòng bắt đầu."):tx("Chế độ đang phát triển.")}</p>
+          {selectedModeId==='last_man_standing'&&<button className="text-cyan-300 underline mb-3" onClick={()=>setShowLmsRules(true)}>{tx("Xem luật LMS")}</button>}
           {/* Bottom Action Bar */}
           <div className="flex items-center justify-between pt-2 border-t border-slate-800">
             <span className="text-[8px] font-pixel text-slate-400">

@@ -217,11 +217,11 @@ export default function MenuRulesGrimoire({ isEn }: MenuRulesGrimoireProps) {
                   <p className="text-[9px] sm:text-[9.5px] font-pixel text-amber-100/90 leading-relaxed">
                     {isEn ? (
                       <>
-                        Every duelist enters the arena with <strong>100 Base HP</strong> (modified by your tactical class archetype from 75 to 150 HP).
+                        Every duelist enters the arena with <strong>150 Base HP (200 in LMS)</strong> (modified by your tactical class archetype 113–225 HP in duels, 150–300 HP in LMS).
                       </>
                     ) : (
                       <>
-                        Mọi đấu sĩ bước vào đấu trường với <strong>100 Máu Gốc (HP)</strong> (được gia giảm tùy theo hệ nghề chiến đấu từ 75 đến 150 HP).
+                        Mọi đấu sĩ bước vào đấu trường với <strong>150 HP gốc (200 trong LMS)</strong> (được gia giảm tùy theo hệ nghề chiến đấu 113–225 HP khi đấu đôi, 150–300 HP trong LMS).
                       </>
                     )}
                   </p>

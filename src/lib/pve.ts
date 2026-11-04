@@ -6,7 +6,7 @@ export interface PveState {stage:number;combat:LmsState;reward:ReturnType<typeof
 export function createPve(hero:RoomParticipant,stage=1):PveState{
  const weaponId=PVE_WEAPONS[Math.min(7,stage-1)];
  const combat=createLms([hero,{...hero,id:'pve_bot',name:'Tầng '+stage+' · '+weaponId,classType:'warrior',weaponId}],true);
- combat.order=[hero.id,'pve_bot'];combat.active=0;combat.players[1].hp=combat.players[1].maxHp=200+15*(stage-1);
+ combat.order=[hero.id,'pve_bot'];combat.active=0;combat.players[1].hp=combat.players[1].maxHp=150+15*(stage-1);
  combat.extras!.suddenRound=999;Object.values(combat.extras!.buffs).forEach(b=>{b.used=true;b.id=-1;});
  return {stage,combat,reward:pveReward(stage)};
 }

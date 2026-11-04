@@ -1,0 +1,65 @@
+[
+  {
+    "order": 1,
+    "rank": "Sắt",
+    "file": "01_Sat_avatar_frame.png",
+    "canvas": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "order": 2,
+    "rank": "Vàng",
+    "file": "02_Vang_avatar_frame.png",
+    "canvas": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "order": 3,
+    "rank": "Kim Cương",
+    "file": "03_Kim_Cuong_avatar_frame.png",
+    "canvas": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "order": 4,
+    "rank": "Bạch Kim",
+    "file": "04_Bach_Kim_avatar_frame.png",
+    "canvas": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "order": 5,
+    "rank": "Huyền Thoại Xúc Sắc",
+    "file": "05_Huyen_Thoai_Xuc_Sac_avatar_frame.png",
+    "canvas": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "order": 6,
+    "rank": "Xúc Sắc Hoàng Kim",
+    "file": "06_Xuc_Sac_Hoang_Kim_avatar_frame.png",
+    "canvas": [
+      1254,
+      1254
+    ]
+  },
+  {
+    "order": 7,
+    "rank": "Vua trò chơi",
+    "file": "07_Vua_Tro_Choi_avatar_frame.png",
+    "canvas": [
+      1254,
+      1254
+    ]
+  }
+]

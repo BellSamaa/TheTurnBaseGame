@@ -22,7 +22,7 @@ async function roomView(room: import('@/lib/serverDb').DbOnlineRoom) {
  if(room.status==='finished'&&room.mode==='ranked'&&room.battleState?.winnerId&&room.battleState.winnerId!=='draw'&&!room.rankedResultRecorded){await finishRank(room.code);room.rankedResultRecorded=true;}
  const view=structuredClone(room);const actor=await sessionUser();
  const extras=view.battleState?.lms?.extras;
- if(extras){for(const [id,buff]of Object.entries(extras.buffs))if(id!==actor&&!buff.revealed)buff.id=-1;extras.bombs=[];}
+ if(extras){for(const hand of [extras.buffs,extras.bonusBuffs||{}])for(const [id,buff]of Object.entries(hand))if(id!==actor&&!buff.revealed)buff.id=-1;extras.bombs=[];}
  return view;
 }
 export async function GET(req: Request, context: RouteContext) {

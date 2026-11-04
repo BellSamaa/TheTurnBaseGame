@@ -30,6 +30,7 @@ export default function GameMasterPage() {
   const { currentPage, settings, battleState } = useGameStore();
   const langClass = settings?.language === 'vi' ? 'lang-vi' : 'lang-en';
 
+  React.useEffect(()=>{document.documentElement.lang=settings.language||'en';},[settings.language]);
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as unknown as { __gameStore: typeof useGameStore }).__gameStore = useGameStore;

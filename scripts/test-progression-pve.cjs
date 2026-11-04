@@ -5,7 +5,7 @@ const {createPve,advancePve}=require('../src/lib/pve.ts');
 assert.equal(rankProgress(1000).name,'Đồng');assert.equal(rankProgress(1100).stars,1);assert.equal(rankProgress(1500).name,'Sắt');assert.equal(rankProgress(2250).name,'Vàng');assert.equal(levelProgress(0).level,1);assert.equal(levelProgress(100).level,2);assert.equal(levelProgress(1e10).level,100);assert.ok(levelProgress(100000).level<30);assert.ok(pveReward(8).gems>pveReward(1).gems);assert.equal(pveReward(1).rubies,0);assert.equal(pveReward(8).rubies,2);
 const hero={id:'hero',name:'Hero',character:{},classType:'mage',weaponId:'greatsword',isReady:true};
 for(let stage=1;stage<=12;stage++){
- let run=createPve(hero,stage);assert.equal(run.combat.players.length,2);assert.equal(run.combat.players[1].maxHp,200+15*(stage-1));
+ let run=createPve(hero,stage);assert.equal(run.combat.players.length,2);assert.equal(run.combat.players[1].maxHp,150+15*(stage-1));
  run=advancePve(run,'hero','charge');assert.equal(run.combat.phase,'charge');run=advancePve(run,'hero','charge');assert.equal(run.combat.phase,'target');assert.equal(run.combat.players[0].d12Charge,run.combat.rolls.reduce((a,b)=>a+b,0));
  run=advancePve(run,'hero','target',{target:'pve_bot'});run=advancePve(run,'hero','attack');assert.ok(['end','finished'].includes(run.combat.phase));
  if(run.combat.phase==='end'){run=advancePve(run,'hero','end');assert.ok(['defense','finished'].includes(run.combat.phase));if(run.combat.phase==='defense'){assert.equal(run.combat.target,'hero');run=advancePve(run,'hero','defend');assert.ok(['charge','finished'].includes(run.combat.phase));}}

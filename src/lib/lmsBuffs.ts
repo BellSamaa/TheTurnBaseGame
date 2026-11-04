@@ -1,3 +1,4 @@
+import {translateText} from './localeText';
 import type {LmsState} from './lms';
 import {rollD20,rollD6,calculateD20Combat} from './battleLogic';
 import {CLASS_DEFINITIONS} from './constants';
@@ -7,15 +8,15 @@ export const LMS_BUFFS=[
  'Bom Hẹn Giờ','Luật Im Lặng','Nguyền Rủa Đui Mù','Kẻ Trộm D6','Sương Mù Hỗn Loạn',
  'Thương Gia Bóng Tối','Đồng Hồ Cát','Tọa Sơn Quan Hổ Đấu','Hiệp Ước Hòa Bình','Thiên Thạch Tử Chiến'];
 export interface BuffState{id:number;used:boolean;revealed:boolean}
-export interface LmsExtras{buffs:Record<string,BuffState>;flags:Record<string,number|boolean|string>;bombs:{target:string;round:number}[];direction:1|-1;silencedRound?:number;suddenRound:number;lastKill?:{killer:string;round:number;claimed?:boolean;hp:number;pts:number};eliminated:string[]}
-export function activateBuff(s:LmsState,actor:string,args:{target?:string;choice?:string}){
- const x=s.extras!,buff=x.buffs[actor],u=s.players.find(p=>p.id===actor)!,a=s.players.find(p=>p.id===s.order[s.active])!,t=s.players.find(p=>p.id===s.target),pick=s.players.find(p=>p.id===args.target&&p.hp>0),own=a.id===actor;
+export interface LmsExtras{buffs:Record<string,BuffState>;bonusBuffs?:Record<string,BuffState>;bonusRound?:number;flags:Record<string,number|boolean|string>;bombs:{target:string;round:number}[];direction:1|-1;silencedRound?:number;suddenRound:number;lastKill?:{killer:string;round:number;claimed?:boolean;hp:number;pts:number};eliminated:string[]}
+export function activateBuff(s:LmsState,actor:string,args:{target?:string;choice?:string;buffSlot?:'initial'|'bonus'}){
+ const x=s.extras!,buff=args.buffSlot==='bonus'?x.bonusBuffs?.[actor]:x.buffs[actor],u=s.players.find(p=>p.id===actor)!,a=s.players.find(p=>p.id===s.order[s.active])!,t=s.players.find(p=>p.id===s.target),pick=s.players.find(p=>p.id===args.target&&p.hp>0),own=a.id===actor;
  const require=(ok:unknown,message:string)=>{if(!ok)throw Error(message);};
  require(buff&&!buff.used&&x.silencedRound!==s.round,'Buff đã dùng hoặc đang bị cấm');
  const hit=s.phase==='clash'&&t&&s.attack!>s.defense!;
  const projected=t?calculateD20Combat(s.attack??0,s.defense??20,CLASS_DEFINITIONS[a.classType],CLASS_DEFINITIONS[t.classType],structuredClone(a),structuredClone(t)).damage:0;
  const mark=(key:string,value:number|boolean|string=true)=>x.flags[key]=value;
- switch(buff.id){
+ switch(buff!.id){
  case 0:require(hit&&t?.id===actor,'Chỉ khi bạn sắp bị đánh trúng');mark('shield:'+actor);break;
  case 1:require(hit&&t?.id===actor&&projected>=u.hp,'Chỉ khi nhận đòn chí tử');mark('phoenix:'+actor);break;
  case 2:require(s.phase==='attack'&&t?.id===actor&&pick&&pick.id!==actor&&pick.id!==a.id,'Chọn người khác để chuyển mục tiêu');s.target=pick!.id;break;
@@ -38,7 +39,7 @@ export function activateBuff(s:LmsState,actor:string,args:{target?:string;choice
  case 19:require(s.phase==='end'&&(s.active===(x.direction===1?s.order.length-1:0)),'Cuối vòng');s.players.filter(p=>p.hp>0).forEach(p=>p.hp=Math.max(0,p.hp-25));x.suddenRound=Math.max(s.round+1,x.suddenRound-1);break;
  default:throw Error('Buff không tồn tại');
  }
- buff.used=true;buff.revealed=true;s.log.unshift(u.name+' lật '+LMS_BUFFS[buff.id]);
+ buff!.used=true;buff!.revealed=true;s.logVi??=[...s.log];const message=u.name+' lật '+LMS_BUFFS[buff!.id];s.log.unshift(translateText(message,'en'));s.logVi.unshift(message);
 }
 
 export const LMS_BUFF_HELP=[

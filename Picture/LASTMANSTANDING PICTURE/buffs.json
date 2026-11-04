@@ -1,0 +1,202 @@
+[
+  {
+    "id": 1,
+    "file": "01_Khien_Buc_Xa.png",
+    "name": "KHIÊN BỨC XẠ",
+    "group": "Tự vệ",
+    "trigger": "Khi bị tấn công trúng đích.",
+    "effect": "Hủy toàn bộ sát thương của đòn đó; phản 50% sát thương ước tính lên kẻ tấn công.",
+    "uses_per_match": 1,
+    "art_prompt": "A luminous cyan radiation shield intercepting a red sword strike and reflecting a smaller red energy bolt back toward its source. Clear shield and reflection symbolism."
+  },
+  {
+    "id": 2,
+    "file": "02_Nuoc_Mat_Phuong_Hoang.png",
+    "name": "NƯỚC MẮT PHƯỢNG HOÀNG",
+    "group": "Tự vệ",
+    "trigger": "Khi chịu đòn chí tử khiến HP về 0.",
+    "effect": "Sống lại với đúng 1 HP; ngay lập tức sạc đầy 20 điểm D6.",
+    "uses_per_match": 1,
+    "art_prompt": "A magnificent fiery phoenix rising from a single glowing golden tear above a cracked heart, blue magical energy recharging beneath. Rebirth from near death."
+  },
+  {
+    "id": 3,
+    "file": "03_Thao_Tung_Khong_Gian.png",
+    "name": "THAO TÚNG KHÔNG GIAN",
+    "group": "Tự vệ",
+    "trigger": "Phase 2, khi người khác vừa chỉ định bạn làm mục tiêu.",
+    "effect": "Ép kẻ tấn công chuyển đòn đánh sang một người chơi khác do bạn chọn.",
+    "uses_per_match": 1,
+    "art_prompt": "Two linked violet portals redirecting a bright incoming sword attack away from a small shielded adventurer and toward a distant armored silhouette. Spatial redirection."
+  },
+  {
+    "id": 4,
+    "file": "04_Bao_Hiem_Nhan_Tho.png",
+    "name": "BẢO HIỂM NHÂN THỌ",
+    "group": "Tự vệ",
+    "trigger": "Khi bị đánh trúng.",
+    "effect": "Đòn đánh chỉ gây tối đa 15 sát thương; bạn được hoàn 3 điểm D6.",
+    "uses_per_match": 1,
+    "art_prompt": "An ornate golden protective contract scroll and sturdy cyan barrier catching a giant axe impact, with three small glowing blue energy crystals below. Damage cap protection."
+  },
+  {
+    "id": 5,
+    "file": "05_Ao_Anh_Kep.png",
+    "name": "ẢO ẢNH KÉP",
+    "group": "Tự vệ",
+    "trigger": "Sau khi bạn đổ D20 Thủ.",
+    "effect": "Tung thêm 2 viên D20 và chọn kết quả cao nhất trong 3 viên.",
+    "uses_per_match": 1,
+    "art_prompt": "A hooded defender with two shimmering cyan illusion duplicates, three floating twenty-sided dice above them, a protective magical shimmer. Three possible defense results."
+  },
+  {
+    "id": 6,
+    "file": "06_Huyet_Ngai.png",
+    "name": "HUYẾT NGẢI",
+    "group": "Bùng nổ",
+    "trigger": "Phase 2 trong lượt của bạn.",
+    "effect": "Đổi 30 HP của mình để D20 Công tự động thành 20, không cần tung.",
+    "uses_per_match": 1,
+    "art_prompt": "A glowing crimson ritual sigil, a blood-red heart emitting power into a golden twenty-sided die whose front face reads 20, dramatic sacrificial red flames. Blood exchanged for perfect attack."
+  },
+  {
+    "id": 7,
+    "file": "07_Dan_No_Dien_Rong.png",
+    "name": "ĐẠN NỔ DIỆN RỘNG",
+    "group": "Bùng nổ",
+    "trigger": "Trong lượt của bạn.",
+    "effect": "Đòn đánh nhắm tất cả người chơi còn lại. Mỗi người tung D20 Thủ chống cùng D20 Công của bạn.",
+    "uses_per_match": 1,
+    "art_prompt": "A central explosive magical projectile bursting into a fiery orange shockwave that spreads toward three separate armored silhouettes, radial arena explosion. Area attack."
+  },
+  {
+    "id": 8,
+    "file": "08_Ke_Lat_Do.png",
+    "name": "KẺ LẬT ĐỔ",
+    "group": "Bùng nổ",
+    "trigger": "Khi tấn công người có HP cao nhất bàn.",
+    "effect": "Nếu đánh trúng, nhân đôi toàn bộ sát thương gây ra.",
+    "uses_per_match": 1,
+    "art_prompt": "A small brave sword fighter shattering the golden crown and shield of an imposing powerful shadow king, twin fiery sword trails. Overthrow the strongest."
+  },
+  {
+    "id": 9,
+    "file": "09_Nhat_Dam_Hen_Nhat.png",
+    "name": "NHÁT ĐÂM HÈN NHÁT",
+    "group": "Bùng nổ",
+    "trigger": "Trong lượt của bạn; chọn mục tiêu có dưới 30 HP.",
+    "effect": "Bỏ qua D20, tung D6: chẵn (2,4,6) lập tức kết liễu mục tiêu; lẻ thì mất lượt.",
+    "uses_per_match": 1,
+    "art_prompt": "A stealthy purple cloaked rogue with a silver dagger behind a weakened wounded knight, a glowing six-sided die floating beside the rogue. Opportunistic finishing strike, no gore."
+  },
+  {
+    "id": 10,
+    "file": "10_Thue_Khat_Mau.png",
+    "name": "THUẾ KHÁT MÁU",
+    "group": "Bùng nổ",
+    "trigger": "Khi một người chơi khác vừa giết ai đó.",
+    "effect": "Đánh cắp toàn bộ thưởng Kẻ Sát Nhân: bạn nhận 30 HP và 5 điểm D6; người giết không nhận gì.",
+    "uses_per_match": 1,
+    "art_prompt": "A shadowy gloved hand stealing a glowing red heart and five blue energy crystals from a golden victory trophy. Theft of kill bounty."
+  },
+  {
+    "id": 11,
+    "file": "11_Bom_Hen_Gio.png",
+    "name": "BOM HẸN GIỜ",
+    "group": "Phá hoại",
+    "trigger": "Bất cứ lúc nào.",
+    "effect": "Gắn bom vào một người chơi. Đúng 2 vòng đấu sau, bom gây 40 sát thương chuẩn, không thể block.",
+    "uses_per_match": 1,
+    "art_prompt": "An ornate ticking clockwork black bomb with a bright lit fuse and two tiny golden hourglass symbols, ominous orange sparks. Delayed explosion."
+  },
+  {
+    "id": 12,
+    "file": "12_Luat_Im_Lang.png",
+    "name": "LUẬT IM LẶNG",
+    "group": "Phá hoại",
+    "trigger": "Đầu một vòng chơi mới.",
+    "effect": "Trong vòng này, mọi người kể cả bạn không được dùng skill tốn D6 hoặc lật buff; chỉ chém chay.",
+    "uses_per_match": 1,
+    "art_prompt": "A giant golden sealed padlock over a violet spellbook, magical energy bolts stopped by a bright circular silence seal, quiet dark aura. Skills and buffs sealed."
+  },
+  {
+    "id": 13,
+    "file": "13_Nguyen_Rua_Dui_Mu.png",
+    "name": "NGUYỀN RỦA ĐUI MÙ",
+    "group": "Phá hoại",
+    "trigger": "Khi ai đó vừa tung D20 Công hoặc Thủ ra kết quả lớn hơn 15.",
+    "effect": "Ép kết quả D20 đó thành 1.",
+    "uses_per_match": 1,
+    "art_prompt": "A sinister violet curse eye casting black-purple smoke onto a once-golden twenty-sided die now cracked and dim, its front face reads 1. Turn a high roll into failure."
+  },
+  {
+    "id": 14,
+    "file": "14_Ke_Trom_D6.png",
+    "name": "KẺ TRỘM D6",
+    "group": "Phá hoại",
+    "trigger": "Phase 1.",
+    "effect": "Chọn một người chơi; cướp 50% điểm D6 họ đang có và chuyển thành của bạn.",
+    "uses_per_match": 1,
+    "art_prompt": "A masked pixel thief with a shadowy hand siphoning half a stream of luminous cyan energy crystals from another player's pouch into their own, with a small six-sided die. Resource theft."
+  },
+  {
+    "id": 15,
+    "file": "15_Suong_Mu_Hon_Loan.png",
+    "name": "SƯƠNG MÙ HỖN LOẠN",
+    "group": "Phá hoại",
+    "trigger": "Phase 2, khi ai đó chọn mục tiêu.",
+    "effect": "Hệ thống chọn ngẫu nhiên mục tiêu thay người tấn công, có thể chọn chính họ.",
+    "uses_per_match": 1,
+    "art_prompt": "Swirling thick purple and teal mist around three confused adventurer silhouettes, a bright attack arrow splitting into tangled random directions and looping back. Randomized target confusion."
+  },
+  {
+    "id": 16,
+    "file": "16_Thuong_Gia_Bong_Toi.png",
+    "name": "THƯƠNG GIA BÓNG TỐI",
+    "group": "Thay đổi cục diện",
+    "trigger": "Bất cứ lúc nào.",
+    "effect": "Đổi toàn bộ D6 thành máu với tỷ lệ 1 điểm = 3 HP; hoặc đổi máu thành D6 với tỷ lệ 5 HP = 1 điểm.",
+    "uses_per_match": 1,
+    "art_prompt": "A mysterious hooded merchant behind a golden balance scale, a glowing red heart on one pan and cyan energy crystals on the other, two curved exchange arrows. Exchange health and resource."
+  },
+  {
+    "id": 17,
+    "file": "17_Dong_Ho_Cat.png",
+    "name": "ĐỒNG HỒ CÁT",
+    "group": "Thay đổi cục diện",
+    "trigger": "Cuối lượt của bất kỳ ai.",
+    "effect": "Lập tức đảo ngược thứ tự lượt chơi.",
+    "uses_per_match": 1,
+    "art_prompt": "An elaborate golden hourglass with cyan sand flowing backward upward, surrounded by a bold circular reversed-turn arrow and four tiny colored turn markers. Reverse turn order."
+  },
+  {
+    "id": 18,
+    "file": "18_Ke_Toa_Son_Quan_Ho_Dau.png",
+    "name": "KẺ TỌA SƠN QUAN HỔ ĐẤU",
+    "group": "Thay đổi cục diện",
+    "trigger": "Khi hai người chơi khác đang tính sát thương với nhau.",
+    "effect": "Bạn nhận điểm D6 bằng lượng sát thương họ gây ra cho nhau chia cho 5.",
+    "uses_per_match": 1,
+    "art_prompt": "A calm hooded observer sitting above two distant battling warriors, their crossing swords produce sparks that transform into cyan energy crystals floating toward the observer. Gain energy from others fighting."
+  },
+  {
+    "id": 19,
+    "file": "19_Hiep_Uoc_Hoa_Binh.png",
+    "name": "HIỆP ƯỚC HÒA BÌNH",
+    "group": "Thay đổi cục diện",
+    "trigger": "Bất cứ lúc nào.",
+    "effect": "Hủy mọi đòn tấn công trong lượt hiện tại; tất cả người chơi được hồi 15 HP.",
+    "uses_per_match": 1,
+    "art_prompt": "A glowing parchment peace treaty with a white dove and olive branch, four red hearts being restored inside a gentle green healing dome, crossed swords lowered below. End combat and heal everyone."
+  },
+  {
+    "id": 20,
+    "file": "20_Thien_Thach_Roi.png",
+    "name": "THIÊN THẠCH RƠI",
+    "group": "Thay đổi cục diện",
+    "trigger": "Cuối vòng.",
+    "effect": "Tất cả người chơi kể cả bạn chịu 25 sát thương chuẩn; Sudden Death đến sớm 1 vòng.",
+    "uses_per_match": 1,
+    "art_prompt": "A huge blazing purple-orange meteor falling toward a circular arena with four small adventurer silhouettes, fiery shrinking danger ring around them. Sudden death disaster for everyone."
+  }
+]

@@ -1,4 +1,5 @@
 'use client';
+import {tx} from '@/lib/uiLocale';
 
 import {rankProgress} from '@/lib/progression';
 import {useProgress} from '@/components/progression/AccountPanel';
@@ -260,7 +261,7 @@ export default function RankedMatchmakingModal({ isOpen, onClose }: RankedMatchm
               </div>
 
               <div className="text-right">
-                <div className="text-[7.5px] font-pixel text-yellow-500">{rankProgress(accountProgress.rankPoints).name} · {'★'.repeat(rankProgress(accountProgress.rankPoints).stars)}</div>
+                <div className="text-[7.5px] font-pixel text-yellow-500">{tx(rankProgress(accountProgress.rankPoints).name)} · {'★'.repeat(rankProgress(accountProgress.rankPoints).stars)}</div>
                 <div className="text-[9px] font-pixel font-bold text-yellow-300">{rankPts} RP</div>
               </div>
             </div>

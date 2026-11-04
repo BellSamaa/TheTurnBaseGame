@@ -47,15 +47,15 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     id: 'assassin',
     name: 'Assassin',
     nameVi: 'Sát Thủ',
-    description: '+50% damage dealt, -25% Max HP (150 HP). High lethality glass cannon.',
-    descriptionVi: 'Tăng 50% sát thương gây ra, giảm 1/4 HP tối đa (còn 150 HP).',
+    description: '+50% damage dealt, -25% Max HP (113 HP; 150 HP in LMS). High lethality glass cannon.',
+    descriptionVi: 'Tăng 50% sát thương gây ra, giảm 1/4 HP tối đa (113 HP; trong LMS là 150 HP).',
     image: `${ASSET_PATHS.sprites.classes}/class_assassin.png`,
     hpModifier: 0.75,
     damageModifier: 1.5,
     damageReduction: 1.0,
     extraD6Rolls: 0,
     extraD20Rolls: 0,
-    baseHp: 150,
+    baseHp: 113,
   },
   tanker: {
     id: 'tanker',
@@ -69,21 +69,21 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     damageReduction: 0.7,
     extraD6Rolls: 0,
     extraD20Rolls: 0,
-    baseHp: 200,
+    baseHp: 150,
   },
   juggernaut: {
     id: 'juggernaut',
     name: 'Juggernaut',
     nameVi: 'Khổng Lồ',
-    description: '+50% Max HP (300 HP), -25% damage dealt. Unstoppable titan.',
-    descriptionVi: 'Tăng 50% HP tối đa (lên 300 HP), giảm 1/4 sát thương gây ra (còn 75%).',
+    description: '+50% Max HP (225 HP; 300 HP in LMS), -25% damage dealt. Unstoppable titan.',
+    descriptionVi: 'Tăng 50% HP tối đa (225 HP; trong LMS là 300 HP), giảm 1/4 sát thương gây ra (còn 75%).',
     image: `${ASSET_PATHS.sprites.classes}/class_juggernaut.png`,
     hpModifier: 1.5,
     damageModifier: 0.75,
     damageReduction: 1.0,
     extraD6Rolls: 0,
     extraD20Rolls: 0,
-    baseHp: 300,
+    baseHp: 225,
   },
   mage: {
     id: 'mage',
@@ -97,7 +97,7 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     damageReduction: 1.0,
     extraD6Rolls: 1,
     extraD20Rolls: 0,
-    baseHp: 200,
+    baseHp: 150,
   },
   boxer: {
     id: 'boxer',
@@ -111,21 +111,21 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     damageReduction: 1.0,
     extraD6Rolls: 0,
     extraD20Rolls: 1,
-    baseHp: 200,
+    baseHp: 150,
   },
   warrior: {
     id: 'warrior',
     name: 'Warrior',
     nameVi: 'Chiến Binh',
-    description: 'Balanced combatant with standard 100 base HP and solid attack power.',
-    descriptionVi: 'Chiến binh toàn diện. Máu gốc 100 HP, tấn công ổn định không điểm yếu.',
+    description: 'Balanced combatant with standard 150 base HP (200 in LMS) and solid attack power.',
+    descriptionVi: 'Chiến binh toàn diện. Máu gốc 150 HP (200 trong LMS), tấn công ổn định không điểm yếu.',
     image: `${ASSET_PATHS.sprites.classes}/class_warrior.png`,
     hpModifier: 1.0,
     damageModifier: 1.0,
     damageReduction: 1.0,
     extraD6Rolls: 0,
     extraD20Rolls: 0,
-    baseHp: 200,
+    baseHp: 150,
   },
 };
 
@@ -459,6 +459,7 @@ export const BATTLE_TRACKS = [
   `${ASSET_PATHS.music}/battle-music-4.mp3`,
 ];
 
+export const LMS_BGM = `${ASSET_PATHS.music}/last-man-standing.mp3`;
 export const LOBBY_BGM = `${ASSET_PATHS.music}/bg-music.mp3`;
 
 export const DEFAULT_CUSTOMIZATION: CharacterCustomization = {

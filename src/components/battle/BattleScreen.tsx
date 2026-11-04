@@ -1,4 +1,5 @@
 'use client';
+import {tx} from '@/lib/uiLocale';
 import RankResult from './RankResult';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -789,7 +790,7 @@ export default function BattleScreen() {
           else if (immuneBefore && !defenderState.immuneDamageNext) vfxSequence.push(reaction('infinity'));
         }
         if (rockDamage) logsToAdd.unshift({ turn: currentTurn, type: 'damage', timestamp: Date.now() + 2,
-          message: 'Pet Rock follows its owner: 2 damage.', messageVi: 'Lượt Pet Rock: tấn công sau chủ nhân, gây 2 sát thương.' });
+          message: 'Pet Rock follows its owner: 2 damage.', messageVi: tx("Lượt Pet Rock: tấn công sau chủ nhân, gây 2 sát thương.") });
         setTurnStep('d6_atk');
 
         setBattleState((prev) => {
