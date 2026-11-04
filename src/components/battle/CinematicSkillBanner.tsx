@@ -86,7 +86,7 @@ export default function CinematicSkillBanner({
               textShadow: `0 0 10px ${aura}, 0 0 20px ${aura}, 2px 2px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000`,
             }}
           >
-            ⚔️ {(isEn ? currentEvent.skillNameEn : currentEvent.skillNameVi || currentEvent.skillNameEn).toUpperCase()} ⚔️
+            {currentEvent.icon && <img src={currentEvent.icon} alt="" width={48} height={48} className="inline-block mr-2 align-middle" style={{imageRendering:"pixelated"}} />} {(isEn ? currentEvent.skillNameEn : currentEvent.skillNameVi || currentEvent.skillNameEn).toUpperCase()} ⚔️
           </motion.h1>
         </div>
       </motion.div>

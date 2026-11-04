@@ -17,7 +17,7 @@ import {
   calculateD20Combat,
 } from '@/lib/battleLogic';
 import type { BattleLogEntry, BattleState, PlayerState } from '@/types/game';
-import { normalAttackEffect, skillPresentation } from '@/lib/skillPresentation';
+import { normalAttackEffect, skillPresentation, skillEffectPlan } from '@/lib/skillPresentation';
 import { castChargedSkill, skillCost } from '@/lib/chargedSkills';
 import { RockHealthBar, RockCompanion } from './RockCompanion';
 import HealthBar from '@/components/ui/HealthBar';
@@ -138,7 +138,9 @@ export default function BattleScreen() {
   const [damagePopup, setDamagePopup] = useState<DamageEvent | null>(null);
 
   // AnimationKit VFX Event
-  const [activeVfx, setActiveVfx] = useState<VfxEvent | null>(null);
+  const [vfxQueue, setVfxQueue] = useState<VfxEvent[]>([]);
+  const activeVfx = vfxQueue[0] ?? null;
+  const finishVfx = (id: string) => setVfxQueue(queue => queue.filter(event => event.id !== id));
 
   // Turn transition slide banner
   const [turnBannerText, setTurnBannerText] = useState<string | null>(null);
@@ -245,11 +247,6 @@ export default function BattleScreen() {
                 (remote.battleLog?.length || 0) !== (current.battleLog?.length || 0);
 
               if (hasChanged) {
-                if (remote.activeVfx && !seenVfx.current.has(remote.activeVfx.id)) {
-                  seenVfx.current.add(remote.activeVfx.id);
-                  setActiveVfx(remote.activeVfx);
-                }
-
                 if (remote.damagePopup && !seenPopups.current.has(remote.damagePopup.id)) {
                   seenPopups.current.add(remote.damagePopup.id);
                   setDamagePopup(remote.damagePopup);
@@ -347,6 +344,13 @@ export default function BattleScreen() {
       setTurnStep(battleState.turnStep);
     }
   }, [battleState?.turnStep]);
+
+  useEffect(() => {
+    const events = battleState?.vfxSequence ?? (battleState?.activeVfx ? [battleState.activeVfx] : []);
+    const fresh = events.filter(event => !seenVfx.current.has(event.id));
+    fresh.forEach(event => seenVfx.current.add(event.id));
+    if (fresh.length) setVfxQueue(queue => [...queue, ...fresh]);
+  }, [battleState?.vfxSequence, battleState?.activeVfx]);
 
   if (!battleState) {
     return (
@@ -648,8 +652,6 @@ export default function BattleScreen() {
             target: defenderTarget,
             size: 160,
           };
-          seenVfx.current.add(newActiveVfx.id);
-          setActiveVfx(newActiveVfx);
 
           if (defenderTarget === 'p1') {
             setP1IsHit(true);
@@ -688,7 +690,7 @@ export default function BattleScreen() {
               ? (isEn ? 'IMMUNE!' : 'MIỄN NHIỄM!')
               : (isEn ? 'BLOCKED!' : 'ĐỠ ĐÒN THÀNH CÔNG!'),
             type: 'block',
-            subtext: isEn ? `${currentAtkRoll} ≤ ${finalDefD20}` : `Công ${currentAtkRoll} ≤ Thủ ${finalDefD20}`,
+            subtext: combatResult.absorbedByRock ? 'ROCK -' + combatResult.absorbedByRock + ' HP' : combatResult.isImmune || combatResult.isDodged ? undefined : (isEn ? `${currentAtkRoll} ≤ ${finalDefD20}` : `Công ${currentAtkRoll} ≤ Thủ ${finalDefD20}`),
           };
           setDamagePopup(newDamagePopup);
 
@@ -703,7 +705,22 @@ export default function BattleScreen() {
 
         recordOpponentDamage(defenderState, Math.min(defenderState.hp, combatResult.damage), currentTurn);
         defenderState.hp = Math.max(0, defenderState.hp - combatResult.damage);
-        const rockDamage = attackerState.weapon.id === 'spirit_stone' && (attackerState.petRockHp ?? 0) > 0 ? applyOpponentDamage(defenderState, 2, currentTurn) : 0;
+        const vfxSequence: VfxEvent[] = [];
+        const reaction = (effect: string) => ({ id: crypto.randomUUID(), effect, target: defenderTarget, size: 140 });
+        if (newActiveVfx) vfxSequence.push(newActiveVfx);
+        if (combatResult.absorbedByRock) vfxSequence.push(reaction('rock_block'));
+        else if (combatResult.isImmune) vfxSequence.push(reaction('infinity'));
+        else if (combatResult.isDodged) vfxSequence.push(reaction('dodge_attack'));
+        else if (!combatResult.isHit) vfxSequence.push(reaction('guard'));
+        const rockFollows = attackerState.weapon.id === 'spirit_stone' && (attackerState.petRockHp ?? 0) > 0 && defenderState.hp > 0;
+        const petHpBefore = defenderState.petRockHp ?? 0;
+        const immuneBefore = defenderState.immuneDamageNext;
+        const rockDamage = rockFollows ? applyOpponentDamage(defenderState, 2, currentTurn) : 0;
+        if (rockFollows) {
+          vfxSequence.push(reaction('rock_roll'));
+          if ((defenderState.petRockHp ?? 0) < petHpBefore) vfxSequence.push(reaction('rock_block'));
+          else if (immuneBefore && !defenderState.immuneDamageNext) vfxSequence.push(reaction('infinity'));
+        }
         if (rockDamage) logsToAdd.unshift({ turn: currentTurn, type: 'damage', timestamp: Date.now() + 2,
           message: 'Pet Rock follows its owner: 2 damage.', messageVi: 'Lượt Pet Rock: tấn công sau chủ nhân, gây 2 sát thương.' });
         setTurnStep('d6_atk');
@@ -715,7 +732,7 @@ export default function BattleScreen() {
             p1D20: !p1IsAttacker ? finalDefD20 : prev.p1D20,
             p2D20: p1IsAttacker ? finalDefD20 : prev.p2D20,
             turnStep: 'd6_atk',
-            activeVfx: newActiveVfx,
+            activeVfx: newActiveVfx, vfxSequence,
             damagePopup: newDamagePopup,
             battleLog: [...logsToAdd, ...prev.battleLog],
             player1: {
@@ -800,19 +817,26 @@ export default function BattleScreen() {
     const vfxTarget = rolledBack || presentation.target === 'caster' ? casterTarget : presentation.target === 'center' ? 'center' : opponentTarget;
     const banner: SkillActivationEvent = { id: crypto.randomUUID(), weaponId: caster.weapon.id,
       skillNameEn: presentation.nameEn, skillNameVi: presentation.nameVi, slot,
-      casterName: caster.name, auraColor: presentation.color };
+      icon: '/assets/vfx/frames/' + presentation.effect + '/1.png', casterName: caster.name, auraColor: presentation.color };
     const vfx: VfxEvent = { id: crypto.randomUUID(), effect: presentation.effect, target: vfxTarget, size: slot === 2 ? 180 : 130 };
+    const vfxSequence: VfxEvent[] = skillEffectPlan(caster, slot, form).map(cue => ({
+      id: crypto.randomUUID(), effect: cue.effect, size: slot === 2 ? 180 : 130,
+      target: cue.target === 'caster' || rolledBack ? casterTarget : cue.target === 'center' ? 'center' : opponentTarget,
+    }));
+    const reaction = (effect: string) => ({ id: crypto.randomUUID(), effect, target: opponentTarget as 'p1' | 'p2', size: 140 });
+    if ((result.opponent.petRockHp ?? 0) < (opponent.petRockHp ?? 0)) vfxSequence.push(reaction('rock_block'));
+    if (opponent.immuneDamageNext && !result.opponent.immuneDamageNext) vfxSequence.push(reaction('infinity'));
+    if (opponent.dodgeNextSkill && !result.opponent.dodgeNextSkill) vfxSequence.push(reaction('dodge_spell'));
+    if ((result.opponent.panicTurns ?? 0) > (opponent.panicTurns ?? 0)) vfxSequence.push(reaction('panic'));
     seenSkillBanners.current.add(banner.id);
     setSkillBannerQueue([banner]);
-    seenVfx.current.add(vfx.id);
-    setActiveVfx(vfx);
     if (presentation.target === 'caster') playMagicCastSound(); else playWeaponSound(caster.weapon.id);
     setBattleState(prev => {
       if (!prev) return null;
       const next: BattleState = { ...prev,
         player1: isP1 ? result.caster : result.opponent,
         player2: isP1 ? result.opponent : result.caster,
-        activeSkillBanner: banner, activeVfx: vfx,
+        activeSkillBanner: banner, activeVfx: vfx, vfxSequence,
         purpleSky: result.purpleSky ? { id: crypto.randomUUID(), startedAt: Date.now() } : prev.purpleSky,
         battleLog: [{ turn: currentTurn, type: 'skill', message: result.logTextEn, messageVi: result.logTextVi, timestamp: Date.now() }, ...prev.battleLog],
       };
@@ -879,7 +903,7 @@ export default function BattleScreen() {
     setD6P2Rolls(null);
     setD12P1Rolls(null);
     setCombatFormula(null);
-    setActiveVfx(null);
+    setVfxQueue([]);
     setDamagePopup(null);
 
     const nextP1IsAttacker = !p1IsAttacker;
@@ -899,6 +923,11 @@ export default function BattleScreen() {
       const burnedP1 = { ...prev.player1 }, burnedP2 = { ...prev.player2 };
       applyOpponentDamage(burnedP1, p1BurnDmg, currentTurn, false);
       applyOpponentDamage(burnedP2, p2BurnDmg, currentTurn, false);
+      const burnVfx: VfxEvent[] = [];
+      for (const [before, after, target, amount] of [[prev.player1, burnedP1, 'p1', p1BurnDmg], [prev.player2, burnedP2, 'p2', p2BurnDmg]] as const) {
+        if (amount > 0) burnVfx.push({ id: crypto.randomUUID(), target, size: 120,
+          effect: before.immuneDamageNext && !after.immuneDamageNext ? 'infinity' : amount === 5 ? 'burn_black' : amount === 2 ? 'burn_blue' : 'burn_orange' });
+      }
       const updated: BattleState = {
         ...prev,
         currentTurn: prev.currentTurn + 1,
@@ -913,7 +942,7 @@ export default function BattleScreen() {
         d6Results: null,
         p1D6: null,
         p2D6: null,
-        activeVfx: null,
+        activeVfx: null, vfxSequence: burnVfx,
         activeSkillBanner: null,
         damagePopup: null,
         player1: {
@@ -1156,7 +1185,7 @@ export default function BattleScreen() {
             <div className="relative flex items-center justify-center">
               <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
                 {activeVfx?.target === 'p1' && (
-                  <VfxAnimationPlayer activeVfx={activeVfx} onFinish={id => setActiveVfx(current => current?.id === id ? null : current)} />
+                  <VfxAnimationPlayer activeVfx={activeVfx} onFinish={finishVfx} />
                 )}
               </div>
 
@@ -1186,7 +1215,7 @@ export default function BattleScreen() {
           {/* Center Arena VFX Overlay */}
           {activeVfx?.target === 'center' && (
             <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-              <VfxAnimationPlayer activeVfx={activeVfx} onFinish={() => setActiveVfx(null)} />
+              <VfxAnimationPlayer activeVfx={activeVfx} onFinish={finishVfx} />
             </div>
           )}
 
@@ -1201,7 +1230,7 @@ export default function BattleScreen() {
             <div className="relative flex items-center justify-center">
               <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
                 {activeVfx?.target === 'p2' && (
-                  <VfxAnimationPlayer activeVfx={activeVfx} onFinish={() => setActiveVfx(null)} />
+                  <VfxAnimationPlayer activeVfx={activeVfx} onFinish={finishVfx} />
                 )}
               </div>
 
@@ -1294,6 +1323,9 @@ export default function BattleScreen() {
           <div className="grid grid-cols-2 sm:flex sm:flex-row items-start gap-2 flex-1 min-w-0 w-full sm:min-w-[240px]">
             {([1, 2] as const).map(slot => {
               const skill = slot === 1 ? myPlayer.weapon.skill1 : myPlayer.weapon.skill2;
+              const forms = myPlayer.weapon.skill1.triggerNumber;
+              const chosenForm = slot === 1 ? (Array.isArray(forms) ? (forms.includes(selectedSkillForm ?? -1) ? selectedSkillForm : forms[0]) : undefined) : myPlayer.weapon.id === 'infinity_ring' ? voidForm : meteorCost;
+              const art = skillPresentation(myPlayer, slot, chosenForm);
               const enabled = (slot === 1 ? canCastSkill1 : canCastSkill2) && phase !== 'game_over';
               const needsRock = slot === 2 && myPlayer.weapon.id === 'spirit_stone' && (myPlayer.petRockHp ?? 0) <= 0;
               const used = (slot === 1 ? myPlayer.skill1UsedTurn : myPlayer.skill2UsedTurn) === currentTurn;
@@ -1308,7 +1340,7 @@ export default function BattleScreen() {
                 {openSkillInfo === slot && <button type="button" className="skill-info-backdrop" aria-label={isEn ? 'Close skill details' : 'Đóng thông tin kỹ năng'} onClick={() => setOpenSkillInfo(null)} />}
                 <div id={'skill-info-' + slot} role="tooltip" className={'skill-popover absolute bottom-full right-0 mb-2 z-50 hidden group-hover:block group-focus-within:block w-64 max-w-[75vw] p-3 border border-yellow-500/70 bg-slate-950 shadow-xl text-xs text-slate-200 leading-relaxed after:absolute after:top-full after:left-0 after:h-2 after:w-full ' + (openSkillInfo === slot ? 'skill-popover-open' : '')}>
                   <button type="button" className="skill-info-close" onClick={() => setOpenSkillInfo(null)}>{isEn ? 'Close ✕' : 'Đóng ✕'}</button>
-                  <strong className="text-yellow-300">{isEn ? skill.name : skill.nameVi} · {skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</strong>
+                  <img src={"/assets/vfx/frames/" + art.effect + "/1.png"} alt={isEn ? art.nameEn : art.nameVi} width={64} height={64} className="float-left mr-2 object-contain" style={{imageRendering:"pixelated"}} /><strong className="text-yellow-300">{isEn ? art.nameEn : art.nameVi} · {skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</strong>
                   <p className="mt-1">{isEn ? skill.description : skill.descriptionVi}</p>
                   <p className="mt-1 text-cyan-300">{isEn ? 'Shared PTS · Once per round' : 'Dùng chung PTS · 1 lần/hiệp'}</p>
                 {slot === 2 && myPlayer.weapon.id === 'infinity_ring' && <>

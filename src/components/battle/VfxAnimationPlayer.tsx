@@ -49,6 +49,8 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
     <AnimatePresence>
       <motion.div
         key={activeVfx.id}
+        data-vfx-effect={activeVfx.effect}
+        data-vfx-target={activeVfx.target}
         initial={{ scale: 0.7, opacity: 0 }}
         animate={{ scale: 1.25, opacity: 1 }}
         exit={{ opacity: 0 }}

@@ -167,10 +167,12 @@ export interface BattleState {
     target: 'p1' | 'p2' | 'center';
     size?: number;
   } | null;
+  vfxSequence?: NonNullable<BattleState['activeVfx']>[];
   activeSkillBanner?: {
     id: string;
     weaponId: string;
     skillNameEn: string;
+    icon?: string;
     skillNameVi?: string;
     slot?: 1 | 2;
     casterName: string;

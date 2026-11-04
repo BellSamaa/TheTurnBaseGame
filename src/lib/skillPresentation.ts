@@ -54,3 +54,20 @@ export function skillPresentation(player: PlayerState, slot: 1 | 2, form?: numbe
   }
   return { effect, target, nameEn, nameVi, color };
 }
+
+export function skillEffectPlan(player: PlayerState, slot: 1 | 2, form?: number) {
+  const main = skillPresentation(player, slot, form);
+  type Cue = { effect: string; target: 'caster' | 'opponent' | 'center' };
+  const cue = (effect: string, target: Cue['target'] = 'opponent'): Cue => ({ effect, target });
+  const id = player.weapon.id;
+  if (id === 'greatsword' && slot === 1) return [main, cue('impact_physical')];
+  if (id === 'bow' && slot === 1) return [cue('arrow'), main];
+  if (id === 'revolver' && slot === 2) return [main, cue('impact_physical')];
+  if (id === 'infinity_ring' && slot === 2) return [cue('void_blue', 'caster'), cue('void_red', 'caster'), main];
+  if (id === 'dagger') return slot === 2
+    ? [cue('burn_blue', 'caster'), cue('slash_multi'), main]
+    : form === 2 ? [main, cue('burn_orange', 'caster')] : [cue('slash_light'), main];
+  if (id === 'fire_headband' && slot === 2) return [main, cue('meteor_impact')];
+  if (id === 'spirit_stone' && slot === 2) return [cue('rock_rage', 'caster'), cue('rock_roll'), cue('impact_physical')];
+  return [main];
+}

@@ -192,3 +192,16 @@ assert.equal(skillPresentation({...make(WEAPON_DEFINITIONS.chronos_watch), timeA
 assert.notEqual(normalAttackEffect('chronos_watch'),'time_lock');
 assert.notEqual(normalAttackEffect('fire_headband'),'burn_black');
 console.log('PASS: each skill/form uses a real effect asset, correct caster/opponent target, and chosen form name');
+const { skillEffectPlan } = require('../src/lib/skillPresentation.ts');
+const crypto = require('crypto');
+for(const [effect, definition] of Object.entries(manifest.effects)) for(let frame=0;frame<4;frame++) {
+  const dest=fs.readFileSync(path.join(root,'public/assets/vfx/frames',effect,frame+'.png'));
+  const source=fs.readFileSync(path.join(root,'DiceManiac_AnimationKit_v1/frames',effect,frame+'.png'));
+  assert.equal(crypto.createHash('sha256').update(dest).digest('hex'),crypto.createHash('sha256').update(source).digest('hex'),effect+' uses original kit image');
+}
+assert.deepEqual(skillEffectPlan(ring,2,1).map(c=>c.effect),['void_blue','void_red','hollow_purple']);
+assert.deepEqual(skillEffectPlan(petTarget,2).map(c=>c.effect),['rock_rage','rock_roll','impact_physical']);
+assert.equal(skillEffectPlan(petTarget,2)[0].target,'caster');
+assert.deepEqual(skillEffectPlan(make(WEAPON_DEFINITIONS.bow),1).map(c=>c.effect),['arrow','bleed']);
+assert.deepEqual(skillEffectPlan(make(WEAPON_DEFINITIONS.fire_headband),2,30).map(c=>c.effect),['meteor_two','meteor_impact']);
+console.log('PASS: all 128 effect frames match original kit; multi-stage Purple, Rock, Bow and Meteor effects');
