@@ -18,6 +18,7 @@ import {
 } from '@/lib/battleLogic';
 import type { BattleLogEntry, BattleState, PlayerState } from '@/types/game';
 import { castChargedSkill, skillCost } from '@/lib/chargedSkills';
+import { RockHealthBar, RockCompanion } from './RockCompanion';
 import HealthBar from '@/components/ui/HealthBar';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
@@ -508,7 +509,7 @@ export default function BattleScreen() {
   const myPlayer = isP1User ? player1 : player2;
   const myCurrentPts = myPlayer.d12Charge || 0;
   const myReqPts = myPlayer.weapon.skill2.chargeRequired || 20;
-  const canCastSkill2 = !skillIsLocked(myPlayer, 2, currentTurn) && myCurrentPts >= skillCost(myPlayer, 2, meteorCost) && myPlayer.skill2UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12' && !(myPlayer.weapon.id === 'revolver' && (myPlayer.bullets ?? 6) <= 0);
+  const canCastSkill2 = (myPlayer.weapon.id !== 'spirit_stone' || (myPlayer.petRockHp ?? 0) > 0) && !skillIsLocked(myPlayer, 2, currentTurn) && myCurrentPts >= skillCost(myPlayer, 2, meteorCost) && myPlayer.skill2UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12' && !(myPlayer.weapon.id === 'revolver' && (myPlayer.bullets ?? 6) <= 0);
   const canCastSkill1 = !skillIsLocked(myPlayer, 1, currentTurn) && (myPlayer.weapon.id !== 'fire_headband' || myPlayer.leafSkillReadyTurn === currentTurn) && myCurrentPts >= skillCost(myPlayer, 1) && myPlayer.skill1UsedTurn !== currentTurn && !hasLocalPlayerEndedTurn && turnStep === 'd12';
 
   // Add message to battle log (Local state only; actions include logs in their synced state)
@@ -588,7 +589,7 @@ export default function BattleScreen() {
       return () => clearTimeout(t);
     }
     if (turnStep === 'd12') {
-      const slot = (player2.d12Charge || 0) >= skillCost(player2, 2) && player2.skill2UsedTurn !== currentTurn && !skillIsLocked(player2, 2, currentTurn) ? 2
+      const slot = (player2.weapon.id !== 'spirit_stone' || (player2.petRockHp ?? 0) > 0) && (player2.d12Charge || 0) >= skillCost(player2, 2) && player2.skill2UsedTurn !== currentTurn && !skillIsLocked(player2, 2, currentTurn) ? 2
         : (player2.d12Charge || 0) >= skillCost(player2, 1) && player2.skill1UsedTurn !== currentTurn && !skillIsLocked(player2, 1, currentTurn) && (player2.weapon.id !== 'fire_headband' || player2.leafSkillReadyTurn === currentTurn) ? 1 : null;
       if (slot) { const t = setTimeout(() => handleCastSkill(slot, true), 850); return () => clearTimeout(t); }
     }
@@ -1142,6 +1143,7 @@ export default function BattleScreen() {
             </span>
           </div>
           <HealthBar current={player1.hp} max={player1.maxHp} variant="gold" />
+          <RockHealthBar player={player1} />
         </div>
 
         {/* Center: Turn Counter, Map Badge & Surrender Button */}
@@ -1175,6 +1177,7 @@ export default function BattleScreen() {
             </span>
           </div>
           <HealthBar current={player2.hp} max={player2.maxHp} variant="red" />
+          <RockHealthBar player={player2} />
         </div>
       </header>
 
@@ -1238,10 +1241,11 @@ export default function BattleScreen() {
                 )}
               </div>
 
+              <RockCompanion player={player1} side="right" />
               {player1.immuneDamageNext && <div aria-label="Immune" className="infinity-guard" />}
               <CharacterRenderer
                 character={player1.character}
-                weapon={player1.weapon}
+                weapon={['spirit_stone', 'pet_rock'].includes(player1.weapon.id) ? undefined : player1.weapon}
                 size="md"
                 facing="right"
                 showAura={p1IsAttacker}
@@ -1282,10 +1286,11 @@ export default function BattleScreen() {
                 )}
               </div>
 
+              <RockCompanion player={player2} side="left" />
               {player2.immuneDamageNext && <div aria-label="Immune" className="infinity-guard" />}
               <CharacterRenderer
                 character={player2.character}
-                weapon={player2.weapon}
+                weapon={['spirit_stone', 'pet_rock'].includes(player2.weapon.id) ? undefined : player2.weapon}
                 size="md"
                 facing="left"
                 showAura={!p1IsAttacker}
@@ -1371,13 +1376,14 @@ export default function BattleScreen() {
             {([1, 2] as const).map(slot => {
               const skill = slot === 1 ? myPlayer.weapon.skill1 : myPlayer.weapon.skill2;
               const enabled = (slot === 1 ? canCastSkill1 : canCastSkill2) && phase !== 'game_over';
+              const needsRock = slot === 2 && myPlayer.weapon.id === 'spirit_stone' && (myPlayer.petRockHp ?? 0) <= 0;
               const used = (slot === 1 ? myPlayer.skill1UsedTurn : myPlayer.skill2UsedTurn) === currentTurn;
               return <div key={slot} tabIndex={0} className="group relative w-full min-w-0" aria-label={(isEn ? skill.name : skill.nameVi) + ": " + (isEn ? skill.description : skill.descriptionVi)}>
                 <button onClick={() => handleCastSkill(slot)} disabled={!enabled}
-                  className={'w-full h-[38px] sm:h-[44px] px-2 border-2 font-pixel text-[8px] sm:text-[9px] font-bold transition ' + (enabled ? 'action-beacon border-yellow-300 bg-purple-950 text-yellow-200 cursor-pointer' : 'border-slate-700 bg-slate-950 text-slate-400')}
+                  className={'battle-skill-button w-full h-[38px] sm:h-[44px] px-2 border-2 font-pixel text-[8px] sm:text-[9px] font-bold transition ' + (enabled ? 'action-beacon border-yellow-300 bg-purple-950 text-yellow-200 cursor-pointer' : 'border-slate-700 bg-slate-950 text-slate-400')}
                   title={isEn ? skill.description : skill.descriptionVi}>
-                  <span className="block">SKILL {slot} · {skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</span>
-                  <span className="block text-[10px]">{skillIsLocked(myPlayer, slot, currentTurn) ? '🔒' : used ? '✓' : enabled ? '⚡' : myCurrentPts + '/' + skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)}</span>
+                  <img src={"/assets/sprites/ui/frames/btn_skill_" + slot + ".png"} alt={"Skill " + slot} className="skill-button-art" /><span className="block skill-cost">{skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)} PTS</span>
+                  <span className="block text-[10px]">{needsRock ? (isEn ? 'Summon first' : 'Triệu hồi trước') : skillIsLocked(myPlayer, slot, currentTurn) ? '🔒' : used ? '✓' : enabled ? '⚡' : myCurrentPts + '/' + skillCost(myPlayer, slot, slot === 2 ? meteorCost : undefined)}</span>
                 </button>
                 <button type="button" className="skill-info-toggle" aria-expanded={openSkillInfo === slot} aria-controls={'skill-info-' + slot} onClick={() => setOpenSkillInfo(openSkillInfo === slot ? null : slot)}>{isEn ? 'ⓘ Details / Form' : 'ⓘ Chi tiết / Dạng'}</button>
                 {openSkillInfo === slot && <button type="button" className="skill-info-backdrop" aria-label={isEn ? 'Close skill details' : 'Đóng thông tin kỹ năng'} onClick={() => setOpenSkillInfo(null)} />}
@@ -1404,9 +1410,9 @@ export default function BattleScreen() {
           </div>
         </div>
 
-        <p className="text-xs text-cyan-200 text-center">{player1.name}: {player1.d12Charge ?? 0} PTS · {player2.name}: {player2.d12Charge ?? 0} PTS</p>
+        <p className="battle-points text-xs text-cyan-200 text-center">{player1.name}: {player1.d12Charge ?? 0} PTS · {player2.name}: {player2.d12Charge ?? 0} PTS</p>
         {/* Expandable Compact Battle Log Strip */}
-        <div className="w-full max-w-4xl flex items-center justify-between px-3 py-1 bg-[#060810]/90 border border-slate-700 text-[7px] sm:text-[8px] font-pixel">
+        <div className="battle-log-strip w-full max-w-4xl flex items-center justify-between px-3 py-1 bg-[#060810]/90 border border-slate-700 text-[7px] sm:text-[8px] font-pixel">
           <div className="flex items-center gap-2 truncate">
             <span className="text-yellow-400 font-bold">📜 {isEn ? 'LATEST:' : 'MỚI NHẤT:'}</span>
             <span className="text-slate-300 truncate max-w-[500px]">

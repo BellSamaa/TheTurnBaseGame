@@ -269,3 +269,38 @@ html, body {
 @keyframes purple-sky-wash { 0%,100% {background:transparent} 30%,75% {background:#7e22ce88} }
 @keyframes purple-sky-orb { 0% {transform:translate(-50%,0) scale(.3);opacity:1} 30% {transform:translate(-50%,-45vh) scale(1.5);opacity:1} 65%,100% {transform:translate(-50%,-45vh) scale(6);opacity:0} }
 @media (prefers-reduced-motion:reduce) { .purple-sky i {display:none} }
+/* Existing sprite kit, shared across menus, social panels and combat. */
+.pixel-panel::before { content:''; position:absolute; inset:-3px; border:7px solid transparent; border-image:url('/assets/sprites/ui/frames/frame_square_cyan.png') 60 stretch; pointer-events:none; opacity:.65; }
+.pixel-panel-gold::before { filter:hue-rotate(190deg); }
+.pixel-panel-purple::before { filter:hue-rotate(85deg); }
+.pixel-panel-red::before { filter:hue-rotate(170deg) saturate(1.4); }
+.pixel-panel-heading { position:relative; border-bottom:0; padding-bottom:20px; }
+.pixel-panel-heading::after { content:''; position:absolute; bottom:0; left:0; right:0; height:10px; background:url('/assets/sprites/ui/frames/divider_gold_ruby_tight.png') center/100% 100% no-repeat; pointer-events:none; }
+.social-screen { background:linear-gradient(#07090ee8,#07090ef7),url('/assets/images/maps/map-castle.png') center/cover fixed; }
+.battle-hud { background:linear-gradient(110deg,#171321f5,#090e1af5 50%,#0d2630f5); padding-bottom:14px; }
+.battle-hud::after { content:''; position:absolute; bottom:-5px; left:2%; right:2%; height:12px; background:url('/assets/sprites/ui/frames/divider_gold_ruby_tight.png') center/100% 100% no-repeat; pointer-events:none; }
+.rock-health { width:73%; max-width:200px; margin:0 auto 3px; }
+.rock-health-label { display:flex; justify-content:space-between; font-family:var(--font-pixel),monospace; font-size:9px; line-height:1.5; color:#a5f3fc; text-shadow:1px 1px #000; }
+.rock-health-track { height:8px; overflow:hidden; border:1px solid #67e8f9; background:#07121c; box-shadow:0 0 5px #22d3ee33; }
+.rock-health-fill { height:100%; background:linear-gradient(#a5f3fc,#06b6d4); transition:width .35s ease; }
+.rock-health-low { background:linear-gradient(#fda4af,#e11d48); }
+.rock-companion { position:absolute; bottom:2px; width:52px; height:58px; z-index:12; pointer-events:none; animation:rock-arrive .35s ease-out; }
+.rock-companion-right { left:calc(100% - 8px); }
+.rock-companion-left { right:calc(100% - 8px); }
+.rock-companion img { width:100%; height:52px; object-fit:contain; image-rendering:pixelated; position:relative; z-index:1; filter:drop-shadow(0 0 6px #67e8f955); }
+.rock-companion > span { display:block; position:absolute; bottom:0; width:80%; left:10%; height:7px; background:#0009; border-radius:50%; }
+@keyframes rock-arrive { from { opacity:0; transform:translateY(-12px) scale(.7) } to { opacity:1; transform:translateY(0) scale(1) } }
+.battle-controls { background:linear-gradient(180deg,#0c1320f7,#060810); }
+.battle-controls .battle-skill-button { position:relative; height:auto; min-height:70px; padding:40px 4px 5px; border:0; background:linear-gradient(#101a36,#080e20); box-shadow:inset 0 0 0 1px #a78bfa66; }
+.skill-button-art { position:absolute; left:0; top:0; width:100%; height:40px; object-fit:contain; image-rendering:pixelated; pointer-events:none; }
+.battle-skill-button:disabled .skill-button-art { filter:grayscale(.8); opacity:.55; }
+.battle-points { padding:5px 16px; background:#06212c; border:1px solid #155e75; border-radius:3px; max-width:100%; overflow-wrap:anywhere; }
+.battle-controls .battle-log-strip { min-height:46px; padding:10px 14px 10px 13%; background:url('/assets/sprites/ui/frames/frame_battle_log.png') center/100% 100% no-repeat; border:0; }
+.battle-log-strip > div { min-width:0; }
+.battle-log-strip button { padding:5px 8px; background:#080e27b3; }
+button:focus-visible,select:focus-visible,a:focus-visible { outline:2px solid #67e8f9; outline-offset:3px; }
+@media(max-width:639px) { .rock-health { width:90%; } .rock-health-label { font-size:8px; } .rock-health-track { height:6px; } .rock-companion { width:36px; height:42px; } .rock-companion img { height:36px; } .battle-controls .battle-log-strip { padding-left:14%; min-height:56px; } .battle-hud { padding-bottom:10px; } }
+@media(prefers-reduced-motion:reduce) { .rock-companion { animation:none; } .rock-health-fill { transition:none; } }
+
+
+.battle-hud > div:first-child, .battle-hud > div:last-child { align-self:start; }

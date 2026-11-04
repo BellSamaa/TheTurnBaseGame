@@ -86,7 +86,7 @@ export default function PixelFrame({
 
   return (
     <div
-      className={`relative p-3 sm:p-4 rounded-none ${className}`}
+      className={`pixel-panel pixel-panel-${variant} relative p-3 sm:p-4 rounded-none ${className}`}
       style={{
         background: 'linear-gradient(180deg, rgba(14,16,24,0.94) 0%, rgba(8,10,16,0.96) 100%)',
         boxShadow: `
@@ -104,7 +104,7 @@ export default function PixelFrame({
       <CornerDot color={c.corner} position="br" />
 
       {title && (
-        <div className="flex items-center justify-between pb-3 mb-3 border-b-2 border-slate-800">
+        <div className="pixel-panel-heading flex items-center justify-between pb-3 mb-3 border-b-2 border-slate-800">
           <h3
             className="text-xs sm:text-sm font-bold uppercase tracking-wider drop-shadow flex items-center gap-2"
             style={{ color: c.title }}

@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import PixelButton from '@/components/ui/PixelButton';
+import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 
 type Person = { id: string; name: string; userId?: string; role?: string; tag?: string };
@@ -56,10 +57,10 @@ export default function FriendsList() {
   const input = 'min-w-0 flex-1 bg-slate-950 border border-slate-600 rounded px-3 py-2 text-sm';
   const submit = 'px-4 py-2 bg-yellow-400 text-black font-bold disabled:opacity-40';
   const list = (people: Person[], action: string, label: string, accept?: string) => people.length ? people.map(p => <div key={p.id} className="flex flex-wrap gap-2 justify-between items-center border-b border-slate-800 py-3"><span>{p.tag ? `[${p.tag}] ` : ''}{p.name}</span><div className="flex gap-2">{accept && button(en ? 'Accept' : 'Chấp nhận', accept, p.id)}{button(label, action, p.id)}</div></div>) : <p className="text-slate-500 py-3">{en ? 'Nothing here yet.' : 'Chưa có mục nào.'}</p>;
-  return <div className="min-h-screen bg-[#07090e] text-slate-200 p-4 sm:p-8">
+  return <div className="social-screen min-h-screen bg-[#07090e] text-slate-200 p-4 sm:p-8">
     <div className="max-w-3xl mx-auto space-y-4">
-      <header className="flex justify-between items-center"><PixelButton variant="secondary" onClick={() => setPage('home')}>{en ? 'Back' : 'Quay lại'}</PixelButton><h1 className="font-pixel text-yellow-300 text-sm">{en ? 'FRIENDS & CLAN' : 'BẠN BÈ & CLAN'}</h1></header>
-      {(!currentUser || loginRequired) ? <div className="p-6 border border-yellow-600"><p>{en ? 'Sign in to connect with friends.' : 'Đăng nhập lại để kết nối bạn bè và clan.'}</p><PixelButton onClick={() => setAuthModal('login')}>{en ? 'Sign in' : 'Đăng nhập'}</PixelButton></div> : <>
+      <header className="flex justify-between items-center"><PixelSpriteButton sprite="back" className="w-28 sm:w-36" title={en ? 'Back' : 'Quay lại'} onClick={() => setPage('home')} /><h1 className="font-pixel text-yellow-300 text-sm">{en ? 'FRIENDS & CLAN' : 'BẠN BÈ & CLAN'}</h1></header>
+      {(!currentUser || loginRequired) ? <PixelFrame variant="gold" title={en ? "JOIN YOUR FRIENDS" : "KẾT NỐI BẠN BÈ"}><p>{en ? 'Sign in to connect with friends.' : 'Đăng nhập lại để kết nối bạn bè và clan.'}</p><PixelButton onClick={() => setAuthModal('login')}>{en ? 'Sign in' : 'Đăng nhập'}</PixelButton></PixelFrame> : <>
       <nav className="flex gap-2">{(['friends','clan'] as const).map(t => <button key={t} onClick={() => setTab(t)} className={'px-5 py-2 border ' + (tab===t ? 'border-yellow-400 text-yellow-300' : 'border-slate-700')}>{t==='friends' ? (en ? 'Friends' : 'Bạn bè') : 'Clan'}</button>)}</nav>
       {error && <div role="alert" className="border border-red-700 p-3 text-red-300">{error} <button onClick={refresh} className="underline">{en ? 'Retry' : 'Thử lại'}</button></div>}
       {!data && !error && <p>{en ? 'Loading…' : 'Đang tải…'}</p>}

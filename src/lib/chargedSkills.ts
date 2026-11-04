@@ -12,6 +12,7 @@ export function skillCost(player: PlayerState, slot: 1 | 2, form?: number) {
 // Both skills spend the same balance, once, and return immutable player snapshots.
 export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1 | 2, turn: number, form?: number, lockSlot?: 1 | 2) {
   if (skillIsLocked(user, slot, turn)) return null;
+  if (slot === 2 && user.weapon.id === 'spirit_stone' && (user.petRockHp ?? 0) <= 0) return null;
   if (slot === 2 && user.weapon.id === "infinity_ring" && ((form != null && form !== 1 && form !== 2) || (form === 2 && lockSlot !== 1 && lockSlot !== 2))) return null;
   if (slot === 1 && user.weapon.id === 'fire_headband' && user.leafSkillReadyTurn !== turn) return null;
   if (slot === 2 && user.weapon.id === "fire_headband" && form !== undefined && form !== 20 && form !== 30) return null;

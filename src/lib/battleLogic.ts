@@ -294,7 +294,7 @@ export function executeSkill1D6(
 
     case 'spirit_stone':
       // The pet rock: triệu hồi rock (50 máu) chặn 5 sát thương cho chủ nhân, dùng D6 gây sát thương
-      if ((user.petRockHp ?? 0) <= 0) { user.petRockHp = 50; user.petRockHits = 0; }
+      if ((user.petRockHp ?? 0) <= 0) { user.petRockHp = 50; user.petRockHits = 0; user.petRockEnraged = false; }
       damage = 0;
       logTextVi = `Bạn Đá Cưng Rock (${user.petRockHp}/50 Máu, đỡ tối đa 5 sát thương mỗi đòn) và sẽ tấn công riêng 2 sát thương sau mỗi đòn của chủ nhân!`;
       logTextEn = `Pet Rock (${user.petRockHp}/50 HP, absorbs up to 5 dmg/hit) and follows each owner attack with a separate 2 damage hit!`;

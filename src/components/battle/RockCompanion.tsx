@@ -1,0 +1,26 @@
+'use client';
+
+import type { PlayerState } from '@/types/game';
+
+export function hasLivingRock(player: PlayerState) {
+  return ['spirit_stone', 'pet_rock'].includes(player.weapon.id) && (player.petRockHp ?? 0) > 0;
+}
+
+export function RockHealthBar({ player }: { player: PlayerState }) {
+  if (!hasLivingRock(player)) return null;
+  const hp = Math.min(50, Math.max(0, player.petRockHp ?? 0));
+  return <div className="rock-health" aria-label={`${player.name} — Rock`}>
+    <div className="rock-health-label"><span>ROCK</span><span>{hp}/50</span></div>
+    <div className="rock-health-track" role="progressbar" aria-label={`${player.name} — Rock HP`} aria-valuemin={0} aria-valuemax={50} aria-valuenow={hp}>
+      <div className={hp <= 10 ? 'rock-health-fill rock-health-low' : 'rock-health-fill'} style={{ width: `${hp * 2}%` }} />
+    </div>
+  </div>;
+}
+
+export function RockCompanion({ player, side }: { player: PlayerState; side: 'left' | 'right' }) {
+  if (!hasLivingRock(player)) return null;
+  return <div className={`rock-companion rock-companion-${side}`} aria-label={`${player.name} — Pet Rock`}>
+    <img src={player.weapon.image} alt="Pet Rock" width={52} height={52} />
+    <span aria-hidden="true" />
+  </div>;
+}
