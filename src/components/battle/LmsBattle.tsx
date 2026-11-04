@@ -40,16 +40,15 @@ export default function LmsBattle(){
         {button(tx("LẬT BUFF"),'buff',!!myBuff&&!myBuff.used&&me.hp>0,{target:buffChoice==='hp'?trade:chosen,choice:buffChoice,buffSlot})}
         <span>{tx("Vòng bo từ vòng") + " "}{s.extras.suddenRound}{" " + tx(". Buff người khác:") + " "}{s.players.filter(p=>p.id!==me.id).map(p=>p.name+': '+(s.extras!.buffs[p.id]?.revealed?tx(LMS_BUFFS[s.extras!.buffs[p.id].id]):tx("ÚP"))).join(' · ')}</span>
       </details>}
-      {s.phase==='charge'&&button(tx('TUNG D6 ')+(s.rolls.length+1)+'/'+(me?.classType==='mage'?2:1),'charge',mine)}
-      {mine&&['target','attack'].includes(s.phase)&&<><select aria-label={tx("Mục tiêu")} value={chosen} onChange={e=>setTarget(e.target.value)}>{choices.map(p=><option key={p.id} value={p.id}>{p.name} · {p.hp} HP</option>)}</select>
-        {button(tx("CHỌN MỤC TIÊU"),'target',s.phase==='target',{target:chosen})}
-        {me&&<CombatSkills player={me} round={s.round} busy={busy} enabled={mine&&['target','attack'].includes(s.phase)} onCast={args=>act('skill',{...args,target:chosen})}/>}
-        {button(tx("TUNG D20 CÔNG"),'attack',s.phase==='attack')}</>}
-      {s.phase==='defense'&&button(tx("TUNG D20 THỦ"),'defend',victim?.id===me?.id)}
-      {s.phase==='clash'&&<>{button(tx("+1 CÔNG · 3 PTS"),'clash',(me?.hp??0)>0,{delta:1})}{button(tx("−1 CÔNG · 3 PTS"),'clash',(me?.hp??0)>0,{delta:-1})}{button(tx("TÍNH SÁT THƯƠNG"),'resolve',clock>=(s.deadline??Infinity))}</>}
-      {s.phase==='end'&&button(tx("KẾT THÚC LƯỢT"),'end',mine)}
+      {mine&&s.phase==='target'&&<select aria-label={tx('Mục tiêu')} value={chosen} onChange={e=>setTarget(e.target.value)}>{choices.map(p=><option key={p.id} value={p.id}>{p.name} · {p.hp} HP</option>)}</select>}
+      <div className="four-commands">
+      {button(s.phase==='charge'?tx('TUNG D6 ')+(s.rolls.length+1)+'/'+(me?.classType==='mage'?2:1):s.phase==='defense'?tx('TUNG D20 THỦ'):s.phase==='target'?tx('CHỌN MỤC TIÊU'):tx('TUNG D20 CÔNG'),s.phase==='charge'?'charge':s.phase==='defense'?'defend':s.phase==='target'?'target':'attack',!s.winner&&(s.phase==='defense'?victim?.id===me?.id:mine&&['charge','target','attack'].includes(s.phase)),{target:chosen})}
+      {button(tx('KẾT THÚC LƯỢT'),'end',mine&&s.phase==='end')}
+      {me&&<CombatSkills player={me} round={s.round} busy={busy} enabled={mine&&['target','attack'].includes(s.phase)} onCast={args=>act('skill',{...args,target:chosen})}/>}
+      </div>
+      {s.phase==='clash'&&<div className="clash-controls">{button(tx('+1 CÔNG · 3 PTS'),'clash',(me?.hp??0)>0,{delta:1})}{button(tx('−1 CÔNG · 3 PTS'),'clash',(me?.hp??0)>0,{delta:-1})}{button(tx('TÍNH SÁT THƯƠNG'),'resolve',clock>=(s.deadline??Infinity))}</div>}
       {s.winner&&<button className="lms-action" onClick={async()=>{const r=await fetch('/api/rooms/'+onlineRoomCode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'return_lobby',userId:me?.id})});if(r.ok)setPage('play');}}>{tx("VỀ PHÒNG")}</button>}
-      <details><summary>{tx("Nhật ký trận")}</summary>{(useGameStore.getState().settings.language==='vi'?(s.logVi||s.log):s.log).slice(0,30).map((l,i)=><p key={i}>{tx(l)}</p>)}</details>
+      <details className="combat-log"><summary>{tx("Nhật ký trận")}</summary>{(useGameStore.getState().settings.language==='vi'?(s.logVi||s.log):s.log).slice(0,30).map((l,i)=><p key={i}>{tx(l)}</p>)}</details>
     </footer>
     </CombatArena>
   </div>;

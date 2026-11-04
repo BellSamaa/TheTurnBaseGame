@@ -1,0 +1,2 @@
+export const LOBBY_OBSTACLES=[[-5.8,.8,-2.2,3.4],[2.2,.8,5.8,3.4],[-1.2,1.1,1.2,2.9],[-8,4,-6,6.6],[6,4,8,6.6],[-9,-7,-2,-5.8],[2,-7,9,-5.8],[-1.7,-7,1.7,-5.8],[6,-5,8,-3],...[-8,8].flatMap(x=>[-4,5].map(z=>[x-.6,z-.6,x+.6,z+.6]))];
+export function lobbyPositionAllowed(x:number,z:number){return Number.isFinite(x)&&Number.isFinite(z)&&Math.abs(x)<9.2&&Math.abs(z)<6.6&&!LOBBY_OBSTACLES.some(([a,b,c,d])=>x>a-.28&&x<c+.28&&z>b-.28&&z<d+.28);}

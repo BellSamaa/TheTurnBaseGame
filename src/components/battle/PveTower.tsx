@@ -25,12 +25,11 @@ export default function PveTower(){
  <div role="status" className="combat-status">{error|| (won?tx('TẦNG ĐÃ VƯỢT QUA'):s.phase==='defense'&&s.target===me.id?tx('Bạn cần tung phòng thủ'):mine?tx('Lượt của bạn'):tx('Đang chờ ')+'Boss')}</div>
  <div className="pve-reward-preview">◆ {run!.state.reward.gems} Gem · ♦ {run!.state.reward.rubies} Ruby · +{run!.state.reward.exp} EXP</div>
  {won?<button className="primary-action" disabled={busy} onClick={()=>act('next')}>{tx('ĐI TIẾP TẦNG')} {run!.state.stage+1}</button>:<>
+ <div className="four-commands">
+ <button className="combat-roll" disabled={busy||!((mine&&['charge','target','attack'].includes(s.phase))||(s.phase==='defense'&&s.target===me.id))} onClick={()=>act(s.phase==='charge'?'charge':s.phase==='target'?'target':s.phase==='defense'?'defend':'attack')}><img src="/assets/sprites/ui/frames/btn_roll_dice.png" alt=""/><span>{s.phase==='charge'?(en?'ROLL D6':'TUNG D6')+' '+(s.rolls.length+1)+'/'+(me.classType==='mage'?2:1):s.phase==='target'?(en?'PREPARE':'CHUẨN BỊ'):s.phase==='defense'?tx('TUNG D20 THỦ'):tx('TUNG D20 CÔNG')}</span></button>
+ <button className="combat-roll" disabled={busy||!mine||s.phase!=='end'} onClick={()=>act('end')}><img src="/assets/sprites/ui/frames/btn_end_turn.png" alt=""/><span>{tx('KẾT THÚC LƯỢT')}</span></button>
  <CombatSkills player={me} round={s.round} enabled={mine&&['target','attack'].includes(s.phase)} busy={busy} onCast={args=>act('skill',{...args,target:'pve_bot'})}/>
- <div className="combat-main-actions">{mine&&s.phase==='charge'&&action((en?'ROLL D6':'TUNG D6')+' '+(s.rolls.length+1)+'/'+(me.classType==='mage'?2:1),'charge')}
- {mine&&s.phase==='target'&&action(en?'PREPARE ATTACK':'CHUẨN BỊ TẤN CÔNG','target')}
- {mine&&s.phase==='attack'&&action(tx('TUNG D20 CÔNG'),'attack')}
- {s.phase==='defense'&&s.target===me.id&&action(tx('TUNG D20 THỦ'),'defend')}
- {mine&&s.phase==='end'&&action(tx('KẾT THÚC LƯỢT'),'end')}</div></>}
+ </div></>}
  <details className="combat-log"><summary>{tx('Nhật ký trận')}</summary>{(en?s.log:s.logVi||s.log).slice(0,20).map((l,i)=><p key={i}>{tx(l)}</p>)}</details>
  </CombatArena>}{error&&!s&&<p role="alert">{error}</p>}</div>;
 }
