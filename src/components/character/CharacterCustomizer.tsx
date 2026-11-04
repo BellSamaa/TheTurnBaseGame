@@ -30,6 +30,7 @@ const PALETTES = {
 
 export default function CharacterCustomizer() {
   const { profile, settings, updateProfile, updateCharacter, setPage } = useGameStore();
+  const [previewMotion, setPreviewMotion] = useState<'idle' | 'walk' | 'run'>('idle');
   const lang = settings.language;
   const isEn = lang === 'en';
 
@@ -172,6 +173,7 @@ export default function CharacterCustomizer() {
                 character={custom}
                 weapon={currentWeapon}
                 size="xl"
+                animation={previewMotion}
                 facing="right"
                 showAura={true}
                 auraColor="#facc15"
@@ -179,6 +181,11 @@ export default function CharacterCustomizer() {
               />
             </div>
 
+            <div className="flex gap-2 mt-3" aria-label={isEn ? 'Animation preview' : 'Xem thử chuyển động'}>
+              {(['idle', 'walk', 'run'] as const).map(mode => <button key={mode} type="button" aria-pressed={previewMotion === mode} onClick={() => setPreviewMotion(mode)} className={'px-3 py-2 border text-xs ' + (previewMotion === mode ? 'border-yellow-300 bg-yellow-950 text-yellow-200' : 'border-slate-600 text-slate-300')}>
+                {isEn ? mode.toUpperCase() : ({idle:'Đứng',walk:'Đi',run:'Chạy'})[mode]}
+              </button>)}
+            </div>
             {/* Hero Name Input */}
             <div className="w-full mt-3">
               <label className="block text-[8px] font-pixel text-yellow-300 font-bold mb-1">

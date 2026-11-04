@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import type { CharacterCustomization, WeaponInfo } from '@/types/game';
+import { drawCharacterPose, type CharacterMotion } from '@/lib/characterMotion';
 import { getCharacterV2Layers } from '@/lib/characterKitV2';
 
 export interface CharacterRendererProps {
@@ -14,6 +15,7 @@ export interface CharacterRendererProps {
   auraColor?: string;
   showShadow?: boolean;
   isHit?: boolean;
+  animation?: CharacterMotion;
 }
 
 const SIZE_MAP: Record<string, { width: number; height: number; weaponSize: number }> = {
@@ -99,9 +101,11 @@ export default function CharacterRenderer({
   auraColor = '#fbbf24',
   showShadow = true,
   isHit = false,
+  animation = 'idle',
 }: CharacterRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isRendered, setIsRendered] = useState(false);
+  const spriteRef = useRef<HTMLCanvasElement | null>(null);
 
   const dim = SIZE_MAP[size] || SIZE_MAP.md;
 
@@ -110,7 +114,9 @@ export default function CharacterRenderer({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const composed = document.createElement('canvas');
+    composed.width = 64; composed.height = 96;
+    const ctx = composed.getContext('2d');
     if (!ctx) return;
 
     const layers = getCharacterV2Layers(character);
@@ -128,6 +134,9 @@ export default function CharacterRenderer({
         }
       });
 
+      spriteRef.current = composed;
+      const output = canvas.getContext('2d');
+      if (output) drawCharacterPose(output, composed, 'still', 0);
       setIsRendered(true);
     });
 
@@ -147,11 +156,30 @@ export default function CharacterRenderer({
     character?.faceIndex,
   ]);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!ctx || !isRendered) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let frame = 0, previous = 0;
+    const start = performance.now();
+    const render = (now: number) => {
+      if (now - previous >= 80 && spriteRef.current && !document.hidden) {
+        drawCharacterPose(ctx, spriteRef.current, reduced.matches || isHit ? 'still' : animation, now - start);
+        previous = now;
+      }
+      frame = requestAnimationFrame(render);
+    };
+    frame = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(frame);
+  }, [animation, isRendered, isHit]);
+
   const isFacingLeft = facing === 'left';
 
   return (
     <div
-      className={`relative inline-flex items-center justify-center select-none ${className}`}
+      data-character-motion={animation}
+      className={`character-motion character-motion-${animation} relative inline-flex items-center justify-center select-none ${className}`}
       style={{
         width: dim.width + dim.weaponSize * 0.45,
         height: dim.height,
@@ -205,7 +233,7 @@ export default function CharacterRenderer({
         {/* 3. Handheld Weapon Sprite */}
         {weapon && (
           <div
-            className="absolute z-30 pointer-events-none flex items-center justify-center"
+            className="character-handheld absolute z-30 pointer-events-none flex items-center justify-center"
             style={{
               width: dim.weaponSize,
               height: dim.weaponSize,

@@ -1195,6 +1195,7 @@ export default function BattleScreen() {
               {player1.immuneDamageNext && <div aria-label="Immune" className="infinity-guard" />}
               <CharacterRenderer
                 className="battle-character-foreground"
+                animation={activeVfx && ['slash_light', 'slash_heavy', 'slash_multi'].includes(activeVfx.effect) && activeVfx.target === 'p2' ? 'run' : isRollingD20 && p1IsAttacker ? 'walk' : 'idle'}
                 character={player1.character}
                 weapon={['spirit_stone', 'pet_rock'].includes(player1.weapon.id) ? undefined : player1.weapon}
                 size="md"
@@ -1242,6 +1243,7 @@ export default function BattleScreen() {
               {player2.immuneDamageNext && <div aria-label="Immune" className="infinity-guard" />}
               <CharacterRenderer
                 className="battle-character-foreground"
+                animation={activeVfx && ['slash_light', 'slash_heavy', 'slash_multi'].includes(activeVfx.effect) && activeVfx.target === 'p1' ? 'run' : isRollingD20 && !p1IsAttacker ? 'walk' : 'idle'}
                 character={player2.character}
                 weapon={['spirit_stone', 'pet_rock'].includes(player2.weapon.id) ? undefined : player2.weapon}
                 size="md"
