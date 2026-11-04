@@ -26,8 +26,8 @@ export default function PveTower(){
  <div className="pve-reward-preview">◆ {run!.state.reward.gems} Gem · ♦ {run!.state.reward.rubies} Ruby · +{run!.state.reward.exp} EXP</div>
  {won?<button className="primary-action" disabled={busy} onClick={()=>act('next')}>{tx('ĐI TIẾP TẦNG')} {run!.state.stage+1}</button>:<>
  <div className="four-commands">
- <button className="combat-roll" disabled={busy||!((mine&&['charge','target','attack'].includes(s.phase))||(s.phase==='defense'&&s.target===me.id))} onClick={()=>act(s.phase==='charge'?'charge':s.phase==='target'?'target':s.phase==='defense'?'defend':'attack')}><img src="/assets/sprites/ui/frames/btn_roll_dice.png" alt=""/><span>{s.phase==='charge'?(en?'ROLL D6':'TUNG D6')+' '+(s.rolls.length+1)+'/'+(me.classType==='mage'?2:1):s.phase==='target'?(en?'PREPARE':'CHUẨN BỊ'):s.phase==='defense'?tx('TUNG D20 THỦ'):tx('TUNG D20 CÔNG')}</span></button>
- <button className="combat-roll" disabled={busy||!mine||s.phase!=='end'} onClick={()=>act('end')}><img src="/assets/sprites/ui/frames/btn_end_turn.png" alt=""/><span>{tx('KẾT THÚC LƯỢT')}</span></button>
+ <button aria-label={en?'Roll dice':'Tung xúc xắc'} className="combat-roll" disabled={busy||!((mine&&['charge','target','attack'].includes(s.phase))||(s.phase==='defense'&&s.target===me.id))} onClick={()=>act(s.phase==='charge'?'charge':s.phase==='target'?'target':s.phase==='defense'?'defend':'attack')}><img src="/assets/sprites/ui/frames/btn_roll_dice.png" alt=""/></button>
+ <button aria-label={en?'End turn':'Kết thúc lượt'} className="combat-roll" disabled={busy||!mine||s.phase!=='end'} onClick={()=>act('end')}><img src="/assets/sprites/ui/frames/btn_end_turn.png" alt=""/></button>
  <CombatSkills player={me} round={s.round} enabled={mine&&['target','attack'].includes(s.phase)} busy={busy} onCast={args=>act('skill',{...args,target:'pve_bot'})}/>
  </div></>}
  <details className="combat-log"><summary>{tx('Nhật ký trận')}</summary>{(en?s.log:s.logVi||s.log).slice(0,20).map((l,i)=><p key={i}>{tx(l)}</p>)}</details>

@@ -24,7 +24,7 @@ export default function LmsBattle(){
   const myBuff=me?(buffSlot==='bonus'?s.extras?.bonusBuffs?.[me.id]:s.extras?.buffs[me.id]):undefined;
   const victim=s.players.find(p=>p.id===s.target);
   async function act(move:string,args:Record<string,unknown>={}){if(actionLock.current)return;actionLock.current=true;setBusy(true);setError('');try{const r=await fetch('/api/rooms/'+onlineRoomCode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'lms_action',move,args,expectedRevision:s!.revision})});const b=await r.json();if(b.room?.battleState)setBattleState(old=>!old?.lms||(b.room.battleState.lms?.revision??-1)>=old.lms.revision?b.room.battleState:old);if(!r.ok)throw Error(tx(b.error));}catch(e){setError(e instanceof Error?e.message:tx("Mất kết nối"));}finally{actionLock.current=false;setBusy(false);}}
-  const button=(text:string,move:string,enabled:boolean,args:Record<string,unknown>={})=><button disabled={busy||!enabled} className={'lms-action '+(enabled?'action-beacon':'')} onClick={()=>act(move,args)}>{text}</button>;
+  const button=(text:string,move:string,enabled:boolean,args:Record<string,unknown>={})=><button aria-label={text} disabled={busy||!enabled} className={'lms-action '+(enabled?'action-beacon':'')} onClick={()=>act(move,args)}>{['charge','target','attack','defend','end'].includes(move)?<img className="command-sprite" src={'/assets/sprites/ui/frames/'+(move==='end'?'btn_end_turn':'btn_roll_dice')+'.png'} alt=""/>:text}</button>;
   const choices=s.players.filter(p=>p.id!==me?.id&&p.hp>0);
   const chosen=choices.some(p=>p.id===target)?target:choices[0]?.id;
   return <div className="lms-screen"><RankResult battleId={battleState!.id} winner={s.winner} mode={battleState!.mode}/>
