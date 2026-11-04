@@ -98,6 +98,27 @@ export default function BattleScreen() {
   const [openSkillInfo, setOpenSkillInfo] = useState<1 | 2 | null>(null);
   const [voidForm, setVoidForm] = useState(1);
   const [lockSlot, setLockSlot] = useState<1 | 2>(1);
+  const [roomParticipants, setRoomParticipants] = useState<Array<{ id: string; name: string; isReady: boolean }>>([]);
+
+  // LMS rooms expose all fighters even though the turn engine still uses the
+  // active 1v1 pair. Keep the arena roster live so spectators see the full
+  // circle while the current duel remains rendered normally.
+  useEffect(() => {
+    if (!onlineRoomCode) { setRoomParticipants([]); return; }
+    let cancelled = false;
+    const loadRoster = async () => {
+      try {
+        const response = await fetch(`/api/rooms/${onlineRoomCode}`, { cache: 'no-store' });
+        if (!response.ok) return;
+        const data = await response.json();
+        const participants = data.room?.participants ?? data.participants ?? [];
+        if (!cancelled) setRoomParticipants(participants.map((p: { id: string; name: string; isReady?: boolean }) => ({ id: p.id, name: p.name, isReady: Boolean(p.isReady) })));
+      } catch { /* roster is decorative; keep the battle playable offline */ }
+    };
+    void loadRoster();
+    const timer = window.setInterval(loadRoster, 3000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [onlineRoomCode]);
   const [meteorCost, setMeteorCost] = useState(20);
   const [selectedSkillForm, setSelectedSkillForm] = useState<number | undefined>();
   const castLockRef = useRef(false);
@@ -367,6 +388,9 @@ export default function BattleScreen() {
     battleState;
   const p1IsAttacker = player1.isAttacker;
   const mapData = MAP_DEFINITIONS.find((m) => m.id === mapId) || MAP_DEFINITIONS[0];
+  const circleRoster = roomParticipants.length >= 3
+    ? roomParticipants.slice(0, 4)
+    : [{ id: player1.id, name: player1.name, isReady: true }, { id: player2.id, name: player2.name, isReady: true }];
 
   const p1Class = CLASS_DEFINITIONS[player1.classType] || CLASS_DEFINITIONS.warrior;
   const p2Class = CLASS_DEFINITIONS[player2.classType] || CLASS_DEFINITIONS.assassin;
@@ -1132,6 +1156,26 @@ export default function BattleScreen() {
 
       {/* 3. Center Battle Stage (Dice Arena Centered Vertically & Horizontally) */}
       <main className="relative z-10 flex-1 flex flex-col justify-between items-center py-1 px-2 sm:px-6">
+        {circleRoster.length >= 3 && (
+          <div className="pointer-events-none absolute inset-0 z-30" aria-label={isEn ? 'Last Man Standing players' : 'Người chơi Last Man Standing'}>
+            <div className="absolute left-1/2 top-1/2 h-[min(78vw,520px)] w-[min(78vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-yellow-500/20" />
+            {circleRoster.map((participant, index) => {
+              const angle = (index / circleRoster.length) * Math.PI * 2 - Math.PI / 2;
+              const x = 50 + Math.cos(angle) * 42;
+              const y = 50 + Math.sin(angle) * 38;
+              const active = participant.id === player1.id || participant.id === player2.id;
+              return (
+                <div key={participant.id} className="absolute -translate-x-1/2 -translate-y-1/2 flex max-w-[110px] flex-col items-center gap-1" style={{ left: `${x}%`, top: `${y}%` }}>
+                  <div className={`h-8 w-8 rounded-full border-2 ${active ? 'border-yellow-300 bg-yellow-500/30 shadow-[0_0_14px_rgba(250,204,21,.7)]' : 'border-cyan-400/70 bg-cyan-950/80'} flex items-center justify-center text-xs font-bold text-white`}>
+                    {index + 1}
+                  </div>
+                  <span className="truncate rounded bg-black/80 px-1.5 py-0.5 text-center text-[7px] font-pixel text-white">{participant.name}</span>
+                  {!participant.isReady && <span className="text-[6px] font-pixel text-red-300">{isEn ? 'NOT READY' : 'CHƯA SẴN SÀNG'}</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
         {/* Dice Arena Tray (Symmetrical Dual Trays with Authentic frame_dual_dice_premium.png) */}
         <div className="w-full max-w-4xl mx-auto my-auto py-2">
           <PixelDice

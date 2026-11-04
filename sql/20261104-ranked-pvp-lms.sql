@@ -27,7 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_rooms_matchmaking
 
 CREATE TABLE IF NOT EXISTS public.ranked_matches (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  room_id text NOT NULL REFERENCES public.rooms(id) ON DELETE CASCADE,
+  room_id text NOT NULL,
   winner_id text,
   participants jsonb NOT NULL,
   rating_changes jsonb NOT NULL DEFAULT '{}'::jsonb,
@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS public.ranked_matches (
 
 CREATE INDEX IF NOT EXISTS idx_ranked_matches_finished
   ON public.ranked_matches (finished_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ranked_matches_room_id
+  ON public.ranked_matches (room_id);
 
 ALTER TABLE public.ranked_matches ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public can read ranked matches" ON public.ranked_matches;

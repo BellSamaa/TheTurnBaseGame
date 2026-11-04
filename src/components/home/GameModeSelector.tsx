@@ -12,6 +12,7 @@ import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { playClickSound } from '@/lib/soundEffects';
+import RoomBrowser from '@/components/battle/RoomBrowser';
 
 interface GameModeSelectorProps {
   matchType?: MatchType;
@@ -40,6 +41,7 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
   const [selectedModeId, setSelectedModeId] = useState<string>('pve');
   const [selectedMap, setSelectedMap] = useState<string>(MAP_DEFINITIONS[0].id);
   const [showLmsRules, setShowLmsRules] = useState(false);
+  const [showOnlineRooms, setShowOnlineRooms] = useState(false);
 
   // The 4 Specific Modes explicitly requested:
   // 1. Rank Last Man Standing
@@ -119,6 +121,12 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       return;
     }
 
+    // Ranked and LMS always use the real online room/matching flow.
+    if (selectedModeId === 'rank_pvp' || selectedModeId === 'last_man_standing') {
+      setShowOnlineRooms(true);
+      return;
+    }
+
     startNewBattle({
       mode: selectedModeId === 'rank_pvp' ? 'ranked' : selectedModeId === 'last_man_standing' ? 'pve' : 'pve',
       mapId: selectedMap,
@@ -131,6 +139,10 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
     });
     onClose();
   };
+
+  if (showOnlineRooms) {
+    return <RoomBrowser onClose={() => setShowOnlineRooms(false)} />;
+  }
 
   const selectedMapInfo = MAP_DEFINITIONS.find((m) => m.id === selectedMap) || MAP_DEFINITIONS[0];
   const activeMode = modes.find((m) => m.id === selectedModeId) || modes[0];
