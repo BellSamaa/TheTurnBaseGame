@@ -1,0 +1,368 @@
+{
+  "format": "glTF 2.0 binary",
+  "up_axis": "Y",
+  "units": "meters",
+  "style": "procedural low-poly PBR solid-color geometry",
+  "arenas": [
+    {
+      "file": "01_Meadow.glb",
+      "anchors": {
+        "SPAWN_1": [
+          -3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_2": [
+          3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_3": [
+          3.5,
+          0.1,
+          -3.5
+        ],
+        "SPAWN_4": [
+          -3.5,
+          0.1,
+          -3.5
+        ],
+        "ARENA_CENTER": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": 116,
+      "is_lobby": false
+    },
+    {
+      "file": "02_Moon_Forest.glb",
+      "anchors": {
+        "SPAWN_1": [
+          -3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_2": [
+          3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_3": [
+          3.5,
+          0.1,
+          -3.5
+        ],
+        "SPAWN_4": [
+          -3.5,
+          0.1,
+          -3.5
+        ],
+        "ARENA_CENTER": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": 159,
+      "is_lobby": false
+    },
+    {
+      "file": "03_Desert.glb",
+      "anchors": {
+        "SPAWN_1": [
+          -3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_2": [
+          3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_3": [
+          3.5,
+          0.1,
+          -3.5
+        ],
+        "SPAWN_4": [
+          -3.5,
+          0.1,
+          -3.5
+        ],
+        "ARENA_CENTER": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": 110,
+      "is_lobby": false
+    },
+    {
+      "file": "04_Ice.glb",
+      "anchors": {
+        "SPAWN_1": [
+          -3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_2": [
+          3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_3": [
+          3.5,
+          0.1,
+          -3.5
+        ],
+        "SPAWN_4": [
+          -3.5,
+          0.1,
+          -3.5
+        ],
+        "ARENA_CENTER": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": 138,
+      "is_lobby": false
+    },
+    {
+      "file": "05_Lava.glb",
+      "anchors": {
+        "SPAWN_1": [
+          -3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_2": [
+          3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_3": [
+          3.5,
+          0.1,
+          -3.5
+        ],
+        "SPAWN_4": [
+          -3.5,
+          0.1,
+          -3.5
+        ],
+        "ARENA_CENTER": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": 87,
+      "is_lobby": false
+    },
+    {
+      "file": "06_Castle.glb",
+      "anchors": {
+        "SPAWN_1": [
+          -3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_2": [
+          3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_3": [
+          3.5,
+          0.1,
+          -3.5
+        ],
+        "SPAWN_4": [
+          -3.5,
+          0.1,
+          -3.5
+        ],
+        "ARENA_CENTER": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": 130,
+      "is_lobby": false
+    },
+    {
+      "file": "07_Swamp.glb",
+      "anchors": {
+        "SPAWN_1": [
+          -3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_2": [
+          3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_3": [
+          3.5,
+          0.1,
+          -3.5
+        ],
+        "SPAWN_4": [
+          -3.5,
+          0.1,
+          -3.5
+        ],
+        "ARENA_CENTER": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": 173,
+      "is_lobby": false
+    },
+    {
+      "file": "08_Sky_Island.glb",
+      "anchors": {
+        "SPAWN_1": [
+          -3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_2": [
+          3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_3": [
+          3.5,
+          0.1,
+          -3.5
+        ],
+        "SPAWN_4": [
+          -3.5,
+          0.1,
+          -3.5
+        ],
+        "ARENA_CENTER": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": 131,
+      "is_lobby": false
+    },
+    {
+      "file": "09_Cyberpunk.glb",
+      "anchors": {
+        "SPAWN_1": [
+          -3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_2": [
+          3.5,
+          0.1,
+          3.5
+        ],
+        "SPAWN_3": [
+          3.5,
+          0.1,
+          -3.5
+        ],
+        "SPAWN_4": [
+          -3.5,
+          0.1,
+          -3.5
+        ],
+        "ARENA_CENTER": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": 240,
+      "is_lobby": false
+    },
+    {
+      "file": "10_Cozy_Lobby.glb",
+      "anchors": {
+        "SPAWN_LOBBY": [
+          0,
+          0.1,
+          5
+        ],
+        "DOOR_SELECT_GAME_MODE": [
+          -9,
+          0,
+          0
+        ],
+        "DOOR_CREATE_ROOM": [
+          9,
+          0,
+          0
+        ],
+        "CAMERA_TOP": [
+          0,
+          22,
+          12
+        ],
+        "CAMERA_REVERSE": [
+          0,
+          22,
+          -12
+        ]
+      },
+      "parts": 233,
+      "is_lobby": true
+    }
+  ],
+  "props": [
+    "oak_tree.glb",
+    "ancient_tree.glb",
+    "snow_pine.glb",
+    "palm_tree.glb",
+    "swamp_tree.glb",
+    "moss_rock.glb",
+    "basalt_rock.glb",
+    "snow_rock.glb",
+    "sandstone_rock.glb",
+    "marble_rock.glb",
+    "ice_crystals.glb",
+    "violet_crystals.glb",
+    "stone_arch.glb",
+    "sandstone_arch.glb",
+    "marble_arch.glb",
+    "banner_crimson.glb",
+    "banner_violet.glb",
+    "warm_lantern.glb",
+    "glow_mushrooms.glb",
+    "glow_reeds.glb",
+    "lily_pad.glb",
+    "obelisk.glb",
+    "wood_fence.glb",
+    "windmill.glb",
+    "cottage.glb",
+    "wood_pier.glb",
+    "swamp_hut.glb",
+    "hvac_unit.glb",
+    "neon_console.glb",
+    "pipe.glb",
+    "bench.glb",
+    "sofa.glb",
+    "table.glb",
+    "bookshelf.glb",
+    "potted_plant.glb",
+    "fireplace.glb",
+    "wood_door.glb",
+    "treasure_chest.glb"
+  ]
+}

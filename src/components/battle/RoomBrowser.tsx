@@ -1,4 +1,5 @@
 'use client';
+import {flushProfile} from '@/lib/profileSync';
 import {tx} from '@/lib/uiLocale';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -146,6 +147,7 @@ export default function RoomBrowser({
     setErrorMessage('');
 
     try {
+      await flushProfile();
       const hostParticipant: RoomParticipant = {
         id: currentUser.id,
         name: currentUser.username,

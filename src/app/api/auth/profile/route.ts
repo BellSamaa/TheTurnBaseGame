@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { sessionUser } from '@/lib/serverAuth';
+import { CLASS_DEFINITIONS, WEAPON_DEFINITIONS } from '@/lib/constants';
+import { onlineDb } from '@/lib/onlineRuntime';
+import { sessionUser, sameOrigin } from '@/lib/serverAuth';
 import { getUserByIdAsync, getUserByUsernameAsync, saveUserAsync } from '@/lib/serverDb';
 
 export async function POST(req: Request) {
@@ -7,18 +9,17 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { username, avatarConfig, selectedClass, selectedWeapon, bio, rankPoints, wins, losses } = body;
 
-    if (!username) {
-      return NextResponse.json({ success: false, error: 'Username required' });
-    }
-
+    if (!sameOrigin(req)) return NextResponse.json({error:'Forbidden'},{status:403});
     const actor = await sessionUser();
     const user = actor ? await getUserByIdAsync(actor) : null;
-    if (!user || user.username !== username) return NextResponse.json({success:false,error:'Sign in required'},{status:401});
-    if (!user) {
-      // Soft response to prevent browser console 404 red error for guest / unsynced local accounts
-      return NextResponse.json({ success: false, message: 'Local profile updated, user not in server DB' });
+    if (!user) return NextResponse.json({success:false,error:'Sign in required'},{status:401});
+    if (selectedWeapon && !WEAPON_DEFINITIONS[selectedWeapon]) return NextResponse.json({success:false,error:'Invalid weapon'},{status:400});
+    if (selectedClass && !CLASS_DEFINITIONS[selectedClass as keyof typeof CLASS_DEFINITIONS]) return NextResponse.json({success:false,error:'Invalid class'},{status:400});
+    if (username && username !== user.username) {
+      const taken=await getUserByUsernameAsync(username);
+      if(taken && taken.id!==actor) return NextResponse.json({success:false,error:'Username already taken'},{status:409});
+      user.username=username;
     }
-
     if (avatarConfig) user.avatarConfig = avatarConfig;
     if (selectedClass) user.selectedClass = selectedClass;
     if (selectedWeapon) user.selectedWeapon = selectedWeapon;
@@ -27,7 +28,13 @@ export async function POST(req: Request) {
 
 
 
-    const saved = await saveUserAsync(user);
+    // Patch profile columns only; preserve concurrent ranked results.
+    if(process.env.SUPABASE_SERVICE_ROLE_KEY){
+      const patch={...(username?{username}:{}),...(avatarConfig?{avatar_config:avatarConfig}:{}),...(selectedClass?{selected_class:selectedClass}:{}),...(selectedWeapon?{selected_weapon:selectedWeapon}:{}),...(bio!==undefined?{bio}:{}),updated_at:new Date().toISOString()};
+      const {error}=await onlineDb().from('users').update(patch).eq('id',actor);
+      if(error)throw Error(error.message);
+    }
+    const saved = process.env.SUPABASE_SERVICE_ROLE_KEY ? user : await saveUserAsync(user);
     const { passwordHash: _, ...safeUser } = saved;
     return NextResponse.json({ success: true, user: safeUser });
   } catch (err: unknown) {

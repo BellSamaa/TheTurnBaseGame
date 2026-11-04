@@ -11,7 +11,7 @@ export async function POST(req:Request){
    const {data:existing}=await db.from('game_pve_runs').select('*').eq('user_id',actor).eq('active',true).maybeSingle();if(existing)return NextResponse.json({run:existing});
    const {data,error}=await db.from('game_pve_runs').insert({user_id:actor,state:createPve(hero)}).select('*').single();if(error)throw Error(error.message);return NextResponse.json({run:data});
   }
-  const {data:run,error}=await db.from('game_pve_runs').select('*').eq('id',body.id).eq('user_id',actor).single();if(error)throw Error(error.message);if(run.revision!==body.revision)throw Error('Trận đã cập nhật, tải lại để tiếp tục');
+  const {data:run,error}=await db.from('game_pve_runs').select('*').eq('id',body.id).eq('user_id',actor).single();if(error)throw Error(error.message);if(run.revision!==body.revision)return NextResponse.json({run,error:'State updated; please try again.'},{status:409});
   let next;if(body.move==='next'){if(run.state.combat.winner!==actor)throw Error('Cần thắng tầng này');next=createPve(hero,run.state.stage+1);}else next=advancePve(run.state,actor,body.move,body.args);
   const {data,error:save}=await db.rpc('game_save_pve',{p_actor:actor,p_run:run.id,p_revision:run.revision,p_state:next});if(save)throw Error(save.message);return NextResponse.json({run:data});
  }catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Server error'},{status:400});}

@@ -286,7 +286,7 @@ export default function BattleScreen() {
                   const atk = remote.player1.isAttacker ? remote.p1D20 : remote.p2D20;
                   const def = remote.player1.isAttacker ? remote.p2D20 : remote.p1D20;
                   const hit = atk > def;
-                  const dmg = Math.max(0, atk - def);
+                  const dmg = remote.damagePopup?.type === 'damage' ? Number(remote.damagePopup.text.match(/\d+/)?.[0]||0) : hit ? 15 + atk - def : 0;
                   setCombatFormula({
                     isHit: hit,
                     damage: dmg,
@@ -866,7 +866,7 @@ export default function BattleScreen() {
     }
   };
 
-  const handleCastSkill = (slot: 1 | 2, bot = false) => {
+  const handleCastSkill = async (slot: 1 | 2, bot = false) => {
     if (bot && (onlineRoomCode || !isAiOpponent)) return;
     if (castLockRef.current || syncPendingRef.current || phase === 'game_over' || turnStep !== 'd12') return;
     const isP1 = bot ? false : isP1User;
@@ -875,6 +875,17 @@ export default function BattleScreen() {
     const opponent = isP1 ? player2 : player1;
     const forms = caster.weapon.skill1.triggerNumber;
     const form = slot === 2 && caster.weapon.id === "fire_headband" ? (bot ? ((caster.d12Charge ?? 0) >= 30 ? 30 : 20) : meteorCost) : slot === 2 && caster.weapon.id === "infinity_ring" ? (bot ? 1 : voidForm) : slot === 1 && Array.isArray(forms) ? (bot ? forms[0] : selectedSkillForm != null && forms.includes(selectedSkillForm) ? selectedSkillForm : forms[0]) : undefined;
+    if(onlineRoomCode){
+      castLockRef.current=true;syncPendingRef.current=true;
+      try{
+        const response=await fetch('/api/rooms/'+onlineRoomCode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'cast_skill',slot,form,lockSlot,expectedRevision:battleState.revision??0})});
+        const data=await response.json();
+        if(data.room?.battleState)setBattleState(data.room.battleState);
+        if(!response.ok){setTurnBannerText(data.error||'Please synchronize and try again');addTimer(setTimeout(()=>setTurnBannerText(null),2200));}
+      }catch{setTurnBannerText(isEn?'Connection lost. Please try again.':'Mất kết nối. Hãy thử lại.');}
+      finally{syncPendingRef.current=false;castLockRef.current=false;}
+      return;
+    }
     const result = castChargedSkill(caster, opponent, slot, currentTurn, form, lockSlot);
     if (!result) return;
     castLockRef.current = true;
@@ -1137,7 +1148,7 @@ export default function BattleScreen() {
 
       {/* Online Waiting for Opponent Banner */}
       {onlineRoomCode && hasLocalPlayerRolled && !bothPlayersHaveRolled && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-40 bg-blue-950/90 border-2 border-yellow-400 px-4 py-1.5 shadow-[0_0_15px_rgba(250,204,21,0.6)] animate-pulse">
+        <div className="battle-waiting-banner relative self-center z-10 bg-blue-950/90 border-2 border-yellow-400 px-4 py-1.5 shadow-[0_0_15px_rgba(250,204,21,0.6)] animate-pulse">
           <span className="text-[9px] font-pixel text-yellow-300 font-bold flex items-center gap-2">
             <span>⏳</span>
             <span>{isEn ? 'YOU ROLLED! WAITING FOR OPPONENT TO ROLL...' : 'BẠN ĐÃ TUNG! ĐANG CHỜ ĐỐI THỦ TUNG XÚC XẮC...'}</span>

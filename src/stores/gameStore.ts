@@ -1,5 +1,6 @@
 'use client';
 
+import { saveProfilePatch } from '@/lib/profileSync';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type {
@@ -263,59 +264,23 @@ export const useGameStore = create<GameStore>()(
           settings: { ...state.settings, ...newSettings },
         })),
 
-      updateProfile: (newProfile) =>
-        set((state) => {
-          const updated = { ...state.profile, ...newProfile };
-          if (state.currentUser) {
-            if (newProfile.name) state.currentUser.username = newProfile.name;
-            if (newProfile.character) state.currentUser.avatarConfig = newProfile.character;
-            if (newProfile.classType) state.currentUser.selectedClass = newProfile.classType;
-            if (newProfile.weaponId) state.currentUser.selectedWeapon = newProfile.weaponId;
-            fetch('/api/auth/profile', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                username: state.currentUser.username,
-                avatarConfig: updated.character,
-                selectedClass: updated.classType,
-                selectedWeapon: updated.weaponId,
-              }),
-            }).catch(() => {});
-          }
-          return { profile: updated };
-        }),
-
-      updateCharacter: (custom) =>
-        set((state) => {
-          const newCustom = { ...state.profile.character, ...custom };
-          if (state.currentUser) {
-            state.currentUser.avatarConfig = newCustom;
-            fetch('/api/auth/profile', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                username: state.currentUser.username,
-                avatarConfig: newCustom,
-              }),
-            }).catch(() => {});
-          }
-          return {
-            profile: {
-              ...state.profile,
-              character: newCustom,
-            },
-          };
-        }),
-
-      setPlayerClass: (classType) =>
-        set((state) => ({
-          profile: { ...state.profile, classType },
-        })),
-
-      setPlayerWeapon: (weaponId) =>
-        set((state) => ({
-          profile: { ...state.profile, weaponId },
-        })),
+      updateProfile: (newProfile) => {
+        const state = get(), updated = { ...state.profile, ...newProfile };
+        const user = state.currentUser ? {...state.currentUser,
+          ...(newProfile.name ? {username:newProfile.name} : {}),
+          ...(newProfile.character ? {avatarConfig:newProfile.character} : {}),
+          ...(newProfile.classType ? {selectedClass:newProfile.classType} : {}),
+          ...(newProfile.weaponId ? {selectedWeapon:newProfile.weaponId} : {})} : null;
+        set({profile:updated,currentUser:user});
+        if(user) saveProfilePatch({
+          ...(newProfile.name ? {username:newProfile.name} : {}),
+          ...(newProfile.character ? {avatarConfig:newProfile.character} : {}),
+          ...(newProfile.classType ? {selectedClass:newProfile.classType} : {}),
+          ...(newProfile.weaponId ? {selectedWeapon:newProfile.weaponId} : {})});
+      },
+      updateCharacter: (custom) => get().updateProfile({character:{...get().profile.character,...custom}}),
+      setPlayerClass: (classType) => get().updateProfile({classType}),
+      setPlayerWeapon: (weaponId) => get().updateProfile({weaponId}),
 
       setBattleState: (battle) =>
         set((state) => ({

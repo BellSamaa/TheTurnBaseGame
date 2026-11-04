@@ -1,0 +1,61 @@
+{
+  "image_generation": "Built-in image generation",
+  "use_case": "stylized-concept",
+  "arenas": [
+    {
+      "id": "01_Meadow",
+      "name": "Thảo nguyên",
+      "reference": "Thảo nguyên nắng bên cối xay gió-1.png",
+      "prompt": "Modern stylized 3D JRPG battle environment. Sunny green meadow, distant mountain, stream waterfall, hillside windmill and white village cottages, timber fences and wildflowers. Keep wide empty center for four fighters, cel-shaded volumetric props, 16:9, no characters or UI."
+    },
+    {
+      "id": "02_Moon_Forest",
+      "name": "Rừng cổ",
+      "reference": "Đấu trường rừng cổ dưới ánh trăng-2.png",
+      "prompt": "Modern stylized 3D JRPG battle environment. Ancient moonlit forest, gigantic trees, mossy broken stone arches, glowing cyan mushrooms, small waterfall and luminous fireflies. Keep wide empty center for four fighters, cel-shaded volumetric props, 16:9, no characters or UI."
+    },
+    {
+      "id": "03_Desert",
+      "name": "Sa mạc",
+      "reference": "Đấu trường sa mạc hoàng hôn-3.png",
+      "prompt": "Modern stylized 3D JRPG battle environment. Golden desert at sunset, dunes and pyramids, sandstone ruined arch and obelisks, red banners and sparse palms. Keep wide empty center for four fighters, cel-shaded volumetric props, 16:9, no characters or UI."
+    },
+    {
+      "id": "04_Ice",
+      "name": "Băng cực quang",
+      "reference": "Đấu trường băng dưới cực quang-4.png",
+      "prompt": "Modern stylized 3D JRPG battle environment. Snowy ice arena with cyan crystal clusters, snow-covered pines, frozen waterfall, distant icy castle and aurora in purple night sky. Keep wide empty center for four fighters, cel-shaded volumetric props, 16:9, no characters or UI."
+    },
+    {
+      "id": "05_Lava",
+      "name": "Bazan dung nham",
+      "reference": "Đấu trường bazan giữa biển dung nham-5.png",
+      "prompt": "Modern stylized 3D JRPG battle environment. Dark volcanic basalt arena surrounded by glowing lava channels, jagged black rock spires and broken stone arch, distant erupting volcano. Keep wide empty center for four fighters, cel-shaded volumetric props, 16:9, no characters or UI."
+    },
+    {
+      "id": "06_Castle",
+      "name": "Lâu đài",
+      "reference": "Sân đấu lâu đài dưới trăng-6.png",
+      "prompt": "Modern stylized 3D JRPG battle environment. Moonlit castle courtyard, pale stone paving, gothic ruined arches, crimson gold banners, warm lanterns, roses and distant blue castle towers. Keep wide empty center for four fighters, cel-shaded volumetric props, 16:9, no characters or UI."
+    },
+    {
+      "id": "07_Swamp",
+      "name": "Đầm lầy",
+      "reference": "Đấu trường đầm lầy phát quang-7.png",
+      "prompt": "Modern stylized 3D JRPG battle environment. Purple dusk swamp, mossy ancient trees, stone platform, bioluminescent turquoise reeds and mushrooms, lily pads, wooden pier and small moss-roof hut. Keep wide empty center for four fighters, cel-shaded volumetric props, 16:9, no characters or UI."
+    },
+    {
+      "id": "08_Sky_Island",
+      "name": "Đảo bay",
+      "reference": "Đấu trường đảo bay giữa mây hồng-8.png",
+      "prompt": "Modern stylized 3D JRPG battle environment. Floating marble arena island above pink clouds at sunrise, white and gold column ruins, purple banners, gold compass floor inlay, distant floating palace and waterfalls. Keep wide empty center for four fighters, cel-shaded volumetric props, 16:9, no characters or UI."
+    },
+    {
+      "id": "09_Cyberpunk",
+      "name": "Cyberpunk",
+      "reference": "Sân thượng cyberpunk dưới mưa neon-9.png",
+      "prompt": "Modern stylized 3D JRPG battle environment. Cyberpunk rooftop at rainy night, dark metal floor and luminous cyan magenta trim, railings, air conditioning machines, pipes, distant neon city skyscrapers and pink moon. Keep wide empty center for four fighters, cel-shaded volumetric props, 16:9, no characters or UI."
+    }
+  ],
+  "lobby": "Cozy spacious handheld RPG pixel-art room, fireplace north, two doors west/east, bookshelves and windows north, sofa lounge south, clear central carpet. Two views of the same layout."
+}

@@ -11,7 +11,7 @@ export function createPve(hero:RoomParticipant,stage=1):PveState{
  return {stage,combat,reward:pveReward(stage)};
 }
 export function advancePve(input:PveState,actor:string,move:string,args:Parameters<typeof lmsAction>[3]={}):PveState{
- const out=structuredClone(input);out.combat=lmsAction(out.combat,actor,move,args);
+ const out=structuredClone(input);out.combat=lmsAction(out.combat,actor,move,move==='target'?{...args,target:'pve_bot'}:args);
  for(let step=0;step<30;step++){
   let s=out.combat;if(s.phase==='finished')break;
   const bot=s.players.find(p=>p.id==='pve_bot')!,active=s.order[s.active];

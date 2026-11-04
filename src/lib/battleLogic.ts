@@ -99,7 +99,7 @@ export function calculateD20Combat(
     };
   }
 
-  // Hit! The new base damage keeps successful attacks meaningful at 200 HP.
+  // Hit! Add base damage before class modifiers and absorption.
   let modifiedDamage = (15 + rawDiff) * attackerClass.damageModifier * defenderClass.damageReduction;
 
   // Bleed bonus (+5 damage from Bow Skill 1)
@@ -132,8 +132,8 @@ export function calculateD20Combat(
     rawDiff,
     isHit: true,
     absorbedByRock,
-    logTextVi: `Đòn đánh trúng! (Công ${effectiveAtk} - Thủ ${defenderD20} = ${rawDiff})${modNotes} -> Gây ${modifiedDamage} sát thương!`,
-    logTextEn: `Direct Hit! (Atk ${effectiveAtk} - Def ${defenderD20} = ${rawDiff})${modNotes} -> Deals ${modifiedDamage} damage!`,
+    logTextVi: `Đòn đánh trúng! (Công ${effectiveAtk} - Thủ ${defenderD20} = ${rawDiff})${modNotes} · 15 cơ sở + ${rawDiff}, sau hiệu ứng -> Gây ${modifiedDamage} sát thương!`,
+    logTextEn: `Direct Hit! (Atk ${effectiveAtk} - Def ${defenderD20} = ${rawDiff})${modNotes} · 15 base + ${rawDiff}, after effects -> Deals ${modifiedDamage} damage!`,
   };
 }
 

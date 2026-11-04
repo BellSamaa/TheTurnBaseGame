@@ -1,3 +1,4 @@
+import {skillPresentation,normalAttackEffect} from './skillPresentation';
 import {translateText} from './localeText';
 import {activateBuff,type LmsExtras} from './lmsBuffs';
 import type { PlayerState } from '@/types/game';
@@ -8,6 +9,7 @@ import { castChargedSkill, chargeSkillPoints } from './chargedSkills';
 import { applyOpponentDamage, recordOpponentDamage } from './combatDamage';
 
 export interface LmsState {
+  lastEvent?: {id:string;effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
   extras?: LmsExtras; remainingTargets?: string[];
   players: PlayerState[]; order: string[]; active: number; round: number;
   phase: 'charge' | 'target' | 'attack' | 'defense' | 'clash' | 'end' | 'finished';
@@ -40,7 +42,8 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       }
     }
     const alive=s.players.filter(p=>p.hp>0);if(alive.length<=1){s.winner=alive[0]?.id??'draw';s.phase='finished';}};
-  if(action==='buff'){activateBuff(s,actor,args);finish();}
+  if(action==='surrender'){user.hp=0;add(user.name+' đã đầu hàng.',user.name+' surrendered.');finish();if(!s.winner&&actor===attacker.id)s.phase='end';}
+  else if(action==='buff'){activateBuff(s,actor,args);finish();}
   else if(action==='resolve') {
     if(s.phase!=='clash'||now<(s.deadline??Infinity)||!target) throw Error('Chờ hết 5 giây can thiệp');
     const result=calculateD20Combat(s.attack!,s.defense!,CLASS_DEFINITIONS[attacker.classType],CLASS_DEFINITIONS[target.classType],attacker,target);
@@ -52,6 +55,8 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     const lost=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);recordOpponentDamage(target,lost,s.round);
     for(const p of s.players)if(flags['watch:'+p.id]){p.d12Charge=(p.d12Charge??0)+Math.floor(lost/5);delete flags['watch:'+p.id];}
     if((attacker.petRockHp??0)>0&&target.hp>0)applyOpponentDamage(target,2,s.round);
+    if((attacker.panicTurns??0)>0)attacker.panicTurns!--;
+    s.lastEvent={id:crypto.randomUUID(),effect:result.isImmune?'infinity':result.isDodged?'dodge_attack':result.absorbedByRock?'rock_block':result.isHit?normalAttackEffect(attacker.weapon.id):'guard',caster:attacker.id,target:target.id};
     add(result.logTextVi,result.logTextEn);
     add('Sát thương cuối: '+lost+' HP');
     s.phase='end';finish();
@@ -77,6 +82,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       if(s.extras?.silencedRound===s.round)throw Error('Vòng này cấm kỹ năng');
       const cast=castChargedSkill(user,victim,args.slot,s.round,args.form,args.lockSlot);if(!cast)throw Error('Chưa đủ điều kiện dùng skill');
       if((user.weapon.id==='greatsword'&&args.slot===2)||(user.weapon.id==='staff'&&args.slot===1)){for(const other of s.players.filter(p=>p.id!==user.id&&p.id!==victim.id&&p.hp>0)){const extra=castChargedSkill(user,other,args.slot,s.round,args.form,args.lockSlot);if(extra)Object.assign(other,extra.opponent);}}
+      const art=skillPresentation(user,args.slot,args.form);s.lastEvent={id:crypto.randomUUID(),effect:art.effect,caster:user.id,target:art.target==='caster'?user.id:victim.id,nameEn:art.nameEn,nameVi:art.nameVi,slot:args.slot};
       Object.assign(user,cast.caster);Object.assign(victim,cast.opponent);add(cast.logTextVi,cast.logTextEn);if(victim.hp<=0&&s.target===victim.id){s.target=undefined;s.phase='target';}finish();
     } else if(action==='attack') {
       if(s.phase!=='attack')throw Error('Chọn mục tiêu trước');

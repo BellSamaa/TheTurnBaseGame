@@ -1,4 +1,5 @@
 'use client';
+import {flushProfile} from '@/lib/profileSync';
 import {tx} from '@/lib/uiLocale';
 
 import {rankProgress} from '@/lib/progression';
@@ -53,6 +54,7 @@ export default function RankedMatchmakingModal({ isOpen, onClose }: RankedMatchm
     // 1. Join matchmaking queue
     const joinQueue = async () => {
       try {
+        await flushProfile();
         const res = await fetch('/api/matchmaking', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -71,11 +73,12 @@ export default function RankedMatchmakingModal({ isOpen, onClose }: RankedMatchm
         });
 
         const data = await res.json();
+        if(!res.ok)throw Error(data.error || "Matchmaking unavailable");
         if (data.success && data.matched && data.roomCode) {
           handleMatchFound(data.roomCode, data.room?.battleState);
         }
       } catch (err) {
-        console.error('Failed to join matchmaking:', err);
+        setErrorMsg(err instanceof Error?err.message:'Matchmaking unavailable');
       }
     };
 
@@ -255,7 +258,7 @@ export default function RankedMatchmakingModal({ isOpen, onClose }: RankedMatchm
                 <div className="text-left">
                   <div className="text-[10px] font-pixel text-white font-bold">{currentUser?.username}</div>
                   <div className="text-[8px] font-pixel text-yellow-400">
-                    {heroClass.nameVi} · {heroWeapon.nameVi}
+                    {isEn?heroClass.name:heroClass.nameVi} · {isEn?heroWeapon.name:heroWeapon.nameVi}
                   </div>
                 </div>
               </div>
@@ -266,6 +269,7 @@ export default function RankedMatchmakingModal({ isOpen, onClose }: RankedMatchm
               </div>
             </div>
 
+            {errorMsg&&<p role="alert" className="text-red-300">{errorMsg}</p>}
             {/* Cancel Button */}
             {status === 'searching' && (
               <PixelButton variant="danger" size="md" onClick={handleCancel} className="w-44 font-pixel">

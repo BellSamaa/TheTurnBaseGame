@@ -1,0 +1,296 @@
+[
+  {
+    "file": "arenas/01_Meadow.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "arenas/02_Moon_Forest.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "arenas/03_Desert.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "arenas/04_Ice.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "arenas/05_Lava.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "arenas/06_Castle.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "arenas/07_Swamp.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "arenas/08_Sky_Island.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "arenas/09_Cyberpunk.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "lobby/lobby_angle_1.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "lobby/lobby_angle_2.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB"
+  },
+  {
+    "file": "props/ancient_tree.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/banner_crimson.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/banner_violet.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/basalt_rock.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/bench.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/bookshelf.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/cottage.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/fireplace.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/glow_mushrooms.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/glow_reeds.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/hvac_unit.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/ice_crystals.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/lily_pad.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/marble_arch.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/marble_rock.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/moss_rock.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/neon_console.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/oak_tree.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/obelisk.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/palm_tree.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/pipe.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/potted_plant.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/sandstone_arch.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/sandstone_rock.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/snow_pine.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/snow_rock.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/sofa.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/stone_arch.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/swamp_hut.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/swamp_tree.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/table.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/treasure_chest.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/violet_crystals.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/warm_lantern.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/windmill.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/wood_door.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/wood_fence.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  },
+  {
+    "file": "props/wood_pier.png",
+    "width": 640,
+    "height": 640,
+    "mode": "RGBA"
+  }
+]

@@ -1,3 +1,4 @@
+import {castPvpSkill,validatePvpSnapshot} from '@/lib/pvpSkills';
 import { finishRank } from '@/lib/onlineRuntime';
 import { createLms, lmsAction } from '@/lib/lms';
 import { sessionUser } from '@/lib/serverAuth';
@@ -19,7 +20,7 @@ interface RouteContext {
 }
 
 async function roomView(room: import('@/lib/serverDb').DbOnlineRoom) {
- if(room.status==='finished'&&room.mode==='ranked'&&room.battleState?.winnerId&&room.battleState.winnerId!=='draw'&&!room.rankedResultRecorded){await finishRank(room.code);room.rankedResultRecorded=true;}
+ if(room.status==='finished'&&room.mode==='ranked'&&room.battleState?.winnerId&&room.battleState.winnerId!=='draw'&&!room.rankedResultRecorded){try{await finishRank(room.code);room.rankedResultRecorded=true;}catch(error){console.error('Rank settlement pending',error);}}
  const view=structuredClone(room);const actor=await sessionUser();
  const extras=view.battleState?.lms?.extras;
  if(extras){for(const hand of [extras.buffs,extras.bonusBuffs||{}])for(const [id,buff]of Object.entries(hand))if(id!==actor&&!buff.revealed)buff.id=-1;extras.bombs=[];}
@@ -120,7 +121,7 @@ export async function POST(req: Request, context: RouteContext) {
       room.battleState.lms = lmsAction(room.battleState.lms, actor, body.move, body.args);
       if (room.battleState.lms.winner) { room.battleState.winnerId=room.battleState.lms.winner; room.status='finished'; }
       await updateRoom(room);
-      if(room.status==='finished'&&room.mode==='ranked'&&room.battleState?.winnerId!=='draw')await finishRank(room.code);
+      // roomView retries settlement independently of combat writes.
       return NextResponse.json({success:true,room:await roomView(room)});
     }
     // 2. TOGGLE READY STATUS
@@ -245,13 +246,25 @@ export async function POST(req: Request, context: RouteContext) {
       return NextResponse.json({ success: true, room });
     }
 
+    if(action==='cast_skill'){
+      const actor=await sessionUser();
+      if(!actor||!room.battleState||room.battleState.lms||room.status!=='playing')return NextResponse.json({error:'No active duel'},{status:403});
+      if(body.expectedRevision!==(room.battleState.revision??0))return NextResponse.json({room:await roomView(room),error:'State updated; please try again'},{status:409});
+      room.battleState=castPvpSkill(room.battleState,actor,body.slot,body.form,body.lockSlot);
+      if(room.battleState.winnerId)room.status='finished';
+      await updateRoom(room);
+      return NextResponse.json({success:true,room:await roomView(room)});
+    }
+
     // 4. BATTLE UPDATE (Action Sync from either player)
     if (action === 'battle_update') {
       if(room.gameMode==='last_man_standing')return NextResponse.json({error:'Use LMS actions'},{status:400});
       const { battleState } = body;
+      if(await sessionUser()!==body.userId)return NextResponse.json({error:'Sign in required'},{status:403});
       if (body.userId !== room.host.id && body.userId !== room.guest?.id) return NextResponse.json({ success: false }, { status: 403 });
       if (room.status !== 'playing' || !room.battleState || body.expectedRevision !== (room.battleState.revision ?? 0)) return NextResponse.json({ success: false, room }, { status: 409 });
       if (battleState && battleState.id === room.battleState.id) {
+        validatePvpSnapshot(room.battleState,battleState);
         battleState.revision = (room.battleState.revision ?? 0) + 1;
         room.battleState = battleState;
         if (battleState.winnerId) {
@@ -259,7 +272,7 @@ export async function POST(req: Request, context: RouteContext) {
 
         }
         await updateRoom(room);
-        if (room.status === 'finished' && room.mode === 'ranked') await finishRank(room.code);
+        // Settlement is retried by roomView without losing the accepted result.
       }
       return NextResponse.json({ success: true, room });
     }
