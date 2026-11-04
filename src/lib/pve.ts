@@ -2,13 +2,13 @@ import {createLms,lmsAction,type LmsState} from './lms';
 import type {RoomParticipant} from './serverDb';
 import {PVE_WEAPONS,pveReward} from './progression';
 import {skillCost} from './chargedSkills';
-export interface PveState {stage:number;combat:LmsState;reward:ReturnType<typeof pveReward>}
+export interface PveState {rulesVersion?:number;stage:number;combat:LmsState;reward:ReturnType<typeof pveReward>}
 export function createPve(hero:RoomParticipant,stage=1):PveState{
  const weaponId=PVE_WEAPONS[Math.min(7,stage-1)];
  const combat=createLms([hero,{...hero,id:'pve_bot',name:'Tầng '+stage+' · '+weaponId,classType:'warrior',weaponId}],true);
  combat.order=[hero.id,'pve_bot'];combat.active=0;combat.players[1].hp=combat.players[1].maxHp=150+15*(stage-1);
  combat.extras!.suddenRound=999;Object.values(combat.extras!.buffs).forEach(b=>{b.used=true;b.id=-1;});
- return {stage,combat,reward:pveReward(stage)};
+ return {rulesVersion:2,stage,combat,reward:pveReward(stage)};
 }
 export function advancePve(input:PveState,actor:string,move:string,args:Parameters<typeof lmsAction>[3]={}):PveState{
  const out=structuredClone(input);out.combat=lmsAction(out.combat,actor,move,move==='target'?{...args,target:'pve_bot'}:args);
@@ -31,4 +31,10 @@ export function advancePve(input:PveState,actor:string,move:string,args:Paramete
   break;
  }
  return out;
+}
+
+// A saved run is a snapshot, not the current account loadout.
+export function pveNeedsLoadoutRefresh(state:PveState,hero:RoomParticipant){
+ const p=state.combat.players.find(p=>p.id===hero.id);
+ return state.rulesVersion!==2||!p||p.weapon.id!==hero.weaponId||p.classType!==hero.classType||JSON.stringify(p.character)!==JSON.stringify(hero.character);
 }

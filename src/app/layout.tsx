@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Press_Start_2P, VT323, Be_Vietnam_Pro } from 'next/font/google';
 import './globals.css';
+import './battle-layout.css';
 
 const pixelFont = Press_Start_2P({
   weight: '400',

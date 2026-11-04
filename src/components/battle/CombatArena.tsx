@@ -26,10 +26,11 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   const active=s.players.find(p=>p.id===s.order[s.active])!,victim=s.players.find(p=>p.id===s.target);
   useEffect(()=>{if(!s.lastEvent||seen.current===s.lastEvent.id)return;seen.current=s.lastEvent.id;setEvent(s.lastEvent);s.lastEvent.slot?playSkillSound():playHitSound();const t=setTimeout(()=>setEvent(undefined),1800);return()=>clearTimeout(t);},[s.lastEvent?.id]);
   useEffect(()=>{const key=[s.round,s.active,s.rolls.join(','),s.attack,s.defense].join(':');if(lastRoll.current&&lastRoll.current!==key){setRolling(true);playDiceRollSound();const t=setTimeout(()=>setRolling(false),700);lastRoll.current=key;return()=>clearTimeout(t);}lastRoll.current=key;},[s.round,s.active,s.rolls.length,s.attack,s.defense]);
-  return <div className={'combat-arena '+(buffs?'combat-party':'combat-duel')}>
+  return <div className={'combat-arena battle-balanced '+(buffs?'combat-party':'combat-duel')}>
     <header className="combat-topbar"><div><small>{title}</small><h2>{en?'ROUND':'VÒNG'} {s.round}</h2></div><div className="combat-turn"><b>{active.name}</b><span>{phaseLabel(s.phase)}</span></div><button className="combat-surrender" disabled={busy||!!s.winner} onClick={onSurrender}>{en?'Surrender':'Đầu hàng'}</button></header>
     <nav className="combat-phase-bar" aria-label={en?'Battle phases':'Giai đoạn chiến đấu'}>{stages.map((phase,i)=><span key={phase} aria-current={s.phase===phase?'step':undefined} className={s.phase===phase?'phase-current':''}><i>{i+1}</i>{phaseLabel(phase as LmsState['phase'])}</span>)}</nav>
-    <div className="combat-stage"><div className="combat-roll-notice" role="status" title={s.log[0]}>{en?s.log[0]:(s.logVi||s.log)[0]}</div><img className="battle-background-2d" src={map.image} alt=""/>
+    <div className="combat-roll-notice" role="status" title={s.log[0]}>{en?s.log[0]:(s.logVi||s.log)[0]}</div>
+    <div className="combat-stage"><img className="battle-background-2d" src={map.image.replace(/\.png$/,'.webp')} alt=""/>
       <div className="combat-vs"><img src="/assets/sprites/ui/frames/battle_vs.png" alt="VS"/><small>{victim?active.name+' → '+victim.name:en?'Choose a target':'Chọn mục tiêu'}</small></div>
       {displayPlayers.map((p,i)=>{const side=i%2===0?'left':'right';return <section key={p.id} className={'combat-seat combat-seat-'+i+(p.id===active.id?' combat-active':'')+(p.hp<=0?' combat-out':'')}>
         <div className="combat-name"><b>{p.id==='pve_bot'?tx(p.name):p.name}</b><small>{p.id===viewer?(en?'YOU':'BẠN'):p.hp<=0?(en?'ELIMINATED':'ĐÃ BỊ LOẠI'):p.id===active.id?'ATK':p.id===victim?.id?'DEF':''}</small></div>

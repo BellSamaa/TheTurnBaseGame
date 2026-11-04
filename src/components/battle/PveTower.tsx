@@ -12,7 +12,9 @@ type Run={id:string;revision:number;state:PveState};
 export default function PveTower(){
  const {currentUser,setPage,setAuthModal,settings}=useGameStore(),en=settings.language==='en';
  const [run,setRun]=useState<Run|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),lock=useRef(false);
- useEffect(()=>{fetch('/api/pve').then(r=>r.json()).then(b=>{setRun(b.run);if(b.error)setError(tx(b.error));}).catch(()=>setError(tx('Mất kết nối')));},[]);
+ const [notice,setNotice]=useState('');
+ useEffect(()=>{if(!currentUser)return;let alive=true;setBusy(true);lock.current=true;
+ (async()=>{try{await flushProfile();const r=await fetch('/api/pve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({move:'resume'})});const b=await r.json();if(!r.ok)throw Error(tx(b.error));if(alive){setRun(b.run);if(b.loadoutSynced)setNotice(en?'Equipment synced. This floor restarted with your equipped weapon.':'Đã đồng bộ trang bị. Tầng hiện tại bắt đầu lại với vũ khí bạn đang dùng.');}}catch(e){if(alive)setError((e as Error).message);}finally{if(alive){setBusy(false);lock.current=false;}}})();return()=>{alive=false;};},[currentUser?.id]);
  async function act(move:string,args:Record<string,unknown>={}){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
   try{await flushProfile();const r=await fetch('/api/pve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({move,args,id:run?.id,revision:run?.revision})});const b=await r.json();if(b.run)setRun(b.run);if(!r.ok)throw Error(tx(b.error));if(b.run.state.combat.winner===currentUser?.id)loadProgress().catch(()=>{});}
@@ -23,6 +25,7 @@ export default function PveTower(){
  return <div className="pve-tower"><header><button onClick={()=>setPage('play')}>{tx('← Quay lại')}</button><h2>{tx('THÁP XÚC XẮC · TẦNG')} {run?.state.stage||1}</h2><WalletBar/></header>
  {!currentUser?<button onClick={()=>setAuthModal('login')}>{tx('Đăng nhập để lưu phần thưởng')}</button>:!s||!me||s.winner&&!won?<div className="pve-entry"><h2>{en?'THE DICE TOWER':'THÁP XÚC XẮC'}</h2><p>{en?'Common to Secret · Defeat each boss to climb higher.':'Thường đến Bí mật · Hạ từng boss để lên tầng tiếp theo.'}</p><button className="primary-action" disabled={busy} onClick={()=>act('start')}>{tx('BẮT ĐẦU CHUỖI MỚI')}</button></div>:<CombatArena state={s} viewer={me.id} busy={busy} title={'PVE · '+run!.state.stage} onSurrender={()=>{if(window.confirm(en?'Abandon this run?':'Dừng chuỗi này?'))act('surrender');}}>
  <div role="status" className="combat-status">{error|| (won?tx('TẦNG ĐÃ VƯỢT QUA'):s.phase==='defense'&&s.target===me.id?tx('Bạn cần tung phòng thủ'):mine?tx('Lượt của bạn'):tx('Đang chờ ')+'Boss')}</div>
+ {notice&&<p className="equipment-sync-notice">{notice}</p>}
  <div className="pve-reward-preview">◆ {run!.state.reward.gems} Gem · ♦ {run!.state.reward.rubies} Ruby · +{run!.state.reward.exp} EXP</div>
  {won?<button className="primary-action" disabled={busy} onClick={()=>act('next')}>{tx('ĐI TIẾP TẦNG')} {run!.state.stage+1}</button>:<>
  <div className="four-commands">
