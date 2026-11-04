@@ -13,6 +13,8 @@ import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { playClickSound } from '@/lib/soundEffects';
 import RoomBrowser from '@/components/battle/RoomBrowser';
+import RankedMatchmakingModal from '@/components/battle/RankedMatchmakingModal';
+import LastManStandingRulesModal from '@/components/battle/LastManStandingRulesModal';
 
 interface GameModeSelectorProps {
   matchType?: MatchType;
@@ -41,7 +43,10 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
   const [selectedModeId, setSelectedModeId] = useState<string>('pve');
   const [selectedMap, setSelectedMap] = useState<string>(MAP_DEFINITIONS[0].id);
   const [showLmsRules, setShowLmsRules] = useState(false);
+  const [showRankedMatchmaking, setShowRankedMatchmaking] = useState(false);
   const [showOnlineRooms, setShowOnlineRooms] = useState(false);
+  const [roomBrowserInitialGameMode, setRoomBrowserInitialGameMode] = useState<'classic' | 'last_man_standing'>('classic');
+  const [roomBrowserInitialTab, setRoomBrowserInitialTab] = useState<'browse' | 'create'>('browse');
 
   // The 4 Specific Modes explicitly requested:
   // 1. Rank Last Man Standing
@@ -104,10 +109,6 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       setAuthModal('signup');
       return;
     }
-    if (mode.id === 'last_man_standing') {
-      setShowLmsRules(true);
-      return;
-    }
     setSelectedModeId(mode.id);
   };
 
@@ -121,27 +122,37 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       return;
     }
 
-    // Ranked and LMS always use the real online room/matching flow.
-    if (selectedModeId === 'rank_pvp' || selectedModeId === 'last_man_standing') {
+    // Rank PvP: Real 1v1 matchmaking queue (No bots!)
+    if (selectedModeId === 'rank_pvp') {
+      setShowRankedMatchmaking(true);
+      return;
+    }
+
+    // Last Man Standing: Open LMS room flow
+    if (selectedModeId === 'last_man_standing') {
+      setRoomBrowserInitialGameMode('last_man_standing');
+      setRoomBrowserInitialTab('create');
       setShowOnlineRooms(true);
       return;
     }
 
+    // PvE: Bot battle
     startNewBattle({
-      mode: selectedModeId === 'rank_pvp' ? 'ranked' : selectedModeId === 'last_man_standing' ? 'pve' : 'pve',
+      mode: 'pve',
       mapId: selectedMap,
-      opponentName:
-        selectedModeId === 'rank_pvp'
-          ? 'Shadow Duelist (Rank)'
-          : selectedModeId === 'last_man_standing'
-          ? 'Colosseum Overlord'
-          : 'Tactical Overlord (AI)',
+      opponentName: 'Tactical Overlord (AI)',
     });
     onClose();
   };
 
   if (showOnlineRooms) {
-    return <RoomBrowser onClose={() => setShowOnlineRooms(false)} />;
+    return (
+      <RoomBrowser
+        onClose={() => setShowOnlineRooms(false)}
+        initialGameMode={roomBrowserInitialGameMode}
+        initialTab={roomBrowserInitialTab}
+      />
+    );
   }
 
   const selectedMapInfo = MAP_DEFINITIONS.find((m) => m.id === selectedMap) || MAP_DEFINITIONS[0];
@@ -270,23 +281,80 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
             })}
           </div>
 
-          {showLmsRules && (
-            <div className="mb-4 border border-red-500/70 bg-red-950/40 p-3 text-slate-200">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-[10px] font-pixel text-red-300">{isEn ? 'LAST MAN STANDING — RULES' : 'LAST MAN STANDING — LUẬT CHƠI'}</h3>
-                <button onClick={() => setShowLmsRules(false)} className="text-slate-400 hover:text-white">✕</button>
+          {/* Mode Special Action Banners */}
+          {selectedModeId === 'last_man_standing' && (
+            <div className="mb-4 p-3 bg-red-950/50 border-2 border-red-500/80 rounded flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+              <div className="text-left">
+                <div className="text-[10px] font-pixel text-red-300 font-bold flex items-center gap-1.5">
+                  <span>👑 LAST MAN STANDING ARENA (3–4 NGƯỜI)</span>
+                </div>
+                <div className="text-[8px] font-sans text-slate-300 mt-0.5">
+                  {isEn
+                    ? 'Free-for-all 3–4 players. Create private room or browse open matches.'
+                    : 'Đấu trường sinh tử 3–4 người. Tạo phòng riêng hoặc tìm phòng đang đợi.'}
+                </div>
               </div>
-              <ul className="text-[8px] leading-relaxed font-sans space-y-1">
-                <li>• {isEn ? '3–4 players; HP is 200. Last survivor wins.' : '3–4 người; HP khởi đầu là 200. Người sống cuối cùng thắng.'}</li>
-                <li>• {isEn ? 'Attack hits only when D20 Attack > D20 Defense. Damage = 15 + the difference.' : 'Đòn đánh trúng khi D20 Công > D20 Thủ. Sát thương = 15 + phần chênh lệch.'}</li>
-                <li>• {isEn ? 'Each turn: charge D6, use skills, attack, then pass clockwise.' : 'Mỗi lượt: sạc D6, dùng kỹ năng, tấn công rồi chuyển lượt theo chiều kim đồng hồ.'}</li>
-                <li>• {isEn ? 'A hidden one-use starting buff may be revealed during its trigger window.' : 'Mỗi người có một buff đầu trận ẩn, chỉ được lật dùng một lần khi đủ điều kiện.'}</li>
-                <li>• {isEn ? 'Eliminated players cannot act; effects cannot target eliminated players.' : 'Người bị loại không được hành động; hiệu ứng không được chọn người đã bị loại.'}</li>
-              </ul>
-              <div className="mt-3 flex justify-end gap-2">
-                <PixelButton onClick={() => setShowLmsRules(false)}>{isEn ? 'BACK' : 'QUAY LẠI'}</PixelButton>
-                <PixelButton onClick={() => { setSelectedModeId('last_man_standing'); setShowLmsRules(false); }}>{isEn ? 'CREATE ROOM' : 'TẠO PHÒNG'}</PixelButton>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <PixelButton
+                  variant="frame"
+                  size="sm"
+                  onClick={() => setShowLmsRules(true)}
+                  className="font-pixel text-[8px]"
+                >
+                  {isEn ? '📖 RULES' : '📖 LUẬT CHƠI'}
+                </PixelButton>
+
+                <PixelButton
+                  variant="gold"
+                  size="sm"
+                  onClick={() => {
+                    setRoomBrowserInitialGameMode('last_man_standing');
+                    setRoomBrowserInitialTab('create');
+                    setShowOnlineRooms(true);
+                  }}
+                  className="font-pixel text-[8px] action-beacon"
+                >
+                  {isEn ? '+ CREATE LMS ROOM' : '+ TẠO PHÒNG LMS'}
+                </PixelButton>
+
+                <PixelButton
+                  variant="frame"
+                  size="sm"
+                  onClick={() => {
+                    setRoomBrowserInitialGameMode('last_man_standing');
+                    setRoomBrowserInitialTab('browse');
+                    setShowOnlineRooms(true);
+                  }}
+                  className="font-pixel text-[8px]"
+                >
+                  {isEn ? 'BROWSE LMS' : 'TÌM PHÒNG'}
+                </PixelButton>
               </div>
+            </div>
+          )}
+
+          {selectedModeId === 'rank_pvp' && (
+            <div className="mb-4 p-3 bg-yellow-950/40 border-2 border-yellow-500/80 rounded flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+              <div className="text-left">
+                <div className="text-[10px] font-pixel text-yellow-300 font-bold flex items-center gap-1.5">
+                  <span>⚔️ ĐẤU HẠNG TRỰC TUYẾN 1V1 (REAL MATCHMAKING)</span>
+                </div>
+                <div className="text-[8px] font-sans text-slate-300 mt-0.5">
+                  {isEn
+                    ? 'Matched against real players in queue. Win +25 RP, climb tiers from Bronze to Grandmaster!'
+                    : 'Ghép đôi trực tiếp với người chơi thật. Thắng nhận +25 điểm Rank, leo bảng xếp hạng!'}
+                </div>
+              </div>
+
+              <PixelButton
+                variant="gold"
+                size="sm"
+                onClick={() => setShowRankedMatchmaking(true)}
+                className="font-pixel text-[8.5px] action-beacon whitespace-nowrap"
+              >
+                {isEn ? '⚔️ FIND MATCH NOW' : '⚔️ TÌM TRẬN NGAY'}
+              </PixelButton>
             </div>
           )}
 
@@ -350,6 +418,25 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
           </div>
         </PixelFrame>
       </motion.div>
+
+      {/* Real Ranked Matchmaking Modal */}
+      <RankedMatchmakingModal
+        isOpen={showRankedMatchmaking}
+        onClose={() => setShowRankedMatchmaking(false)}
+      />
+
+      {/* Last Man Standing Rules Modal */}
+      <LastManStandingRulesModal
+        isOpen={showLmsRules}
+        onClose={() => setShowLmsRules(false)}
+        isEn={isEn}
+        onCreateRoom={() => {
+          setShowLmsRules(false);
+          setRoomBrowserInitialGameMode('last_man_standing');
+          setRoomBrowserInitialTab('create');
+          setShowOnlineRooms(true);
+        }}
+      />
     </div>
   );
 }

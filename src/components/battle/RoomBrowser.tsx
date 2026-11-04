@@ -14,14 +14,22 @@ import { playClickSound, playTurnSound } from '@/lib/soundEffects';
 
 interface RoomBrowserProps {
   onClose: () => void;
+  initialGameMode?: 'classic' | 'last_man_standing';
+  initialTab?: 'browse' | 'create' | 'lobby';
 }
 
-export default function RoomBrowser({ onClose }: RoomBrowserProps) {
+export default function RoomBrowser({
+  onClose,
+  initialGameMode = 'classic',
+  initialTab = 'browse',
+}: RoomBrowserProps) {
   const { profile, settings, currentUser, setOnlineRoomCode, setBattleState, setPage, setAuthModal, onlineRoomCode } = useGameStore();
   const lang = settings.language;
   const isEn = lang === 'en';
 
-  const [activeTab, setActiveTab] = useState<'browse' | 'create' | 'lobby'>('browse');
+  const [activeTab, setActiveTab] = useState<'browse' | 'create' | 'lobby'>(
+    onlineRoomCode ? 'lobby' : initialTab
+  );
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +37,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
   // Create room options
   const [newRoomMode, setNewRoomMode] = useState<MatchType>('casual');
   const [newRoomMap, setNewRoomMap] = useState<string>(MAP_DEFINITIONS[0].id);
-  const [newRoomGameMode, setNewRoomGameMode] = useState<'classic' | 'last_man_standing'>('classic');
+  const [newRoomGameMode, setNewRoomGameMode] = useState<'classic' | 'last_man_standing'>(initialGameMode);
 
   // Active Lobby state
   const [currentLobby, setCurrentLobby] = useState<DbOnlineRoom | null>(null);
@@ -218,12 +226,13 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
     if (!currentLobby || !currentUser) return;
     playClickSound();
 
-    const isHost = currentLobby.host.id === currentUser.id;
-    const currentReady = isHost ? currentLobby.host.isReady : currentLobby.guest?.isReady;
+    const participantsList = currentLobby.participants || [currentLobby.host, ...(currentLobby.guest ? [currentLobby.guest] : [])];
+    const myP = participantsList.find((p) => p.id === currentUser.id);
+    const currentReady = myP ? myP.isReady : (currentLobby.host.id === currentUser.id ? currentLobby.host.isReady : currentLobby.guest?.isReady);
     const newReady = !currentReady;
 
     try {
-      await fetch(`/api/rooms/${currentLobby.code}`, {
+      const res = await fetch(`/api/rooms/${currentLobby.code}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -232,6 +241,10 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
           isReady: newReady,
         }),
       });
+      const data = await res.json();
+      if (data.success && data.room) {
+        setCurrentLobby(data.room);
+      }
     } catch {
       // Retry on poll
     }
@@ -302,14 +315,20 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
   };
 
   const isHost = currentLobby && currentUser && currentLobby.host.id === currentUser.id;
-  const bothReady = currentLobby && currentLobby.guest && currentLobby.host.isReady && currentLobby.guest.isReady;
+  const isLms = currentLobby?.gameMode === 'last_man_standing';
+  const participantsList = currentLobby?.participants || (currentLobby ? [currentLobby.host, ...(currentLobby.guest ? [currentLobby.guest] : [])] : []);
+  const myParticipant = participantsList.find((p) => p.id === currentUser?.id);
+  const isMyReady = myParticipant ? myParticipant.isReady : (isHost ? currentLobby?.host.isReady : currentLobby?.guest?.isReady);
+  const canStart = isLms
+    ? (participantsList.length >= 3 && participantsList.every((p) => p.isReady))
+    : (currentLobby?.host.isReady && currentLobby?.guest?.isReady);
 
   return (
     <div className="room-browser fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md select-none">
       <div className="w-full max-w-2xl max-h-[92dvh] overflow-y-auto overscroll-contain">
         <PixelFrame
           variant="purple"
-          title={isEn ? '🏰 ONLINE MULTIPLAYER 1V1 (REAL PLAYERS)' : '🏰 ĐẤU TRỰC TUYẾN 1V1 VỚI NGƯỜI THẬT'}
+          title={isLms ? (isEn ? '👑 LAST MAN STANDING (3–4 PLAYERS)' : '👑 ĐẤU TRƯỜNG SINH TỒN (3–4 NGƯỜI)') : (isEn ? '🏰 ONLINE MULTIPLAYER 1V1 (REAL PLAYERS)' : '🏰 ĐẤU TRỰC TUYẾN 1V1 VỚI NGƯỜI THẬT')}
           headerRight={
             <button
               onClick={async () => { if (await handleLeaveRoom()) onClose(); }}
@@ -537,89 +556,157 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                 </div>
               </div>
 
-              {/* 2 Player Podiums Side-by-Side */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Host Podium (Left) */}
-                <div className="p-3 bg-slate-900/90 border-2 border-yellow-400 flex flex-col items-center text-center shadow">
-                  <div className="w-full flex items-center justify-between pb-1 mb-2 border-b border-yellow-500/30">
-                    <span className="text-[7.5px] font-pixel text-yellow-400 font-bold">
-                      👑 {isEn ? 'HOST' : 'CHỦ PHÒNG'}
-                    </span>
-                    <span className="text-[7px] font-pixel text-emerald-400 font-bold">
-                      {currentLobby.host.isReady ? (isEn ? '✓ READY' : '✓ SẴN SÀNG') : (isEn ? 'NOT READY' : 'CHƯA SẴN SÀNG')}
-                    </span>
-                  </div>
+              {/* Player Roster: 4 Slots for LMS, 2 Podiums for 1v1 */}
+              {isLms ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {[0, 1, 2, 3].map((slotIdx) => {
+                    const participant = participantsList[slotIdx];
+                    const isSlotHost = slotIdx === 0;
 
-                  <div className="relative w-20 h-28 my-1 flex items-center justify-center">
-                    <CharacterRenderer
-                      character={currentLobby.host.character}
-                      weapon={WEAPON_DEFINITIONS[currentLobby.host.weaponId]}
-                      size="sm"
-                    />
-                  </div>
+                    if (participant) {
+                      return (
+                        <div
+                          key={participant.id}
+                          className="p-2.5 bg-slate-900/90 border-2 border-yellow-400 flex flex-col items-center text-center shadow"
+                        >
+                          <div className="w-full flex items-center justify-between pb-1 mb-1 border-b border-yellow-500/30">
+                            <span className="text-[7px] font-pixel text-yellow-400 font-bold">
+                              {isSlotHost ? '👑 HOST' : `⚔️ P${slotIdx + 1}`}
+                            </span>
+                            <span
+                              className={`text-[6.5px] font-pixel font-bold ${
+                                participant.isReady ? 'text-emerald-400' : 'text-yellow-400'
+                              }`}
+                            >
+                              {participant.isReady ? (isEn ? '✓ READY' : '✓ SẴN SÀNG') : (isEn ? 'NOT READY' : 'CHƯA SẴN SÀNG')}
+                            </span>
+                          </div>
 
-                  <h4 className="text-xs font-pixel font-bold text-yellow-300 mt-1">
-                    {currentLobby.host.name}
-                  </h4>
-                  <div className="text-[8px] font-pixel text-slate-300 mt-0.5">
-                    Class: <span className="text-cyan-300 uppercase">{currentLobby.host.classType}</span>
-                  </div>
-                </div>
+                          <div className="relative w-16 h-20 my-1 flex items-center justify-center">
+                            <CharacterRenderer
+                              character={participant.character}
+                              weapon={WEAPON_DEFINITIONS[participant.weaponId]}
+                              size="sm"
+                            />
+                          </div>
 
-                {/* Guest Podium (Right) */}
-                <div
-                  className={`p-3 bg-slate-900/90 border-2 flex flex-col items-center text-center shadow transition-all ${
-                    currentLobby.guest ? 'border-cyan-400' : 'border-dashed border-slate-700'
-                  }`}
-                >
-                  <div className="w-full flex items-center justify-between pb-1 mb-2 border-b border-cyan-500/30">
-                    <span className="text-[7.5px] font-pixel text-cyan-400 font-bold">
-                      ⚔️ {isEn ? 'CHALLENGER' : 'ĐỐI THỦ'}
-                    </span>
-                    {currentLobby.guest && (
-                      <span
-                        className={`text-[7px] font-pixel font-bold ${
-                          currentLobby.guest.isReady ? 'text-emerald-400' : 'text-yellow-400'
-                        }`}
+                          <h4 className="text-[9px] font-pixel font-bold text-yellow-300 truncate w-full mt-0.5">
+                            {participant.name}
+                          </h4>
+                          <div className="text-[7px] font-pixel text-slate-300 mt-0.5 uppercase">
+                            {participant.classType}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={`empty-${slotIdx}`}
+                        className="p-2.5 bg-slate-900/40 border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-center min-h-[140px]"
                       >
-                        {currentLobby.guest.isReady ? (isEn ? '✓ READY' : '✓ SẴN SÀNG') : (isEn ? 'NOT READY' : 'CHƯA SẴN SÀNG')}
+                        <span className="text-xl mb-1">🎲</span>
+                        <span className="text-[8px] font-pixel text-yellow-300">
+                          {isEn ? `SLOT ${slotIdx + 1}` : `VỊ TRÍ ${slotIdx + 1}`}
+                        </span>
+                        <span className="text-[6.5px] font-pixel text-slate-400 mt-0.5">
+                          {slotIdx < 3
+                            ? isEn
+                              ? 'Required (Min 3)'
+                              : 'Bắt buộc (Tối thiểu 3)'
+                            : isEn
+                            ? 'Optional (Max 4)'
+                            : 'Tùy chọn (Tối đa 4)'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* 2 Player Podiums Side-by-Side */
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Host Podium (Left) */}
+                  <div className="p-3 bg-slate-900/90 border-2 border-yellow-400 flex flex-col items-center text-center shadow">
+                    <div className="w-full flex items-center justify-between pb-1 mb-2 border-b border-yellow-500/30">
+                      <span className="text-[7.5px] font-pixel text-yellow-400 font-bold">
+                        👑 {isEn ? 'HOST' : 'CHỦ PHÒNG'}
                       </span>
+                      <span className="text-[7px] font-pixel text-emerald-400 font-bold">
+                        {currentLobby.host.isReady ? (isEn ? '✓ READY' : '✓ SẴN SÀNG') : (isEn ? 'NOT READY' : 'CHƯA SẴN SÀNG')}
+                      </span>
+                    </div>
+
+                    <div className="relative w-20 h-28 my-1 flex items-center justify-center">
+                      <CharacterRenderer
+                        character={currentLobby.host.character}
+                        weapon={WEAPON_DEFINITIONS[currentLobby.host.weaponId]}
+                        size="sm"
+                      />
+                    </div>
+
+                    <h4 className="text-xs font-pixel font-bold text-yellow-300 mt-1">
+                      {currentLobby.host.name}
+                    </h4>
+                    <div className="text-[8px] font-pixel text-slate-300 mt-0.5">
+                      Class: <span className="text-cyan-300 uppercase">{currentLobby.host.classType}</span>
+                    </div>
+                  </div>
+
+                  {/* Guest Podium (Right) */}
+                  <div
+                    className={`p-3 bg-slate-900/90 border-2 flex flex-col items-center text-center shadow transition-all ${
+                      currentLobby.guest ? 'border-cyan-400' : 'border-dashed border-slate-700'
+                    }`}
+                  >
+                    <div className="w-full flex items-center justify-between pb-1 mb-2 border-b border-cyan-500/30">
+                      <span className="text-[7.5px] font-pixel text-cyan-400 font-bold">
+                        ⚔️ {isEn ? 'CHALLENGER' : 'ĐỐI THỦ'}
+                      </span>
+                      {currentLobby.guest && (
+                        <span
+                          className={`text-[7px] font-pixel font-bold ${
+                            currentLobby.guest.isReady ? 'text-emerald-400' : 'text-yellow-400'
+                          }`}
+                        >
+                          {currentLobby.guest.isReady ? (isEn ? '✓ READY' : '✓ SẴN SÀNG') : (isEn ? 'NOT READY' : 'CHƯA SẴN SÀNG')}
+                        </span>
+                      )}
+                    </div>
+
+                    {currentLobby.guest ? (
+                      <>
+                        <div className="relative w-20 h-28 my-1 flex items-center justify-center">
+                          <CharacterRenderer
+                            character={currentLobby.guest.character}
+                            weapon={WEAPON_DEFINITIONS[currentLobby.guest.weaponId]}
+                            size="sm"
+                            facing="left"
+                          />
+                        </div>
+
+                        <h4 className="text-xs font-pixel font-bold text-cyan-300 mt-1">
+                          {currentLobby.guest.name}
+                        </h4>
+                        <div className="text-[8px] font-pixel text-slate-300 mt-0.5">
+                          Class: <span className="text-yellow-300 uppercase">{currentLobby.guest.classType}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex-1 flex flex-col items-center justify-center py-6">
+                        <div className="w-10 h-10 border-2 border-dashed border-cyan-500/50 rounded-full animate-spin mb-3 flex items-center justify-center text-xs">
+                          🎲
+                        </div>
+                        <p className="text-[8px] font-pixel text-yellow-300 animate-pulse">
+                          {isEn ? `Waiting for friend to enter ${currentLobby.code}...` : `Đang đợi bạn bè nhập mã ${currentLobby.code}...`}
+                        </p>
+                        <p className="text-[7px] font-pixel text-slate-500 mt-1">
+                          {isEn ? 'Auto updates once they connect!' : 'Tự động cập nhật ngay khi bạn bè kết nối!'}
+                        </p>
+                      </div>
                     )}
                   </div>
-
-                  {currentLobby.guest ? (
-                    <>
-                      <div className="relative w-20 h-28 my-1 flex items-center justify-center">
-                        <CharacterRenderer
-                          character={currentLobby.guest.character}
-                          weapon={WEAPON_DEFINITIONS[currentLobby.guest.weaponId]}
-                          size="sm"
-                          facing="left"
-                        />
-                      </div>
-
-                      <h4 className="text-xs font-pixel font-bold text-cyan-300 mt-1">
-                        {currentLobby.guest.name}
-                      </h4>
-                      <div className="text-[8px] font-pixel text-slate-300 mt-0.5">
-                        Class: <span className="text-yellow-300 uppercase">{currentLobby.guest.classType}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center py-6">
-                      <div className="w-10 h-10 border-2 border-dashed border-cyan-500/50 rounded-full animate-spin mb-3 flex items-center justify-center text-xs">
-                        🎲
-                      </div>
-                      <p className="text-[8px] font-pixel text-yellow-300 animate-pulse">
-                        {isEn ? `Waiting for friend to enter ${currentLobby.code}...` : `Đang đợi bạn bè nhập mã ${currentLobby.code}...`}
-                      </p>
-                      <p className="text-[7px] font-pixel text-slate-500 mt-1">
-                        {isEn ? 'Auto updates once they connect!' : 'Tự động cập nhật ngay khi bạn bè kết nối!'}
-                      </p>
-                    </div>
-                  )}
                 </div>
-              </div>
+              )}
 
               {/* Lobby Action Controls */}
               <div className="flex flex-wrap justify-between items-center pt-2 border-t border-slate-800 gap-2">
@@ -633,12 +720,12 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                   <button
                     onClick={handleToggleReady}
                     className={`px-3 py-2 text-[9px] font-pixel border-2 transition cursor-pointer select-none ${
-                      (isHost ? currentLobby.host.isReady : currentLobby.guest?.isReady)
+                      isMyReady
                         ? 'bg-emerald-950 text-emerald-300 border-emerald-500 shadow-[0_0_10px_#10b981]'
                         : 'action-beacon bg-yellow-950 text-yellow-300 border-yellow-500 hover:bg-yellow-900'
                     }`}
                   >
-                    {(isHost ? currentLobby.host.isReady : currentLobby.guest?.isReady)
+                    {isMyReady
                       ? (isEn ? '✓ READY!' : '✓ ĐÃ SẴN SÀNG!')
                       : (isEn ? 'CLICK TO READY' : 'BẤM ĐỂ SẴN SÀNG')}
                   </button>
@@ -646,15 +733,23 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                   {isHost && (
                     <button
                       onClick={handleStartBattle}
-                      disabled={!bothReady || isLoading}
+                      disabled={!canStart || isLoading}
                       className={`px-4 py-2 text-[9px] font-pixel border-2 transition cursor-pointer select-none font-bold ${
-                        bothReady && !isLoading
+                        canStart && !isLoading
                           ? 'action-beacon bg-yellow-400 text-black border-yellow-200 shadow-[0_0_15px_#facc15] hover:scale-105'
                           : 'bg-slate-900 text-slate-500 border-slate-700 cursor-not-allowed opacity-50'
                       }`}
                     >
                       {isLoading
                         ? (isEn ? 'STARTING...' : 'ĐANG VÀO TRẬN...')
+                        : isLms
+                        ? participantsList.length < 3
+                          ? (isEn ? `NEED MIN 3 PLAYERS (${participantsList.length}/4)` : `CẦN TỐI THIỂU 3 NGƯỜI (${participantsList.length}/4)`)
+                          : !canStart
+                          ? (isEn ? 'WAITING FOR ALL READY' : 'CHỜ TẤT CẢ SẴN SÀNG')
+                          : (isEn ? '👑 START LMS BATTLE!' : '👑 BẮT ĐẦU ĐẤU TRƯỜNG!')
+                        : !canStart
+                        ? (isEn ? 'WAITING FOR READY' : 'CHỜ ĐỐI THỦ SẴN SÀNG')
                         : (isEn ? '⚔️ START DUEL!' : '⚔️ BẮT ĐẦU ĐẤU!')}
                     </button>
                   )}

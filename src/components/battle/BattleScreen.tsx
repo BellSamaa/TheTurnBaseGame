@@ -487,6 +487,34 @@ export default function BattleScreen() {
     }
   }, [player1.hp, player2.hp, winnerId, setBattleState, player1.id, player2.id]);
 
+  // Sync profile rank/tier immediately after ranked match concludes
+  useEffect(() => {
+    if (phase === 'game_over' && mode === 'ranked') {
+      const fetchUpdatedProfile = async () => {
+        try {
+          const res = await fetch('/api/auth/profile');
+          const data = await res.json();
+          if (data.user) {
+            useGameStore.setState((prev) => ({
+              currentUser: data.user,
+              profile: {
+                ...prev.profile,
+                rank: data.user.rankPoints || 1000,
+                tier: data.user.tier || 1,
+                wins: data.user.wins || 0,
+                losses: data.user.losses || 0,
+              },
+            }));
+          }
+        } catch {
+          // Retry on return
+        }
+      };
+      const t = setTimeout(fetchUpdatedProfile, 800);
+      return () => clearTimeout(t);
+    }
+  }, [phase, mode]);
+
   // Turn Countdown Timer & Auto-Roll Handler
   // Round 1: 20s, Round 2+: 10s. Resets on each active roll step.
   useEffect(() => {
@@ -1157,27 +1185,73 @@ export default function BattleScreen() {
       {/* 3. Center Battle Stage (Dice Arena Centered Vertically & Horizontally) */}
       <main className="relative z-10 flex-1 flex flex-col justify-between items-center py-1 px-2 sm:px-6">
         {circleRoster.length >= 3 && (
-          <div className="pointer-events-none absolute inset-0 z-30" aria-label={isEn ? 'Last Man Standing players' : 'Người chơi Last Man Standing'}>
-            <div className="absolute left-1/2 top-1/2 h-[min(78vw,520px)] w-[min(78vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-yellow-500/20" />
+          <div className="pointer-events-none absolute inset-0 z-30" aria-label={isEn ? 'Last Man Standing Arena' : 'Đấu Trường Sinh Tử'}>
+            <div className="absolute left-1/2 top-1/2 h-[min(82vw,560px)] w-[min(82vw,560px)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-yellow-500/25 pointer-events-none" />
             {circleRoster.map((participant, index) => {
               const angle = (index / circleRoster.length) * Math.PI * 2 - Math.PI / 2;
-              const x = 50 + Math.cos(angle) * 42;
-              const y = 50 + Math.sin(angle) * 38;
-              const active = participant.id === player1.id || participant.id === player2.id;
+              const x = 50 + Math.cos(angle) * 44;
+              const y = 50 + Math.sin(angle) * 40;
+              const isP1 = participant.id === player1.id;
+              const isP2 = participant.id === player2.id;
+              const isTurnAttacker = isP1 ? p1IsAttacker : isP2 ? !p1IsAttacker : false;
+              const isTurnDefender = isP1 ? !p1IsAttacker : isP2 ? p1IsAttacker : false;
+              const currentHp = isP1 ? player1.hp : isP2 ? player2.hp : 200;
+              const maxHp = isP1 ? player1.maxHp : isP2 ? player2.maxHp : 200;
+              const isEliminated = currentHp <= 0;
+
               return (
-                <div key={participant.id} className="absolute -translate-x-1/2 -translate-y-1/2 flex max-w-[110px] flex-col items-center gap-1" style={{ left: `${x}%`, top: `${y}%` }}>
-                  <div className={`h-8 w-8 rounded-full border-2 ${active ? 'border-yellow-300 bg-yellow-500/30 shadow-[0_0_14px_rgba(250,204,21,.7)]' : 'border-cyan-400/70 bg-cyan-950/80'} flex items-center justify-center text-xs font-bold text-white`}>
-                    {index + 1}
+                <div
+                  key={participant.id}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 flex min-w-[90px] max-w-[120px] flex-col items-center gap-0.5 pointer-events-auto"
+                  style={{ left: `${x}%`, top: `${y}%` }}
+                >
+                  <div
+                    className={`relative h-10 w-10 rounded-full border-2 transition-all flex items-center justify-center text-xs font-bold text-white shadow-lg ${
+                      isEliminated
+                        ? 'border-slate-700 bg-black/90 opacity-40'
+                        : isTurnAttacker
+                        ? 'border-yellow-400 bg-yellow-950/90 ring-2 ring-yellow-400/80 shadow-[0_0_16px_#facc15]'
+                        : isTurnDefender
+                        ? 'border-red-400 bg-red-950/90 ring-2 ring-red-400/80 shadow-[0_0_16px_#ef4444]'
+                        : 'border-cyan-400/80 bg-cyan-950/80'
+                    }`}
+                  >
+                    {isEliminated ? '💀' : index === 0 ? '👑' : `${index + 1}`}
+                    {isTurnAttacker && (
+                      <span className="absolute -top-1.5 -right-1.5 text-[8px]">⚔️</span>
+                    )}
+                    {isTurnDefender && (
+                      <span className="absolute -top-1.5 -right-1.5 text-[8px]">🛡️</span>
+                    )}
                   </div>
-                  <span className="truncate rounded bg-black/80 px-1.5 py-0.5 text-center text-[7px] font-pixel text-white">{participant.name}</span>
-                  {!participant.isReady && <span className="text-[6px] font-pixel text-red-300">{isEn ? 'NOT READY' : 'CHƯA SẴN SÀNG'}</span>}
+
+                  <span className="truncate rounded bg-black/85 px-1.5 py-0.5 text-center text-[7.5px] font-pixel text-white border border-slate-700 max-w-full">
+                    {participant.name}
+                  </span>
+
+                  {/* Mini HP bar for LMS Gladiator Pod */}
+                  <div className="w-16 h-1.5 bg-black/90 border border-slate-700 rounded-full overflow-hidden mt-0.5">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        currentHp > maxHp * 0.5
+                          ? 'bg-emerald-400'
+                          : currentHp > maxHp * 0.25
+                          ? 'bg-amber-400'
+                          : 'bg-red-500'
+                      }`}
+                      style={{ width: `${Math.max(0, Math.min(100, (currentHp / maxHp) * 100))}%` }}
+                    />
+                  </div>
+                  <span className="text-[6.5px] font-pixel text-slate-300">
+                    {isEliminated ? (isEn ? 'ELIMINATED' : 'ĐÃ BỊ LOẠI') : `${currentHp} HP`}
+                  </span>
                 </div>
               );
             })}
           </div>
         )}
         {/* Dice Arena Tray (Symmetrical Dual Trays with Authentic frame_dual_dice_premium.png) */}
-        <div className="w-full max-w-4xl mx-auto my-auto py-2">
+        <div className={`w-full mx-auto my-auto py-2 transition-all ${circleRoster.length >= 3 ? 'max-w-2xl scale-[0.88] sm:scale-95' : 'max-w-4xl'}`}>
           <PixelDice
             turnStep={turnStep}
             hasDefSkill={defenderHasDefenseSkill}
@@ -1540,7 +1614,7 @@ export default function BattleScreen() {
               <h2 className="text-xl sm:text-2xl font-pixel text-yellow-400 drop-shadow mb-2">
                 {winnerId === myPlayer.id ? (isEn ? 'VICTORY!' : 'CHIẾN THẮNG!') : (isEn ? 'DEFEAT!' : 'THẤT BẠI!')}
               </h2>
-              <p className="text-[10px] font-pixel text-slate-300 mb-6">
+              <p className="text-[10px] font-pixel text-slate-300 mb-4">
                 {winnerId === myPlayer.id
                   ? isEn
                     ? 'You have dominated the dice arena!'
@@ -1549,6 +1623,23 @@ export default function BattleScreen() {
                   ? 'Your foe prevailed this time. Train and return!'
                   : 'Đối thủ đã vượt qua bạn. Hãy rèn luyện thêm!'}
               </p>
+
+              {mode === 'ranked' && (
+                <div className="mb-5 py-2 px-3 bg-black/70 border border-yellow-500/50 rounded flex items-center justify-around">
+                  <div className="text-center">
+                    <div className="text-[7.5px] font-pixel text-slate-400">{isEn ? 'RANK POINTS' : 'ĐIỂM XẾP HẠNG'}</div>
+                    <div className={`text-sm sm:text-base font-pixel font-bold ${winnerId === myPlayer.id ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {winnerId === myPlayer.id ? '+25 RP ⬆' : '-15 RP ⬇'}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[7.5px] font-pixel text-slate-400">{isEn ? 'LADDER STATUS' : 'BẬC DANH VỌNG'}</div>
+                    <div className="text-[10px] font-pixel text-yellow-300 font-bold">
+                      TIER {currentUser?.tier || 1}
+                    </div>
+                  </div>
+                </div>
+              )}
               <PixelButton
                 variant="gold"
                 size="md"

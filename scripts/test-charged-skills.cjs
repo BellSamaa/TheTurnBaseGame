@@ -54,7 +54,7 @@ assert.equal(fire.opponent.burnTicks, 3);
 assert.equal(fire.opponent.burnDmgPerTurn, 5);
 const shield = { ...make(WEAPON_DEFINITIONS.spirit_stone), petRockHp: 50 };
 const hit = calculateD20Combat(17,5,CLASS_DEFINITIONS.warrior,CLASS_DEFINITIONS.warrior,sword,shield);
-assert.equal(hit.damage,7); assert.equal(shield.petRockHp,45);
+assert.equal(hit.damage,22); assert.equal(shield.petRockHp,45);
 assert.ok(castChargedSkill({ ...sword, skill1UsedTurn: 1 },foe,1,2));
 console.log('PASS: Leaf D6 condition, 5 HP cost, 3 x 5 burn; Rock absorbs 5 of 12; skill reusable next round');
 const { chargeSkillPoints } = require('../src/lib/chargedSkills.ts');

@@ -363,6 +363,10 @@ export const useGameStore = create<GameStore>()(
             weapon: p1Weapon,
             skillCharge: 0,
             isAttacker: true,
+            bullets: p1Weapon.id === 'revolver' ? 6 : undefined,
+            petRockHp: (p1Weapon.id === 'spirit_stone' || p1Weapon.id === 'pet_rock') ? 50 : undefined,
+            petRockHits: 0,
+            petRockEnraged: false,
             character: profile.character,
           },
           player2: {
@@ -374,6 +378,10 @@ export const useGameStore = create<GameStore>()(
             weapon: p2Weapon,
             skillCharge: 0,
             isAttacker: false,
+            bullets: p2Weapon.id === 'revolver' ? 6 : undefined,
+            petRockHp: (p2Weapon.id === 'spirit_stone' || p2Weapon.id === 'pet_rock') ? 50 : undefined,
+            petRockHits: 0,
+            petRockEnraged: false,
             character: {
               ...DEFAULT_CUSTOMIZATION,
               baseIndex: 1,

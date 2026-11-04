@@ -1,7 +1,18 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-import type { CharacterCustomization, ClassType, BattleState } from '@/types/game';
+import type { CharacterCustomization, ClassType, BattleState, PlayerState } from '@/types/game';
+import { CLASS_DEFINITIONS, WEAPON_DEFINITIONS, MAP_DEFINITIONS } from './constants';
+
+export function calculateTier(rankPoints: number): number {
+  if (rankPoints >= 2100) return 7; // Grandmaster
+  if (rankPoints >= 1900) return 6; // Master
+  if (rankPoints >= 1700) return 5; // Diamond
+  if (rankPoints >= 1500) return 4; // Platinum
+  if (rankPoints >= 1300) return 3; // Gold
+  if (rankPoints >= 1100) return 2; // Silver
+  return 1; // Bronze
+}
 
 export interface DbUserAccount {
   id: string;
@@ -438,4 +449,194 @@ export async function deleteRoom(code: string): Promise<void> {
     );
     if (error) throw new Error(error.message);
   }
+}
+
+// ----------------------------------------------------------------------
+// Matchmaking Queue Operations (Real 1v1 PvP Matching)
+// ----------------------------------------------------------------------
+export interface MatchmakingPlayer {
+  userId: string;
+  username: string;
+  rankPoints: number;
+  classType: ClassType;
+  weaponId: string;
+  avatarConfig: CharacterCustomization;
+}
+
+export interface MatchmakingTicket extends MatchmakingPlayer {
+  tier: number;
+  matchedRoomCode: string | null;
+  joinedAt: number;
+}
+
+const globalMatchmakingQueue = (global as unknown as {
+  __DICE_MANIAC_MM_QUEUE?: Record<string, MatchmakingTicket>;
+});
+if (!globalMatchmakingQueue.__DICE_MANIAC_MM_QUEUE) {
+  globalMatchmakingQueue.__DICE_MANIAC_MM_QUEUE = {};
+}
+const mmQueue = globalMatchmakingQueue.__DICE_MANIAC_MM_QUEUE;
+
+function cleanExpiredTickets(): void {
+  const now = Date.now();
+  for (const [uid, ticket] of Object.entries(mmQueue)) {
+    if (now - ticket.joinedAt > 60000 && !ticket.matchedRoomCode) {
+      delete mmQueue[uid];
+    }
+  }
+}
+
+export function createRankedBattleState(
+  roomCode: string,
+  host: RoomParticipant,
+  guest: RoomParticipant,
+  mapId: string
+): BattleState {
+  const p1Class = CLASS_DEFINITIONS[host.classType] || CLASS_DEFINITIONS.warrior;
+  const p2Class = CLASS_DEFINITIONS[guest.classType] || CLASS_DEFINITIONS.warrior;
+  const p1Weapon = WEAPON_DEFINITIONS[host.weaponId] || WEAPON_DEFINITIONS.greatsword;
+  const p2Weapon = WEAPON_DEFINITIONS[guest.weaponId] || WEAPON_DEFINITIONS.greatsword;
+
+  const p1IsAttacker = Math.random() > 0.5;
+
+  const player1: PlayerState = {
+    id: host.id,
+    name: host.name,
+    character: host.character,
+    classType: host.classType,
+    weapon: p1Weapon,
+    hp: p1Class.baseHp,
+    maxHp: p1Class.baseHp,
+    skillCharge: 0,
+    isAttacker: p1IsAttacker,
+    bullets: p1Weapon.id === 'revolver' ? 6 : undefined,
+    petRockHp: (p1Weapon.id === 'spirit_stone' || p1Weapon.id === 'pet_rock') ? 50 : undefined,
+    petRockHits: 0,
+    petRockEnraged: false,
+    statusEffects: {},
+  };
+
+  const player2: PlayerState = {
+    id: guest.id,
+    name: guest.name,
+    character: guest.character,
+    classType: guest.classType,
+    weapon: p2Weapon,
+    hp: p2Class.baseHp,
+    maxHp: p2Class.baseHp,
+    skillCharge: 0,
+    isAttacker: !p1IsAttacker,
+    bullets: p2Weapon.id === 'revolver' ? 6 : undefined,
+    petRockHp: (p2Weapon.id === 'spirit_stone' || p2Weapon.id === 'pet_rock') ? 50 : undefined,
+    petRockHits: 0,
+    petRockEnraged: false,
+    statusEffects: {},
+  };
+
+  return {
+    id: 'battle_' + roomCode + '_' + Date.now(),
+    player1,
+    player2,
+    currentTurn: 1,
+    attackerId: p1IsAttacker ? player1.id : player2.id,
+    phase: 'rolling_d20',
+    turnStep: 'd20_atk',
+    d20Results: null,
+    d6Results: null,
+    battleLog: [
+      {
+        turn: 1,
+        type: 'system',
+        message: `RANKED DUEL COMMENCED! ${p1IsAttacker ? player1.name : player2.name} strikes first as ATTACKER!`,
+        messageVi: `TRẬN ĐẤU HẠNG BẮT ĐẦU! ${p1IsAttacker ? player1.name : player2.name} đi trước ở vị thế TẤN CÔNG!`,
+        timestamp: Date.now(),
+      },
+    ],
+    winnerId: null,
+    mapId,
+    isAiOpponent: false,
+    mode: 'ranked',
+  };
+}
+
+export async function joinMatchmakingQueueAsync(
+  player: MatchmakingPlayer
+): Promise<{ matched: boolean; roomCode?: string; room?: DbOnlineRoom }> {
+  cleanExpiredTickets();
+
+  const opponentTicket = Object.values(mmQueue).find(
+    (t) => t.userId !== player.userId && !t.matchedRoomCode
+  );
+
+  if (opponentTicket) {
+    const hostUser: RoomParticipant = {
+      id: opponentTicket.userId,
+      name: opponentTicket.username,
+      character: opponentTicket.avatarConfig,
+      classType: opponentTicket.classType,
+      weaponId: opponentTicket.weaponId,
+      isReady: true,
+    };
+
+    const guestUser: RoomParticipant = {
+      id: player.userId,
+      name: player.username,
+      character: player.avatarConfig,
+      classType: player.classType,
+      weaponId: player.weaponId,
+      isReady: true,
+    };
+
+    const randomMap = MAP_DEFINITIONS[Math.floor(Math.random() * MAP_DEFINITIONS.length)].id;
+    const room = await createRoom(hostUser, 'ranked', randomMap, 'classic');
+
+    const battle = createRankedBattleState(room.code, hostUser, guestUser, randomMap);
+    room.guest = guestUser;
+    room.participants = [hostUser, guestUser];
+    room.status = 'playing';
+    room.battleState = battle;
+    await updateRoom(room);
+
+    opponentTicket.matchedRoomCode = room.code;
+    delete mmQueue[player.userId];
+
+    return { matched: true, roomCode: room.code, room };
+  }
+
+  mmQueue[player.userId] = {
+    ...player,
+    tier: calculateTier(player.rankPoints),
+    matchedRoomCode: null,
+    joinedAt: Date.now(),
+  };
+
+  return { matched: false };
+}
+
+export async function pollMatchmakingQueueAsync(
+  userId: string
+): Promise<{ matched: boolean; roomCode?: string; queueTime: number; expired?: boolean }> {
+  cleanExpiredTickets();
+
+  const ticket = mmQueue[userId];
+  if (!ticket) {
+    return { matched: false, queueTime: 0, expired: true };
+  }
+
+  if (ticket.matchedRoomCode) {
+    const roomCode = ticket.matchedRoomCode;
+    delete mmQueue[userId];
+    return { matched: true, roomCode, queueTime: 0 };
+  }
+
+  const queueTime = Math.max(0, Math.floor((Date.now() - ticket.joinedAt) / 1000));
+  return { matched: false, queueTime };
+}
+
+export async function leaveMatchmakingQueueAsync(userId: string): Promise<boolean> {
+  if (mmQueue[userId]) {
+    delete mmQueue[userId];
+    return true;
+  }
+  return false;
 }

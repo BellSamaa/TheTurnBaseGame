@@ -83,7 +83,7 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     damageReduction: 1.0,
     extraD6Rolls: 0,
     extraD20Rolls: 0,
-    baseHp: 150,
+    baseHp: 300,
   },
   mage: {
     id: 'mage',
