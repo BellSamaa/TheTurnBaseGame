@@ -4,7 +4,8 @@
 ALTER TABLE public.rooms
   ADD COLUMN IF NOT EXISTS game_mode text NOT NULL DEFAULT 'classic',
   ADD COLUMN IF NOT EXISTS max_players integer NOT NULL DEFAULT 2,
-  ADD COLUMN IF NOT EXISTS participants jsonb NOT NULL DEFAULT '[]'::jsonb;
+  ADD COLUMN IF NOT EXISTS participants jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS ranked_result_recorded boolean NOT NULL DEFAULT false;
 
 DO $$
 BEGIN

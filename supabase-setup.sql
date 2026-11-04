@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS public.rooms (
   map_id TEXT DEFAULT 'castle',
   battle_state JSONB,
   created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  ranked_result_recorded BOOLEAN NOT NULL DEFAULT false
 );
 
 -- 4. Bảng Battles (Đồng bộ trạng thái trận đấu từng lượt)
