@@ -164,3 +164,31 @@ assert.equal(revivedPet.caster.petRockEnraged, false);
 assert.equal(revivedPet.caster.petRockHits, 0);
 assert.equal(revivedPet.caster.d12Charge, deadPet.d12Charge - skillCost(deadPet, 1));
 console.log('PASS: dead Rock requires paid Skill 1 resummon and resets summon status');
+const { skillPresentation, normalAttackEffect } = require('../src/lib/skillPresentation.ts');
+const manifest = require('../public/assets/vfx/manifest.json');
+for (const weapon of Object.values(WEAPON_DEFINITIONS)) {
+  const user = make(weapon);
+  const forms = Array.isArray(weapon.skill1.triggerNumber) ? weapon.skill1.triggerNumber : [undefined];
+  for (const slot of [1, 2]) for (const form of slot===1 ? forms : weapon.id==='fire_headband' ? [20,30] : weapon.id==='infinity_ring' ? [1,2] : [undefined]) {
+    const view = skillPresentation(user, slot, form);
+    assert.ok(manifest.effects[view.effect], weapon.id + ' actual VFX asset exists');
+    assert.ok(view.nameEn && view.nameVi);
+  }
+  assert.ok(manifest.effects[normalAttackEffect(weapon.id)]);
+}
+for(const [id,slot,form,effect,target] of [
+  ['revolver',1,undefined,'reload','caster'], ['bow',2,undefined,'dodge_attack','caster'],
+  ['staff',2,undefined,'dodge_spell','caster'], ['spirit_stone',1,undefined,'rock_summon','caster'],
+  ['spirit_stone',2,undefined,'rock_rage','opponent'], ['infinity_ring',1,3,'void_blue','opponent'],
+  ['infinity_ring',1,4,'void_red','opponent'], ['infinity_ring',1,6,'infinity','caster'],
+  ['infinity_ring',2,2,'hollow_purple','center'], ['chronos_watch',1,2,'time_save','caster'],
+  ['chronos_watch',1,4,'time_reroll','opponent'], ['chronos_watch',1,6,'time_lock','opponent'],
+  ['chronos_watch',2,undefined,'time_erase','caster'], ['fire_headband',2,20,'meteor_one','opponent'],
+  ['fire_headband',2,30,'meteor_two','opponent']]) {
+  const view=skillPresentation(make(WEAPON_DEFINITIONS[id]),slot,form);
+  assert.equal(view.effect,effect);assert.equal(view.target,target);
+}
+assert.equal(skillPresentation({...make(WEAPON_DEFINITIONS.chronos_watch), timeAnchorHp:80},1,2).nameEn,'Time Rewind');
+assert.notEqual(normalAttackEffect('chronos_watch'),'time_lock');
+assert.notEqual(normalAttackEffect('fire_headband'),'burn_black');
+console.log('PASS: each skill/form uses a real effect asset, correct caster/opponent target, and chosen form name');

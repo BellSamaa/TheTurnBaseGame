@@ -171,6 +171,8 @@ export interface BattleState {
     id: string;
     weaponId: string;
     skillNameEn: string;
+    skillNameVi?: string;
+    slot?: 1 | 2;
     casterName: string;
     auraColor: string;
   } | null;

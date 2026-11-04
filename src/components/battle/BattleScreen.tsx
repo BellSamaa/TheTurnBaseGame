@@ -17,6 +17,7 @@ import {
   calculateD20Combat,
 } from '@/lib/battleLogic';
 import type { BattleLogEntry, BattleState, PlayerState } from '@/types/game';
+import { normalAttackEffect, skillPresentation } from '@/lib/skillPresentation';
 import { castChargedSkill, skillCost } from '@/lib/chargedSkills';
 import { RockHealthBar, RockCompanion } from './RockCompanion';
 import HealthBar from '@/components/ui/HealthBar';
@@ -48,33 +49,6 @@ import {
   playUltimateAuraSound,
 } from '@/lib/soundEffects';
 
-function getWeaponAuraColor(weaponId: string): string {
-  switch (weaponId) {
-    case 'infinity_void':
-    case 'infinity_ring':
-      return '#8b5cf6'; // Void Purple
-    case 'dragon_dagger':
-    case 'dagger':
-      return '#0284c7'; // Azure Blue Flame
-    case 'leaf_headband':
-    case 'fire_headband':
-      return '#ef4444'; // Crimson Meteor Flame
-    case 'chronos':
-    case 'chronos_watch':
-      return '#eab308'; // Chrono Gold
-    case 'revolver':
-      return '#f59e0b'; // Gunpowder Gold
-    case 'pet_rock':
-      return '#d97706'; // Earth Tremor Amber
-    case 'bow':
-      return '#10b981'; // Emerald Wind
-    case 'staff':
-      return '#06b6d4'; // Arcane Cyan
-    default:
-      return '#facc15'; // Radiant Gold
-  }
-}
-
 function playWeaponSound(weaponId: string) {
   switch (weaponId) {
     case 'revolver':
@@ -86,6 +60,7 @@ function playWeaponSound(weaponId: string) {
     case 'leaf_headband':
     case 'fire_headband':
     case 'pet_rock':
+    case 'spirit_stone':
       playMeteorRumbleSound();
       break;
     case 'greatsword':
@@ -99,73 +74,12 @@ function playWeaponSound(weaponId: string) {
   }
 }
 
-function getWeaponVfx(weaponId: string, isSkill2 = false): string {
-  if (isSkill2) {
-    switch (weaponId) {
-      case 'infinity_void':
-      case 'infinity_ring':
-        return 'hollow_purple';
-      case 'dragon_dagger':
-      case 'dagger':
-        return 'burn_blue';
-      case 'leaf_headband':
-      case 'fire_headband':
-        return 'meteor_impact';
-      case 'chronos':
-      case 'chronos_watch':
-        return 'time_erase';
-      case 'revolver':
-        return 'bullet';
-      case 'pet_rock':
-        return 'rock_rage';
-      case 'greatsword':
-        return 'slash_heavy';
-      case 'bow':
-        return 'dodge_attack';
-      case 'staff':
-        return 'dodge_spell';
-      default:
-        return 'impact_physical';
-    }
-  }
-
-  // D20 Normal Attack VFX
-  switch (weaponId) {
-    case 'greatsword':
-      return 'slash_heavy';
-    case 'dragon_dagger':
-    case 'dagger':
-      return 'slash_multi';
-    case 'bow':
-      return 'arrow';
-    case 'revolver':
-      return 'bullet';
-    case 'staff':
-      return 'magic_orb';
-    case 'leaf_headband':
-    case 'fire_headband':
-      return 'burn_black';
-    case 'infinity_void':
-    case 'infinity_ring':
-      return 'void_red';
-    case 'chronos':
-    case 'chronos_watch':
-      return 'time_lock';
-    case 'pet_rock':
-      return 'rock_roll';
-    default:
-      return 'impact_physical';
-  }
-}
-
 export function weaponHasDefenseSkill(weaponId: string): boolean {
-  return weaponId === 'bow' || weaponId === 'staff' || weaponId === 'pet_rock';
+  return weaponId === 'bow' || weaponId === 'staff' || weaponId === 'pet_rock' || weaponId === 'spirit_stone';
 }
-
 function spendAttackBullet(player: PlayerState): PlayerState {
   return player.weapon.id === 'revolver' ? { ...player, bullets: Math.max(0, (player.bullets ?? 6) - 1) } : player;
 }
-
 export default function BattleScreen() {
   const {
     battleState,
@@ -343,7 +257,7 @@ export default function BattleScreen() {
 
                 if (remote.activeSkillBanner && !seenSkillBanners.current.has(remote.activeSkillBanner.id)) {
                   seenSkillBanners.current.add(remote.activeSkillBanner.id);
-                  setSkillBannerQueue(prev => [...prev, remote.activeSkillBanner!]);
+                  setSkillBannerQueue([remote.activeSkillBanner!]);
                 }
 
                 // If both rolled D20, calculate combat formula
@@ -727,7 +641,7 @@ export default function BattleScreen() {
 
         if (combatResult.isHit && combatResult.damage > 0) {
           playWeaponSound(attackerState.weapon.id);
-          const vfxName = getWeaponVfx(attackerState.weapon.id, false);
+          const vfxName = normalAttackEffect(attackerState.weapon.id);
           newActiveVfx = {
             id: String(Date.now()),
             effect: vfxName,
@@ -879,15 +793,20 @@ export default function BattleScreen() {
     const result = castChargedSkill(caster, opponent, slot, currentTurn, form, lockSlot);
     if (!result) return;
     castLockRef.current = true;
-    const skill = slot === 1 ? result.caster.weapon.skill1 : result.caster.weapon.skill2;
+    const presentation = skillPresentation(caster, slot, form);
+    const casterTarget = isP1 ? 'p1' : 'p2';
+    const opponentTarget = isP1 ? 'p2' : 'p1';
+    const rolledBack = caster.weapon.id === 'spirit_stone' && slot === 2 && result.caster.hp < caster.hp;
+    const vfxTarget = rolledBack || presentation.target === 'caster' ? casterTarget : presentation.target === 'center' ? 'center' : opponentTarget;
     const banner: SkillActivationEvent = { id: crypto.randomUUID(), weaponId: caster.weapon.id,
-      skillNameEn: skill.name, casterName: caster.name, auraColor: getWeaponAuraColor(caster.weapon.id) };
-    const vfx: VfxEvent = { id: crypto.randomUUID(), effect: getWeaponVfx(caster.weapon.id, slot === 2), target: caster.weapon.id === 'infinity_ring' && slot === 1 && form === 6 ? (isP1 ? 'p1' : 'p2') : isP1 ? 'p2' : 'p1', size: slot === 2 ? 180 : 130 };
+      skillNameEn: presentation.nameEn, skillNameVi: presentation.nameVi, slot,
+      casterName: caster.name, auraColor: presentation.color };
+    const vfx: VfxEvent = { id: crypto.randomUUID(), effect: presentation.effect, target: vfxTarget, size: slot === 2 ? 180 : 130 };
     seenSkillBanners.current.add(banner.id);
-    setSkillBannerQueue(q => [...q, banner]);
+    setSkillBannerQueue([banner]);
     seenVfx.current.add(vfx.id);
     setActiveVfx(vfx);
-    playWeaponSound(caster.weapon.id);
+    if (presentation.target === 'caster') playMagicCastSound(); else playWeaponSound(caster.weapon.id);
     setBattleState(prev => {
       if (!prev) return null;
       const next: BattleState = { ...prev,
@@ -1237,7 +1156,7 @@ export default function BattleScreen() {
             <div className="relative flex items-center justify-center">
               <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
                 {activeVfx?.target === 'p1' && (
-                  <VfxAnimationPlayer activeVfx={activeVfx} onFinish={() => setActiveVfx(null)} />
+                  <VfxAnimationPlayer activeVfx={activeVfx} onFinish={id => setActiveVfx(current => current?.id === id ? null : current)} />
                 )}
               </div>
 
