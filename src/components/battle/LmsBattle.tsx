@@ -48,7 +48,6 @@ export default function LmsBattle(){
       </div>
       {s.phase==='clash'&&<div className="clash-controls">{button(tx('+1 CÔNG · 3 PTS'),'clash',(me?.hp??0)>0,{delta:1})}{button(tx('−1 CÔNG · 3 PTS'),'clash',(me?.hp??0)>0,{delta:-1})}{button(tx('TÍNH SÁT THƯƠNG'),'resolve',clock>=(s.deadline??Infinity))}</div>}
       {s.winner&&<button className="lms-action" onClick={async()=>{const r=await fetch('/api/rooms/'+onlineRoomCode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'return_lobby',userId:me?.id})});if(r.ok)setPage('play');}}>{tx("VỀ PHÒNG")}</button>}
-      <details className="combat-log"><summary>{tx("Nhật ký trận")}</summary>{(useGameStore.getState().settings.language==='vi'?(s.logVi||s.log):s.log).slice(0,30).map((l,i)=><p key={i}>{tx(l)}</p>)}</details>
     </footer>
     </CombatArena>
   </div>;

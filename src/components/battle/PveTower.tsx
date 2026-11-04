@@ -22,8 +22,8 @@ export default function PveTower(){
  }
  const s=run?.state.combat,me=s?.players.find(p=>p.id===currentUser?.id),mine=s?.order[s.active]===me?.id,won=s?.winner===me?.id;
  const action=(label:string,move:string)=><button className="combat-roll action-beacon" disabled={busy} onClick={()=>act(move)}><img src={'/assets/sprites/ui/frames/'+(move==='end'?'btn_end_turn':'btn_roll_dice')+'.png'} alt=""/><span>{label}</span></button>;
- return <div className="pve-tower"><header><button onClick={()=>setPage('play')}>{tx('← Quay lại')}</button><h2>{tx('THÁP XÚC XẮC · TẦNG')} {run?.state.stage||1}</h2><WalletBar/></header>
- {!currentUser?<button onClick={()=>setAuthModal('login')}>{tx('Đăng nhập để lưu phần thưởng')}</button>:!s||!me||s.winner&&!won?<div className="pve-entry"><h2>{en?'THE DICE TOWER':'THÁP XÚC XẮC'}</h2><p>{en?'Common to Secret · Defeat each boss to climb higher.':'Thường đến Bí mật · Hạ từng boss để lên tầng tiếp theo.'}</p><button className="primary-action" disabled={busy} onClick={()=>act('start')}>{tx('BẮT ĐẦU CHUỖI MỚI')}</button></div>:<CombatArena state={s} viewer={me.id} busy={busy} title={'PVE · '+run!.state.stage} onSurrender={()=>{if(window.confirm(en?'Abandon this run?':'Dừng chuỗi này?'))act('surrender');}}>
+ return <div className="pve-tower">{(!s||!me||s.winner&&!won)&&<header><button onClick={()=>setPage('play')}>{tx('← Quay lại')}</button><h2>{tx('THÁP XÚC XẮC · TẦNG')} {run?.state.stage||1}</h2><WalletBar/></header>}
+ {!currentUser?<button onClick={()=>setAuthModal('login')}>{tx('Đăng nhập để lưu phần thưởng')}</button>:!s||!me||s.winner&&!won?<div className="pve-entry"><h2>{en?'THE DICE TOWER':'THÁP XÚC XẮC'}</h2><p>{en?'Common to Secret · Defeat each boss to climb higher.':'Thường đến Bí mật · Hạ từng boss để lên tầng tiếp theo.'}</p><button className="primary-action" disabled={busy} onClick={()=>act('start')}>{tx('BẮT ĐẦU CHUỖI MỚI')}</button></div>:<CombatArena state={s} viewer={me.id} busy={busy} onBack={()=>setPage('play')} title={(en?'DICE TOWER · FLOOR ':'THÁP XÚC XẮC · TẦNG ')+run!.state.stage} onSurrender={()=>{if(window.confirm(en?'Abandon this run?':'Dừng chuỗi này?'))act('surrender');}}>
  <div role="status" className="combat-status">{error|| (won?tx('TẦNG ĐÃ VƯỢT QUA'):s.phase==='defense'&&s.target===me.id?tx('Bạn cần tung phòng thủ'):mine?tx('Lượt của bạn'):tx('Đang chờ ')+'Boss')}</div>
  {notice&&<p className="equipment-sync-notice">{notice}</p>}
  <div className="pve-reward-preview">◆ {run!.state.reward.gems} Gem · ♦ {run!.state.reward.rubies} Ruby · +{run!.state.reward.exp} EXP</div>
@@ -33,6 +33,5 @@ export default function PveTower(){
  <button aria-label={en?'End turn':'Kết thúc lượt'} className="combat-roll" disabled={busy||!mine||s.phase!=='end'} onClick={()=>act('end')}><img src="/assets/sprites/ui/frames/btn_end_turn.png" alt=""/></button>
  <CombatSkills player={me} round={s.round} enabled={mine&&['target','attack'].includes(s.phase)} busy={busy} onCast={args=>act('skill',{...args,target:'pve_bot'})}/>
  </div></>}
- <details className="combat-log"><summary>{tx('Nhật ký trận')}</summary>{(en?s.log:s.logVi||s.log).slice(0,20).map((l,i)=><p key={i}>{tx(l)}</p>)}</details>
  </CombatArena>}{error&&!s&&<p role="alert">{error}</p>}</div>;
 }

@@ -4,6 +4,7 @@ import {useGameStore} from '@/stores/gameStore';
 import type {LmsState} from '@/lib/lms';
 import {CLASS_DEFINITIONS,MAP_DEFINITIONS} from '@/lib/constants';
 import {tx,phaseLabel} from '@/lib/uiLocale';
+import {WalletBar} from '@/components/progression/AccountPanel';
 import HealthBar from '@/components/ui/HealthBar';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
 import {RockHealthBar,RockCompanion} from './RockCompanion';
@@ -14,7 +15,7 @@ import VfxAnimationPlayer from './VfxAnimationPlayer';
 import {playDiceRollSound,playHitSound,playSkillSound} from '@/lib/soundEffects';
 
 /** Presentation only: all values and dice results come from the battle server. */
-export default function CombatArena({state:s,viewer,busy=false,title,onSurrender,buffs=false,stageSequence,children}:{state:LmsState;viewer?:string;busy?:boolean;title:string;onSurrender:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];children:React.ReactNode}){
+export default function CombatArena({state:s,viewer,busy=false,title,onSurrender,onBack,buffs=false,stageSequence,children}:{state:LmsState;viewer?:string;busy?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];children:React.ReactNode}){
   const mapId=useGameStore(st=>st.battleState?.mapId)||'castle';
   const map=MAP_DEFINITIONS.find(m=>m.id===mapId)||MAP_DEFINITIONS[0];
   const arenaRef=useRef<HTMLDivElement>(null);
@@ -29,8 +30,15 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   useEffect(()=>{if(!s.lastEvent||seen.current===s.lastEvent.id)return;seen.current=s.lastEvent.id;setEvent(s.lastEvent);s.lastEvent.slot?playSkillSound():playHitSound();const t=setTimeout(()=>setEvent(undefined),1800);return()=>clearTimeout(t);},[s.lastEvent?.id]);
   useEffect(()=>{const key=[s.round,s.active,s.rolls.join(','),s.attack,s.defense].join(':');if(lastRoll.current&&lastRoll.current!==key){setRolling(true);playDiceRollSound();const t=setTimeout(()=>setRolling(false),700);lastRoll.current=key;return()=>clearTimeout(t);}lastRoll.current=key;},[s.round,s.active,s.rolls.length,s.attack,s.defense]);
   return <div ref={arenaRef} className={'combat-arena battle-balanced '+(buffs?'combat-party':'combat-duel')}>
-    <header className="combat-topbar"><div><small>{title}</small><h2>{en?'ROUND':'VÒNG'} {s.round}</h2></div><div className="combat-turn"><b>{active.name}</b><span>{phaseLabel(s.phase)}</span></div><button className="combat-surrender" disabled={busy||!!s.winner} onClick={onSurrender}>{en?'Surrender':'Đầu hàng'}</button></header>
-    <nav className="combat-phase-bar" aria-label={en?'Battle phases':'Giai đoạn chiến đấu'}>{stages.map((phase,i)=><span key={phase} aria-current={s.phase===phase?'step':undefined} className={s.phase===phase?'phase-current':''}><i>{i+1}</i>{phaseLabel(phase as LmsState['phase'])}</span>)}</nav>
+    <header className="combat-topbar">
+      <div className="combat-heading">{onBack&&<button className="combat-back" onClick={onBack}>{en?'← Back':'← Trở lại'}</button>}<div><small>{title}</small><h2>{en?'ROUND':'VÒNG'} {s.round}</h2></div></div>
+      <div className="combat-toolbar"><WalletBar/><details className="combat-log"><summary>{en?'Battle log':'Nhật ký'}</summary><div className="combat-log-entries">{(en?s.log:s.logVi||s.log).slice(0,30).map((l,i)=><p key={i}>{tx(l)}</p>)}</div></details><button className="combat-surrender" disabled={busy||!!s.winner} onClick={onSurrender}>{en?'Surrender':'Đầu hàng'}</button></div>
+    </header>
+    <nav className="combat-phase-bar" aria-label={en?'Battle phases':'Giai đoạn chiến đấu'}>{stages.map((phase,i)=>{
+      const labels:Record<string,string>=en?{charge:'D6 · CHARGE',target:'TARGET',attack:'D20 · ATK',defense:'D20 · DEF',clash:'REACTION',end:stageSequence?'SKILLS / END':'END TURN'}:{charge:'D6 · SẠC',target:'MỤC TIÊU',attack:'D20 · CÔNG',defense:'D20 · THỦ',clash:'CAN THIỆP',end:stageSequence?'CHIÊU / KẾT THÚC':'KẾT THÚC'};
+      const descriptions:Record<string,string>=en?{charge:'Roll D6 to add shared skill PTS.',target:'Choose the opponent to attack.',attack:'Attacker rolls D20.',defense:'Defender rolls D20.',clash:'Resolve the hit and available reactions.',end:'Finish available actions, then end the turn.'}:{charge:'Tung D6 để cộng PTS chung cho hai kỹ năng.',target:'Chọn đối thủ để tấn công.',attack:'Người tấn công tung D20.',defense:'Người phòng thủ tung D20.',clash:'Xử lý đòn đánh và phản ứng có thể dùng.',end:'Hoàn tất hành động rồi kết thúc lượt.'};
+      return <span key={phase} title={descriptions[phase]} aria-current={s.phase===phase?'step':undefined} className={s.phase===phase?'phase-current':stages.indexOf(s.phase)>i?'phase-complete':''}><i>{i+1}</i><b>{labels[phase]||phaseLabel(phase)}</b></span>;
+    })}</nav>
     <div className="combat-roll-notice" role="status" title={s.log[0]}>{en?s.log[0]:(s.logVi||s.log)[0]}</div>
     <div className="combat-stage"><img className="battle-background-2d" src={map.image.replace(/\.png$/,'.webp')} alt=""/>
       <div className="combat-vs"><img src="/assets/sprites/ui/frames/battle_vs.png" alt="VS"/><small>{victim?active.name+' → '+victim.name:en?'Choose a target':'Chọn mục tiêu'}</small></div>
