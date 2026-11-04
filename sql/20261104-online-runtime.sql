@@ -31,7 +31,7 @@ BEGIN
  END LOOP;
  stamp:=(extract(epoch FROM clock_timestamp())*1000)::bigint;
  h:=other.payload->'participant';g:=p_payload->'participant';
- battle:=(p_payload->'battle')||jsonb_build_object('id','rank_'||code||'_'||stamp,'player1',other.payload->'player','player2',p_payload->'player','attackerId',other.user_id,'isAiOpponent',false,'revision',0);
+ battle:=(p_payload->'battle')||jsonb_build_object('id','rank_'||code||'_'||stamp,'player1',(other.payload->'player')||'{"isAttacker":true}'::jsonb,'player2',(p_payload->'player')||'{"isAttacker":false}'::jsonb,'attackerId',other.user_id,'isAiOpponent',false,'revision',0);
  INSERT INTO rooms(code,id,host,guest,participants,max_players,game_mode,mode,map_id,status,battle_state,created_at,last_active)
  VALUES(code,'room_'||code||'_'||stamp,h,g,jsonb_build_array(h,g),2,'classic','ranked','castle','playing',battle,stamp,stamp);
  UPDATE game_queue SET room_code=code WHERE user_id IN(p_actor,other.user_id);
