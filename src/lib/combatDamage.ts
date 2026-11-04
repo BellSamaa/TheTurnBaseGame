@@ -25,7 +25,7 @@ export function absorbWithRock(player: PlayerState, amount: number) {
 
 export function applyOpponentDamage(player: PlayerState, amount: number, turn: number, directHit = true) {
   if (amount <= 0) return 0;
-  if (player.immuneDamageNext) { player.immuneDamageNext = false; return 0; }
+  if (directHit && player.immuneDamageNext) { player.immuneDamageNext = false; return 0; }
   if (directHit) amount -= absorbWithRock(player, amount);
   const lost = Math.min(player.hp, amount);
   player.hp = Math.max(0, player.hp - amount);
