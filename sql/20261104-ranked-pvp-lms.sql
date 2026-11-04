@@ -68,3 +68,14 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.ranked_matches;
   END IF;
 END $$;
+
+-- Repair legacy installations whose rooms.id / rooms.code lack uniqueness.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.rooms'::regclass AND conname='rooms_id_runtime_unique') THEN
+    ALTER TABLE public.rooms ADD CONSTRAINT rooms_id_runtime_unique UNIQUE (id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.rooms'::regclass AND conname='rooms_code_runtime_unique') THEN
+    ALTER TABLE public.rooms ADD CONSTRAINT rooms_code_runtime_unique UNIQUE (code);
+  END IF;
+END $$;

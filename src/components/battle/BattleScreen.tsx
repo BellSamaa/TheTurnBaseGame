@@ -360,6 +360,14 @@ export default function BattleScreen() {
     return () => clearInterval(interval);
   }, [onlineRoomCode, currentUser?.id, isEn, battleState?.phase, setBattleState]);
 
+  useEffect(() => {
+    if (!battleState?.winnerId || battleState.mode !== 'ranked' || !onlineRoomCode) return;
+    let active=true;
+    const refresh=async()=>{const response=await fetch('/api/auth/profile',{cache:'no-store'});const body=await response.json();if(active&&body.user)useGameStore.setState(state=>({currentUser:body.user,profile:{...state.profile,rank:body.user.rankPoints,tier:body.user.tier,wins:body.user.wins,losses:body.user.losses}}));};
+    refresh().catch(()=>{});const timer=setTimeout(()=>refresh().catch(()=>{}),2000);
+    return()=>{active=false;clearTimeout(timer);};
+  },[battleState?.winnerId,battleState?.mode,onlineRoomCode]);
+
   // Keep local turnStep always in sync with battleState.turnStep
   useEffect(() => {
     if (battleState?.turnStep) {
@@ -595,9 +603,10 @@ export default function BattleScreen() {
     let finalD20 = emptyRevolver ? 0 : rollD20();
     let boxerData: { r1: number; r2: number; chosen: number } | null = null;
     if (!emptyRevolver && attackerClass.extraD20Rolls > 0) {
+      const first = finalD20;
       const extra = rollD20();
-      finalD20 = Math.max(finalD20, extra);
-      boxerData = { r1: finalD20, r2: extra, chosen: finalD20 };
+      finalD20 = Math.max(first, extra);
+      boxerData = { r1: first, r2: extra, chosen: finalD20 };
       setBoxerRolls(boxerData);
     }
 
@@ -651,16 +660,20 @@ export default function BattleScreen() {
     const defenderState = structuredClone(p1IsAttacker ? player2 : player1);
     const defenderTarget: 'p1' | 'p2' = p1IsAttacker ? 'p2' : 'p1';
 
-    let finalDefD20 = rollD20();
+    const firstDefD20 = rollD20();
+    let finalDefD20 = firstDefD20;
+    let defenderBoxerData: { r1: number; r2: number; chosen: number } | null = null;
     if (defenderClass.extraD20Rolls > 0) {
       const extra = rollD20();
       finalDefD20 = Math.max(finalDefD20, extra);
+      defenderBoxerData = { r1: firstDefD20, r2: extra, chosen: finalDefD20 };
     }
 
     addTimer(
       setTimeout(() => {
         setIsRollingD20(false);
         setDefRoll(finalDefD20);
+        if (defenderBoxerData) setBoxerRolls(defenderBoxerData);
 
         const currentAtkRoll = (p1IsAttacker ? battleState.p1D20 : battleState.p2D20) ?? atkRoll ?? 0;
         const combatResult = calculateD20Combat(
@@ -1258,7 +1271,7 @@ export default function BattleScreen() {
             p1Name={player1.name}
             p1IsAttacker={p1IsAttacker}
             p1D20={battleState.p1D20 ?? (p1IsAttacker ? atkRoll : defRoll)}
-            p1D6={battleState.p1D6 ?? (d6P1Rolls ? d6P1Rolls[0] : null)}
+            p1D6={battleState.d6Results?.player1?.at(-1) ?? null}
             p1IsRolling={isRollingD20 || isRollingD6}
             p1IsRollingD20={isRollingD20 && (p1IsAttacker ? turnStep === 'd20_atk' : turnStep === 'd20_def')}
             p1IsRollingD6={isRollingD6 && (p1IsAttacker ? turnStep === 'd6_atk' : turnStep === 'd6_def')}
@@ -1272,7 +1285,7 @@ export default function BattleScreen() {
 
             p2Name={player2.name}
             p2D20={battleState.p2D20 ?? (!p1IsAttacker ? atkRoll : defRoll)}
-            p2D6={battleState.p2D6 ?? (d6P2Rolls ? d6P2Rolls[0] : null)}
+            p2D6={battleState.d6Results?.player2?.at(-1) ?? null}
             p2IsRolling={isRollingD20 || isRollingD6}
             p2IsRollingD20={isRollingD20 && (!p1IsAttacker ? turnStep === 'd20_atk' : turnStep === 'd20_def')}
             p2IsRollingD6={isRollingD6 && (!p1IsAttacker ? turnStep === 'd6_atk' : turnStep === 'd6_def')}

@@ -1,3 +1,5 @@
+import { createLms, lmsAction } from '@/lib/lms';
+import { sessionUser } from '@/lib/serverAuth';
 import { NextResponse } from 'next/server';
 import {
   getRoomByCodeAsync,
@@ -52,11 +54,12 @@ export async function POST(req: Request, context: RouteContext) {
       return NextResponse.json({ success: true });
     }
     if (action === 'return_lobby') {
-      if (body.userId !== room.host.id && body.userId !== room.guest?.id) return NextResponse.json({ success: false }, { status: 403 });
+      if (!(room.participants || [room.host, ...(room.guest ? [room.guest] : [])]).some(p=>p.id===body.userId)) return NextResponse.json({ success: false }, { status: 403 });
       if (room.status === 'playing' && !room.battleState?.winnerId) return NextResponse.json({ success: false, error: 'Match still in progress' }, { status: 409 });
       if (room.status === 'finished' || room.status === 'playing') {
         room.status = room.guest ? 'ready' : 'waiting';
         room.host.isReady = false;
+        room.participants = room.participants?.map(p=>({...p,isReady:false}));
         if (room.guest) room.guest.isReady = false;
         await updateRoom(room);
       }
@@ -101,6 +104,15 @@ export async function POST(req: Request, context: RouteContext) {
       return NextResponse.json({ success: true, room });
     }
 
+    if (action === 'lms_action') {
+      const actor = await sessionUser();
+      if (!actor || !room.battleState?.lms || room.status !== 'playing') return NextResponse.json({error:'Không có trận LMS'}, {status:403});
+      if (body.expectedRevision !== room.battleState.lms.revision) return NextResponse.json({room,error:'Trạng thái đã thay đổi, thử lại'}, {status:409});
+      room.battleState.lms = lmsAction(room.battleState.lms, actor, body.move, body.args);
+      if (room.battleState.lms.winner) { room.battleState.winnerId=room.battleState.lms.winner; room.status='finished'; }
+      await updateRoom(room);
+      return NextResponse.json({success:true,room});
+    }
     // 2. TOGGLE READY STATUS
     if (action === 'ready') {
       const { userId, isReady } = body;
@@ -168,7 +180,7 @@ export async function POST(req: Request, context: RouteContext) {
         skillCharge: 0,
         isAttacker: p1IsAttacker,
         bullets: p1Weapon.id === 'revolver' ? 6 : undefined,
-        petRockHp: (p1Weapon.id === 'spirit_stone' || p1Weapon.id === 'pet_rock') ? 50 : undefined,
+        petRockHp: (p1Weapon.id === 'spirit_stone' || p1Weapon.id === 'pet_rock') ? 0 : undefined,
         petRockHits: 0,
         petRockEnraged: false,
         statusEffects: {},
@@ -216,6 +228,7 @@ export async function POST(req: Request, context: RouteContext) {
         mode: room.mode,
       };
 
+      if (room.gameMode === 'last_man_standing') initialBattle.lms = createLms(readyPlayers);
       room.status = 'playing';
       room.battleState = initialBattle;
       await updateRoom(room);

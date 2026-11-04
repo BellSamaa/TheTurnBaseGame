@@ -211,3 +211,20 @@ assert.equal(immuneAtEndTurn.immuneDamageNext,true,'end-round burn preserves Imm
 assert.equal(applyOpponentDamage(immuneAtEndTurn, 12, 2),0);
 assert.equal(immuneAtEndTurn.immuneDamageNext,false,'next direct opponent hit consumes Immune');
 console.log('PASS: Immune persists through end-turn burn until direct opponent damage');
+
+// Regression: base damage depends on the actual two D20 results, never constant 31.
+for(const [atk,def,expected] of [[20,4,31],[10,9,16],[12,5,22],[5,5,0],[1,20,0]]) {
+ const result=calculateD20Combat(atk,def,CLASS_DEFINITIONS.warrior,CLASS_DEFINITIONS.warrior,make(WEAPON_DEFINITIONS.greatsword),make(WEAPON_DEFINITIONS.greatsword));
+ assert.equal(result.damage,expected);
+}
+const {createLms,lmsAction}=require('../src/lib/lms.ts');
+const roster=[0,1,2,3].map(i=>({id:'lms'+i,name:'Player '+i,character:{},classType:'warrior',weaponId:'greatsword',isReady:true}));
+for(const count of [3,4]) {
+ let s=createLms(roster.slice(0,count));const actor=s.order[0];const target=s.players.find(p=>p.id!==actor).id;
+ assert.equal(s.players.length,count);assert.equal(s.players[0].hp,200);
+ assert.throws(()=>lmsAction(s,target,'charge'));
+ s=lmsAction(s,actor,'charge');assert.equal(s.phase,'target');assert.equal(s.players.find(p=>p.id===actor).d12Charge,s.rolls[0]);
+ s=lmsAction(s,actor,'target',{target});s=lmsAction(s,actor,'attack');s=lmsAction(s,target,'defend',{},1000);assert.equal(s.phase,'clash');assert.throws(()=>lmsAction(s,actor,'resolve',{},2000));
+ s=lmsAction(s,actor,'resolve',{},6000);assert.equal(s.phase,'end');s=lmsAction(s,actor,'end');assert.equal(s.phase,'charge');assert.notEqual(s.order[s.active],actor);
+}
+console.log('PASS: 15+actual D20 difference; real 3/4 player LMS phases and actor gates');

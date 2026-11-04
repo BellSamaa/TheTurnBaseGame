@@ -269,7 +269,7 @@ export default function ThreeDiceCanvas({
                 : '0 0 8px rgba(250,204,21,0.9), 1px 1px 0 #000',
           }}
         >
-          {value !== null ? value : '?'}
+          {value !== null && value > 0 ? value : '?'}
         </span>
       </div>
     </div>

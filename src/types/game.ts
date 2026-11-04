@@ -136,6 +136,7 @@ export type BattlePhase =
   | 'game_over';
 
 export interface BattleState {
+  lms?: import('@/lib/lms').LmsState;
   revision?: number;
   purpleSky?: { id: string; startedAt: number };
   id: string;

@@ -12,6 +12,7 @@ import FriendsList from '@/components/friends/FriendsList';
 import SettingsPanel from '@/components/settings/SettingsPanel';
 import PresenceReporter from '@/components/auth/PresenceReporter';
 import AuthModals from '@/components/auth/AuthModals';
+import LmsBattle from '@/components/battle/LmsBattle';
 import BattleScreen from '@/components/battle/BattleScreen';
 
 // Dynamically import SpriteContactSheet for sprite audit and inspection
@@ -25,7 +26,7 @@ const SpriteContactSheet = dynamic(() => import('@/components/preview/SpriteCont
 });
 
 export default function GameMasterPage() {
-  const { currentPage, settings } = useGameStore();
+  const { currentPage, settings, battleState } = useGameStore();
   const langClass = settings?.language === 'vi' ? 'lang-vi' : 'lang-en';
 
   React.useEffect(() => {
@@ -69,7 +70,7 @@ export default function GameMasterPage() {
       {currentPage === 'weapons' && <WeaponsGallery />}
       {currentPage === 'friends' && <FriendsList />}
       {currentPage === 'settings' && <SettingsPanel />}
-      {currentPage === 'battle' && <BattleScreen />}
+      {currentPage === 'battle' && (battleState?.lms ? <LmsBattle /> : <BattleScreen />)}
       {currentPage === 'preview' && <SpriteContactSheet />}
     </main>
   );

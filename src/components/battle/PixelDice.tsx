@@ -385,7 +385,7 @@ export default function PixelDice({
                   diceType="d6"
                   theme="cyan"
                   isRolling={p1D6Rolling}
-                  value={p1D6Rolling ? shuffleP1D6 : (p1D6 ?? 6)}
+                  value={p1D6Rolling ? shuffleP1D6 : (p1D6 ?? 0)}
                   size={52}
                 />
               )}
@@ -407,7 +407,7 @@ export default function PixelDice({
               >
                 {p1D6Rolling
                   ? `D6: ${shuffleP1D6}`
-                  : p1D6 != null
+                  : p1D6 != null && p1D6 > 0
                   ? `D6: +${p1D6} PTS`
                   : `D6 (${p1Pts}/${p1PtsMax})`}
               </span>
@@ -593,7 +593,7 @@ export default function PixelDice({
                   diceType="d6"
                   theme="cyan"
                   isRolling={p2D6Rolling}
-                  value={p2D6Rolling ? shuffleP2D6 : (p2D6 ?? 6)}
+                  value={p2D6Rolling ? shuffleP2D6 : (p2D6 ?? 0)}
                   size={52}
                 />
               )}
@@ -615,7 +615,7 @@ export default function PixelDice({
               >
                 {p2D6Rolling
                   ? `D6: ${shuffleP2D6}`
-                  : p2D6 != null
+                  : p2D6 != null && p2D6 > 0
                   ? `D6: +${p2D6} PTS`
                   : `D6 (${p2Pts}/${p2PtsMax})`}
               </span>
