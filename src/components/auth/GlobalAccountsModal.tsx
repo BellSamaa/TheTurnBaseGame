@@ -1,5 +1,7 @@
 'use client';
 
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import {levelProgress,rankProgress} from '@/lib/progression';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
@@ -12,6 +14,8 @@ import { playClickSound } from '@/lib/soundEffects';
 
 interface SafeUserItem {
   id: string;
+  exp?:number;
+  equipped_frame?:number;
   presence?: "online" | "offline" | "lobby" | "battle" | "unknown";
   username: string;
   avatarConfig: any;
@@ -191,18 +195,7 @@ export default function GlobalAccountsModal({
                       key={user.id || user.username}
                       className="p-3 bg-black/60 border border-slate-700 hover:border-yellow-500/80 transition-all flex items-center gap-3 group relative overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
                     >
-                      {/* Avatar preview */}
-                      <div className="relative w-12 h-16 bg-[#07090e] border border-yellow-500/50 flex-shrink-0 flex items-center justify-center overflow-hidden">
-                        {user.avatarConfig ? (
-                          <CharacterRenderer character={user.avatarConfig} size="xs" showShadow={false} />
-                        ) : (
-                          <span className="text-xl">🧙</span>
-                        )}
-                        <span className="absolute bottom-0 inset-x-0 bg-yellow-500 text-black text-[6.5px] font-pixel font-bold text-center leading-none py-0.5">
-                          T{user.tier || 1}
-                        </span>
-                      </div>
-
+                      {user.avatarConfig&&<PlayerAvatar character={user.avatarConfig} frame={user.equipped_frame||0} size={64}/>}
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1 mb-0.5">
@@ -210,7 +203,7 @@ export default function GlobalAccountsModal({
                             {user.username}<span className={'ml-2 text-[8px] ' + (user.presence === 'offline' ? 'text-slate-500' : user.presence === 'battle' ? 'text-red-300' : 'text-emerald-300')}>{({online: '● Online', offline: '○ Offline', lobby: isEn ? '● Lobby' : '● Trong phòng', battle: isEn ? '⚔ In battle' : '⚔ Đang đấu', unknown: isEn ? 'Status unavailable' : 'Chưa có trạng thái'})[user.presence || 'unknown']}</span>
                           </span>
                           <span className="text-[8px] font-pixel text-yellow-400 bg-yellow-950/70 border border-yellow-500/40 px-1 py-0.2 whitespace-nowrap">
-                            {user.rankPoints || 0} PTS
+                            {rankProgress(user.rankPoints).name} · LV {levelProgress(user.exp).level}
                           </span>
                         </div>
 

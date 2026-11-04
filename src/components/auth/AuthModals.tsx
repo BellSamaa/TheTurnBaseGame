@@ -1,5 +1,6 @@
 'use client';
 
+import AccountPanel from '@/components/progression/AccountPanel';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -319,68 +320,10 @@ export default function AuthModals() {
                 </button>
               }
             >
+              <AccountPanel />
               <div className="flex flex-col md:flex-row gap-4 py-2">
-                {/* Left: Character Paper Doll Preview & Tier */}
-                <div className="flex flex-col items-center md:w-1/3 p-3 bg-black/80 border-2 border-purple-500/60">
-                  {/* Unified Sliced Sprites Character Renderer */}
-                  <div className="relative w-32 h-48 bg-slate-950 border border-slate-700 flex items-center justify-center overflow-hidden mb-2 shadow-[inset_0_0_15px_rgba(0,0,0,0.9)] p-2">
-                    <CharacterRenderer character={profile.character} size="sm" />
-                  </div>
-
-                  {/* Tier Frame Badge */}
-                  <div className="relative w-36 h-10 mb-2">
-                    <Image
-                      src={SPRITE_HELPERS.tier(profile.tier)}
-                      alt="Tier Badge"
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-
-                  <span className="text-[10px] text-yellow-300 font-bold">
-                    {profile.name}
-                  </span>
-                  <span className="text-[8px] text-cyan-300 mt-0.5">
-                    {CLASS_DEFINITIONS[profile.classType]?.nameVi}
-                  </span>
-
-                  <div className="mt-3 w-full">
-                    <PixelButton
-                      variant="gold"
-                      size="sm"
-                      onClick={() => {
-                        setAuthModal('none');
-                        setPage('character');
-                      }}
-                      className="w-full text-[8px]"
-                    >
-                      {isEn ? 'CUSTOMIZE GEAR' : 'TÙY BIẾN NGOẠI HÌNH'}
-                    </PixelButton>
-                  </div>
-                </div>
-
                 {/* Right: Stats, Bio & Account Management */}
                 <div className="flex-1 flex flex-col gap-3">
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div className="p-2 bg-slate-900 border border-slate-700 text-center">
-                      <span className="text-[8px] text-slate-400 block">{isEn ? 'RANK' : 'ĐIỂM HẠNG'}</span>
-                      <span className="text-xs font-bold text-yellow-400">{profile.rank}</span>
-                    </div>
-                    <div className="p-2 bg-slate-900 border border-slate-700 text-center">
-                      <span className="text-[8px] text-slate-400 block">{isEn ? 'WINS' : 'THẮNG'}</span>
-                      <span className="text-xs font-bold text-emerald-400">{profile.wins}</span>
-                    </div>
-                    <div className="p-2 bg-slate-900 border border-slate-700 text-center">
-                      <span className="text-[8px] text-slate-400 block">{isEn ? 'WIN RATE' : 'TỈ LỆ THẮNG'}</span>
-                      <span className="text-xs font-bold text-cyan-400">{winRate}%</span>
-                    </div>
-                    <div className="p-2 bg-slate-900 border border-slate-700 text-center">
-                      <span className="text-[8px] text-slate-400 block">{isEn ? 'TOP D20' : 'D20 CAO NHẤT'}</span>
-                      <span className="text-xs font-bold text-purple-400">{profile.highestD20}</span>
-                    </div>
-                  </div>
-
                   {/* Name Edit */}
                   <div>
                     <label className="text-[9px] text-yellow-300 font-bold block mb-1">

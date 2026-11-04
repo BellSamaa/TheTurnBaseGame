@@ -211,6 +211,7 @@ export interface RoomState {
 }
 
 export type GamePage =
+  | 'pve'
   | 'home'
   | 'play'
   | 'character'

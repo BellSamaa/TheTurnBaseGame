@@ -1,5 +1,7 @@
 'use client';
 
+import {rankProgress} from '@/lib/progression';
+import {useProgress} from '@/components/progression/AccountPanel';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
@@ -24,6 +26,7 @@ export default function RankedMatchmakingModal({ isOpen, onClose }: RankedMatchm
     setPage,
   } = useGameStore();
 
+  const accountProgress=useProgress();
   const isEn = settings.language === 'en';
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [status, setStatus] = useState<'searching' | 'matched' | 'error'>('searching');
@@ -257,7 +260,7 @@ export default function RankedMatchmakingModal({ isOpen, onClose }: RankedMatchm
               </div>
 
               <div className="text-right">
-                <div className="text-[7.5px] font-pixel text-yellow-500">TIER {tierNum}</div>
+                <div className="text-[7.5px] font-pixel text-yellow-500">{rankProgress(accountProgress.rankPoints).name} · {'★'.repeat(rankProgress(accountProgress.rankPoints).stars)}</div>
                 <div className="text-[9px] font-pixel font-bold text-yellow-300">{rankPts} RP</div>
               </div>
             </div>

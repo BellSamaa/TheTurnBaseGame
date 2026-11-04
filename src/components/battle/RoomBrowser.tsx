@@ -78,7 +78,7 @@ export default function RoomBrowser({
       const res = await fetch('/api/rooms');
       const data = await res.json();
       if (data.success && Array.isArray(data.rooms)) {
-        setRooms(data.rooms);
+        setRooms(data.rooms.filter((r:DbOnlineRoom)=>(r.gameMode||'classic')===initialGameMode));
       }
     } catch {
       // Ignore network hiccup
@@ -159,9 +159,9 @@ export default function RoomBrowser({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           host: hostParticipant,
-          mode: newRoomMode,
+          mode: initialGameMode==='last_man_standing'?'ranked':'casual',
           mapId: newRoomMap,
-          gameMode: newRoomGameMode,
+          gameMode: initialGameMode,
         }),
       });
 
@@ -319,7 +319,7 @@ export default function RoomBrowser({
   };
 
   const isHost = currentLobby && currentUser && currentLobby.host.id === currentUser.id;
-  const isLms = currentLobby?.gameMode === 'last_man_standing';
+  const isLms = (currentLobby?.gameMode || initialGameMode) === 'last_man_standing';
   const participantsList = currentLobby?.participants || (currentLobby ? [currentLobby.host, ...(currentLobby.guest ? [currentLobby.guest] : [])] : []);
   const myParticipant = participantsList.find((p) => p.id === currentUser?.id);
   const isMyReady = myParticipant ? myParticipant.isReady : (isHost ? currentLobby?.host.isReady : currentLobby?.guest?.isReady);
@@ -469,14 +469,7 @@ export default function RoomBrowser({
                   <label className="text-[8.5px] font-pixel text-yellow-300 font-bold block mb-1">
                     {isEn ? 'MATCH MODE:' : 'CHẾ ĐỘ THI ĐẤU:'}
                   </label>
-                  <select
-                    value={newRoomMode}
-                    onChange={(e) => setNewRoomMode(e.target.value as MatchType)}
-                    className="w-full bg-slate-900 border border-slate-700 p-2 text-xs text-yellow-300 font-pixel focus:outline-none"
-                  >
-                    <option value="casual">{isEn ? 'Casual Duel' : 'Đấu Thường (Casual)'}</option>
-                    <option value="ranked">{isEn ? 'Ranked Match' : 'Đấu Hạng (Ranked)'}</option>
-                  </select>
+                  <p className="text-yellow-200">{initialGameMode==='last_man_standing'?'Sinh tồn xếp hạng':'PvP vui vẻ'}</p>
                 </div>
 
                 <div>
@@ -497,10 +490,7 @@ export default function RoomBrowser({
                 </div>
                 <div>
                   <label className="text-[8.5px] font-pixel text-yellow-300 font-bold block mb-1">{isEn ? 'ROOM TYPE:' : 'LOẠI PHÒNG:'}</label>
-                  <select value={newRoomGameMode} onChange={(e) => setNewRoomGameMode(e.target.value as 'classic' | 'last_man_standing')} className="w-full bg-slate-900 border border-slate-700 p-2 text-xs text-red-300 font-pixel focus:outline-none">
-                    <option value="classic">{isEn ? 'Classic 1v1' : 'Cổ điển 1v1'}</option>
-                    <option value="last_man_standing">Last Man Standing (3–4)</option>
-                  </select>
+                  <p className="text-cyan-200">{initialGameMode==='last_man_standing'?'LMS · 3–4 người':'PvP thường · 1v1'} · PvE cùng bạn bè sẽ phát triển sau</p>
                 </div>
               </div>
 

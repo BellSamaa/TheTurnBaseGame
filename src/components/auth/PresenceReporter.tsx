@@ -18,7 +18,7 @@ export default function PresenceReporter() {
     };
     const activity = () => {
       const s = useGameStore.getState();
-      return s.currentPage === 'battle' && s.battleState?.phase !== 'game_over' ? 'battle' : s.onlineRoomCode ? 'lobby' : 'online';
+      return s.currentPage === 'pve' ? 'battle' : s.currentPage === 'battle' && s.battleState?.phase !== 'game_over' ? 'battle' : s.onlineRoomCode ? 'lobby' : 'online';
     };
     const beat = () => { if (!closed) { last = activity(); send(last); } };
     const unsubscribe = useGameStore.subscribe(() => { if (!closed && activity() !== last) beat(); });

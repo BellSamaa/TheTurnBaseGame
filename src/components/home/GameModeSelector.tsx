@@ -13,7 +13,7 @@ import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { playClickSound } from '@/lib/soundEffects';
 import RoomBrowser from '@/components/battle/RoomBrowser';
-import RankedMatchmakingModal from '@/components/battle/RankedMatchmakingModal';
+import RankedMatchmakingModal from '@/components/battle/RankLobby';
 import LastManStandingRulesModal from '@/components/battle/LastManStandingRulesModal';
 
 interface GameModeSelectorProps {
@@ -60,8 +60,8 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       nameEn: 'PVE BATTLE (VS AI)',
       badgeText: 'PVE',
       playersText: '1 VS AI',
-      descriptionVi: 'Đấu trí 1v1 với Boss AI thông minh. Rèn luyện xúc xắc, căn thời gian chiêu thức và leo cấp vũ khí.',
-      descriptionEn: 'Tactical 1v1 duel against a strategic AI opponent. Perfect to practice combos and skills.',
+      descriptionVi: 'Leo chuỗi bot mạnh dần từ vũ khí thường đến Secret. Nhận Gem, EXP và Ruby ở tầng cao.',
+      descriptionEn: 'Climb an endless series of stronger bots. Earn Gems, EXP and rare Rubies.',
       spriteImage: '/assets/sprites/ui/modes/mode_pve.png',
       isAvailable: true,
     },
@@ -71,8 +71,8 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       nameEn: 'RANK LAST MAN STANDING',
       badgeText: 'RANKED',
       playersText: 'SOLO SURVIVAL',
-      descriptionVi: 'Đấu sinh tồn sinh tử. Mỗi hiệp tăng dần sát thương xúc xắc. Người trụ vững cuối cùng giành chiến thắng!',
-      descriptionEn: 'High-stakes survival combat. Dice damage multipliers increase each round until one remains.',
+      descriptionVi: 'Phòng sinh tồn riêng 3–4 người. Buff bí mật, can thiệp xúc xắc và vòng bo.',
+      descriptionEn: 'Private 3–4 player rooms with hidden buffs, dice clashes and sudden death.',
       spriteImage: '/assets/sprites/ui/modes/mode_special.png',
       isAvailable: true,
     },
@@ -82,8 +82,8 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       nameEn: 'RANK PVP (ONLINE RANKED)',
       badgeText: 'LADDER',
       playersText: '1 VS 1',
-      descriptionVi: 'Tranh đoạt điểm xếp hạng danh vọng bậc cao! Leo từ Đồng, Bạc lên Đại Cao Thủ.',
-      descriptionEn: 'Competitive ranked matchmaking ladder. Climb tiers from Bronze to Grandmaster.',
+      descriptionVi: 'Đấu hạng 1v1 với người thật. Tích điểm, tăng sao, nhận quà và khung avatar.',
+      descriptionEn: 'Real 1v1 ranked matches. Earn stars, rewards and avatar frames.',
       spriteImage: '/assets/sprites/ui/modes/mode_ranked.png',
       isAvailable: true,
     },
@@ -131,17 +131,13 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
     // Last Man Standing: Open LMS room flow
     if (selectedModeId === 'last_man_standing') {
       setRoomBrowserInitialGameMode('last_man_standing');
-      setRoomBrowserInitialTab('create');
+      setRoomBrowserInitialTab('browse');
       setShowOnlineRooms(true);
       return;
     }
 
-    // PvE: Bot battle
-    startNewBattle({
-      mode: 'pve',
-      mapId: selectedMap,
-      opponentName: 'Tactical Overlord (AI)',
-    });
+    // PvE: Server-owned endless progression
+    useGameStore.getState().setPage('pve');
     onClose();
   };
 
@@ -182,8 +178,8 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
           }
         >
           {/* 4 Dedicated Sliced Mode Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4 mt-2">
-            {modes.map((mode) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mb-4 mt-2">
+            {modes.filter(mode=>mode.id!=='party').map((mode) => {
               const isSelected = selectedModeId === mode.id;
               const isLocked = !mode.isAvailable;
 
@@ -281,123 +277,8 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
             })}
           </div>
 
-          {/* Mode Special Action Banners */}
-          {selectedModeId === 'last_man_standing' && (
-            <div className="mb-4 p-3 bg-red-950/50 border-2 border-red-500/80 rounded flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
-              <div className="text-left">
-                <div className="text-[10px] font-pixel text-red-300 font-bold flex items-center gap-1.5">
-                  <span>👑 LAST MAN STANDING ARENA (3–4 NGƯỜI)</span>
-                </div>
-                <div className="text-[8px] font-sans text-slate-300 mt-0.5">
-                  {isEn
-                    ? 'Free-for-all 3–4 players. Create private room or browse open matches.'
-                    : 'Đấu trường sinh tử 3–4 người. Tạo phòng riêng hoặc tìm phòng đang đợi.'}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <PixelButton
-                  variant="frame"
-                  size="sm"
-                  onClick={() => setShowLmsRules(true)}
-                  className="font-pixel text-[8px]"
-                >
-                  {isEn ? '📖 RULES' : '📖 LUẬT CHƠI'}
-                </PixelButton>
-
-                <PixelButton
-                  variant="gold"
-                  size="sm"
-                  onClick={() => {
-                    setRoomBrowserInitialGameMode('last_man_standing');
-                    setRoomBrowserInitialTab('create');
-                    setShowOnlineRooms(true);
-                  }}
-                  className="font-pixel text-[8px] action-beacon"
-                >
-                  {isEn ? '+ CREATE LMS ROOM' : '+ TẠO PHÒNG LMS'}
-                </PixelButton>
-
-                <PixelButton
-                  variant="frame"
-                  size="sm"
-                  onClick={() => {
-                    setRoomBrowserInitialGameMode('last_man_standing');
-                    setRoomBrowserInitialTab('browse');
-                    setShowOnlineRooms(true);
-                  }}
-                  className="font-pixel text-[8px]"
-                >
-                  {isEn ? 'BROWSE LMS' : 'TÌM PHÒNG'}
-                </PixelButton>
-              </div>
-            </div>
-          )}
-
-          {selectedModeId === 'rank_pvp' && (
-            <div className="mb-4 p-3 bg-yellow-950/40 border-2 border-yellow-500/80 rounded flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
-              <div className="text-left">
-                <div className="text-[10px] font-pixel text-yellow-300 font-bold flex items-center gap-1.5">
-                  <span>⚔️ ĐẤU HẠNG TRỰC TUYẾN 1V1 (REAL MATCHMAKING)</span>
-                </div>
-                <div className="text-[8px] font-sans text-slate-300 mt-0.5">
-                  {isEn
-                    ? 'Matched against real players in queue. Win +25 RP, climb tiers from Bronze to Grandmaster!'
-                    : 'Ghép đôi trực tiếp với người chơi thật. Thắng nhận +25 điểm Rank, leo bảng xếp hạng!'}
-                </div>
-              </div>
-
-              <PixelButton
-                variant="gold"
-                size="sm"
-                onClick={() => setShowRankedMatchmaking(true)}
-                className="font-pixel text-[8.5px] action-beacon whitespace-nowrap"
-              >
-                {isEn ? '⚔️ FIND MATCH NOW' : '⚔️ TÌM TRẬN NGAY'}
-              </PixelButton>
-            </div>
-          )}
-
-          {/* Map Arena Selector */}
-          <div className="mb-4 p-2.5 bg-[#07090e] border border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[8.5px] text-yellow-400 font-pixel font-bold flex items-center gap-1">
-                <PixelIcon name="map" size={12} color="#facc15" />
-                <span>
-                  {isEn
-                    ? `SELECT BATTLE REALM (${MAP_DEFINITIONS.length} ARENAS):`
-                    : `CHỌN CHIẾN TRƯỜNG (${MAP_DEFINITIONS.length} ĐẤU TRƯỜNG):`}
-                </span>
-              </span>
-              <span className="text-[8px] text-cyan-300 font-pixel font-bold">
-                {isEn ? selectedMapInfo.name : selectedMapInfo.nameVi}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-1.5">
-              {MAP_DEFINITIONS.map((map) => (
-                <button
-                  key={map.id}
-                  onClick={() => {
-                    playClickSound();
-                    setSelectedMap(map.id);
-                  }}
-                  className={`
-                    relative aspect-video border overflow-hidden transition cursor-pointer
-                    ${
-                      selectedMap === map.id
-                        ? 'border-yellow-400 ring-2 ring-yellow-400 scale-105 z-10'
-                        : 'border-slate-700 opacity-60 hover:opacity-100'
-                    }
-                  `}
-                  title={isEn ? map.name : map.nameVi}
-                >
-                  <Image src={map.image} alt={map.name} fill className="object-cover" />
-                </button>
-              ))}
-            </div>
-          </div>
-
+          <p className="mode-guidance">{selectedModeId==='pve'?'Leo chuỗi đối thủ, nhận Gem và EXP; tầng cao có Ruby.':selectedModeId==='rank_pvp'?'Mở bảng Rank để xem sao, quà hạng và bắt đầu tìm trận.':selectedModeId==='last_man_standing'?'Tạo hoặc vào phòng sinh tồn 3–4 người. Tất cả sẵn sàng rồi chủ phòng bắt đầu.':'Chế độ đang phát triển.'}</p>
+          {selectedModeId==='last_man_standing'&&<button className="text-cyan-300 underline mb-3" onClick={()=>setShowLmsRules(true)}>Xem luật LMS</button>}
           {/* Bottom Action Bar */}
           <div className="flex items-center justify-between pt-2 border-t border-slate-800">
             <span className="text-[8px] font-pixel text-slate-400">

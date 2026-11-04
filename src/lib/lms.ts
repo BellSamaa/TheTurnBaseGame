@@ -13,8 +13,8 @@ export interface LmsState {
   target?: string; attack?: number; defense?: number; deadline?: number;
   rolls: number[]; log: string[]; winner?: string; revision: number;
 }
-export function createLms(participants: RoomParticipant[]): LmsState {
-  if (participants.length < 3 || participants.length > 4) throw Error('LMS cần 3–4 người');
+export function createLms(participants: RoomParticipant[], duel = false): LmsState {
+  if ((participants.length < (duel?2:3)) || participants.length > 4) throw Error('LMS cần 3–4 người');
   const players = participants.map(p => ({ id:p.id,name:p.name,character:p.character,classType:p.classType,
     weapon:WEAPON_DEFINITIONS[p.weaponId],hp:CLASS_DEFINITIONS[p.classType].baseHp,maxHp:CLASS_DEFINITIONS[p.classType].baseHp,
     skillCharge:0,d12Charge:0,isAttacker:false,petRockHp:0,bullets:6 }));
@@ -70,7 +70,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       if(s.phase!=='target'||!s.players.some(p=>p.id===args.target&&p.id!==actor&&p.hp>0))throw Error('Chọn người còn sống');
       s.target=args.target;s.phase='attack';
     } else if(action==='skill') {
-      if(!['target','attack'].includes(s.phase)||!args.slot)throw Error('Dùng skill trước khi tung Công');
+      if(!['target','attack'].includes(s.phase)||(args.slot!==1&&args.slot!==2))throw Error('Dùng skill trước khi tung Công');
       const victim=s.players.find(p=>p.id===args.target&&p.hp>0&&p.id!==actor);if(!victim)throw Error('Chọn mục tiêu skill');
       if(s.extras?.silencedRound===s.round)throw Error('Vòng này cấm kỹ năng');
       const cast=castChargedSkill(user,victim,args.slot,s.round,args.form,args.lockSlot);if(!cast)throw Error('Chưa đủ điều kiện dùng skill');

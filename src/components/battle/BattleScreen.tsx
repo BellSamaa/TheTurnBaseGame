@@ -1,4 +1,5 @@
 'use client';
+import RankResult from './RankResult';
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
@@ -1097,6 +1098,7 @@ export default function BattleScreen() {
   return (
     <div className="battle-screen relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-[#07090e] select-none text-slate-100">
       {battleState.purpleSky && <PurpleSkyEffect key={battleState.purpleSky.id} startedAt={battleState.purpleSky.startedAt} />}
+      <RankResult battleId={battleState.id} winner={winnerId} mode={battleState.mode}/>
       {/* 1. Background Arena Map */}
       <div className="absolute inset-0 z-0">
         <Image

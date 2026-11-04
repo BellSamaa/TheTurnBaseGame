@@ -17,6 +17,11 @@ async function handle(req: Request, mutation: boolean) {
       const setup = error.code === 'PGRST202' || error.code === '42P01';
       return NextResponse.json({ error: setup ? 'Cần chạy file SQL social-runtime trên Supabase trước.' : error.message, code: setup ? 'SETUP_REQUIRED' : 'SOCIAL_ERROR' }, { status: setup ? 503 : 400 });
     }
+    if(data.friends?.length){
+      const ids=data.friends.map((f:{userId:string})=>f.userId);
+      const [{data:accounts},{data:users}]=await Promise.all([db.from('game_accounts').select('user_id,exp,equipped_frame').in('user_id',ids),db.from('users').select('id,avatar_config,rank_points').in('id',ids)]);
+      data.friends=data.friends.map((f:{userId:string})=>({...f,...users?.find(u=>u.id===f.userId),...accounts?.find(a=>a.user_id===f.userId),id:(f as {id?:string}).id}));
+    }
     return NextResponse.json({ success: true, ...data }, { headers: { 'Cache-Control': 'no-store' } });
   } catch { return NextResponse.json({ error: 'Không thể kết nối. Vui lòng thử lại.' }, { status: 500 }); }
 }

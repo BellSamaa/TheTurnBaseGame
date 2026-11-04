@@ -1,7 +1,9 @@
 'use client';
+import RankResult from './RankResult';
 import { useEffect, useState } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
+import {BuffCard,BuffDraw} from './BuffCard';
 import {LMS_BUFFS,LMS_BUFF_HELP} from '@/lib/lmsBuffs';
 import type { LmsState } from '@/lib/lms';
 import { skillPresentation } from '@/lib/skillPresentation';
@@ -19,7 +21,8 @@ export default function LmsBattle(){
   const button=(text:string,move:string,enabled:boolean,args:Record<string,unknown>={})=><button disabled={busy||!enabled} className={'lms-action '+(enabled?'action-beacon':'')} onClick={()=>act(move,args)}>{text}</button>;
   const choices=s.players.filter(p=>p.id!==me?.id&&p.hp>0);
   const chosen=choices.some(p=>p.id===target)?target:choices[0]?.id;
-  return <div className="lms-screen">
+  return <div className="lms-screen"><RankResult battleId={battleState!.id} winner={s.winner} mode={battleState!.mode}/>
+    {me&&s.round===1&&<BuffDraw id={s.extras?.buffs[me.id]?.id??-1} battleId={battleState!.id} userId={me.id}/>}
     <header><strong>LAST MAN STANDING · VÒNG {s.round}</strong><span>PHÒNG {onlineRoomCode} · {s.players.filter(p=>p.hp>0).length} người sống</span></header>
     <main className="lms-arena">
       <div className="lms-center"><img src="/assets/sprites/ui/frames/battle_vs.png" alt="VS" width="90"/><strong>{attacker.name}</strong><span>{s.phase==='clash'?'CAN THIỆP · '+Math.max(0,Math.ceil(((s.deadline??0)-clock)/1000))+'s':s.phase.toUpperCase()}</span><span>CÔNG {s.attack??'—'} / THỦ {s.defense??'—'}</span><small>{victim?'→ '+victim.name:'Chọn đối thủ'}</small></div>
@@ -29,6 +32,7 @@ export default function LmsBattle(){
         <div className="lms-resources">{p.d12Charge??0} PTS · {p.classType}</div>
         <CharacterRenderer character={p.character} weapon={p.weapon} size="sm" facing={i%2===0?'right':'left'} />
         <span>{p.weapon.name}</span><div className="lms-dice">{p.id===attacker.id?'⚔ '+(s.attack??'—'):p.id===s.target?'🛡 '+(s.defense??'—'):'D20 —'} · D6 {p.id===attacker.id?s.rolls.join(' + ')||'—':'—'}</div>
+        <BuffCard id={s.extras?.buffs[p.id]?.id??-1} used={s.extras?.buffs[p.id]?.used}/>
         {p.hp<=0&&<strong>ĐÃ BỊ LOẠI</strong>}
       </section>)}
     </main>

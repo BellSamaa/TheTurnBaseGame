@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     };
 
     if (gameMode !== undefined && !['classic', 'last_man_standing'].includes(gameMode)) return NextResponse.json({ success: false, error: 'Invalid game mode' }, { status: 400 });
-    const room = await createRoom(hostParticipant, mode || 'casual', mapId || 'castle', gameMode || 'classic');
+    const room = await createRoom(hostParticipant, gameMode === 'last_man_standing' ? 'ranked' : 'casual', mapId || 'castle', gameMode || 'classic');
     return NextResponse.json({ success: true, room });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Server error';

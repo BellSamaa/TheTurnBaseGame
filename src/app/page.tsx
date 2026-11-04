@@ -12,6 +12,7 @@ import FriendsList from '@/components/friends/FriendsList';
 import SettingsPanel from '@/components/settings/SettingsPanel';
 import PresenceReporter from '@/components/auth/PresenceReporter';
 import AuthModals from '@/components/auth/AuthModals';
+import PveTower from '@/components/battle/PveTower';
 import LmsBattle from '@/components/battle/LmsBattle';
 import BattleScreen from '@/components/battle/BattleScreen';
 
@@ -66,6 +67,7 @@ export default function GameMasterPage() {
       {/* Screen Router */}
       {currentPage === 'home' && <HomeScreen />}
       {currentPage === 'play' && <PlayMenu />}
+      {currentPage === 'pve' && <PveTower />}
       {currentPage === 'character' && <CharacterCustomizer />}
       {currentPage === 'weapons' && <WeaponsGallery />}
       {currentPage === 'friends' && <FriendsList />}

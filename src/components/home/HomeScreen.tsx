@@ -1,5 +1,8 @@
 'use client';
 
+import PlayerAvatar from '@/components/ui/PlayerAvatar';
+import {rankProgress} from '@/lib/progression';
+import {WalletBar,useProgress} from '@/components/progression/AccountPanel';
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -26,6 +29,7 @@ export default function HomeScreen() {
     logoutUser,
   } = useGameStore();
 
+  const accountProgress=useProgress();
   const lang = settings.language;
   const isEn = lang === 'en';
 
@@ -58,7 +62,8 @@ export default function HomeScreen() {
         <ParticleEffect density={24} />
 
         {/* Top Header / Transparent Navigation Toolbar */}
-        <header className="relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-end gap-3">
+        <header className="home-toolbar relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-end gap-3">
+          <WalletBar />
           {/* Right Toolbar: Audio + Lang + Auth Profile */}
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
             {/* Audio Controls with enchant glow */}
@@ -115,14 +120,12 @@ export default function HomeScreen() {
                   }}
                   className="flex items-center gap-2 bg-yellow-950/80 hover:bg-yellow-900/90 border-2 border-yellow-400/70 px-3 py-1.5 transition-all group cursor-pointer shadow-[0_0_12px_rgba(250,204,21,0.3)]"
                 >
-                  <div className="relative w-6 h-8 border border-yellow-400 bg-black overflow-hidden flex items-center justify-center">
-                    <CharacterRenderer character={currentUser.avatarConfig} size="xs" showShadow={false} />
-                  </div>
+                  <PlayerAvatar character={currentUser.avatarConfig} frame={accountProgress.equipped_frame} size={40}/>
                   <div className="text-left">
                     <div className="text-[10px] sm:text-xs text-yellow-300 font-pixel leading-tight group-hover:text-yellow-100">
                       {currentUser.username}
                     </div>
-                    <div className="text-[8px] text-slate-400 font-pixel">TIER {currentUser.tier || 1}</div>
+                    <div className="text-[8px] text-slate-400 font-pixel">{rankProgress(accountProgress.rankPoints).name}</div>
                   </div>
                 </button>
                 <button
