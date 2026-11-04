@@ -50,12 +50,20 @@ DROP POLICY IF EXISTS "Public can record ranked matches" ON public.ranked_matche
 CREATE POLICY "Public can record ranked matches" ON public.ranked_matches
   FOR INSERT WITH CHECK (true);
 
--- Keep the existing profile/user rating columns usable by the ranked queue.
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS rank_points integer NOT NULL DEFAULT 1000;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS wins integer NOT NULL DEFAULT 0;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS losses integer NOT NULL DEFAULT 0;
+-- This installation stores player profiles in public.users (there is no
+-- public.profiles table), so do not reference a non-existent relation.
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS rank_points integer NOT NULL DEFAULT 1000;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS wins integer NOT NULL DEFAULT 0;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS losses integer NOT NULL DEFAULT 0;
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.ranked_matches;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'ranked_matches'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.ranked_matches;
+  END IF;
+END $$;
