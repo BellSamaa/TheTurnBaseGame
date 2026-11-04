@@ -24,6 +24,10 @@ export default function RoomBrowser({
   initialTab = 'browse',
 }: RoomBrowserProps) {
   const { profile, settings, currentUser, setOnlineRoomCode, setBattleState, setPage, setAuthModal, onlineRoomCode } = useGameStore();
+  const [friendOptions,setFriendOptions]=useState<Array<{id:string;name:string;userId?:string}>>([]);
+  const [inviteTarget,setInviteTarget]=useState('');
+  const [invitations,setInvitations]=useState<Array<{id:string;room_code:string}>>([]);
+  useEffect(()=>{if(!currentUser)return;fetch('/api/social').then(r=>r.json()).then(b=>setFriendOptions(b.friends||[])).catch(()=>{});const refresh=()=>fetch('/api/room-invites').then(r=>r.json()).then(b=>setInvitations(b.invites||[])).catch(()=>{});refresh();const t=setInterval(refresh,5000);return()=>clearInterval(t);},[currentUser]);
   const lang = settings.language;
   const isEn = lang === 'en';
 
@@ -35,7 +39,7 @@ export default function RoomBrowser({
   const [isLoading, setIsLoading] = useState(false);
 
   // Create room options
-  const [newRoomMode, setNewRoomMode] = useState<MatchType>('casual');
+  const [newRoomMode, setNewRoomMode] = useState<MatchType>(initialGameMode === 'last_man_standing' ? 'ranked' : 'casual');
   const [newRoomMap, setNewRoomMap] = useState<string>(MAP_DEFINITIONS[0].id);
   const [newRoomGameMode, setNewRoomGameMode] = useState<'classic' | 'last_man_standing'>(initialGameMode);
 
@@ -344,6 +348,10 @@ export default function RoomBrowser({
             </div>
           )}
 
+              <div className="flex flex-wrap gap-2 p-2">
+              {invitations.map(inv=><button className="border border-cyan-500 px-3 py-2 text-cyan-200" key={inv.id} onClick={()=>handleJoinRoom(inv.room_code)}>Lời mời phòng #{inv.room_code} · Vào phòng</button>)}
+              {currentLobby&&<><select className="bg-slate-900 p-2" aria-label="Mời bạn bè" value={inviteTarget} onChange={e=>setInviteTarget(e.target.value)}><option value="">Chọn bạn bè</option>{friendOptions.map(f=><option key={f.id} value={f.userId||f.id}>{f.name}</option>)}</select><button className="border border-yellow-400 px-3 py-2" disabled={!inviteTarget} onClick={async()=>{const r=await fetch('/api/room-invites',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:currentLobby.code,target:inviteTarget})});const b=await r.json();setErrorMessage(r.ok?'Đã gửi lời mời':b.error);}}>Mời vào phòng</button></>}
+            </div>
           {/* Navigation Tabs */}
           {activeTab !== 'lobby' && (
             <div className="flex gap-2 mb-4">
@@ -374,7 +382,7 @@ export default function RoomBrowser({
           {/* 1. BROWSE ROOMS TAB */}
           {activeTab === 'browse' && (
             <div className="flex flex-col gap-4">
-              {/* Quick Join via 4-Digit Code */}
+            {/* Quick Join via 4-Digit Code */}
               <div className="p-3 bg-slate-900/90 border border-yellow-500/60 flex flex-col sm:flex-row gap-2 items-center">
                 <div className="flex-1 w-full flex items-center gap-2">
                   <span className="text-[9px] font-pixel text-yellow-300 font-bold whitespace-nowrap">

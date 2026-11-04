@@ -1,5 +1,6 @@
 'use client';
 
+import {LMS_BUFFS,LMS_BUFF_HELP} from '@/lib/lmsBuffs';
 import React from 'react';
 import { motion } from 'framer-motion';
 import PixelFrame from '@/components/ui/PixelFrame';
@@ -45,8 +46,8 @@ export default function LastManStandingRulesModal({
           }
         >
           <div className="p-4 sm:p-5 text-left space-y-4 max-h-[75vh] overflow-y-auto text-slate-200">
-            <p className="border border-amber-500 p-3 text-sm text-amber-200">Bản thử nghiệm hiện có: 3–4 người, 200 HP gốc, sát thương 15 + chênh lệch D20. Sạc D6 → dùng skill/chọn mục tiêu → Công/Thủ → 5 giây can thiệp (3 PTS đổi ±1 Công) → kết thúc lượt. Hạ gục hồi 30 HP và nhận 5 PTS. Bộ 20 buff ẩn, vòng bo và lời mời bạn bè trong game chưa được bật.</p>
-            {/* Header intro */}
+            <p className="border border-amber-500 p-3 text-sm text-amber-200">Bản thử nghiệm hiện có: 3–4 người, 200 HP gốc, sát thương 15 + chênh lệch D20. Sạc D6 → dùng skill/chọn mục tiêu → Công/Thủ → 5 giây can thiệp (3 PTS đổi ±1 Công) → kết thúc lượt. Hạ gục hồi 30 HP và nhận 5 PTS. Mỗi người có 1 trong 20 buff ẩn, lật một lần đúng điều kiện. Vòng bo từ vòng 8 gây 10 HP, mỗi vòng tăng 5. Bom nổ sau 2 vòng. Buff Im Lặng cấm skill, can thiệp PTS và buff trong vòng đó.</p>
+            <details><summary>Danh sách 20 buff</summary><ol>{LMS_BUFFS.map((name,i)=><li key={name}>{i+1}. {name}: {LMS_BUFF_HELP[i]}</li>)}</ol></details>{/* Header intro */}
             <div className="bg-yellow-950/40 border border-yellow-500/50 p-3 rounded text-center">
               <h3 className="text-xs sm:text-sm font-pixel text-yellow-300 font-bold mb-1">
                 {isEn ? '🔥 COLOSSEUM BATTLE ROYALE (3–4 PLAYERS) 🔥' : '🔥 ĐẤU TRƯỜNG SINH TỬ VÒNG TRÒN (3–4 ĐẤU SĨ) 🔥'}

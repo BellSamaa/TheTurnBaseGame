@@ -334,7 +334,7 @@ export async function listOpenRooms(): Promise<DbOnlineRoom[]> {
   if (sb) {
     const { error: cleanupError } = await sb.from('rooms').delete().neq('status', 'playing').lt('last_active', Date.now() - 5 * 60 * 1000);
     if (cleanupError) throw new Error(cleanupError.message);
-    const { data, error } = await sb.from('rooms').select('code').eq('status', 'waiting').gt('last_active', Date.now() - 5 * 60 * 1000);
+    const { data, error } = await sb.from('rooms').select('code').in('status', ['waiting','ready']).gt('last_active', Date.now() - 5 * 60 * 1000);
     if (error) throw new Error(error.message);
     const rooms = await Promise.all((data || []).map(r => getRoomByCodeAsync(r.code)));
     return rooms.filter((r): r is DbOnlineRoom => r !== null);
@@ -343,7 +343,7 @@ export async function listOpenRooms(): Promise<DbOnlineRoom[]> {
   const db = loadDatabase();
   const now = Date.now();
   return Object.values(db.rooms)
-    .filter((r) => r.status === 'waiting' && now - r.lastActive < 5 * 60 * 1000)
+    .filter((r) => ['waiting','ready'].includes(r.status) && now - r.lastActive < 5 * 60 * 1000)
     .sort((a, b) => b.createdAt - a.createdAt);
 }
 

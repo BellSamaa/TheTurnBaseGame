@@ -1,3 +1,4 @@
+import { finishRank } from '@/lib/onlineRuntime';
 import { createLms, lmsAction } from '@/lib/lms';
 import { sessionUser } from '@/lib/serverAuth';
 import { NextResponse } from 'next/server';
@@ -17,6 +18,13 @@ interface RouteContext {
   params: Promise<{ code: string }>;
 }
 
+async function roomView(room: import('@/lib/serverDb').DbOnlineRoom) {
+ if(room.status==='finished'&&room.mode==='ranked'&&room.battleState?.winnerId&&room.battleState.winnerId!=='draw'&&!room.rankedResultRecorded){await finishRank(room.code);room.rankedResultRecorded=true;}
+ const view=structuredClone(room);const actor=await sessionUser();
+ const extras=view.battleState?.lms?.extras;
+ if(extras){for(const [id,buff]of Object.entries(extras.buffs))if(id!==actor&&!buff.revealed)buff.id=-1;extras.bombs=[];}
+ return view;
+}
 export async function GET(req: Request, context: RouteContext) {
   try {
     const { code } = await context.params;
@@ -27,7 +35,7 @@ export async function GET(req: Request, context: RouteContext) {
         { status: 404 }
       );
     }
-    return NextResponse.json({ success: true, room });
+    return NextResponse.json({ success: true, room:await roomView(room) });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Server error';
     return NextResponse.json({ success: false, error: message }, { status: 500 });
@@ -47,6 +55,7 @@ export async function POST(req: Request, context: RouteContext) {
 
     const body = await req.json();
     const { action } = body;
+    if(room.gameMode==='last_man_standing'&&action!=='lms_action'){const actor=await sessionUser();if(!actor||((body.userId||body.guest?.id)&&actor!==(body.userId||body.guest?.id)))return NextResponse.json({error:'Sign in required'},{status:401});}
 
     if (action === 'heartbeat') {
       if (body.userId !== room.host.id) return NextResponse.json({ success: false }, { status: 403 });
@@ -107,11 +116,12 @@ export async function POST(req: Request, context: RouteContext) {
     if (action === 'lms_action') {
       const actor = await sessionUser();
       if (!actor || !room.battleState?.lms || room.status !== 'playing') return NextResponse.json({error:'Không có trận LMS'}, {status:403});
-      if (body.expectedRevision !== room.battleState.lms.revision) return NextResponse.json({room,error:'Trạng thái đã thay đổi, thử lại'}, {status:409});
+      if (body.expectedRevision !== room.battleState.lms.revision) return NextResponse.json({room:await roomView(room),error:'Trạng thái đã thay đổi, thử lại'}, {status:409});
       room.battleState.lms = lmsAction(room.battleState.lms, actor, body.move, body.args);
       if (room.battleState.lms.winner) { room.battleState.winnerId=room.battleState.lms.winner; room.status='finished'; }
       await updateRoom(room);
-      return NextResponse.json({success:true,room});
+      if(room.status==='finished'&&room.mode==='ranked'&&room.battleState?.winnerId!=='draw')await finishRank(room.code);
+      return NextResponse.json({success:true,room:await roomView(room)});
     }
     // 2. TOGGLE READY STATUS
     if (action === 'ready') {
@@ -237,6 +247,7 @@ export async function POST(req: Request, context: RouteContext) {
 
     // 4. BATTLE UPDATE (Action Sync from either player)
     if (action === 'battle_update') {
+      if(room.gameMode==='last_man_standing')return NextResponse.json({error:'Use LMS actions'},{status:400});
       const { battleState } = body;
       if (body.userId !== room.host.id && body.userId !== room.guest?.id) return NextResponse.json({ success: false }, { status: 403 });
       if (room.status !== 'playing' || !room.battleState || body.expectedRevision !== (room.battleState.revision ?? 0)) return NextResponse.json({ success: false, room }, { status: 409 });
@@ -245,27 +256,10 @@ export async function POST(req: Request, context: RouteContext) {
         room.battleState = battleState;
         if (battleState.winnerId) {
           room.status = 'finished';
-          if (room.mode === 'ranked' && !room.rankedResultRecorded) {
-            const winnerId = battleState.winnerId;
-            const loserId = winnerId === room.host.id ? room.guest?.id : room.host.id;
-            if (loserId) {
-              const [winner, loser] = await Promise.all([getUserByIdAsync(winnerId), getUserByIdAsync(loserId)]);
-              if (winner && loser) {
-                const expected = 1 / (1 + Math.pow(10, (loser.rankPoints - winner.rankPoints) / 400));
-                const delta = Math.max(15, Math.min(35, Math.round(32 * (1 - expected))));
-                winner.rankPoints += delta;
-                winner.tier = calculateTier(winner.rankPoints);
-                winner.wins += 1;
-                loser.rankPoints = Math.max(0, loser.rankPoints - delta);
-                loser.tier = calculateTier(loser.rankPoints);
-                loser.losses += 1;
-                await Promise.all([saveUserAsync(winner), saveUserAsync(loser)]);
-                room.rankedResultRecorded = true;
-              }
-            }
-          }
+
         }
         await updateRoom(room);
+        if (room.status === 'finished' && room.mode === 'ranked') await finishRank(room.code);
       }
       return NextResponse.json({ success: true, room });
     }
@@ -277,9 +271,10 @@ export async function POST(req: Request, context: RouteContext) {
         // Host left - delete room
         await deleteRoom(room.code);
         return NextResponse.json({ success: true, message: 'Room deleted' });
-      } else if (room.guest && room.guest.id === userId) {
-        room.guest = null;
-        room.status = 'waiting';
+      } else if (room.participants?.some(p=>p.id===userId) || room.guest?.id===userId) {
+        room.participants=(room.participants||[room.host, ...(room.guest?[room.guest]:[])]).filter(p=>p.id!==userId).map(p=>({...p,isReady:false}));
+        room.guest=room.participants.find(p=>p.id!==room.host.id)||null;
+        room.status = room.participants.length>1?'ready':'waiting';
         await updateRoom(room);
         return NextResponse.json({ success: true, room });
       }

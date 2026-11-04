@@ -2,18 +2,20 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
+import {LMS_BUFFS,LMS_BUFF_HELP} from '@/lib/lmsBuffs';
 import type { LmsState } from '@/lib/lms';
 import { skillPresentation } from '@/lib/skillPresentation';
 
 export default function LmsBattle(){
   const {battleState,onlineRoomCode,currentUser,setBattleState,setPage}=useGameStore();
-  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[target,setTarget]=useState(''),[form,setForm]=useState(3),[meteor,setMeteor]=useState(20),[voidForm,setVoidForm]=useState(1),[lock,setLock]=useState<1|2>(1),[clock,setClock]=useState(Date.now());
+  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[target,setTarget]=useState(''),[form,setForm]=useState(3),[meteor,setMeteor]=useState(20),[voidForm,setVoidForm]=useState(1),[lock,setLock]=useState<1|2>(1),[clock,setClock]=useState(Date.now()),[buffChoice,setBuffChoice]=useState('attack'),[trade,setTrade]=useState('1');
   const s=battleState?.lms;
-  useEffect(()=>{let active=true;const t=setInterval(async()=>{setClock(Date.now());try{const r=await fetch('/api/rooms/'+onlineRoomCode,{cache:'no-store'});const b=await r.json();if(active&&b.room?.battleState)setBattleState(b.room.battleState);}catch{}},700);return()=>{active=false;clearInterval(t);};},[onlineRoomCode,setBattleState]);
+  useEffect(()=>{let active=true;const t=setInterval(async()=>{setClock(Date.now());try{const r=await fetch('/api/rooms/'+onlineRoomCode,{cache:'no-store'});const b=await r.json();if(active&&b.room?.battleState)setBattleState(old=>!old?.lms||(b.room.battleState.lms?.revision??-1)>=old.lms.revision?b.room.battleState:old);}catch{}},700);return()=>{active=false;clearInterval(t);};},[onlineRoomCode,setBattleState]);
+  useEffect(()=>{if(!s?.winner)return;fetch('/api/auth/profile',{cache:'no-store'}).then(r=>r.json()).then(b=>{if(b.user)useGameStore.setState(st=>({currentUser:b.user,profile:{...st.profile,rank:b.user.rankPoints,tier:b.user.tier,wins:b.user.wins,losses:b.user.losses}}));}).catch(()=>{});},[s?.winner]);
   if(!s)return null;
   const me=s.players.find(p=>p.id===currentUser?.id),attacker=s.players.find(p=>p.id===s.order[s.active])!,mine=me?.id===attacker.id;
   const victim=s.players.find(p=>p.id===s.target);
-  async function act(move:string,args:Record<string,unknown>={}){if(busy)return;setBusy(true);setError('');try{const r=await fetch('/api/rooms/'+onlineRoomCode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'lms_action',move,args,expectedRevision:s!.revision})});const b=await r.json();if(b.room?.battleState)setBattleState(b.room.battleState);if(!r.ok)throw Error(b.error);}catch(e){setError(e instanceof Error?e.message:'Mất kết nối');}finally{setBusy(false);}}
+  async function act(move:string,args:Record<string,unknown>={}){if(busy)return;setBusy(true);setError('');try{const r=await fetch('/api/rooms/'+onlineRoomCode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'lms_action',move,args,expectedRevision:s!.revision})});const b=await r.json();if(b.room?.battleState)setBattleState(old=>!old?.lms||(b.room.battleState.lms?.revision??-1)>=old.lms.revision?b.room.battleState:old);if(!r.ok)throw Error(b.error);}catch(e){setError(e instanceof Error?e.message:'Mất kết nối');}finally{setBusy(false);}}
   const button=(text:string,move:string,enabled:boolean,args:Record<string,unknown>={})=><button disabled={busy||!enabled} className={'lms-action '+(enabled?'action-beacon':'')} onClick={()=>act(move,args)}>{text}</button>;
   const choices=s.players.filter(p=>p.id!==me?.id&&p.hp>0);
   const chosen=choices.some(p=>p.id===target)?target:choices[0]?.id;
@@ -30,7 +32,15 @@ export default function LmsBattle(){
         {p.hp<=0&&<strong>ĐÃ BỊ LOẠI</strong>}
       </section>)}
     </main>
-    <footer className="lms-controls"><div role="status">{error|| (s.winner?'CHIẾN THẮNG: '+s.players.find(p=>p.id===s.winner)?.name:mine?'Lượt của bạn':s.phase==='defense'&&victim?.id===me?.id?'Bạn cần tung phòng thủ':'Đang chờ '+attacker.name)}</div>
+    <footer className="lms-controls"><div role="status">{error|| (s.winner?s.winner==='draw'?'HÒA: không còn người sống':'CHIẾN THẮNG: '+s.players.find(p=>p.id===s.winner)?.name:mine?'Lượt của bạn':s.phase==='defense'&&victim?.id===me?.id?'Bạn cần tung phòng thủ':'Đang chờ '+attacker.name)}</div>
+      {me&&s.extras&&<details className="lms-buff" open><summary>BUFF CỦA BẠN · {LMS_BUFFS[s.extras.buffs[me.id]?.id]??'Ẩn'} · {s.extras.buffs[me.id]?.used?'ĐÃ DÙNG':'CHƯA LẬT'}</summary>
+        <p>{LMS_BUFF_HELP[s.extras.buffs[me.id]?.id]}</p><p>Chọn mục tiêu bên dưới nếu buff yêu cầu. Mỗi buff dùng một lần; server kiểm tra điều kiện lúc bấm.</p>
+        <select aria-label="Mục tiêu buff" value={chosen} onChange={e=>setTarget(e.target.value)}>{choices.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
+        <select aria-label="Tùy chọn buff" value={buffChoice} onChange={e=>setBuffChoice(e.target.value)}><option value="attack">D20 Công / đổi PTS thành HP</option><option value="defense">D20 Thủ</option><option value="hp">Đổi HP thành PTS</option></select>
+        {buffChoice==='hp'&&<input type="number" min="1" value={trade} onChange={e=>setTrade(e.target.value)} aria-label="PTS muốn mua" className="bg-slate-900 p-2"/>}
+        {button('LẬT BUFF','buff',!s.extras.buffs[me.id]?.used&&me.hp>0,{target:buffChoice==='hp'?trade:chosen,choice:buffChoice})}
+        <span>Vòng bo từ vòng {s.extras.suddenRound}. Buff người khác: {s.players.filter(p=>p.id!==me.id).map(p=>p.name+': '+(s.extras!.buffs[p.id]?.revealed?LMS_BUFFS[s.extras!.buffs[p.id].id]:'ÚP')).join(' · ')}</span>
+      </details>}
       {s.phase==='charge'&&button('TUNG D6 '+(s.rolls.length+1)+'/'+(me?.classType==='mage'?2:1),'charge',mine)}
       {mine&&['target','attack'].includes(s.phase)&&<><select aria-label="Mục tiêu" value={chosen} onChange={e=>setTarget(e.target.value)}>{choices.map(p=><option key={p.id} value={p.id}>{p.name} · {p.hp} HP</option>)}</select>
         {button('CHỌN MỤC TIÊU','target',s.phase==='target',{target:chosen})}

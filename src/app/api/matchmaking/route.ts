@@ -1,78 +1,9 @@
-import { NextResponse } from 'next/server';
-import {
-  joinMatchmakingQueueAsync,
-  pollMatchmakingQueueAsync,
-  leaveMatchmakingQueueAsync,
-  type MatchmakingPlayer,
-} from '@/lib/serverDb';
-
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
-    }
-
-    const result = await pollMatchmakingQueueAsync(userId);
-    return NextResponse.json({ success: true, ...result });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Server error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
-  }
+import {NextResponse} from 'next/server';
+import {sessionUser,sameOrigin} from '@/lib/serverAuth';
+import {persistentMatch} from '@/lib/onlineRuntime';
+async function handle(req:Request){
+ if(req.method!=='GET'&&!sameOrigin(req))return NextResponse.json({error:'Forbidden'},{status:403});
+ const actor=await sessionUser();if(!actor)return NextResponse.json({error:'Vui lòng đăng nhập'},{status:401});
+ try{const body=req.method==='POST'?await req.json():{};const action=req.method==='GET'?'poll':req.method==='DELETE'?'leave':body.action==='join'?'join':'leave';return NextResponse.json({success:true,...await persistentMatch(actor,action)});}catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Server error'},{status:503});}
 }
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { action, user, userId } = body;
-
-    if (action === 'join') {
-      if (!user || !user.id || !user.username) {
-        return NextResponse.json({ success: false, error: 'User payload required' }, { status: 400 });
-      }
-
-      const player: MatchmakingPlayer = {
-        userId: user.id,
-        username: user.username,
-        rankPoints: user.rankPoints ?? 1000,
-        classType: user.classType || user.selectedClass || 'warrior',
-        weaponId: user.weaponId || user.selectedWeapon || 'greatsword',
-        avatarConfig: user.avatarConfig || user.character,
-      };
-
-      const result = await joinMatchmakingQueueAsync(player);
-      return NextResponse.json({ success: true, ...result });
-    }
-
-    if (action === 'leave' || action === 'cancel') {
-      const targetId = userId || user?.id;
-      if (!targetId) {
-        return NextResponse.json({ success: false, error: 'User ID required' }, { status: 400 });
-      }
-      await leaveMatchmakingQueueAsync(targetId);
-      return NextResponse.json({ success: true, message: 'Left matchmaking queue' });
-    }
-
-    return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Server error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
-  }
-}
-
-export async function DELETE(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get('userId');
-    if (!userId) {
-      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 });
-    }
-    await leaveMatchmakingQueueAsync(userId);
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Server error';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
-  }
-}
+export const GET=handle;export const POST=handle;export const DELETE=handle;
