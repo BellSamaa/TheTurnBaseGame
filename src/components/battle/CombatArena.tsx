@@ -17,6 +17,8 @@ import {playDiceRollSound,playHitSound,playSkillSound} from '@/lib/soundEffects'
 export default function CombatArena({state:s,viewer,busy=false,title,onSurrender,buffs=false,stageSequence,children}:{state:LmsState;viewer?:string;busy?:boolean;title:string;onSurrender:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];children:React.ReactNode}){
   const mapId=useGameStore(st=>st.battleState?.mapId)||'castle';
   const map=MAP_DEFINITIONS.find(m=>m.id===mapId)||MAP_DEFINITIONS[0];
+  const arenaRef=useRef<HTMLDivElement>(null);
+  useEffect(()=>{const parent=arenaRef.current?.parentElement;if(!parent)return;parent.style.setProperty("--battle-map",`url("${map.image.replace(/\.png$/,'.webp')}")`);return()=>{parent.style.removeProperty("--battle-map");};},[map.image]);
   const stages=stageSequence||['charge','target','attack','defense','clash','end'];
   const lang=useGameStore(st=>st.settings.language),en=lang==='en';
   const [event,setEvent]=useState<LmsState['lastEvent']>(),[rolling,setRolling]=useState(false);
@@ -26,7 +28,7 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   const active=s.players.find(p=>p.id===s.order[s.active])!,victim=s.players.find(p=>p.id===s.target);
   useEffect(()=>{if(!s.lastEvent||seen.current===s.lastEvent.id)return;seen.current=s.lastEvent.id;setEvent(s.lastEvent);s.lastEvent.slot?playSkillSound():playHitSound();const t=setTimeout(()=>setEvent(undefined),1800);return()=>clearTimeout(t);},[s.lastEvent?.id]);
   useEffect(()=>{const key=[s.round,s.active,s.rolls.join(','),s.attack,s.defense].join(':');if(lastRoll.current&&lastRoll.current!==key){setRolling(true);playDiceRollSound();const t=setTimeout(()=>setRolling(false),700);lastRoll.current=key;return()=>clearTimeout(t);}lastRoll.current=key;},[s.round,s.active,s.rolls.length,s.attack,s.defense]);
-  return <div className={'combat-arena battle-balanced '+(buffs?'combat-party':'combat-duel')}>
+  return <div ref={arenaRef} className={'combat-arena battle-balanced '+(buffs?'combat-party':'combat-duel')}>
     <header className="combat-topbar"><div><small>{title}</small><h2>{en?'ROUND':'VÒNG'} {s.round}</h2></div><div className="combat-turn"><b>{active.name}</b><span>{phaseLabel(s.phase)}</span></div><button className="combat-surrender" disabled={busy||!!s.winner} onClick={onSurrender}>{en?'Surrender':'Đầu hàng'}</button></header>
     <nav className="combat-phase-bar" aria-label={en?'Battle phases':'Giai đoạn chiến đấu'}>{stages.map((phase,i)=><span key={phase} aria-current={s.phase===phase?'step':undefined} className={s.phase===phase?'phase-current':''}><i>{i+1}</i>{phaseLabel(phase as LmsState['phase'])}</span>)}</nav>
     <div className="combat-roll-notice" role="status" title={s.log[0]}>{en?s.log[0]:(s.logVi||s.log)[0]}</div>
@@ -35,9 +37,9 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
       {displayPlayers.map((p,i)=>{const side=i%2===0?'left':'right';return <section key={p.id} className={'combat-seat combat-seat-'+i+(p.id===active.id?' combat-active':'')+(p.hp<=0?' combat-out':'')}>
         <div className="combat-name"><b>{p.id==='pve_bot'?tx(p.name):p.name}</b><small>{p.id===viewer?(en?'YOU':'BẠN'):p.hp<=0?(en?'ELIMINATED':'ĐÃ BỊ LOẠI'):p.id===active.id?'ATK':p.id===victim?.id?'DEF':''}</small></div>
         <HealthBar current={p.hp} max={p.maxHp}/><RockHealthBar player={p}/>
-        <div className="combat-fighter"><WeaponStand weaponId={p.weapon.id} side={side}/><div className="combat-avatar"><CharacterRenderer character={p.character} weapon={p.weapon} size={buffs?'md':'lg'} facing={side==='left'?'right':'left'} animation={busy&&p.id===viewer?'walk':'idle'}/></div><RockCompanion player={p} side={side}/>
+        <div className="combat-fighter"><WeaponStand weaponId={p.weapon.id} side={side}/><div className="combat-avatar"><CharacterRenderer character={p.character} weapon={p.weapon} size={buffs?'md':'lg'} facing={side==='left'?'right':'left'} animation="idle"/></div><RockCompanion player={p} side={side}/>
           {p.immuneDamageNext&&<div className="combat-immunity" title="Immune"/>}
-          {event?.target===p.id&&<VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:buffs?120:180}}/>}
+          {event?.target===p.id&&<div className="combat-hit-overlay"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:buffs?120:180}}/></div>}
         </div>
         <div className="combat-equipment"><img src={p.weapon.image} alt=""/><span>{en?p.weapon.name:p.weapon.nameVi}<small>{en?CLASS_DEFINITIONS[p.classType].name:CLASS_DEFINITIONS[p.classType].nameVi} · {p.weapon.tier}</small></span></div>
         <div className="combat-stats"><b>{p.d12Charge??0} PTS</b>{p.weapon.id==='revolver'&&<span>◈ {p.bullets??6}/6</span>}{p.burnTicks? <span title={en?'Burn turns remaining':'Số lượt thiêu đốt còn lại'}>🔥 {p.burnTicks}</span>:null}{p.panicTurns?<span title="Panic −5 ATK">⚠ {p.panicTurns}</span>:null}{p.lockedSkill&&p.skillLockTurn===s.round?<span>🔒 S{p.lockedSkill}</span>:null}</div>

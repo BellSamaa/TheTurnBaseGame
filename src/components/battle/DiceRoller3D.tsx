@@ -196,9 +196,12 @@ export default function DiceRoller3D({
       rendererRef.current.setSize(w, h);
     };
 
+    const resizeObserver = new ResizeObserver(handleResize);
+    if (containerRef.current) resizeObserver.observe(containerRef.current);
     window.addEventListener('resize', handleResize);
 
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
       if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
       if (rendererRef.current?.domElement && container) {
@@ -219,7 +222,7 @@ export default function DiceRoller3D({
         rotSpeedZ: 14 + Math.random() * 10,
       };
       setDisplayedNumber(null);
-    } else if (targetValue !== null) {
+    } else {
       setDisplayedNumber(targetValue);
     }
   }, [isRolling, targetValue]);
