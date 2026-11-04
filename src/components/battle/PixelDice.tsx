@@ -437,10 +437,14 @@ export default function PixelDice({
             </motion.div>
           )}
 
-          {/* VS Diamond Crest */}
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-500 to-amber-700 flex items-center justify-center border-2 border-yellow-200 shadow-[0_0_12px_rgba(250,204,21,0.6)]">
-            <span className="text-[9px] font-pixel font-bold text-black">VS</span>
-          </div>
+          <img
+            src="/assets/sprites/ui/frames/battle_vs.png"
+            alt="VS"
+            width={96}
+            height={64}
+            draggable={false}
+            className="w-20 sm:w-24 max-w-full h-auto object-contain mix-blend-screen select-none pointer-events-none"
+          />
 
           <span className="text-[7.5px] font-pixel text-slate-400">R{currentRound}</span>
         </div>
