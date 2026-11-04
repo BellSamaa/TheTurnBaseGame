@@ -25,12 +25,9 @@ export function rollD12(): number {
   return rollDice(12);
 }
 
-// Calculate D20 combat result according to the exact rules:
 // If Attack <= Defense: Missed / Successfully defended -> 0 damage.
-// If Attack > Defense: Base Damage = Attack - Defense.
-// Modifiers applied:
-// Attacker's damageModifier (e.g. Assassin 1.5x, Juggernaut 0.75x)
-// Defender's damageReduction (e.g. Tanker 0.7x)
+// If Attack > Defense: Base Damage = 15 + (Attack - Defense).
+// Class modifiers, weapon effects and defensive absorption are then applied.
 export function calculateD20Combat(
   attackerD20: number,
   defenderD20: number,
@@ -102,8 +99,8 @@ export function calculateD20Combat(
     };
   }
 
-  // Hit! Apply class modifiers
-  let modifiedDamage = rawDiff * attackerClass.damageModifier * defenderClass.damageReduction;
+  // Hit! The new base damage keeps successful attacks meaningful at 200 HP.
+  let modifiedDamage = (15 + rawDiff) * attackerClass.damageModifier * defenderClass.damageReduction;
 
   // Bleed bonus (+5 damage from Bow Skill 1)
   if (defenderState?.isBleeding) {

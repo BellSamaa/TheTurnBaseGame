@@ -29,6 +29,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
   // Create room options
   const [newRoomMode, setNewRoomMode] = useState<MatchType>('casual');
   const [newRoomMap, setNewRoomMap] = useState<string>(MAP_DEFINITIONS[0].id);
+  const [newRoomGameMode, setNewRoomGameMode] = useState<'classic' | 'last_man_standing'>('classic');
 
   // Active Lobby state
   const [currentLobby, setCurrentLobby] = useState<DbOnlineRoom | null>(null);
@@ -148,6 +149,7 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
           host: hostParticipant,
           mode: newRoomMode,
           mapId: newRoomMap,
+          gameMode: newRoomGameMode,
         }),
       });
 
@@ -464,6 +466,13 @@ export default function RoomBrowser({ onClose }: RoomBrowserProps) {
                         {isEn ? m.name : m.nameVi}
                       </option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[8.5px] font-pixel text-yellow-300 font-bold block mb-1">{isEn ? 'ROOM TYPE:' : 'LOẠI PHÒNG:'}</label>
+                  <select value={newRoomGameMode} onChange={(e) => setNewRoomGameMode(e.target.value as 'classic' | 'last_man_standing')} className="w-full bg-slate-900 border border-slate-700 p-2 text-xs text-red-300 font-pixel focus:outline-none">
+                    <option value="classic">{isEn ? 'Classic 1v1' : 'Cổ điển 1v1'}</option>
+                    <option value="last_man_standing">Last Man Standing (2–4)</option>
                   </select>
                 </div>
               </div>

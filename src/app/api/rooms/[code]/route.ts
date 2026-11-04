@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getRoomByCodeAsync, updateRoom, deleteRoom, type RoomParticipant } from '@/lib/serverDb';
+import { getRoomByCodeAsync, updateRoom, deleteRoom, getUserByIdAsync, saveUserAsync, type RoomParticipant } from '@/lib/serverDb';
 import { CLASS_DEFINITIONS, WEAPON_DEFINITIONS } from '@/lib/constants';
 import type { BattleState, PlayerState } from '@/types/game';
 
@@ -68,9 +68,11 @@ export async function POST(req: Request, context: RouteContext) {
       }
 
       if (room.guest?.id === guest.id) return NextResponse.json({ success: true, room });
-      if (room.guest || room.status === 'playing' || room.status === 'finished') {
+      const lobbyParticipants = room.participants || [room.host, ...(room.guest ? [room.guest] : [])];
+      const maxPlayers = room.maxPlayers || (room.gameMode === 'last_man_standing' ? 4 : 2);
+      if (lobbyParticipants.length >= maxPlayers || room.status === 'playing' || room.status === 'finished') {
         return NextResponse.json(
-          { success: false, error: 'Phòng đã đủ 2 người chơi (Room is full)' },
+          { success: false, error: `Phòng đã đủ ${maxPlayers} người chơi (Room is full)` },
           { status: 403 }
         );
       }
@@ -84,7 +86,8 @@ export async function POST(req: Request, context: RouteContext) {
         isReady: false,
       };
 
-      room.guest = guestParticipant;
+      room.guest = room.guest || guestParticipant;
+      room.participants = [...lobbyParticipants, guestParticipant];
       room.status = 'ready';
       await updateRoom(room);
       return NextResponse.json({ success: true, room });
@@ -116,7 +119,8 @@ export async function POST(req: Request, context: RouteContext) {
       }
       if (body.userId !== room.host.id) return NextResponse.json({ success: false, error: 'Chỉ chủ phòng hiện tại được bắt đầu trận. Hãy vào lại phòng để cập nhật. / Only the current host can start.' }, { status: 403 });
       if (room.status === 'playing' && room.battleState) return NextResponse.json({ success: true, room });
-      if (!room.host.isReady || !room.guest?.isReady) return NextResponse.json({ success: false, error: 'Both players must be ready' }, { status: 409 });
+      const readyPlayers = room.participants || [room.host, ...(room.guest ? [room.guest] : [])];
+      if (readyPlayers.length < 2 || readyPlayers.some((p) => !p.isReady)) return NextResponse.json({ success: false, error: 'All players must be ready' }, { status: 409 });
       if (!room.guest) {
         return NextResponse.json(
           { success: false, error: 'Cần ít nhất 2 người chơi để bắt đầu' },
@@ -198,6 +202,21 @@ export async function POST(req: Request, context: RouteContext) {
         room.battleState = battleState;
         if (battleState.winnerId) {
           room.status = 'finished';
+          if (room.mode === 'ranked' && !room.rankedResultRecorded) {
+            const winnerId = battleState.winnerId;
+            const loserId = winnerId === room.host.id ? room.guest?.id : room.host.id;
+            if (loserId) {
+              const [winner, loser] = await Promise.all([getUserByIdAsync(winnerId), getUserByIdAsync(loserId)]);
+              if (winner && loser) {
+                const expected = 1 / (1 + Math.pow(10, (loser.rankPoints - winner.rankPoints) / 400));
+                const delta = Math.max(10, Math.round(32 * (1 - expected)));
+                winner.rankPoints += delta; winner.wins += 1;
+                loser.rankPoints = Math.max(0, loser.rankPoints - delta); loser.losses += 1;
+                await Promise.all([saveUserAsync(winner), saveUserAsync(loser)]);
+                room.rankedResultRecorded = true;
+              }
+            }
+          }
         }
         await updateRoom(room);
       }

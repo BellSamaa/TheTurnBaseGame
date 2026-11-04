@@ -34,6 +34,10 @@ export interface DbOnlineRoom {
   id: string;
   host: RoomParticipant;
   guest: RoomParticipant | null;
+  participants?: RoomParticipant[];
+  maxPlayers?: number;
+  gameMode?: 'classic' | 'last_man_standing';
+  rankedResultRecorded?: boolean;
   mode: 'casual' | 'ranked';
   mapId: string;
   status: 'waiting' | 'ready' | 'playing' | 'finished';
@@ -169,6 +173,15 @@ export function getUserById(userId: string): DbUserAccount | null {
   return Object.values(db.users).find((u) => u.id === userId) || null;
 }
 
+export async function getUserByIdAsync(userId: string): Promise<DbUserAccount | null> {
+  const local = getUserById(userId);
+  const sb = getSupabaseClient();
+  if (!sb) return local;
+  const { data, error } = await sb.from('users').select('*').eq('id', userId).maybeSingle();
+  if (error || !data) return local;
+  return { id: data.id, username: data.username, email: data.email, passwordHash: data.password_hash || '', avatarConfig: data.avatar_config, selectedClass: data.selected_class || 'warrior', selectedWeapon: data.selected_weapon || 'greatsword', tier: data.tier ?? 1, rankPoints: data.rank_points ?? 1000, wins: data.wins ?? 0, losses: data.losses ?? 0, bio: data.bio || '', createdAt: data.created_at, updatedAt: data.updated_at };
+}
+
 export function saveUser(user: DbUserAccount): DbUserAccount {
   const db = loadDatabase();
   const key = user.username.trim().toLowerCase();
@@ -287,6 +300,10 @@ export async function getRoomByCodeAsync(code: string): Promise<DbOnlineRoom | n
       id: data.id,
       host: data.host,
       guest: data.guest,
+      participants: data.participants || (data.guest ? [data.host, data.guest] : [data.host]),
+      maxPlayers: data.max_players || 2,
+      gameMode: data.game_mode || 'classic',
+      rankedResultRecorded: data.ranked_result_recorded || false,
       mode: data.mode || 'casual',
       mapId: data.map_id || data.mapId || 'castle',
       status: data.status,
@@ -322,7 +339,8 @@ export async function listOpenRooms(): Promise<DbOnlineRoom[]> {
 export async function createRoom(
   hostUser: RoomParticipant,
   mode: 'casual' | 'ranked' = 'casual',
-  mapId: string = 'castle'
+  mapId: string = 'castle',
+  gameMode: 'classic' | 'last_man_standing' = 'classic'
 ): Promise<DbOnlineRoom> {
   if (!hasSupabase && process.env.VERCEL === '1') throw new Error('Online rooms require Supabase');
   globalForDb.__DICE_MANIAC_DB = undefined;
@@ -343,6 +361,9 @@ export async function createRoom(
     id: 'room_' + Date.now().toString(36),
     host: { ...hostUser, isReady: true },
     guest: null,
+    participants: [hostUser],
+    maxPlayers: gameMode === 'last_man_standing' ? 4 : 2,
+    gameMode,
     mode,
     mapId,
     status: 'waiting',
@@ -363,6 +384,10 @@ export async function createRoom(
         id: room.id,
         host: room.host,
         guest: room.guest,
+        participants: room.participants,
+        max_players: room.maxPlayers,
+        game_mode: room.gameMode,
+        ranked_result_recorded: false,
         mode: room.mode,
         map_id: room.mapId,
         status: room.status,
@@ -383,7 +408,9 @@ export async function updateRoom(room: DbOnlineRoom): Promise<DbOnlineRoom> {
   const sb = getSupabaseClient();
   if (sb) {
     const { data, error } = await sb.from('rooms').update({
-      host: room.host, guest: room.guest, status: room.status,
+      host: room.host, guest: room.guest, participants: room.participants,
+      status: room.status, game_mode: room.gameMode, max_players: room.maxPlayers,
+      ranked_result_recorded: room.rankedResultRecorded || false,
       battle_state: room.battleState, last_active: room.lastActive,
     }).eq('code', room.code).eq('last_active', previousVersion).select('code');
     if (error) throw new Error(error.message);

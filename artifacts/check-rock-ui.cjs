@@ -1,0 +1,25 @@
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch({channel:'chrome',headless:true});
+ const page=await browser.newPage({viewport:{width:1366,height:900}});
+ const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://localhost:3100',{waitUntil:'domcontentloaded',timeout:180000});
+ await page.waitForFunction(()=>!!window.__gameStore,{timeout:120000});
+ await page.evaluate(()=>{const s=window.__gameStore.getState();s.updateSettings({musicEnabled:false,sfxEnabled:false});s.setPlayerWeapon('spirit_stone');s.startNewBattle({mode:'local',opponentWeapon:'spirit_stone',opponentName:'Rock Rival',mapId:'castle'});s.setBattleState(b=>({...b,turnStep:'d12',player1:{...b.player1,petRockHp:45,d12Charge:30},player2:{...b.player2,petRockHp:10,d12Charge:15}}));});
+ await page.locator('.rock-health-track').first().waitFor();
+ assert.equal(await page.locator('.rock-health-track').count(),2);
+ await page.screenshot({path:'artifacts/rock-desktop.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ await page.screenshot({path:'artifacts/rock-mobile.png',fullPage:true});
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
+ await page.evaluate(()=>window.__gameStore.getState().setBattleState(b=>({...b,player1:{...b.player1,petRockHp:0}})));
+ await page.waitForFunction(()=>document.querySelectorAll('.rock-health-track').length===1);
+ assert.equal(await page.locator('.rock-companion').count(),1,'dead pet disappears');
+ await page.getByRole('button',{name:/Skill 1/i}).first().click();
+ await page.waitForFunction(()=>document.querySelectorAll('.rock-health-track').length===2);
+ assert.equal(await page.locator('.rock-health-track').first().getAttribute('aria-valuenow'),'50');
+ await page.screenshot({path:'artifacts/rock-resummoned.png',fullPage:true});
+ console.log(JSON.stringify({result:'PASS: desktop/mobile, no overflow, dead pet hidden, Skill 1 resummons at 50 HP',errors}));
+ await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

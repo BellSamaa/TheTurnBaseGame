@@ -14,7 +14,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { host, mode, mapId } = body;
+    const { host, mode, mapId, gameMode } = body;
 
     if (!host || !host.id || !host.name) {
       return NextResponse.json(
@@ -32,7 +32,8 @@ export async function POST(req: Request) {
       isReady: true,
     };
 
-    const room = await createRoom(hostParticipant, mode || 'casual', mapId || 'castle');
+    if (gameMode !== undefined && !['classic', 'last_man_standing'].includes(gameMode)) return NextResponse.json({ success: false, error: 'Invalid game mode' }, { status: 400 });
+    const room = await createRoom(hostParticipant, mode || 'casual', mapId || 'castle', gameMode || 'classic');
     return NextResponse.json({ success: true, room });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Server error';

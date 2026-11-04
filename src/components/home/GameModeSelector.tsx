@@ -39,6 +39,7 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
 
   const [selectedModeId, setSelectedModeId] = useState<string>('pve');
   const [selectedMap, setSelectedMap] = useState<string>(MAP_DEFINITIONS[0].id);
+  const [showLmsRules, setShowLmsRules] = useState(false);
 
   // The 4 Specific Modes explicitly requested:
   // 1. Rank Last Man Standing
@@ -99,6 +100,10 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
     if (!mode.isAvailable) return;
     if (mode.id !== 'pve' && !currentUser) {
       setAuthModal('signup');
+      return;
+    }
+    if (mode.id === 'last_man_standing') {
+      setShowLmsRules(true);
       return;
     }
     setSelectedModeId(mode.id);
@@ -252,6 +257,26 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
               );
             })}
           </div>
+
+          {showLmsRules && (
+            <div className="mb-4 border border-red-500/70 bg-red-950/40 p-3 text-slate-200">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[10px] font-pixel text-red-300">{isEn ? 'LAST MAN STANDING — RULES' : 'LAST MAN STANDING — LUẬT CHƠI'}</h3>
+                <button onClick={() => setShowLmsRules(false)} className="text-slate-400 hover:text-white">✕</button>
+              </div>
+              <ul className="text-[8px] leading-relaxed font-sans space-y-1">
+                <li>• {isEn ? '3–4 players; HP is 200. Last survivor wins.' : '3–4 người; HP khởi đầu là 200. Người sống cuối cùng thắng.'}</li>
+                <li>• {isEn ? 'Attack hits only when D20 Attack > D20 Defense. Damage = 15 + the difference.' : 'Đòn đánh trúng khi D20 Công > D20 Thủ. Sát thương = 15 + phần chênh lệch.'}</li>
+                <li>• {isEn ? 'Each turn: charge D6, use skills, attack, then pass clockwise.' : 'Mỗi lượt: sạc D6, dùng kỹ năng, tấn công rồi chuyển lượt theo chiều kim đồng hồ.'}</li>
+                <li>• {isEn ? 'A hidden one-use starting buff may be revealed during its trigger window.' : 'Mỗi người có một buff đầu trận ẩn, chỉ được lật dùng một lần khi đủ điều kiện.'}</li>
+                <li>• {isEn ? 'Eliminated players cannot act; effects cannot target eliminated players.' : 'Người bị loại không được hành động; hiệu ứng không được chọn người đã bị loại.'}</li>
+              </ul>
+              <div className="mt-3 flex justify-end gap-2">
+                <PixelButton onClick={() => setShowLmsRules(false)}>{isEn ? 'BACK' : 'QUAY LẠI'}</PixelButton>
+                <PixelButton onClick={() => { setSelectedModeId('last_man_standing'); setShowLmsRules(false); }}>{isEn ? 'CREATE ROOM' : 'TẠO PHÒNG'}</PixelButton>
+              </div>
+            </div>
+          )}
 
           {/* Map Arena Selector */}
           <div className="mb-4 p-2.5 bg-[#07090e] border border-slate-800">
