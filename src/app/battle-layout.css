@@ -319,3 +319,5 @@
 
 
 .battle-balanced.combat-party .combat-seat-2{bottom:24%}
+
+.lobby-help-arrows{display:inline-flex;align-items:center;vertical-align:middle;gap:2px;white-space:nowrap}.lobby-help-arrows svg{display:block;width:1em;height:1em;flex:none;overflow:visible}
