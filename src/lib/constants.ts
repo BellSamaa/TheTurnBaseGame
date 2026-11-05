@@ -1,5 +1,5 @@
 import {UPDATE_WEAPONS} from './weaponUpdateCatalog';
-import type { ClassInfo, WeaponInfo, MapInfo, CharacterCustomization } from '@/types/game';
+import type { ClassInfo, WeaponInfo, WeaponTier, MapInfo, CharacterCustomization } from '@/types/game';
 
 // ============================================================
 // Asset path helpers & Sliced Sprites
@@ -385,6 +385,22 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     },
   },
 };
+
+// ============================================================
+// Weapon display order
+// ============================================================
+const WEAPON_TIER_RANK: Record<WeaponTier, number> = {
+  common: 0,
+  rare: 1,
+  epic: 2,
+  legendary: 3,
+  mythic: 4,
+  secret: 5,
+};
+
+export const WEAPONS_BY_TIER = Object.values(WEAPON_DEFINITIONS).sort(
+  (a, b) => WEAPON_TIER_RANK[a.tier] - WEAPON_TIER_RANK[b.tier],
+);
 
 // ============================================================
 // 9 Battle Arena Maps

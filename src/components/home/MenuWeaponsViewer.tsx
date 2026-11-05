@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { WEAPON_DEFINITIONS } from '@/lib/constants';
+import { WEAPON_DEFINITIONS, WEAPONS_BY_TIER } from '@/lib/constants';
 import { useGameStore } from '@/stores/gameStore';
 import { getTierConfig } from '@/lib/tierStyles';
 import PixelButton from '@/components/ui/PixelButton';
@@ -19,8 +19,7 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
   const [selectedId, setSelectedId] = useState<string>(profile.weaponId || 'greatsword');
   const [equipSuccess, setEquipSuccess] = useState(false);
 
-  const weapons = Object.values(WEAPON_DEFINITIONS);
-  const selectedWeapon = WEAPON_DEFINITIONS[selectedId] || weapons[0];
+  const selectedWeapon = WEAPON_DEFINITIONS[selectedId] || WEAPONS_BY_TIER[0];
   const isEquipped = profile.weaponId === selectedWeapon.id;
   const currentTier = getTierConfig(selectedWeapon.tier);
 
@@ -46,7 +45,7 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
         </div>
 
         <div className="flex flex-col gap-1.5 max-h-[460px] overflow-y-auto pr-1">
-          {weapons.map((w) => {
+          {WEAPONS_BY_TIER.map((w) => {
             const isSelected = selectedId === w.id;
             const isCurrent = profile.weaponId === w.id;
             const itemTier = getTierConfig(w.tier);

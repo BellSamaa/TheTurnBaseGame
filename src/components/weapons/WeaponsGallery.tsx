@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
 import { t } from '@/lib/translations';
-import { WEAPON_DEFINITIONS } from '@/lib/constants';
+import { WEAPON_DEFINITIONS, WEAPONS_BY_TIER } from '@/lib/constants';
 import { getTierConfig } from '@/lib/tierStyles';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
@@ -71,7 +71,7 @@ export default function WeaponsGallery() {
         <div className="lg:col-span-7 flex flex-col gap-3">
           <PixelFrame variant="cyan" title={isEn ? 'WEAPON COLLECTION' : 'DANH SÁCH BẢO KHÍ'}>
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3 max-h-[460px] overflow-y-auto pr-1">
-              {Object.values(WEAPON_DEFINITIONS).map((w) => {
+              {WEAPONS_BY_TIER.map((w) => {
                 const isSelected = selectedWeaponId === w.id;
                 const isEquipped = profile.weaponId === w.id;
                 const itemTier = getTierConfig(w.tier);
