@@ -32,7 +32,7 @@ export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:numbe
  switch(u.weapon.id){
  case 'shield':s.armor=(s.armor||0)+15;effect='shield_armor';break;
  case 'king_slasher':
-  if(slot===1){if(form===1){s.cleaveAttacks=3;effect='white_cross';}else if(form===2){hit(5);s.slashDefenses=3;s.slashMissTriggered=false;effect='white_triple';}else{hit(12);v.markedBy=u.id;v.markUntil=round+3;effect='fire_arrow';}}
+  if(slot===1){if(form===1){hit(1);s.cleaveAttacks=3;effect='white_cross';}else if(form===2){hit(5);s.slashDefenses=3;s.slashMissTriggered=false;effect='white_triple';}else{hit(12);v.markedBy=u.id;v.markUntil=round+3;effect='fire_arrow';}}
   else if(form===2){hit(40);piercing=true;delete v.markUntil;delete v.markedBy;effect='world_slash';}else{hit(28);t.burnTicks=3;t.burnDmgPerTurn=3;v.burnOwner=u.id;effect='giant_fire_arrow';}break;
  case 'substitute_doll':if(slot===1){hit(Math.round((s.lastSuccessfulDamage||0)*2/3));effect='doll_reflect';}else{hit(10);s.nailHits=2;effect='giant_nail';}break;
  case 'death_note':if(slot===1){die=roll();s.lastNameDie=die;effect=die<=2?'name_reject':'name_success';if(die<=2){u.hp=Math.max(0,u.hp-3);hit(5);}else{hit(die<=4?Math.ceil(die*2.5):die*3);v.namedBy=u.id;}}else{hit(Math.ceil(t.hp*.75));delete v.namedBy;effect='judgement';}break;

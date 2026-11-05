@@ -79,6 +79,7 @@
           "cost_pts": 5,
           "resource": "D6 PTS",
           "details": [
+            "Khi dùng skill gây 1 sát thương. Hiệu ứng chữ X trên đối thủ, tự phát lại trong mỗi lần công được cường hóa, không gây thêm 1 sát thương mỗi lần.",
             "Enchant đòn đánh thường trong 3 round tấn công tiếp theo của người dùng; không tiêu hao thời hạn khi phòng thủ.",
             "Nếu tấn công thành công: cộng thêm 4 sát thương vào đòn đánh.",
             "Nếu tấn công thất bại do số thủ đối phương lớn hơn: vẫn tất trúng 5 sát thương.",
@@ -92,10 +93,7 @@
             "count": 3,
             "scope": "owner_attack_rounds"
           },
-          "damage": {
-            "on_hit_bonus": 4,
-            "on_miss": 5
-          }
+          "damage": 1
         },
         {
           "id": "king_slasher.s1.giai",

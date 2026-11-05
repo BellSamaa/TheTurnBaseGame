@@ -77,13 +77,13 @@
       "weaponId": "king_slasher",
       "label": "King Slasher (Sukuna) · Bát",
       "activation": "D6 PTS 10",
-      "rule": "Enchant đòn đánh thường trong 3 round tấn công tiếp theo của người dùng; không tiêu hao thời hạn khi phòng thủ. Nếu tấn công thành công: cộng thêm 4 sát thương vào đòn đánh. Nếu tấn công thất bại do số thủ đối phương lớn hơn: vẫn tất trúng 5 sát thương. VFX: hai lát cắt trắng hình chữ X.",
+      "rule": "Cleave deals 1 damage on cast; enchants 3 attacks (+4 on hit / 5 on miss). White cross plays on the opponent on cast and on each enchanted attack.",
       "costPts": 5,
       "impactMs": 450,
       "cues": [
         {
           "effect": "white_cross",
-          "anchor": "caster.chest",
+          "anchor": "target.chest",
           "startMs": 0,
           "durationMs": 450,
           "size": [

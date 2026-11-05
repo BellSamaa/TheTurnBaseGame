@@ -24,7 +24,7 @@ export function normalSetup(a:PlayerState,d:PlayerState,atk:number,def:number,ro
  if((v.queenDefenseTurns??0)>0){def=Math.max(0,def-3);v.queenDefenseTurns!--;}
  if((v.freezeDefense??0)>0){v.freezeDefense!--;if(rnd()<(v.freezeDefenseChance??.1))def=0;}
  if(atk>def&&(v.dodgeHits??0)>0){v.dodgeHits!--;dodge=rnd()<.5;}
- const cleave=(s.cleaveAttacks??0)>0;if(cleave)s.cleaveAttacks!--;
+ const cleave=(s.cleaveAttacks??0)>0;if(cleave){s.cleaveAttacks!--;(s.events??=[]).push({effect:'wu1:white_cross',target:d.id,text:a.name+' · Cleave enchant activates on '+d.name+'.',textVi:a.name+' · Bát cường hóa kích hoạt lên '+d.name+'.'});}
  return {atk,def,cancel,dodge,cleave};
 }
 export function normalReactions(a:PlayerState,d:PlayerState,hit:boolean,damage:number,defDie:number,round:number){

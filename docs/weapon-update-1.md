@@ -11,6 +11,7 @@ All 71 effects / 284 frames are installed under `public/assets/weapon-update-1`,
 ## Confirmed rules
 
 - Shield Skill 1 is automatic on D6=4 and spends 2 PTS. It refreshes +2 DEF for 2 defenses. Skill 2 adds 15 armor; armor persists until absorbed.
+- Cleave costs 5 PTS and deals 1 damage on cast. Its white cross targets the opponent on cast and automatically on each of the next 3 enchanted attacks; the proc does not add another 1 damage.
 - Sukuna Giải deals 5 total, not per ray. Slashing covers 3 defenses; a miss triggers 7 damage only once while later hits can still reflect 3. Divine Flame burns 3 damage for 3 rounds. World Slash requires the owner's Flame Mark, deals 40 directly to owner HP and bypasses armor, summons, Rock, dodge and immunity.
 - Death Note failed rolls do not create a name mark. A successful mark is on that target and survives until Judgement is used; Judgement consumes it. D6 used for resolution is separate from charge PTS.
 - Weather D20 bonuses take the maximum result. A newer weather cast replaces the previous global weather. Snow passive freeze chance is 15%.
