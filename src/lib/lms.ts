@@ -23,7 +23,7 @@ export interface LmsState {
 export function createLms(participants: RoomParticipant[], duel = false): LmsState {
   if ((participants.length < (duel?2:3)) || participants.length > 4) throw Error('LMS cần 3–4 người');
   const players = participants.map(p => ({ id:p.id,name:p.name,character:p.character,classType:p.classType,
-    weapon:WEAPON_DEFINITIONS[p.weaponId],hp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),maxHp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),
+    weapon:WEAPON_DEFINITIONS[p.weaponId],hp:Math.round((duel?100:150)*CLASS_DEFINITIONS[p.classType].hpModifier),maxHp:Math.round((duel?100:150)*CLASS_DEFINITIONS[p.classType].hpModifier),
     skillCharge:0,d12Charge:0,isAttacker:false,petRockHp:0,bullets:6 }));
   const initiative = duel?players.map(p=>({id:p.id,roll:rollD20()})).sort((a,b)=>b.roll-a.roll):[];
   return {players,rollDeadline:duel?undefined:Date.now()+10000,initiative,order:duel?initiative.map(p=>p.id):players.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'initiative',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
@@ -76,7 +76,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     if(flags['phoenix:'+target.id]&&damage>=target.hp){damage=Math.max(0,target.hp-1);target.d12Charge=(target.d12Charge??0)+20;delete flags['phoenix:'+target.id];}
     const lost=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);recordOpponentDamage(target,lost,s.round);
     for(const p of s.players)if(flags['watch:'+p.id]){p.d12Charge=(p.d12Charge??0)+Math.floor(lost/5);delete flags['watch:'+p.id];}
-    if((attacker.petRockHp??0)>0&&target.hp>0)applyOpponentDamage(target,2,s.round);
+    if((attacker.petRockHp??0)>0&&target.hp>0)applyOpponentDamage(target,attacker.petRockEnraged?5:2,s.round);
     if((attacker.panicTurns??0)>0)attacker.panicTurns!--;
     s.lastEvent={id:crypto.randomUUID(),effect:result.isImmune?'infinity':result.isDodged?'dodge_attack':result.absorbedByRock?'rock_block':result.isHit?normalAttackEffect(attacker.weapon.id):'guard',caster:attacker.id,target:target.id};
     add(result.logTextVi,result.logTextEn);

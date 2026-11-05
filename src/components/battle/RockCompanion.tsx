@@ -8,11 +8,12 @@ export function hasLivingRock(player: PlayerState) {
 
 export function RockHealthBar({ player }: { player: PlayerState }) {
   if (!hasLivingRock(player)) return null;
-  const hp = Math.min(50, Math.max(0, player.petRockHp ?? 0));
+  const max=player.petRockEnraged?75:50;
+  const hp = Math.min(max, Math.max(0, player.petRockHp ?? 0));
   return <div className="rock-health" aria-label={`${player.name} — Rock`}>
-    <div className="rock-health-label"><span>ROCK</span><span>{hp}/50</span></div>
-    <div className="rock-health-track" role="progressbar" aria-label={`${player.name} — Rock HP`} aria-valuemin={0} aria-valuemax={50} aria-valuenow={hp}>
-      <div className={hp <= 10 ? 'rock-health-fill rock-health-low' : 'rock-health-fill'} style={{ width: `${hp * 2}%` }} />
+    <div className="rock-health-label"><span>ROCK</span><span>{hp}/{max}</span></div>
+    <div className="rock-health-track" role="progressbar" aria-label={`${player.name} — Rock HP`} aria-valuemin={0} aria-valuemax={max} aria-valuenow={hp}>
+      <div className={hp <= 10 ? 'rock-health-fill rock-health-low' : 'rock-health-fill'} style={{ width: `${hp / max * 100}%` }} />
     </div>
   </div>;
 }

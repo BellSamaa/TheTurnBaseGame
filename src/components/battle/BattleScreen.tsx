@@ -786,7 +786,7 @@ export default function BattleScreen() {
         const rockFollows = attackerState.weapon.id === 'spirit_stone' && (attackerState.petRockHp ?? 0) > 0 && defenderState.hp > 0;
         const petHpBefore = defenderState.petRockHp ?? 0;
         const immuneBefore = defenderState.immuneDamageNext;
-        const rockDamage = rockFollows ? applyOpponentDamage(defenderState, 2, currentTurn) : 0;
+        const rockDamage = rockFollows ? applyOpponentDamage(defenderState, attackerState.petRockEnraged?5:2, currentTurn) : 0;
         if (rockFollows) {
           vfxSequence.push(reaction('rock_roll'));
           if ((defenderState.petRockHp ?? 0) < petHpBefore) vfxSequence.push(reaction('rock_block'));

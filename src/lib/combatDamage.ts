@@ -16,10 +16,10 @@ export function absorbWithRock(player: PlayerState, amount: number) {
   player.petRockHp ??= 0;
   player.petRockHits ??= 0;
   if (amount <= 0 || player.petRockHp <= 0) return 0;
-  const absorbed = Math.min(5, amount, player.petRockHp!);
+  const absorbed = Math.min(player.petRockEnraged?7:5, amount, player.petRockHp!);
   player.petRockHp! -= absorbed;
   player.petRockHits = (player.petRockHits ?? 0) + 1;
-  if (player.petRockHits >= 5) player.petRockEnraged = true;
+
   return absorbed;
 }
 

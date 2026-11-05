@@ -1,3 +1,4 @@
+import {roundBuff} from './lmsRoundBuffs';
 import {translateText} from './localeText';
 import type {LmsState} from './lms';
 import {rollD20,rollD6,calculateD20Combat} from './battleLogic';
@@ -10,6 +11,7 @@ export const LMS_BUFFS=[
 export interface BuffState{id:number;used:boolean;revealed:boolean}
 export interface LmsExtras{buffs:Record<string,BuffState>;bonusBuffs?:Record<string,BuffState>;bonusRound?:number;flags:Record<string,number|boolean|string>;bombs:{target:string;round:number}[];direction:1|-1;silencedRound?:number;suddenRound:number;lastKill?:{killer:string;round:number;claimed?:boolean;hp:number;pts:number};eliminated:string[]}
 export function activateBuff(s:LmsState,actor:string,args:{target?:string;choice?:string;buffSlot?:'initial'|'bonus'}){
+ if(s.turnFlow===3){roundBuff(s,actor,args);return;}
  const x=s.extras!,buff=args.buffSlot==='bonus'?x.bonusBuffs?.[actor]:x.buffs[actor],u=s.players.find(p=>p.id===actor)!,a=s.players.find(p=>p.id===s.order[s.active])!,t=s.players.find(p=>p.id===s.target),pick=s.players.find(p=>p.id===args.target&&p.hp>0),own=a.id===actor;
  const require=(ok:unknown,message:string)=>{if(!ok)throw Error(message);};
  require(buff&&!buff.used&&x.silencedRound!==s.round,'Buff đã dùng hoặc đang bị cấm');

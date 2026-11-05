@@ -113,7 +113,7 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
     <div className="lms-bottom-layout"><div className="combat-console"><div className="combat-dice-dock">
       <div className="personal-d20"><DiceRoller3D key={s.round+':'+s.active} diceType="d20" isRolling={rolling&&rollingDie==='d20'} targetValue={personalD20??null} label="D20"/></div>
       <div className="personal-d6"><DiceRoller3D diceType="d6" isRolling={rolling&&rollingDie==='d6'} targetValue={personalRolls.at(-1)??null} label="D6" resultText={personalRolls.length?personalRolls.join(' + '):undefined}/></div>
-      <div className="combat-formula"><b>{s.attack??'—'} <span>⚔</span> {s.defense??'—'}</b><small>{en?'Hit: 15 base + ATK − DEF, then effects':'Trúng: 15 cơ sở + Công − Thủ, rồi áp dụng hiệu ứng'}</small></div>
+      <div className="combat-formula"><b>{s.attack??'—'} <span>⚔</span> {s.defense??'—'}</b><small>{en?'Hit: ATK − DEF, then class and weapon effects':'Trúng: Công − Thủ, rồi áp dụng hệ và vũ khí'}</small></div>
     </div><fieldset className="combat-command-panel" disabled={s.phase!=='clash'&&(rollAlerts.length>0||phaseWaiting||rolling)} aria-busy={rollAlerts.length>0||phaseWaiting||rolling}>{children}</fieldset></div>{<aside className="lms-history"><h3>{en?'BATTLE HISTORY':'LỊCH SỬ TRẬN ĐẤU'}</h3><div>{(en?s.log:s.logVi||s.log).map((line,i)=><p key={s.log.length-i}>{line.split(/(\d+(?:\.\d+)?|PTS|HP|D20|D6|Skill|skill|sát thương|damage)/gi).map((part,j)=><span key={j} className={/^(\d|HP|damage|sát thương)/i.test(part)?'history-damage':/skill/i.test(part)?'history-skill':/PTS|D20|D6/i.test(part)?'history-resource':''}>{part}</span>)}</p>)}</div></aside>}</div>
   </div>;
 }

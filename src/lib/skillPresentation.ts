@@ -49,7 +49,7 @@ export function skillPresentation(player: PlayerState, slot: 1 | 2, form?: numbe
       case 'fire_headband':
         effect = form === 30 ? 'meteor_two' : 'meteor_one'; color = '#f97316';
         nameEn = form === 30 ? 'Twin Meteors' : 'Meteor'; nameVi = form === 30 ? 'Song Thiên Thạch' : 'Thiên Thạch'; break;
-      case 'spirit_stone': effect = 'rock_rage'; color = '#d97706'; break;
+      case 'spirit_stone': target='caster'; effect = 'rock_rage'; color = '#d97706'; break;
     }
   }
   return { effect, target, nameEn, nameVi, color };
@@ -68,6 +68,6 @@ export function skillEffectPlan(player: PlayerState, slot: 1 | 2, form?: number)
     ? [cue('burn_blue', 'caster'), cue('slash_multi'), main]
     : form === 2 ? [main, cue('burn_orange', 'caster')] : [cue('slash_light'), main];
   if (id === 'fire_headband' && slot === 2) return [main, cue('meteor_impact')];
-  if (id === 'spirit_stone' && slot === 2) return [cue('rock_rage', 'caster'), cue('rock_roll'), cue('impact_physical')];
+  if (id === 'spirit_stone' && slot === 2) return [cue('rock_rage', 'caster')];
   return [main];
 }

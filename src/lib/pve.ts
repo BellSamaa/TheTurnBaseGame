@@ -5,9 +5,9 @@ export interface PveState {rulesVersion?:number;stage:number;combat:LmsState;rew
 export function createPve(hero:RoomParticipant,stage=1):PveState{
  const weaponId=PVE_WEAPONS[Math.min(7,stage-1)];
  const combat=createLms([hero,{...hero,id:'pve_bot',name:'Tầng '+stage+' · '+weaponId,classType:'warrior',weaponId}],true);
- combat.order=[hero.id,'pve_bot'];combat.active=0;combat.target='pve_bot';combat.players[1].hp=combat.players[1].maxHp=150+15*(stage-1);
+ combat.order=[hero.id,'pve_bot'];combat.active=0;combat.target='pve_bot';combat.players[1].hp=combat.players[1].maxHp=100+15*(stage-1);
  combat.extras!.suddenRound=999;Object.values(combat.extras!.buffs).forEach(b=>{b.used=true;b.id=-1;});
- return {rulesVersion:3,stage,combat,reward:pveReward(stage)};
+ return {rulesVersion:4,stage,combat,reward:pveReward(stage)};
 }
 export function advancePve(input:PveState,actor:string,move:string,args:Parameters<typeof lmsAction>[3]={},onFrame?:(state:PveState)=>void):PveState{
  const out=structuredClone(input);out.combat=lmsAction(out.combat,actor,move,move==='target'?{...args,target:'pve_bot'}:args);
@@ -43,5 +43,5 @@ export function advancePve(input:PveState,actor:string,move:string,args:Paramete
 // A saved run is a snapshot, not the current account loadout.
 export function pveNeedsLoadoutRefresh(state:PveState,hero:RoomParticipant){
  const p=state.combat.players.find(p=>p.id===hero.id);
- return state.rulesVersion!==3||!p||p.weapon.id!==hero.weaponId||p.classType!==hero.classType||JSON.stringify(p.character)!==JSON.stringify(hero.character);
+ return state.rulesVersion!==4||!p||p.weapon.id!==hero.weaponId||p.classType!==hero.classType||JSON.stringify(p.character)!==JSON.stringify(hero.character);
 }

@@ -100,7 +100,7 @@ export function calculateD20Combat(
   }
 
   // Hit! Add base damage before class modifiers and absorption.
-  let modifiedDamage = (15 + rawDiff) * attackerClass.damageModifier * defenderClass.damageReduction;
+  let modifiedDamage = rawDiff * attackerClass.damageModifier * defenderClass.damageReduction;
 
   // Bleed bonus (+5 damage from Bow Skill 1)
   if (defenderState?.isBleeding) {
@@ -460,29 +460,7 @@ export function executeSkill2D12(
       break;
 
     case 'spirit_stone':
-      // The pet rock: tích đủ 25 PTS D6 (hoặc sau 5 lần bị đánh): Rock phình to x2 lăn đến kẻ địch gây sát thương bằng D20
-      if (pts >= cost) {
-        user.d12Charge = Math.max(0, pts - cost);
-        const roll = rollD20();
-        const rollBack = Math.random() < 0.15; // 15% chance to roll back to summoner
-        burstTriggered = true;
-        if (rollBack) {
-          damage = Math.round(roll / 2);
-          user.hp = Math.max(1, user.hp - damage);
-          logTextVi = `🪨 HÒN ĐÁ CUỒNG BẠO LĂN NGƯỢC! Mất đà lăn va vào chủ nhân gây ${damage} sát thương!`;
-          logTextEn = `🪨 ENRAGED ROCK ROLLED BACK! Lost momentum and rolled into summoner for ${damage} damage!`;
-        } else {
-          damage = roll;
-          logTextVi = `🪨 HÒN ĐÁ CUỒNG BẠO PHÌNH TO GẤP ĐÔI! Nghiền nát kẻ địch gây ${damage} sát thương (Bằng số D20)!`;
-          logTextEn = `🪨 ENRAGED GIANT BOULDER CRUSH! Enlarged 2x and crushed foe for ${damage} damage (equal to D20 roll)!`;
-        }
-        user.petRockEnraged = false;
-        user.petRockHits = 0;
-      } else {
-        logTextVi = `Bạn Đá Cưng Rock cần tích đủ ${cost} PTS D6 (hoặc bị đánh 5 lần để Cuồng Bạo). Hiện có: ${pts}/${cost} PTS.`;
-        logTextEn = `Pet Rock requires ${cost} D6 PTS (or 5 hits taken). Current: ${pts}/${cost} PTS.`;
-      }
-      break;
+      if(pts>=cost&&(user.petRockHp??0)>0&&!user.petRockEnraged){user.petRockEnraged=true;user.petRockHp=(user.petRockHp??0)+25;user.d12Charge=pts-cost;burstTriggered=true;logTextEn='Pet Rock enraged: +25 HP, absorbs 7 damage, follows attacks for 5 damage.';logTextVi='Rock cuồng bạo: +25 HP, chắn 7 sát thương, đánh phụ 5 sát thương.';}break;
 
     default:
       if (pts >= cost) {
