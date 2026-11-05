@@ -39,9 +39,11 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   const partialBoxer=s.players.find(p=>p.id===viewer);
   const boxerPartial=partialBoxer?.boxerAttackRound===s.round?partialBoxer.boxerAttackRolls?.at(-1):undefined;
   const personalD20=s.turnFlow===3?(s.initiative?.find(r=>r.id===viewer)?.roll??boxerPartial):s.phase==='initiative'?s.initiative?.find(r=>r.id===viewer)?.roll:viewer===s.order[s.active]?s.attack:viewer===s.target?s.defense:undefined;
-  const rollKey=JSON.stringify([s.round,s.active,personalD20,personalRolls]);
+  const boxerDice=(s.phase==='initiative'||s.order[s.active]===viewer)&&partialBoxer?.classType==='boxer'&&partialBoxer.boxerAttackRound===s.round?partialBoxer.boxerAttackRolls||[]:[];
+  const boxerKey=boxerDice.join(',');
+  const rollKey=JSON.stringify([s.round,s.active,personalD20,personalRolls,boxerDice]);
   const [rollingDie,setRollingDie]=useState<'d20'|'d6'>('d20');
-  const oldRoll=useRef({d20:personalD20,count:personalRolls.length});
+  const oldRoll=useRef({d20:personalD20,count:personalRolls.length,boxerKey});
   const oldPhase=useRef(shownPhase);
   useEffect(()=>{if(oldPhase.current!==shownPhase){oldPhase.current=shownPhase;playBattleCue(shownPhase==='skills'?'ready':'phase');}},[shownPhase]);
   const otherRolls=opponentRolls(s,viewer),otherRollKey=otherRolls.map(r=>r.key).join('|');
@@ -79,8 +81,8 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   useEffect(()=>{if(!banner)return;const timer=setTimeout(()=>setBanner(undefined),2400);return()=>clearTimeout(timer);},[banner?.id]);
   useEffect(()=>{
     const changed=lastRoll.current&&lastRoll.current!==rollKey;
-    const added=personalRolls.length>oldRoll.current.count, rolledD20=personalD20!==undefined&&personalD20!==oldRoll.current.d20;
-    lastRoll.current=rollKey;oldRoll.current={d20:personalD20,count:personalRolls.length};
+    const added=personalRolls.length>oldRoll.current.count, rolledD20=personalD20!==undefined&&(personalD20!==oldRoll.current.d20||boxerKey!==oldRoll.current.boxerKey);
+    lastRoll.current=rollKey;oldRoll.current={d20:personalD20,count:personalRolls.length,boxerKey};
     if(!changed||(!added&&!rolledD20)){setRolling(false);return;}
     setRollingDie(added?'d6':'d20');setRolling(true);playDiceRollSound();
     const t=setTimeout(()=>{setRolling(false);playBattleCue('result');},700);return()=>clearTimeout(t);
@@ -120,8 +122,9 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
     </div>
     <div className="combat-result-strip" role="status" aria-live="polite">{rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong><em>{en?'Rolled!':'Đã tung!'}</em></div>)}</div>:<div className="combat-roll-notice" hidden={!notice} title={notice}>{notice}</div>}</div>
     {banner?.nameEn&&<div key={banner.id} className="combat-skill-flash"><img src={effectFrame(banner.effect,1)} alt=""/><div><small>{s.players.find(p=>p.id===banner.caster)?.name} · {en?'SKILL':'KỸ NĂNG'} {banner.slot}</small><strong>{en?banner.nameEn:banner.nameVi}</strong></div><span className="skill-sweep-spark" aria-hidden="true">✦</span></div>}
+    {boxerDice.length>0&&<div className="boxer-roll-progress" role="status">{boxerDice.length===1?(en?'BOXER · D20 1/2 · Roll again':'BOXER · D20 1/2 · Tung lần nữa'):(en?'BOXER · D20 2/2 · Highest: ':'BOXER · D20 2/2 · Số cao nhất: ')+Math.max(...boxerDice)}</div>}
     <div className="lms-bottom-layout"><div className="combat-console"><div className="combat-dice-column"><div className="combat-dice-dock">
-      <div className="personal-d20"><DiceRoller3D key={s.round+':'+s.active} diceType="d20" isRolling={rolling&&rollingDie==='d20'} targetValue={personalD20??null} label="D20"/></div>
+      <div className="personal-d20"><DiceRoller3D key={s.round+':'+s.active} diceType="d20" isRolling={rolling&&rollingDie==='d20'} targetValue={personalD20??null} label="D20" resultText={boxerDice.length===2?boxerDice.join(" / ")+" → "+Math.max(...boxerDice):boxerDice.length===1?boxerDice[0]+" · 1/2":undefined}/></div>
       <div className="personal-d6"><DiceRoller3D diceType="d6" isRolling={rolling&&rollingDie==='d6'} targetValue={personalRolls.at(-1)??null} label="D6" resultText={personalRolls.length?personalRolls.join(' + '):undefined}/></div>
       <div className="combat-formula"><b>{s.attack??'—'} <span>⚔</span> {s.defense??'—'}</b><small>{en?'Hit: ATK − DEF, then class and weapon effects':'Trúng: Công − Thủ, rồi áp dụng hệ và vũ khí'}</small></div>
     </div>{diceExtras}</div><fieldset className="combat-command-panel" disabled={s.phase!=='clash'&&(rollAlerts.length>0||phaseWaiting||rolling)} aria-busy={rollAlerts.length>0||phaseWaiting||rolling}>{children}</fieldset></div>{<aside className="lms-history"><h3>{en?'BATTLE HISTORY':'LỊCH SỬ TRẬN ĐẤU'}</h3><div>{(en?s.log:s.logVi||s.log).map((line,i)=><p key={s.log.length-i}>{line.split(/(\d+(?:\.\d+)?|PTS|HP|D20|D6|Skill|skill|sát thương|damage)/gi).map((part,j)=><span key={j} className={/^(\d|HP|damage|sát thương)/i.test(part)?'history-damage':/skill/i.test(part)?'history-skill':/PTS|D20|D6/i.test(part)?'history-resource':''}>{part}</span>)}</p>)}</div></aside>}</div>

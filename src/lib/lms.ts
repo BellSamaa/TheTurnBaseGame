@@ -158,7 +158,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       const next=s.players.find(p=>p.id===s.order[s.active])!;
       if((next.burnTicks??0)>0){const burnOwner=s.players.find(p=>p.id===next.weaponUpdate?.burnOwner);applyOpponentDamage(next,burnOwner?outgoingDamage(burnOwner,next.burnDmgPerTurn??1,s.round):next.burnDmgPerTurn??1,s.round,false,burnOwner);next.burnTicks!--;}
       if(next.hp<=0){s.phase='end';finish();if(!s.winner){do{s.active=(s.active+s.extras!.direction+s.order.length)%s.order.length;}while(s.players.find(p=>p.id===s.order[s.active])!.hp<=0);}}
-      s.turnFlow=2;s.phase=s.players.length===2?'attack':'target';s.rolls=[];s.defenderRolls=[];s.skillDone=[];s.target=s.players.length===2?s.players.find(p=>p.id!==s.order[s.active]&&p.hp>0)?.id:undefined;s.attack=undefined;s.defense=undefined;s.deadline=undefined;finish();
+      const nextAttacker=s.players.find(p=>p.id===s.order[s.active]);if(nextAttacker){nextAttacker.boxerAttackRolls=[];nextAttacker.boxerAttackRound=undefined;}s.turnFlow=2;s.phase=s.players.length===2?'attack':'target';s.rolls=[];s.defenderRolls=[];s.skillDone=[];s.target=s.players.length===2?s.players.find(p=>p.id!==s.order[s.active]&&p.hp>0)?.id:undefined;s.attack=undefined;s.defense=undefined;s.deadline=undefined;finish();
     } else throw Error('Hành động không hợp lệ');
   }
   if(s.phase==='skills'&&input.phase!=='skills')for(const e of tickWeaponRound(s.players,s.round,'summons')){add(e.textVi,e.text);s.lastEvent={id:crypto.randomUUID(),effect:e.effect,caster:e.caster,target:e.target};}

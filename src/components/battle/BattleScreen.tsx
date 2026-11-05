@@ -1040,6 +1040,7 @@ export default function BattleScreen() {
         damagePopup: null,
         player1: {
           ...burnedP1,
+          boxerAttackRolls:[],boxerAttackRound:undefined,
           isAttacker: nextP1IsAttacker,
           hp: burnedP1.hp,
           burnTicks: p1NewBurnTicks,
@@ -1047,6 +1048,7 @@ export default function BattleScreen() {
         },
         player2: {
           ...burnedP2,
+          boxerAttackRolls:[],boxerAttackRound:undefined,
           isAttacker: !nextP1IsAttacker,
           hp: burnedP2.hp,
           burnTicks: p2NewBurnTicks,

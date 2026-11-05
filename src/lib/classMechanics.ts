@@ -8,7 +8,8 @@ export function attackDice(p:PlayerState,roll:()=>number){const first=roll();ret
 
 /** Persist the first Boxer die so each click rolls exactly once. */
 export function recordAttackRoll(p:PlayerState,round:number,value:number){
- const previous=p.boxerAttackRound===round?p.boxerAttackRolls||[]:[];
+ const saved=p.boxerAttackRound===round?p.boxerAttackRolls||[]:[];
+ const previous=saved.length<2?saved:[];
  const rolls=p.classType==='boxer'?[...previous,value].slice(0,2):[value];
  return {player:{...p,boxerAttackRound:round,boxerAttackRolls:rolls},value:Math.max(...rolls),done:rolls.length>=(p.classType==='boxer'?2:1),rolls};
 }
