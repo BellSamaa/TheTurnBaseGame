@@ -1,7 +1,7 @@
 export const RANK_NAMES=['Đồng','Sắt','Vàng','Kim Cương','Bạch Kim','Huyền Thoại Xúc Sắc','Xúc Sắc Hoàng Kim','Vua trò chơi'];
 export const STAR_COSTS=[100,150,220,320,450,650,900,1300];
 export const RANK_WIN_STAR_RATIOS=[1,1,.9,.8,.6,.5,.1,.1];
-export function rankWinPoints(points:number){const r=rankProgress(points);return Math.round(STAR_COSTS[r.rank]*RANK_WIN_STAR_RATIOS[r.rank]);}
+export function rankWinPoints(points:number){const r=rankProgress(points);return Math.round(100*RANK_WIN_STAR_RATIOS[r.rank]);}
 export function rankProgress(points=1000){
  let balance=Math.max(0,points-1000),rank=0;
  while(rank<7&&balance>=STAR_COSTS[rank]*5){balance-=STAR_COSTS[rank]*5;rank++;}

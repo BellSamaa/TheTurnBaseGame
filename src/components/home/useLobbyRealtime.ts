@@ -39,6 +39,10 @@ export function useLobbyRealtime(identity:Identity|null,position:MutableRefObjec
    const unique=new Map<string,LobbyPeer>();for(const p of drawn.values())if(p.user_id!==identityRef.current?.id)unique.set(p.user_id,p);
    if(!disposed)setPlayers([...unique.values()]);raf=requestAnimationFrame(animate);
   };
+  const lease=(action:'join'|'touch'|'leave')=>fetch('/api/lobby/chat/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session,action}),keepalive:action==='leave'});
+  const leaveLease=()=>{void lease('leave').catch(()=>{});};
+  window.addEventListener('pagehide',leaveLease);
+  const leaseTimer=setInterval(()=>{if(subscribed)void lease('touch').catch(()=>{});},20000);
   const timer=setInterval(()=>sendPose(),100);
   (async()=>{try{
    const r=await fetch('/api/lobby/realtime',{cache:'no-store'}),config=await r.json();if(!r.ok)throw Error(config.error||'Realtime unavailable');if(disposed)return;
@@ -51,12 +55,12 @@ export function useLobbyRealtime(identity:Identity|null,position:MutableRefObjec
     lastSeq.set(payload.session,payload.seq);targets.set(payload.session,{...old,...payload,users:old.users});
    }).on('broadcast',{event:'chat_changed'},()=>chatRef.current()).subscribe(async status=>{
     if(disposed)return;subscribed=status==='SUBSCRIBED';
-    if(subscribed){setError('');const id=identityRef.current!;await channel!.track({...position.current,session,user_id:id.id,users:{username:id.username,avatar_config:id.avatar},seq:0});sendPose(true);chatRef.current();}
+    if(subscribed){setError('');try{const r=await lease('join');if(!r.ok)setError('Apply lobby empty-chat SQL');}catch{}if(disposed)return;const id=identityRef.current!;await channel!.track({...position.current,session,user_id:id.id,users:{username:id.username,avatar_config:id.avatar},seq:0});sendPose(true);chatRef.current();}
     else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){setError('Lobby Realtime disconnected · reconnecting…');}
    });
    raf=requestAnimationFrame(animate);
   }catch(e){if(!disposed)setError((e as Error).message);}})();
-  return()=>{disposed=true;subscribed=false;clearInterval(timer);cancelAnimationFrame(raf);channelRef.current=null;if(client&&channel)void client.removeChannel(channel);setPlayers([]);};
+  return()=>{disposed=true;subscribed=false;clearInterval(timer);clearInterval(leaseTimer);window.removeEventListener('pagehide',leaveLease);leaveLease();cancelAnimationFrame(raf);channelRef.current=null;if(client&&channel)void client.removeChannel(channel);setPlayers([]);};
  },[identity?.id,position]);
  return {players,error,notifyChat};
 }

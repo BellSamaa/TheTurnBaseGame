@@ -11,6 +11,6 @@ export default function RankLobby({isOpen,onClose}:{isOpen:boolean;onClose:()=>v
  {r.rank>0?<img className="rank-emblem" src={'/assets/progression/rank-'+r.rank+'.webp'} alt={tx(r.name)}/>:null}
  <h3 className={(r.rank===0?"bronze-rank-title":"rank-title")+" rank-color-"+r.rank}>{tx(r.name)}</h3><div className="rank-stars">{Array.from({length:5},(_,i)=><img key={i} src={'/assets/progression/'+(i<r.stars?'star_fill':'star_frame')+'.webp'} alt={i<r.stars?'★':'☆'}/>)}</div>
  <progress value={r.points} max={r.required}/><p>{r.points}/{r.required}{" " + tx("điểm cho sao kế tiếp")}</p><p>{tx("Ghép trận với người chơi thật. Thắng/thua thay đổi điểm, sao và rank.")}</p>
- <p>+{rankWinPoints(p.rankPoints)} RP / {tx('Thắng')} · {Math.round(RANK_WIN_STAR_RATIOS[r.rank]*100)}% ★</p><div className="rank-actions"><button onClick={()=>setGifts(!gifts)}>{tx("Quà rank & khung")}</button><button className="primary-action" onClick={()=>setQueue(true)}>{tx("TÌM TRẬN")}</button></div>{gifts&&<AccountPanel/>}
+ <p>+{rankWinPoints(p.rankPoints)} RP / {tx('Thắng')} · {Math.round(RANK_WIN_STAR_RATIOS[r.rank]*100)}% × 100 RP</p><div className="rank-actions"><button onClick={()=>setGifts(!gifts)}>{tx("Quà rank & khung")}</button><button className="primary-action" onClick={()=>setQueue(true)}>{tx("TÌM TRẬN")}</button></div>{gifts&&<AccountPanel/>}
  <RankedMatchmakingModal isOpen={queue} onClose={()=>setQueue(false)}/></section></div>;
 }
