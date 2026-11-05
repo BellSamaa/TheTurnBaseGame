@@ -1370,7 +1370,7 @@
       "label": "Nhẫn ba màu / Nhẫn nguyên tố · Triệu hồi nguyên tố",
       "activation": "D6 PTS 15",
       "rule": "Sau khi trả PTS, tung thêm 1 D6 để chọn summon. D6 = 1–2: Golem Đất 10 HP. Trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ, tự ném đá ở giai đoạn skill, mỗi lần 2 sát thương. Hết 5 lượt dừng ném nhưng vẫn đứng lại. D6 = 3–4: Người Lửa 5 HP. Khi được triệu hồi bắn cầu lửa gây 10 sát thương. Trong 5 lượt kế tiếp có 10% phát nổ, gây 5 sát thương trực tiếp và gắn cháy mất 1 HP mỗi round trong 5 round tiếp theo. Nếu không nổ thì đứng yên. D6 = 5–6: Nhân Ngư 3 HP. Khi được triệu hồi bắn cầu nước gây 5 sát thương. Trong 5 lượt kế tiếp, mỗi round hồi 3 HP cho chủ. Cả ba summon nhỏ đứng chắn sát thương: mọi sát thương D20, Skill 1 và Skill 2 đi vào HP summon trước, rồi mới tới chủ khi summon bị hạ. Nếu có 2–3 summon, đặt chúng cạnh người chơi, không đè lên nhau. Chọn nhánh D6 1–2, 3–4 hoặc 5–6 trong danh sách sự kiện để xem đúng một summon.",
-      "costPts": 15,
+      "costPts": 7,
       "impactMs": 450,
       "cues": [],
       "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
@@ -1390,7 +1390,7 @@
       "label": "Nhẫn ba màu / Nhẫn nguyên tố · Niko — Chimera ba nguyên tố",
       "activation": "D6 PTS 40",
       "rule": "Xóa toàn bộ nhân vật mà người dùng đã triệu hồi trước đó. Triệu hồi Chimera lai cả ba nguyên tố, tên Niko, có 25 HP. Ngay khi dùng skill, Niko bắn tia năng lượng ba màu xanh, đỏ, nâu gây 20 sát thương. Trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ: có 30% Niko thực hiện 1 trong 3 hành động dưới đây. Life Steel: hút 12 HP của đối thủ và hồi 12 HP cho chủ. Fire Bomb: ném cầu lửa gây 5 sát thương; có 50% gắn bỏng, mất 1 HP mỗi round trong 5 round tiếp theo. Earth Shield: tạo khoảng 15 giáp ảo màu nâu; khi chủ nhận sát thương từ bất kỳ nguồn nào, phản lại 2/3 lượng sát thương nhận. Hiệu ứng phản có 2 lần.",
-      "costPts": 40,
+      "costPts": 27,
       "impactMs": 450,
       "cues": [
         {

@@ -1037,7 +1037,7 @@
         "id": "elemental_rings.s1",
         "slot": 1,
         "name": "Triệu hồi nguyên tố",
-        "cost_pts": 15,
+        "cost_pts": 7,
         "resource": "D6 PTS",
         "details": [
           "Sau khi trả PTS, tung thêm 1 D6 để chọn summon.",
@@ -1122,7 +1122,7 @@
         "id": "elemental_rings.s2",
         "slot": 2,
         "name": "Niko — Chimera ba nguyên tố",
-        "cost_pts": 40,
+        "cost_pts": 27,
         "resource": "D6 PTS",
         "details": [
           "Xóa toàn bộ nhân vật mà người dùng đã triệu hồi trước đó.",
