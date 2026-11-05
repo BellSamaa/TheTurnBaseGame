@@ -9,10 +9,11 @@ import { castChargedSkill, chargeSkillPoints } from './chargedSkills';
 import { applyOpponentDamage, recordOpponentDamage } from './combatDamage';
 
 export interface LmsState {
-  lastEvent?: {id:string;effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
+  lastEvent?: {id:string;announcementId?:string;effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
   extras?: LmsExtras; remainingTargets?: string[];
+  turnFlow?:2; defenderRolls?:number[]; skillDone?:string[];
   players: PlayerState[]; order: string[]; active: number; round: number;
-  phase: 'charge' | 'target' | 'attack' | 'defense' | 'clash' | 'end' | 'finished';
+  phase: 'charge' | 'charge_defense' | 'skills' | 'target' | 'attack' | 'defense' | 'clash' | 'end' | 'finished';
   target?: string; attack?: number; defense?: number; deadline?: number;
   rolls: number[]; log: string[]; logVi?:string[]; winner?: string; revision: number;
 }
@@ -22,7 +23,7 @@ export function createLms(participants: RoomParticipant[], duel = false): LmsSta
     weapon:WEAPON_DEFINITIONS[p.weaponId],hp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),maxHp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),
     skillCharge:0,d12Charge:0,isAttacker:false,petRockHp:0,bullets:6 }));
   const initiative = players.map(p=>({id:p.id,roll:rollD20()})).sort((a,b)=>b.roll-a.roll);
-  return {players,order:initiative.map(p=>p.id),active:0,round:1,phase:'charge',rolls:[],revision:0,
+  return {players,order:initiative.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'target',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
     extras:{buffs:Object.fromEntries(players.map(p=>[p.id,{id:Math.floor(Math.random()*20),used:false,revealed:false}])),flags:{},bombs:[],direction:1,suddenRound:8,eliminated:[]},
     log:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · Initiative D20: '+p.roll),
     logVi:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · D20 khởi đầu: '+p.roll)};
@@ -32,17 +33,19 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
   if(!user || (user.hp<=0 && !(action==='end'&&actor===s.order[s.active])) || s.phase==='finished') throw Error('Không thể hành động');
   const attacker=s.players.find(p=>p.id===s.order[s.active])!;
   const target=s.players.find(p=>p.id===s.target);
+  s.players.forEach(p=>{p.isAttacker=p.id===attacker.id;});
   const add=(text:string,en?:string)=>{s.logVi??=[...s.log];s.log.unshift(en||translateText(text,'en'));s.logVi.unshift(text);};
   const finish=()=>{
+    const killer=action==='skill'?user:attacker;
     for(const p of s.players.filter(p=>p.hp<=0)) if(!s.extras!.eliminated.includes(p.id)) {
       s.extras!.eliminated.push(p.id);
-      if(attacker.hp>0 && p.id!==attacker.id && (['resolve','skill'].includes(action)||(action==='buff'&&(args.buffSlot==='bonus'?s.extras!.bonusBuffs?.[actor]?.id:s.extras!.buffs[actor]?.id)===8))) {
-        const rewardHp=Math.min(30,attacker.maxHp-attacker.hp);attacker.hp+=rewardHp;attacker.d12Charge=(attacker.d12Charge??0)+5;
-        s.extras!.lastKill={killer:attacker.id,round:s.round,hp:rewardHp,pts:5};add(attacker.name+' hạ gục '+p.name+': +30 HP, +5 PTS');
+      if(killer.hp>0 && p.id!==killer.id && (['resolve','skill'].includes(action)||(action==='buff'&&(args.buffSlot==='bonus'?s.extras!.bonusBuffs?.[actor]?.id:s.extras!.buffs[actor]?.id)===8))) {
+        const rewardHp=Math.min(30,killer.maxHp-killer.hp);killer.hp+=rewardHp;killer.d12Charge=(killer.d12Charge??0)+5;
+        s.extras!.lastKill={killer:killer.id,round:s.round,hp:rewardHp,pts:5};add(killer.name+' hạ gục '+p.name+': +30 HP, +5 PTS');
       }
     }
     const alive=s.players.filter(p=>p.hp>0);if(alive.length<=1){s.winner=alive[0]?.id??'draw';s.phase='finished';}};
-  if(action==='surrender'){user.hp=0;add(user.name+' đã đầu hàng.',user.name+' surrendered.');finish();if(!s.winner&&actor===attacker.id)s.phase='end';}
+  if(action==='surrender'){user.hp=0;add(user.name+' đã đầu hàng.',user.name+' surrendered.');finish();if(!s.winner&&(actor===attacker.id||actor===target?.id))s.phase='end';}
   else if(action==='buff'){activateBuff(s,actor,args);finish();}
   else if(action==='resolve') {
     if(s.phase!=='clash'||now<(s.deadline??Infinity)||!target) throw Error('Chờ hết 5 giây can thiệp');
@@ -59,7 +62,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     s.lastEvent={id:crypto.randomUUID(),effect:result.isImmune?'infinity':result.isDodged?'dodge_attack':result.absorbedByRock?'rock_block':result.isHit?normalAttackEffect(attacker.weapon.id):'guard',caster:attacker.id,target:target.id};
     add(result.logTextVi,result.logTextEn);
     add('Sát thương cuối: '+lost+' HP');
-    s.phase='end';finish();
+    s.phase=s.turnFlow===2&&target.hp>0&&attacker.hp>0?'charge':'end';finish();
     if(!s.winner && s.remainingTargets?.length){s.target=s.remainingTargets.shift();s.defense=undefined;s.phase='defense';}
   } else if(action==='clash') {
     if(s.extras?.silencedRound===s.round||s.phase!=='clash'||now>=(s.deadline??0)||(user.d12Charge??0)<3||![1,-1].includes(args.delta??0))throw Error('Can thiệp cần 3 PTS trong 5 giây');
@@ -67,23 +70,29 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
   } else if(action==='defend') {
     if(s.phase!=='defense'||target?.id!==actor)throw Error('Chưa đến lượt phòng thủ');
     s.defense=rollD20();if(user.classType==='boxer')s.defense=Math.max(s.defense,rollD20());s.phase='clash';s.deadline=now+5000;add(user.name+' Thủ '+s.defense);
+  } else if(action==='charge'&&s.phase==='charge_defense') {
+    if(target?.id!==actor)throw Error('Chưa đến lượt D6 phòng thủ');
+    const roll=rollD6();(s.defenderRolls??=[]).push(roll);Object.assign(user,chargeSkillPoints(user,[roll],s.round));add(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');
+    if(s.defenderRolls.length>=1+CLASS_DEFINITIONS[user.classType].extraD6Rolls)s.phase='skills';
   } else {
-    if(actor!==attacker.id)throw Error('Chưa đến lượt bạn');
+    const skillActor=s.turnFlow===2&&s.phase==='skills'&&(actor===attacker.id||actor===target?.id);
+    if(actor!==attacker.id&&!skillActor)throw Error('Chưa đến lượt bạn');
+    if(skillActor&&s.skillDone?.includes(actor))throw Error('Bạn đã kết thúc lượt kỹ năng');
     if(action==='charge') {
       if(s.phase!=='charge')throw Error('Đã sạc đủ');
       const roll=rollD6();s.rolls.push(roll);Object.assign(user,chargeSkillPoints(user,[roll],s.round));add(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');
-      if(s.rolls.length>=1+CLASS_DEFINITIONS[user.classType].extraD6Rolls)s.phase='target';
+      if(s.rolls.length>=1+CLASS_DEFINITIONS[user.classType].extraD6Rolls)s.phase=s.turnFlow===2?'charge_defense':'target';
     } else if(action==='target') {
       if(s.phase!=='target'||!s.players.some(p=>p.id===args.target&&p.id!==actor&&p.hp>0))throw Error('Chọn người còn sống');
       s.target=args.target;s.phase='attack';
     } else if(action==='skill') {
-      if(!['target','attack'].includes(s.phase)||(args.slot!==1&&args.slot!==2))throw Error('Dùng skill trước khi tung Công');
+      if(!(s.turnFlow===2?s.phase==='skills':['target','attack'].includes(s.phase))||(args.slot!==1&&args.slot!==2))throw Error('Dùng skill sau khi cả hai đã tung D6');
       const victim=s.players.find(p=>p.id===args.target&&p.hp>0&&p.id!==actor);if(!victim)throw Error('Chọn mục tiêu skill');
       if(s.extras?.silencedRound===s.round)throw Error('Vòng này cấm kỹ năng');
       const cast=castChargedSkill(user,victim,args.slot,s.round,args.form,args.lockSlot);if(!cast)throw Error('Chưa đủ điều kiện dùng skill');
       if((user.weapon.id==='greatsword'&&args.slot===2)||(user.weapon.id==='staff'&&args.slot===1)){for(const other of s.players.filter(p=>p.id!==user.id&&p.id!==victim.id&&p.hp>0)){const extra=castChargedSkill(user,other,args.slot,s.round,args.form,args.lockSlot);if(extra)Object.assign(other,extra.opponent);}}
       const art=skillPresentation(user,args.slot,args.form);s.lastEvent={id:crypto.randomUUID(),effect:art.effect,caster:user.id,target:art.target==='caster'?user.id:victim.id,nameEn:art.nameEn,nameVi:art.nameVi,slot:args.slot};
-      Object.assign(user,cast.caster);Object.assign(victim,cast.opponent);add(cast.logTextVi,cast.logTextEn);if(victim.hp<=0&&s.target===victim.id){s.target=undefined;s.phase='target';}finish();
+      Object.assign(user,cast.caster);Object.assign(victim,cast.opponent);add(cast.logTextVi,cast.logTextEn);if(victim.hp<=0&&s.target===victim.id){if(s.turnFlow===2)s.phase='end';else{s.target=undefined;s.phase='target';}}finish();
     } else if(action==='attack') {
       if(s.phase!=='attack')throw Error('Chọn mục tiêu trước');
       s.attack=rollD20();if(user.classType==='boxer')s.attack=Math.max(s.attack,rollD20());
@@ -92,7 +101,11 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       if(s.extras!.flags['aoe:'+actor]){const victims=s.players.filter(p=>p.id!==actor&&p.hp>0).map(p=>p.id);s.target=victims.shift();s.remainingTargets=victims;delete s.extras!.flags['aoe:'+actor];}
       s.phase='defense';add(user.name+' Công '+s.attack);
     } else if(action==='end') {
-      if(s.phase!=='end')throw Error('Chưa kết thúc đòn đánh');
+      if(s.turnFlow===2&&s.phase==='skills'){
+        (s.skillDone??=[]).push(actor);
+        const required=[attacker,target].filter(p=>p&&p.hp>0);
+        if(required.some(p=>!s.skillDone!.includes(p!.id))){s.revision++;return s;}
+      }else if(s.phase!=='end')throw Error('Chưa kết thúc đòn đánh');
       s.extras!.lastKill=undefined;
       const previousRound=s.round;
       do{s.active=(s.active+s.extras!.direction+s.order.length)%s.order.length;if(s.active===(s.extras!.direction===1?0:s.order.length-1))s.round++;}while(s.players.find(p=>p.id===s.order[s.active])!.hp<=0);
@@ -111,7 +124,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       const next=s.players.find(p=>p.id===s.order[s.active])!;
       if((next.burnTicks??0)>0){applyOpponentDamage(next,next.burnDmgPerTurn??1,s.round,false);next.burnTicks!--;}
       if(next.hp<=0){s.phase='end';finish();if(!s.winner){do{s.active=(s.active+s.extras!.direction+s.order.length)%s.order.length;}while(s.players.find(p=>p.id===s.order[s.active])!.hp<=0);}}
-      s.phase='charge';s.rolls=[];s.target=undefined;s.attack=undefined;s.defense=undefined;s.deadline=undefined;finish();
+      s.turnFlow=2;s.phase=s.players.length===2?'attack':'target';s.rolls=[];s.defenderRolls=[];s.skillDone=[];s.target=s.players.length===2?s.players.find(p=>p.id!==s.order[s.active]&&p.hp>0)?.id:undefined;s.attack=undefined;s.defense=undefined;s.deadline=undefined;finish();
     } else throw Error('Hành động không hợp lệ');
   }
   s.revision++;return s;

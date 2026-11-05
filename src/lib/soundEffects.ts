@@ -385,3 +385,24 @@ export function playUltimateAuraSound() {
   });
 }
 
+/** Short, distinct battle cues; respects the same SFX volume/mute setting. */
+export function playBattleCue(kind:'phase'|'ready'|'result') {
+  const {canPlay,volume}=canPlaySound();if(!canPlay)return;
+  const ctx=getAudioContext();if(!ctx)return;
+  const notes=kind==='ready'?[523,659,784]:kind==='result'?[880,1175]:[440,554];
+  notes.forEach((frequency,i)=>{
+    const at=ctx.currentTime+i*.065,osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.type=kind==='ready'?'triangle':'sine';osc.frequency.setValueAtTime(frequency,at);
+    gain.gain.setValueAtTime(.001,at);gain.gain.linearRampToValueAtTime(volume*.12,at+.008);gain.gain.exponentialRampToValueAtTime(.001,at+.12);
+    osc.connect(gain);gain.connect(ctx.destination);osc.onended=()=>{osc.disconnect();gain.disconnect();};osc.start(at);osc.stop(at+.13);
+  });
+}
+export function playBattleEffect(effect:string,skill:boolean){
+  if(/guard|block|infinity|dodge/.test(effect)){playBlockSound();return;}
+  if(/meteor|rock_roll|rock_rage/.test(effect)){playMeteorRumbleSound();return;}
+  if(/purple|void|time_erase/.test(effect)){playUltimateAuraSound();return;}
+  if(/bullet|gun|revolver/.test(effect)){playGunshotSound();return;}
+  if(/slash|arrow|sword/.test(effect)){playSlashSound();return;}
+  if(skill){playMagicCastSound();return;}
+  playHitSound();
+}

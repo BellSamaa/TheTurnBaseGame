@@ -28,9 +28,9 @@ export function activateBuff(s:LmsState,actor:string,args:{target?:string;choice
  case 8:require(own&&['target','attack'].includes(s.phase)&&pick&&pick.id!==actor&&pick.hp<30,'Chọn đối thủ dưới 30 HP');if(rollD6()%2===0)pick!.hp=0;s.phase='end';break;
  case 9:require(x.lastKill&&x.lastKill.killer!==actor&&!x.lastKill.claimed&&s.phase==='end','Ngay sau người khác hạ gục');const killer=s.players.find(p=>p.id===x.lastKill!.killer)!;killer.hp=Math.max(1,killer.hp-x.lastKill!.hp);killer.d12Charge=Math.max(0,(killer.d12Charge??0)-x.lastKill!.pts);u.hp=Math.min(u.maxHp,u.hp+30);u.d12Charge=(u.d12Charge??0)+5;x.lastKill!.claimed=true;break;
  case 10:require(pick&&pick.id!==actor,'Chọn đối thủ');x.bombs.push({target:pick!.id,round:s.round+2});break;
- case 11:require(s.active===0&&s.phase==='charge'&&s.rolls.length===0,'Đầu vòng mới');x.silencedRound=s.round;break;
+ case 11:require(s.active===0&&s.phase==='target'&&s.rolls.length===0,'Đầu vòng mới');x.silencedRound=s.round;break;
  case 12:require(['defense','clash'].includes(s.phase),'Sau khi có kết quả D20');if(args.choice==='defense'){require((s.defense??0)>15,'Thủ phải >15');s.defense=1;}else{require((s.attack??0)>15,'Công phải >15');s.attack=1;}break;
- case 13:require(s.phase==='charge'&&pick&&pick.id!==actor,'Đầu lượt, chọn người khác');const stolen=Math.floor((pick!.d12Charge??0)/2);pick!.d12Charge=(pick!.d12Charge??0)-stolen;u.d12Charge=(u.d12Charge??0)+stolen;break;
+ case 13:require(s.phase==='target'&&pick&&pick.id!==actor,'Đầu lượt, chọn người khác');const stolen=Math.floor((pick!.d12Charge??0)/2);pick!.d12Charge=(pick!.d12Charge??0)-stolen;u.d12Charge=(u.d12Charge??0)+stolen;break;
  case 14:require(s.phase==='attack','Sau khi chọn mục tiêu');const candidates=s.players.filter(p=>p.hp>0);s.target=candidates[Math.floor(Math.random()*candidates.length)].id;break;
  case 15:if(args.choice==='hp'){const cost=Number(args.target);require(Number.isInteger(cost)&&cost>0&&u.hp>cost*5,'Nhập số PTS muốn mua, phải còn ít nhất 1 HP');u.hp-=cost*5;u.d12Charge=(u.d12Charge??0)+cost;}else{u.hp=Math.min(u.maxHp,u.hp+(u.d12Charge??0)*3);u.d12Charge=0;}break;
  case 16:require(s.phase==='end','Cuối lượt');x.direction=x.direction===1?-1:1;break;
@@ -56,7 +56,7 @@ export const LMS_BUFF_HELP=[
  'Chọn đối thủ còn sống: gắn bom 40 sát thương chuẩn, nổ sau hai vòng.',
  'Đầu vòng mới, trước D6: cấm skill, can thiệp PTS và buff trong vòng.',
  'Sau khi có D20 >15: chọn Công hoặc Thủ để biến kết quả thành 1.',
- 'Giai đoạn sạc D6: cướp một nửa PTS của mục tiêu, làm tròn xuống.',
+ 'Đầu lượt, khi chọn mục tiêu: cướp một nửa PTS của mục tiêu, làm tròn xuống.',
  'Sau khi chọn mục tiêu, trước Công: random mục tiêu, có thể trúng người công.',
  'Đổi toàn bộ PTS thành HP (1:3), hoặc nhập PTS muốn mua bằng HP (1:5).',
  'Cuối lượt bất kỳ: đảo chiều thứ tự lượt.',

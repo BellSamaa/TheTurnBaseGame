@@ -127,3 +127,33 @@
 .lang-vi .battle-balanced .combat-phase-bar>span b{font-size:11px}
 @media(max-width:767px){.lang-vi .battle-balanced .combat-phase-bar>span b{font-size:8px}}
 @media(max-width:767px){.battle-balanced .combat-toolbar{justify-content:center}.battle-balanced .combat-toolbar .wallet-bar{margin-right:0}}
+/* One framed command deck: four equal controls and the original dual dice tray. */
+.battle-balanced .combat-console{max-width:1040px;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;padding:14px 22px;margin:10px auto 0;background:#060a12f2;border:12px solid transparent;border-image:url('/assets/sprites/ui/frames/player-panel-original.png') 30% 14% stretch;align-items:center}
+.battle-balanced .combat-command-panel{border:0!important;background:none!important;padding:0!important;margin:0;min-height:0;box-shadow:none}
+.battle-balanced .four-commands{gap:8px;max-width:none}
+.battle-balanced .four-commands>.combat-skills{gap:8px}
+.battle-balanced .four-commands>button,.battle-balanced .combat-skill-cast{height:58px!important;min-height:58px!important;width:100%;padding:4px!important;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.battle-balanced .four-commands>button img{max-height:50px;width:100%;height:100%;object-fit:contain}
+.battle-balanced .combat-skill-cast img{max-width:none;width:100%;height:34px;object-fit:contain}
+.battle-balanced .combat-skill-cast span{padding:3px 0;font-size:7px}
+.battle-balanced .combat-skill-info summary{padding:2px 0;font-size:6px}
+.battle-balanced .combat-dice-dock{max-width:390px}
+.battle-balanced .combat-phase-bar{max-width:1040px;border-image:url('/assets/sprites/ui/frames/player-panel-original.png') 30% 14% stretch;background:#090d18e8;border-width:7px;padding:5px 8px}
+.battle-balanced .combat-phase-bar>span{padding:8px 4px;border-right:0;gap:5px}
+.battle-balanced .combat-phase-bar>span:not(:last-child)::after{content:'›';position:absolute;right:-3px;color:#bf913e;font-size:12px}
+.battle-balanced .combat-phase-bar .phase-current{background:linear-gradient(#e8aa32,#9d5d16);box-shadow:inset 0 0 0 1px #ffe7a2,0 0 10px #ffc24c66;color:#fff9d0}
+.battle-balanced .combat-skill-flash{position:fixed;top:28%;left:0;width:100%;max-width:none;min-height:100px;transform:none;display:flex;align-items:center;justify-content:center;gap:24px;background:linear-gradient(90deg,#080b20dd,#29264df5 40%,#142c4bf5 70%,#080b20dd);border:0;border-top:3px solid #ffe291;border-bottom:3px solid #ffe291;box-shadow:0 0 32px #9b80ff66;animation:skill-sweep 2.4s both;z-index:80;padding:14px 30px;pointer-events:none}
+.battle-balanced .combat-skill-flash::before{content:'';position:absolute;inset:0;background:url('/assets/sprites/ui/frames/divider_gold_ruby_tight.png') center bottom/100% 10px no-repeat;pointer-events:none}
+.battle-balanced .combat-skill-flash img{width:76px;height:76px;object-fit:contain;filter:drop-shadow(0 0 10px #c79bff)}
+.battle-balanced .combat-skill-flash>div{display:flex;flex-direction:column;gap:12px}
+.battle-balanced .combat-skill-flash small{font-size:9px;color:#a2eaff}
+.battle-balanced .combat-skill-flash strong{font-size:clamp(12px,2vw,22px);color:#fff3b5;text-shadow:0 0 12px #d494ff}
+.skill-sweep-spark{font-size:44px;color:#ffe9a3}
+.battle-balanced .combat-roll-notice{animation:battle-notice-in .25s ease-out;background:linear-gradient(90deg,transparent,#09172ac9,transparent);border-top:1px solid #bd975533;border-bottom:1px solid #bd975533}
+@keyframes skill-sweep{0%{transform:translateX(-105%);opacity:0}12%,80%{transform:translateX(0);opacity:1}100%{transform:translateX(105%);opacity:0}}
+@keyframes battle-notice-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:767px){.battle-balanced .combat-console{padding:8px 6px;gap:8px;border-width:7px}.battle-balanced .four-commands,.battle-balanced .four-commands>.combat-skills{gap:4px}.battle-balanced .four-commands>button,.battle-balanced .combat-skill-cast{height:42px!important;min-height:42px!important;padding:1px!important}.battle-balanced .four-commands>button img{max-height:38px}.battle-balanced .combat-skill-cast img{height:25px}.battle-balanced .combat-skill-cast span,.battle-balanced .combat-skill-info summary{font-size:5px}.battle-balanced .combat-phase-bar{padding:3px;border-width:5px}.battle-balanced .combat-phase-bar>span b{font-size:5px}.battle-balanced .combat-skill-flash{min-height:80px;padding:12px;gap:10px}.battle-balanced .combat-skill-flash img{width:48px;height:48px}.battle-balanced .combat-skill-flash small{font-size:7px}.skill-sweep-spark{font-size:24px}}
+@media(prefers-reduced-motion:reduce){.battle-balanced .combat-skill-flash,.battle-balanced .combat-roll-notice{animation:none}}
+.battle-balanced .combat-skill-cast img{height:50px}
+.battle-balanced .combat-skill-cost{display:block;text-align:center;font-size:7px;color:#ffe4ac;line-height:1.5;padding:2px 0}
+@media(max-width:767px){.battle-balanced .combat-skill-cast img{height:38px}.battle-balanced .combat-skill-cost{font-size:5px}}

@@ -13,7 +13,7 @@ for(let id=0;id<20;id++){
  if(id===7)s.phase='attack';
  if(id===8)s.players[2].hp=20;
  if(id===9){s.phase='end';actor='p1';s.extras.buffs.p1={id,used:false,revealed:false};s.extras.lastKill={killer:'p0',round:1,hp:30,pts:5};}
- if([11,13].includes(id))s.phase='charge';
+ if([11,13].includes(id))s.phase='target';
  if(id===16)s.phase='end';
  if(id===17){actor='p2';s.extras.buffs.p2={id,used:false,revealed:false};}
  if(id===19){s.active=3;s.phase='end';actor='p3';s.extras.buffs.p3={id,used:false,revealed:false};}
@@ -29,10 +29,10 @@ console.log('PASS: all 20 buffs activate only once; invalid shield rejected; AoE
 let shield=base(0);shield.extras.buffs.p1={id:0,used:false,revealed:false};shield=lmsAction(shield,'p1','buff',{},1000);shield=lmsAction(shield,'p0','resolve',{},6000);assert.equal(shield.players[1].hp,200);assert.equal(shield.players[0].hp,183);
 let phoenix=base(1);phoenix.players[1].hp=10;phoenix.extras.buffs.p1={id:1,used:false,revealed:false};phoenix=lmsAction(phoenix,'p1','buff',{},1000);phoenix=lmsAction(phoenix,'p0','resolve',{},6000);assert.equal(phoenix.players[1].hp,1);assert.equal(phoenix.players[1].d12Charge,70);
 let insurance=base(3);insurance.extras.buffs.p1={id:3,used:false,revealed:false};insurance=lmsAction(insurance,'p1','buff',{},1000);insurance=lmsAction(insurance,'p0','resolve',{},6000);assert.equal(insurance.players[1].hp,185);assert.equal(insurance.players[1].d12Charge,53);
-let thief=base(13);thief.phase='charge';thief=lmsAction(thief,'p0','buff',{target:'p2'});assert.equal(thief.players[0].d12Charge,75);assert.equal(thief.players[2].d12Charge,25);
+let thief=base(13);thief.phase='target';thief=lmsAction(thief,'p0','buff',{target:'p2'});assert.equal(thief.players[0].d12Charge,75);assert.equal(thief.players[2].d12Charge,25);
 let trade=base(15);trade.players[0].hp=100;trade=lmsAction(trade,'p0','buff',{choice:'hp',target:'4'});assert.equal(trade.players[0].hp,80);assert.equal(trade.players[0].d12Charge,54);
 let storm=base(19);storm.phase='end';storm.active=3;storm.round=8;storm=lmsAction(storm,'p3','end');assert.equal(storm.round,9);assert.equal(storm.players[0].hp,185);
 let bomb=base(10);bomb.phase='end';bomb.active=3;bomb.round=2;bomb.extras.bombs=[{target:'p1',round:3}];bomb=lmsAction(bomb,'p3','end');assert.equal(bomb.players[1].hp,160);assert.equal(bomb.extras.bombs.length,0);
 let mutual=base(19);mutual.active=3;mutual.phase='end';mutual.players.forEach(p=>p.hp=20);mutual.extras.buffs.p3={id:19,used:false,revealed:false};mutual=lmsAction(mutual,'p3','buff');assert.equal(mutual.winner,'draw');
-let reflected=base(0);reflected.players[0].hp=5;reflected.extras.buffs.p1={id:0,used:false,revealed:false};reflected=lmsAction(reflected,'p1','buff',{},1000);reflected=lmsAction(reflected,'p2','resolve',{},6000);assert.equal(reflected.players[0].hp,0);reflected=lmsAction(reflected,'p0','end');assert.equal(reflected.phase,'charge');
+let reflected=base(0);reflected.players[0].hp=5;reflected.extras.buffs.p1={id:0,used:false,revealed:false};reflected=lmsAction(reflected,'p1','buff',{},1000);reflected=lmsAction(reflected,'p2','resolve',{},6000);assert.equal(reflected.players[0].hp,0);reflected=lmsAction(reflected,'p0','end');assert.equal(reflected.phase,'target');
 console.log('PASS: reflect, revival, insurance, theft, trade, storm, bomb, draw and dead attacker end turn');

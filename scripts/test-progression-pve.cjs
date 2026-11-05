@@ -6,9 +6,11 @@ assert.equal(rankProgress(1000).name,'Đồng');assert.equal(rankProgress(1100).
 const hero={id:'hero',name:'Hero',character:{},classType:'mage',weaponId:'greatsword',isReady:true};
 for(let stage=1;stage<=12;stage++){
  let run=createPve(hero,stage);assert.equal(run.combat.players.length,2);assert.equal(run.combat.players[1].maxHp,150+15*(stage-1));
- run=advancePve(run,'hero','charge');assert.equal(run.combat.phase,'charge');run=advancePve(run,'hero','charge');assert.equal(run.combat.phase,'target');assert.equal(run.combat.players[0].d12Charge,run.combat.rolls.reduce((a,b)=>a+b,0));
- run=advancePve(run,'hero','target',{target:'pve_bot'});run=advancePve(run,'hero','attack');assert.ok(['end','finished'].includes(run.combat.phase));
- if(run.combat.phase==='end'){run=advancePve(run,'hero','end');assert.ok(['defense','finished'].includes(run.combat.phase));if(run.combat.phase==='defense'){assert.equal(run.combat.target,'hero');run=advancePve(run,'hero','defend');assert.ok(['charge','finished'].includes(run.combat.phase));}}
+ assert.equal(run.combat.phase,'attack');
+ run=advancePve(run,'hero','attack');assert.equal(run.combat.phase,'charge');
+ run=advancePve(run,'hero','charge');assert.equal(run.combat.phase,'charge');run=advancePve(run,'hero','charge');assert.equal(run.combat.phase,'skills');assert.equal(run.combat.players[0].d12Charge,run.combat.rolls.reduce((a,b)=>a+b,0));
+ run=advancePve(run,'hero','end');assert.equal(run.combat.phase,'defense');assert.equal(run.combat.target,'hero');run=advancePve(run,'hero','defend');assert.equal(run.combat.phase,'charge_defense');
+ run=advancePve(run,'hero','charge');assert.equal(run.combat.phase,'charge_defense');run=advancePve(run,'hero','charge');assert.equal(run.combat.phase,'skills');run=advancePve(run,'hero','end');assert.equal(run.combat.phase,'attack');
 }
 console.log('PASS: rank thresholds, slow EXP/max100, increasing rewards, 12 PvE stages including bot response and Mage clicks');
 const {PGlite}=require('@electric-sql/pglite');

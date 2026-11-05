@@ -11,6 +11,7 @@ interface DiceRoller3DProps {
   targetValue: number | null;
   onRollComplete?: () => void;
   label?: string;
+  resultText?: string;
 }
 
 export default function DiceRoller3D({
@@ -19,6 +20,7 @@ export default function DiceRoller3D({
   targetValue,
   onRollComplete,
   label = 'D20',
+  resultText,
 }: DiceRoller3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [modelLoaded, setModelLoaded] = useState(false);
@@ -248,7 +250,7 @@ export default function DiceRoller3D({
           <span className="text-xs font-pixel text-yellow-400 animate-pulse mt-0.5">{tx("ĐANG TUNG...")}</span>
         ) : displayedNumber !== null ? (
           <div className="mt-0.5 px-3 py-1 bg-yellow-500 text-black font-pixel text-sm sm:text-base font-bold shadow-[0_0_15px_rgba(234,179,8,0.9)] border border-yellow-200">
-            {displayedNumber}
+            {resultText ?? displayedNumber}
           </div>
         ) : (
           <span className="text-[9px] font-pixel text-slate-500 mt-0.5">{tx("SẴN SÀNG")}</span>

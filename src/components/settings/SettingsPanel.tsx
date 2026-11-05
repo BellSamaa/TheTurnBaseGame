@@ -253,9 +253,9 @@ export default function SettingsPanel() {
                     {isEn ? '2. D20 COMBAT RESOLUTION:' : '2. CƠ CHẾ CHIẾN ĐẤU (D20):'}
                   </h4>
                   <p>• {isEn ? 'Each turn: 1 Attacker, 1 Defender. Roles switch each turn.' : 'Trong 1 lượt: 1 người Tấn công, người còn lại Phòng thủ.'}</p>
-                  <p>• {isEn ? 'Both players roll their D20.' : 'Cả 2 cùng đổ xúc xắc D20.'}</p>
+                  <p>• {isEn ? 'D20 ATK → D20 DEF → D6 ATK → D6 DEF → SKILL USING.' : 'D20 Công → D20 Thủ → D6 Công → D6 Thủ → Dùng kỹ năng.'}</p>
                   <p>• <b>{isEn ? 'Blocked / Miss:' : 'Trường hợp 1 (Trượt/Đỡ thành công):'}</b> {isEn ? 'If Atk <= Def, no damage is dealt.' : 'Nếu D20 Công ≤ D20 Thủ → Không gây sát thương.'}</p>
-                  <p>• <b>{isEn ? 'Direct Hit:' : 'Trường hợp 2 (Đánh trúng):'}</b> {isEn ? 'If Atk > Def, damage dealt = Atk - Def.' : 'Nếu D20 Công > D20 Thủ → Gây sát thương.'}</p>
+                  <p>• <b>{isEn ? 'Direct Hit:' : 'Trường hợp 2 (Đánh trúng):'}</b> {isEn ? 'If Atk > Def: 15 + Atk − Def, then class and weapon effects.' : 'Nếu D20 Công > D20 Thủ → Gây sát thương.'}</p>
                 </div>
 
                 <div className="p-2 bg-purple-950/30 border border-purple-600/50">
@@ -263,8 +263,8 @@ export default function SettingsPanel() {
                     {isEn ? '3. D6 SKILL SYSTEM:' : '3. CƠ CHẾ KỸ NĂNG & SẠC CHIÊU (D6):'}
                   </h4>
                   <p>• {isEn ? 'Each turn both players roll D6 to accumulate Charge Points.' : 'Mỗi lượt cả 2 bên cùng đổ xúc xắc D6. Điểm các mặt D6 được cộng dồn thành "Điểm sạc".'}</p>
-                  <p>• <b>Skill 1 ({isEn ? 'Charge Threshold' : 'Theo mốc sạc'}):</b> {isEn ? 'Reach 15-30 charge points to cast powerful weapon skills.' : 'Đạt mốc yêu cầu (15 đến 30 điểm), người chơi được quyền dùng điểm để tung chiêu.'}</p>
-                  <p>• <b>Skill 2 ({isEn ? 'Instant Face Trigger' : 'Kích hoạt đặc biệt'}):</b> {isEn ? 'Triggers immediately if your D6 roll matches the required face number!' : 'Kích hoạt ngay lập tức nếu đổ ra một con số yêu cầu cụ thể.'}</p>
+                  <p>• <b>Skill 1 ({isEn ? 'Charge Threshold' : 'Theo mốc sạc'}):</b> {isEn ? 'Meet the displayed PTS cost and weapon conditions, then click to cast.' : 'Đủ PTS và điều kiện hiển thị của vũ khí, rồi bấm dùng kỹ năng.'}</p>
+                  <p>• <b>Skill 2 ({isEn ? 'Shared PTS' : 'Dùng chung PTS'}):</b> {isEn ? 'Click to cast after both D6 rolls. Both skills spend the same PTS pool; each can be used once per round.' : 'Bấm dùng sau khi hai bên tung D6. Hai kỹ năng trừ chung PTS; mỗi kỹ năng dùng một lần mỗi vòng.'}</p>
                 </div>
 
                 <div className="p-2 bg-red-950/30 border border-red-600/50">
@@ -276,7 +276,7 @@ export default function SettingsPanel() {
                   <p>• <b>Juggernaut:</b> +50% Max HP (225 HP; LMS 300), -25% DMG.</p>
                   <p>• <b>Mage:</b> Rolls skill D6 an extra time each turn (2 D6 rolls).</p>
                   <p>• <b>Boxer:</b> Rolls attack D20 twice and takes the higher roll.</p>
-                  <p>• <b>Warrior:</b> 120 Base HP, balanced attack and defense.</p>
+                  <p>• <b>Warrior:</b> 150 Base HP (LMS 200), balanced attack and defense.</p>
                 </div>
               </div>
 

@@ -47,7 +47,7 @@ export default function LastManStandingRulesModal({
           }
         >
           <div className="p-4 sm:p-5 text-left space-y-4 max-h-[75vh] overflow-y-auto text-slate-200">
-            <p className="border border-amber-500 p-3 text-sm text-amber-200">{tx("Bản thử nghiệm hiện có: 3–4 người, 200 HP gốc, sát thương 15 + chênh lệch D20. Sạc D6 → dùng skill/chọn mục tiêu → Công/Thủ → 5 giây can thiệp (3 PTS đổi ±1 Công) → kết thúc lượt. Hạ gục hồi 30 HP và nhận 5 PTS. Mỗi người có 1 trong 20 buff ẩn, lật một lần đúng điều kiện. Vòng 30 cấp thêm một lá riêng cho người còn sống, giữ nguyên lá cũ. Vòng bo từ vòng 8 gây 10 HP, mỗi vòng tăng 5. Bom nổ sau 2 vòng. Buff Im Lặng cấm skill, can thiệp PTS và buff trong vòng đó.")}</p>
+            <p className="border border-amber-500 p-3 text-sm text-amber-200">{tx("Bản thử nghiệm hiện có: 3–4 người, 200 HP gốc, sát thương 15 + chênh lệch D20. Chọn mục tiêu → D20 Công → D20 Thủ → 5 giây can thiệp (3 PTS đổi ±1 Công) → D6 Công → D6 Thủ → hai bên dùng skill và xác nhận kết thúc lượt. Hạ gục hồi 30 HP và nhận 5 PTS. Mỗi người có 1 trong 20 buff ẩn, lật một lần đúng điều kiện. Vòng 30 cấp thêm một lá riêng cho người còn sống, giữ nguyên lá cũ. Vòng bo từ vòng 8 gây 10 HP, mỗi vòng tăng 5. Bom nổ sau 2 vòng. Buff Im Lặng cấm skill, can thiệp PTS và buff trong vòng đó.")}</p>
             <details><summary>{tx("Danh sách 20 buff")}</summary><ol>{LMS_BUFFS.map((name,i)=><li key={name}>{i+1}. {name}: {tx(LMS_BUFF_HELP[i])}</li>)}</ol></details>{/* Header intro */}
             <div className="bg-yellow-950/40 border border-yellow-500/50 p-3 rounded text-center">
               <h3 className="text-xs sm:text-sm font-pixel text-yellow-300 font-bold mb-1">
@@ -111,11 +111,11 @@ export default function LastManStandingRulesModal({
             {/* Rule 5 */}
             <div className="border-l-2 border-purple-500 pl-3">
               <h4 className="text-[10px] sm:text-xs font-pixel text-purple-400 font-bold mb-1">
-                {isEn ? '5. D6 CHARGE & D12 CHARGED SKILLS' : '5. NẠP D6 & KÍCH HOẠT KỸ NĂNG D12'}
+                {isEn ? '5. D6 CHARGE & MANUAL SKILLS' : '5. SẠC D6 & BẤM DÙNG KỸ NĂNG'}
               </h4>
               <p className="text-[8.5px] sm:text-[9px] font-sans text-slate-300 leading-relaxed">
                 {isEn
-                  ? 'Roll D6 each turn to accumulate skill PTS. When you have enough PTS, unleash devastating D12 skills (Skill 1 & Skill 2) to heal, pierce shields, or obliterate opponents!'
+                  ? 'Roll D6 each turn to accumulate skill PTS. When you have enough PTS, click to use weapon skills (Skill 1 & Skill 2) to heal, pierce shields, or obliterate opponents!'
                   : 'Tung D6 mỗi hiệp để tích lũy điểm kỹ năng (PTS). Khi đủ PTS, bạn có thể kích hoạt Kỹ năng 1 hoặc 2 của vũ khí để đảo ngược cục diện!'}
               </p>
             </div>
