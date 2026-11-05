@@ -203,6 +203,7 @@ export function executeSkill1D6(
       // ra 6: vô hạ hạn - immune dame 1 lần
       if (d6Roll === 3) {
         damage = reflectedDamage(user, turn);
+        if(damage>30)damage=Math.floor(damage/2);
         statusEffect = 'reflection';
         logTextVi = `Aoi phản lại ${damage} sát thương đã nhận từ đối thủ trong lượt gần nhất!`;
         logTextEn = `Aoi reflects ${damage} damage received from the opponent in the latest turn!`;

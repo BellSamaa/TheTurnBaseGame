@@ -1,0 +1,3 @@
+require('./test-new-combat-balance.cjs');const assert=require('node:assert/strict');const {castChargedSkill}=require('../src/lib/chargedSkills.ts'),{WEAPON_DEFINITIONS}=require('../src/lib/constants.ts');
+for(const [received,expected]of [[0,0],[29,29],[30,30],[31,15],[50,25],[100,50]]){const user={id:'a',name:'A',classType:'warrior',weapon:WEAPON_DEFINITIONS.infinity_ring,hp:100,maxHp:100,d12Charge:100,opponentDamageAmount:received,opponentDamageTurn:1};const foe={...user,id:'b',weapon:WEAPON_DEFINITIONS.greatsword};const r=castChargedSkill(user,foe,1,2,3);assert.equal(r.damage,expected);assert.equal(r.opponent.hp,100-expected);}
+console.log('PASS: Aoi 30 unchanged, above 30 halved and rounded down; actual target HP matches');

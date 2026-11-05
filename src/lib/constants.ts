@@ -257,8 +257,8 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       nameVi: 'Thuật Thức Vô Hạ Hạn ',
       diceType: 'd6',
       triggerNumber: [3, 4, 6],
-      description: 'Aoi reflects damage received in the latest round. Akai deals 12 damage. Immune blocks the next incoming damage.',
-      descriptionVi: 'Aoi phản sát thương đã nhận ở lượt gần nhất. Akai gây 12 sát thương. Immune chặn lần sát thương kế tiếp, mất aura trắng.',
+      description: 'Aoi reflects damage received in the latest round; above 30, reflected damage is halved (rounded down). Akai deals 12 damage. Immune blocks the next incoming damage.',
+      descriptionVi: 'Aoi phản sát thương đã nhận ở lượt gần nhất; nếu trên 30 thì chia đôi (làm tròn xuống). Akai gây 12 sát thương. Immune chặn lần sát thương kế tiếp, mất aura trắng.',
       effect: 'void_limitless_forms',
     },
     skill2: {
