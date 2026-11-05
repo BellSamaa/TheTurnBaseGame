@@ -14,7 +14,7 @@ export interface LmsState {
   rollDeadline?:number;
   initiative?: {id:string;roll:number}[];
   extras?: LmsExtras; remainingTargets?: string[];
-  turnFlow?:2|3;roundCharges?:Record<string,number[]>;endVotes?:string[];endDeadline?:number; defenderRolls?:number[]; skillDone?:string[];
+  turnFlow?:2|3;roundCharges?:Record<string,number[]>;endVotes?:string[];endDeadline?:number;stageDone?:string[];stageDeadline?:number; defenderRolls?:number[]; skillDone?:string[];
   players: PlayerState[]; order: string[]; active: number; round: number;
   phase: 'initiative' | 'charge' | 'charge_defense' | 'skills' | 'buffs' | 'target' | 'attack' | 'defense' | 'clash' | 'end' | 'finished';
   target?: string; attack?: number; defense?: number; deadline?: number;

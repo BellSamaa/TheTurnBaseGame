@@ -9,15 +9,15 @@ function nextRound(s:LmsState,now:number){
  // Reuse round-boundary bombs, storm, burn and round-30 card logic once.
  const legacy=structuredClone(s);legacy.turnFlow=2;legacy.phase='end';legacy.active=legacy.extras!.direction===1?legacy.order.length-1:0;
  let next=lmsAction(legacy,legacy.order[legacy.active],'end',{},now);
- next.turnFlow=3;next.round=s.round+1;next.initiative=[];next.active=0;next.attack=undefined;next.defense=undefined;next.target=undefined;next.rolls=[];next.defenderRolls=[];next.roundCharges={};next.endVotes=[];next.skillDone=[];next.endDeadline=undefined;next.lastEvent=undefined;
+ next.turnFlow=3;next.round=s.round+1;next.initiative=[];next.active=0;next.attack=undefined;next.defense=undefined;next.target=undefined;next.rolls=[];next.defenderRolls=[];next.roundCharges={};next.endVotes=[];next.skillDone=[];next.endDeadline=undefined;next.stageDone=[];next.stageDeadline=undefined;next.lastEvent=undefined;
  if(!next.winner){next.phase='initiative';next.rollDeadline=now+10000;}return next;
 }
 export function roundLmsAction(input:LmsState,actor:string,action:string,args:Parameters<typeof lmsAction>[3]={},now=Date.now()):LmsState{
  let s=structuredClone(input);const user=s.players.find(p=>p.id===actor);if(!user||user.hp<=0||s.winner)throw Error('Không thể hành động');
- if(action==='next_stage'){
-  if(actor!==s.order[s.active]||!['skills','buffs'].includes(s.phase))throw Error('Chỉ người Công chuyển giai đoạn');
-  if(s.phase==='skills'&&s.players.some(p=>p.hp>0&&(s.roundCharges?.[p.id]?.length||0)<1+CLASS_DEFINITIONS[p.classType].extraD6Rolls))throw Error('Chờ mọi người tung D6');
-  s.phase=s.phase==='skills'?'buffs':'end';if(s.phase==='end'){s.endVotes=[];s.endDeadline=now+30000;}s.revision++;return s;
+ if(action==='clash')throw Error('Can thiệp PTS đã được bỏ');
+ if(['skills','buffs'].includes(s.phase)&&s.stageDone?.includes(actor)&&['skill','buff','charge','end','next_stage'].includes(action))throw Error('Bạn đã xong giai đoạn này');
+ if((action==='end'||action==='next_stage')&&['skills','buffs'].includes(s.phase)){
+  (s.stageDone??=[]).push(actor);s.revision++;advanceStage(s,now);return s;
  }
  if(action==='charge'&&s.phase==='skills'){
   const rolls=(s.roundCharges??={})[actor]??=[];if(rolls.length>=1+CLASS_DEFINITIONS[user.classType].extraD6Rolls)throw Error('Đã tung đủ D6');
@@ -51,17 +51,24 @@ export function roundLmsAction(input:LmsState,actor:string,action:string,args:Pa
   next.winner=undefined;next.phase='skills';finish(next);
  }
  if(action==='buff'&&s.phase==='buffs'&&!next.winner)next.phase='buffs';
- if(action==='resolve'&&!next.winner&&next.phase!=='defense'){next.phase='skills';next.roundCharges={};next.rollDeadline=undefined;}
+ if(action==='resolve'&&!next.winner&&next.phase!=='defense'){next.phase='skills';next.roundCharges={};next.rollDeadline=undefined;next.stageDone=[];next.stageDeadline=now+10000;}
  if(action==='surrender'&&!next.winner){if(s.phase==='end'&&next.players.filter(p=>p.hp>0).every(p=>next.endVotes?.includes(p.id)))return nextRound(next,now);if(actor===s.order[s.active]){next.active=next.order.findIndex(id=>next.players.some(p=>p.id===id&&p.hp>0));if(s.phase!=='initiative'){next.phase='skills';next.roundCharges??={};}}}
+ if(!next.winner&&['skills','buffs'].includes(s.phase)&&((action==='skill'&&s.phase==='skills')||(action==='buff'&&s.phase==='buffs'))){(next.stageDone??=[]).push(actor);advanceStage(next,now);}
+ if(action==='surrender'&&['skills','buffs'].includes(next.phase))advanceStage(next,now);
  return next;
 }
+function advanceStage(s:LmsState,now:number){if(s.winner||!s.players.filter(p=>p.hp>0).every(p=>s.stageDone?.includes(p.id)))return;s.phase=s.phase==='skills'?'buffs':'end';s.stageDone=[];s.rollDeadline=undefined;if(s.phase==='end'){s.endVotes=[];s.endDeadline=now+30000;s.stageDeadline=undefined;}else s.stageDeadline=now+10000;}
 export function roundLmsTick(input:LmsState,now=Date.now()):LmsState{
  if(input.winner)return input;
  if(input.phase==='end'&&now>=(input.endDeadline??Infinity))return nextRound(input,now);
- if(input.phase==='skills'){
-  const due=input.rollDeadline;if(!due){const s=structuredClone(input);s.rollDeadline=now+10000;s.revision++;return s;}
-  if(now<due)return input;let s=input;for(const p of input.players.filter(p=>p.hp>0)){if((s.roundCharges?.[p.id]?.length||0)<1+CLASS_DEFINITIONS[p.classType].extraD6Rolls)s=roundLmsAction(s,p.id,'charge',{},now);}if(s!==input)s.rollDeadline=now+10000;return s;
+ if(['skills','buffs'].includes(input.phase)){
+  if(!input.stageDeadline){const s=structuredClone(input);s.stageDeadline=now+10000;s.stageDone??=[];s.revision++;return s;}
+  if(now<input.stageDeadline)return input;
+  const s=structuredClone(input);
+  // Preserve this round's charge opportunity for players who skip or time out.
+  if(s.phase==='skills')for(const p of s.players.filter(p=>p.hp>0&&!s.stageDone?.includes(p.id))){const rolls=(s.roundCharges??={})[p.id]??=[];while(rolls.length<1+CLASS_DEFINITIONS[p.classType].extraD6Rolls){const roll=rollD6();rolls.push(roll);Object.assign(p,chargeSkillPoints(p,[roll],s.round));}}
+  s.stageDone=s.players.filter(p=>p.hp>0).map(p=>p.id);advanceStage(s,now);s.revision++;return s;
  }
  const legacy=structuredClone(input);legacy.turnFlow=2;const next=tickLms(legacy,now);if(next===legacy)return input;
- next.turnFlow=3;if(input.phase==='clash'&&!next.winner&&next.phase!=='defense'){next.phase='skills';next.roundCharges={};next.rollDeadline=now+10000;}return next;
+ next.turnFlow=3;if(input.phase==='clash'&&!next.winner&&next.phase!=='defense'){next.phase='skills';next.roundCharges={};next.rollDeadline=undefined;next.stageDone=[];next.stageDeadline=now+10000;}return next;
 }
