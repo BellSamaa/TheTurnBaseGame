@@ -10,6 +10,7 @@ import { applyOpponentDamage, recordOpponentDamage } from './combatDamage';
 
 export interface LmsState {
   lastEvent?: {id:string;announcementId?:string;cues?:{effect:string;target:string}[];effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
+  initiative?: {id:string;roll:number}[];
   extras?: LmsExtras; remainingTargets?: string[];
   turnFlow?:2; defenderRolls?:number[]; skillDone?:string[];
   players: PlayerState[]; order: string[]; active: number; round: number;
@@ -23,7 +24,7 @@ export function createLms(participants: RoomParticipant[], duel = false): LmsSta
     weapon:WEAPON_DEFINITIONS[p.weaponId],hp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),maxHp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),
     skillCharge:0,d12Charge:0,isAttacker:false,petRockHp:0,bullets:6 }));
   const initiative = players.map(p=>({id:p.id,roll:rollD20()})).sort((a,b)=>b.roll-a.roll);
-  return {players,order:initiative.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'target',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
+  return {players,initiative,order:initiative.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'target',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
     extras:{buffs:Object.fromEntries(players.map(p=>[p.id,{id:Math.floor(Math.random()*20),used:false,revealed:false}])),flags:{},bombs:[],direction:1,suddenRound:8,eliminated:[]},
     log:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · Initiative D20: '+p.roll),
     logVi:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · D20 khởi đầu: '+p.roll)};
@@ -105,8 +106,12 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
         (s.skillDone??=[]).push(actor);
         const required=[attacker,target].filter(p=>p&&p.hp>0);
         if(required.some(p=>!s.skillDone!.includes(p!.id))){s.revision++;return s;}
+        // LMS keeps an explicit end window for Hourglass and end-of-round cards.
+        if(s.players.length>2){s.phase='end';s.revision++;return s;}
       }else if(s.phase!=='end')throw Error('Chưa kết thúc đòn đánh');
       s.extras!.lastKill=undefined;
+      // Attack/reaction buffs expire with this turn, including a cancelled attack.
+      s.extras!.flags={};
       const previousRound=s.round;
       do{s.active=(s.active+s.extras!.direction+s.order.length)%s.order.length;if(s.active===(s.extras!.direction===1?0:s.order.length-1))s.round++;}while(s.players.find(p=>p.id===s.order[s.active])!.hp<=0);
       if(s.round!==previousRound){

@@ -13,6 +13,9 @@ export function activateBuff(s:LmsState,actor:string,args:{target?:string;choice
  const x=s.extras!,buff=args.buffSlot==='bonus'?x.bonusBuffs?.[actor]:x.buffs[actor],u=s.players.find(p=>p.id===actor)!,a=s.players.find(p=>p.id===s.order[s.active])!,t=s.players.find(p=>p.id===s.target),pick=s.players.find(p=>p.id===args.target&&p.hp>0),own=a.id===actor;
  const require=(ok:unknown,message:string)=>{if(!ok)throw Error(message);};
  require(buff&&!buff.used&&x.silencedRound!==s.round,'Buff đã dùng hoặc đang bị cấm');
+ const aliveOrder=s.order.filter(id=>s.players.some(p=>p.id===id&&p.hp>0));
+ const firstAlive=x.direction===1?aliveOrder[0]:aliveOrder.at(-1);
+ const lastAlive=x.direction===1?aliveOrder.at(-1):aliveOrder[0];
  const hit=s.phase==='clash'&&t&&s.attack!>s.defense!;
  const projected=t?calculateD20Combat(s.attack??0,s.defense??20,CLASS_DEFINITIONS[a.classType],CLASS_DEFINITIONS[t.classType],structuredClone(a),structuredClone(t)).damage:0;
  const mark=(key:string,value:number|boolean|string=true)=>x.flags[key]=value;
@@ -28,7 +31,7 @@ export function activateBuff(s:LmsState,actor:string,args:{target?:string;choice
  case 8:require(own&&['target','attack'].includes(s.phase)&&pick&&pick.id!==actor&&pick.hp<30,'Chọn đối thủ dưới 30 HP');if(rollD6()%2===0)pick!.hp=0;s.phase='end';break;
  case 9:require(x.lastKill&&x.lastKill.killer!==actor&&!x.lastKill.claimed&&s.phase==='end','Ngay sau người khác hạ gục');const killer=s.players.find(p=>p.id===x.lastKill!.killer)!;killer.hp=Math.max(1,killer.hp-x.lastKill!.hp);killer.d12Charge=Math.max(0,(killer.d12Charge??0)-x.lastKill!.pts);u.hp=Math.min(u.maxHp,u.hp+30);u.d12Charge=(u.d12Charge??0)+5;x.lastKill!.claimed=true;break;
  case 10:require(pick&&pick.id!==actor,'Chọn đối thủ');x.bombs.push({target:pick!.id,round:s.round+2});break;
- case 11:require(s.active===0&&s.phase==='target'&&s.rolls.length===0,'Đầu vòng mới');x.silencedRound=s.round;break;
+ case 11:require(a.id===firstAlive&&s.phase==='target'&&s.rolls.length===0,'Đầu vòng mới');x.silencedRound=s.round;break;
  case 12:require(['defense','clash'].includes(s.phase),'Sau khi có kết quả D20');if(args.choice==='defense'){require((s.defense??0)>15,'Thủ phải >15');s.defense=1;}else{require((s.attack??0)>15,'Công phải >15');s.attack=1;}break;
  case 13:require(s.phase==='target'&&pick&&pick.id!==actor,'Đầu lượt, chọn người khác');const stolen=Math.floor((pick!.d12Charge??0)/2);pick!.d12Charge=(pick!.d12Charge??0)-stolen;u.d12Charge=(u.d12Charge??0)+stolen;break;
  case 14:require(s.phase==='attack','Sau khi chọn mục tiêu');const candidates=s.players.filter(p=>p.hp>0);s.target=candidates[Math.floor(Math.random()*candidates.length)].id;break;
@@ -36,7 +39,7 @@ export function activateBuff(s:LmsState,actor:string,args:{target?:string;choice
  case 16:require(s.phase==='end','Cuối lượt');x.direction=x.direction===1?-1:1;break;
  case 17:require(s.phase==='clash'&&a.id!==actor&&t?.id!==actor,'Hai người khác giao chiến');mark('watch:'+actor);break;
  case 18:require(s.phase!=='finished','Trận còn diễn ra');s.players.filter(p=>p.hp>0).forEach(p=>p.hp=Math.min(p.maxHp,p.hp+15));s.phase='end';break;
- case 19:require(s.phase==='end'&&(s.active===(x.direction===1?s.order.length-1:0)),'Cuối vòng');s.players.filter(p=>p.hp>0).forEach(p=>p.hp=Math.max(0,p.hp-25));x.suddenRound=Math.max(s.round+1,x.suddenRound-1);break;
+ case 19:require(s.phase==='end'&&a.id===lastAlive,'Cuối vòng');s.players.filter(p=>p.hp>0).forEach(p=>p.hp=Math.max(0,p.hp-25));x.suddenRound=Math.max(s.round+1,x.suddenRound-1);break;
  default:throw Error('Buff không tồn tại');
  }
  buff!.used=true;buff!.revealed=true;s.logVi??=[...s.log];const message=u.name+' lật '+LMS_BUFFS[buff!.id];s.log.unshift(translateText(message,'en'));s.logVi.unshift(message);

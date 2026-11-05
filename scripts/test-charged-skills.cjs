@@ -225,6 +225,6 @@ for(const count of [3,4]) {
  assert.throws(()=>lmsAction(s,target,'charge'));
  assert.equal(s.phase,'target');assert.throws(()=>lmsAction(s,actor,'charge'));
  s=lmsAction(s,actor,'target',{target});s=lmsAction(s,actor,'attack');s=lmsAction(s,target,'defend',{},1000);assert.equal(s.phase,'clash');assert.throws(()=>lmsAction(s,actor,'resolve',{},2000));
- s=lmsAction(s,actor,'resolve',{},6000);assert.equal(s.phase,'charge');s=lmsAction(s,actor,'charge');assert.equal(s.phase,'charge_defense');s=lmsAction(s,target,'charge');assert.equal(s.phase,'skills');s=lmsAction(s,actor,'end');assert.equal(s.phase,'skills');s=lmsAction(s,target,'end');assert.equal(s.phase,'target');assert.notEqual(s.order[s.active],actor);
+ s=lmsAction(s,actor,'resolve',{},6000);assert.equal(s.phase,'charge');s=lmsAction(s,actor,'charge');assert.equal(s.phase,'charge_defense');s=lmsAction(s,target,'charge');assert.equal(s.phase,'skills');s=lmsAction(s,actor,'end');assert.equal(s.phase,'skills');s=lmsAction(s,target,'end');assert.equal(s.phase,'end');s=lmsAction(s,actor,'end');assert.equal(s.phase,'target');assert.notEqual(s.order[s.active],actor);
 }
 console.log('PASS: 15+actual D20 difference; real 3/4 player LMS phases and actor gates');

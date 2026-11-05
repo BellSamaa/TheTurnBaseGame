@@ -36,3 +36,16 @@ let bomb=base(10);bomb.phase='end';bomb.active=3;bomb.round=2;bomb.extras.bombs=
 let mutual=base(19);mutual.active=3;mutual.phase='end';mutual.players.forEach(p=>p.hp=20);mutual.extras.buffs.p3={id:19,used:false,revealed:false};mutual=lmsAction(mutual,'p3','buff');assert.equal(mutual.winner,'draw');
 let reflected=base(0);reflected.players[0].hp=5;reflected.extras.buffs.p1={id:0,used:false,revealed:false};reflected=lmsAction(reflected,'p1','buff',{},1000);reflected=lmsAction(reflected,'p2','resolve',{},6000);assert.equal(reflected.players[0].hp,0);reflected=lmsAction(reflected,'p0','end');assert.equal(reflected.phase,'target');
 console.log('PASS: reflect, revival, insurance, theft, trade, storm, bomb, draw and dead attacker end turn');
+
+// End-of-turn cards must remain reachable after the five-step flow.
+let endWindow=base(16);endWindow.phase='skills';endWindow.skillDone=[];
+endWindow=lmsAction(endWindow,'p1','end');endWindow=lmsAction(endWindow,'p0','end');assert.equal(endWindow.phase,'end');
+endWindow=lmsAction(endWindow,'p0','buff');assert.equal(endWindow.extras.direction,-1);
+endWindow.extras.flags={'double:p0':true,'shield:p1':true};endWindow=lmsAction(endWindow,'p0','end');assert.deepEqual(endWindow.extras.flags,{});assert.equal(endWindow.order[endWindow.active],'p3');
+console.log('PASS: Hourglass reachable after manual skills; cancelled attack buffs cannot leak into the next turn');
+
+let lastAlive=base(19);lastAlive.phase='end';lastAlive.active=2;lastAlive.players[3].hp=0;lastAlive.extras.buffs.p2={id:19,used:false,revealed:false};
+lastAlive=lmsAction(lastAlive,'p2','buff');assert.equal(lastAlive.players[0].hp,175);
+let firstAlive=base(11);firstAlive.phase='target';firstAlive.active=1;firstAlive.players[0].hp=0;firstAlive.extras.buffs.p1={id:11,used:false,revealed:false};
+firstAlive=lmsAction(firstAlive,'p1','buff');assert.equal(firstAlive.extras.silencedRound,firstAlive.round);
+console.log('PASS: round-boundary cards skip eliminated seats');

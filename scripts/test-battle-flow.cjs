@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const {createLms,lmsAction}=require('../src/lib/lms.ts');
 for(const count of [2,3,4]){
  let s=createLms(Array.from({length:count},(_,i)=>({id:'p'+i,name:'P'+i,character:{},classType:'mage',weaponId:'infinity_ring',isReady:true})),count===2);
+ assert.equal(s.initiative.length,count);assert.deepEqual(s.initiative.map(r=>r.id),s.order);assert.ok(s.initiative.every((r,i)=>r.roll>=1&&r.roll<=20&&(!i||s.initiative[i-1].roll>=r.roll)));
  const a=s.order[0],d=s.players.find(p=>p.id!==a).id,outsider=s.players.find(p=>p.id!==a&&p.id!==d)?.id;
  if(s.phase==='target')s=lmsAction(s,a,'target',{target:d});
  assert.throws(()=>lmsAction(s,a,'charge'));
@@ -17,6 +18,6 @@ for(const count of [2,3,4]){
  const form=s.players[0].weapon.skill1.triggerNumber[0];
  for(const [actor,target] of [[a,d],[d,a]]){s=lmsAction(s,actor,'skill',{target,slot:1,form});assert.throws(()=>lmsAction(s,actor,'skill',{target,slot:1,form}));}
  s=lmsAction(s,d,'end');assert.equal(s.phase,'skills');assert.throws(()=>lmsAction(s,d,'end'));assert.throws(()=>lmsAction(s,d,'skill',{target:a,slot:2,form:1}));
- s=lmsAction(s,a,'end');assert.ok(['target','attack'].includes(s.phase));assert.notEqual(s.order[s.active],a);assert.deepEqual(s.rolls,[]);assert.deepEqual(s.defenderRolls,[]);
+ s=lmsAction(s,a,'end');if(count>2){assert.equal(s.phase,'end');s=lmsAction(s,a,'end');}assert.ok(['target','attack'].includes(s.phase));assert.notEqual(s.order[s.active],a);assert.deepEqual(s.rolls,[]);assert.deepEqual(s.defenderRolls,[]);
 }
 console.log('PASS: 2/3/4 players, exact five-step order, Mage two rolls per side, manual skills, duplicate/replay and spectator gates, both end confirmations');

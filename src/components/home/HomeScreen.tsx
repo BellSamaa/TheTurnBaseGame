@@ -66,14 +66,14 @@ export default function HomeScreen() {
         <header className="home-toolbar relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-end gap-3">
           <WalletBar />
           {/* Right Toolbar: Audio + Lang + Auth Profile */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+          <div className="home-toolbar-actions flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
             {/* Audio Controls with enchant glow */}
             <div className="flex items-center gap-1.5 animate-enchant-glow">
               <AudioToolbarControls />
             </div>
 
             {/* Language Switcher with enchant glow */}
-            <div className="flex border-2 border-yellow-400/70 bg-black/60 p-0.5 shadow-[0_0_12px_rgba(250,204,21,0.3)] animate-enchant-glow">
+            <div className="home-language flex border-2 border-yellow-400/70 bg-black/60 p-0.5 shadow-[0_0_12px_rgba(250,204,21,0.3)] animate-enchant-glow">
               <button
                 onClick={() => {
                   playClickSound();
