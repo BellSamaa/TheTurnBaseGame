@@ -78,7 +78,7 @@
       "label": "King Slasher (Sukuna) · Bát",
       "activation": "D6 PTS 10",
       "rule": "Enchant đòn đánh thường trong 3 round tấn công tiếp theo của người dùng; không tiêu hao thời hạn khi phòng thủ. Nếu tấn công thành công: cộng thêm 4 sát thương vào đòn đánh. Nếu tấn công thất bại do số thủ đối phương lớn hơn: vẫn tất trúng 5 sát thương. VFX: hai lát cắt trắng hình chữ X.",
-      "costPts": 10,
+      "costPts": 5,
       "impactMs": 450,
       "cues": [
         {
@@ -107,7 +107,7 @@
       "label": "King Slasher (Sukuna) · Giải",
       "activation": "D6 PTS 10",
       "rule": "Bắn 3 tia lát cắt trắng vào đối thủ; thông số sát thương được cung cấp là 5, cách chia cho 3 tia chưa rõ. Kèm Slashing trong 3 round phòng thủ tiếp theo của người dùng. Mỗi lần đối phương tấn công thành công trong cửa sổ đó: tự động dội ngược 3 sát thương. Chỉ cần đối phương tấn công thất bại 1 lần trong 3 round thủ: kích hoạt một đợt chém liên tục gây 7 sát thương.",
-      "costPts": 10,
+      "costPts": 5,
       "impactMs": 450,
       "cues": [
         {
@@ -146,7 +146,7 @@
       "label": "King Slasher (Sukuna) · Mũi tên lửa",
       "activation": "D6 PTS 10",
       "rule": "Bắn mũi tên lửa nổ xuống mặt đất, gây 12 sát thương. Khắc ấn mục tiêu trong 3 round tiếp theo, không phân biệt tấn công hay phòng thủ. Mục tiêu có khắc ấn cho phép hiển thị Skill 2 dạng ẩn.",
-      "costPts": 10,
+      "costPts": 5,
       "impactMs": 450,
       "cues": [
         {

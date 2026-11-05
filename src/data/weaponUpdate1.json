@@ -63,7 +63,7 @@
         "id": "king_slasher.s1.bat",
         "slot": 1,
         "name": "Bát",
-        "cost_pts": 10,
+        "cost_pts": 5,
         "resource": "D6 PTS",
         "details": [
           "Enchant đòn đánh thường trong 3 round tấn công tiếp theo của người dùng; không tiêu hao thời hạn khi phòng thủ.",
@@ -90,7 +90,7 @@
         "id": "king_slasher.s1.giai",
         "slot": 1,
         "name": "Giải",
-        "cost_pts": 10,
+        "cost_pts": 5,
         "resource": "D6 PTS",
         "details": [
           "Bắn 3 tia lát cắt trắng vào đối thủ; thông số sát thương được cung cấp là 5, cách chia cho 3 tia chưa rõ.",
@@ -121,7 +121,7 @@
         "id": "king_slasher.s1.fire_arrow",
         "slot": 1,
         "name": "Mũi tên lửa",
-        "cost_pts": 10,
+        "cost_pts": 5,
         "resource": "D6 PTS",
         "details": [
           "Bắn mũi tên lửa nổ xuống mặt đất, gây 12 sát thương.",
