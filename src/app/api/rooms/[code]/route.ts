@@ -132,8 +132,10 @@ export async function POST(req: Request, context: RouteContext) {
     if (action === 'lms_action') {
       const actor = await sessionUser();
       if (!actor || !room.battleState?.lms || room.status !== 'playing') return NextResponse.json({error:'Không có trận LMS'}, {status:403});
+      if(typeof body.requestId==='string'&&room.battleState.lms.acceptedActions?.includes(body.requestId))return NextResponse.json({success:true,room:await roomView(room)});
       if (body.expectedRevision !== room.battleState.lms.revision) return NextResponse.json({room:await roomView(room),error:'Trạng thái đã thay đổi, thử lại'}, {status:409});
       room.battleState.lms = lmsAction(room.battleState.lms, actor, body.move, body.args);
+      if(typeof body.requestId==='string')room.battleState.lms.acceptedActions=[...(room.battleState.lms.acceptedActions||[]),body.requestId].slice(-64);
       if (room.battleState.lms.winner) { room.battleState.winnerId=room.battleState.lms.winner; room.status='finished'; }
       await updateRoom(room);
       // roomView retries settlement independently of combat writes.

@@ -23,6 +23,8 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   useEffect(()=>{const parent=arenaRef.current?.parentElement;if(!parent)return;parent.style.setProperty("--battle-map",`url("${map.image.replace(/\.png$/,'.webp')}")`);return()=>{parent.style.removeProperty("--battle-map");};},[map.image]);
   const stages=s.turnFlow===3?['initiative','target','skills','buffs','end']:s.phase==='initiative'?['initiative']:stageSequence||['attack','defense','charge','charge_defense','skills'];
   const lang=useGameStore(st=>st.settings.language),en=lang==='en';
+  const [tiePopup,setTiePopup]=useState<LmsState['tieNotice']>();
+  useEffect(()=>{if(!s.tieNotice)return;setTiePopup(s.tieNotice);const t=setTimeout(()=>setTiePopup(undefined),4000);return()=>clearTimeout(t);},[s.tieNotice?.id]);
   const [banner,setBanner]=useState<LmsState['lastEvent']>();
   const [event,setEvent]=useState<LmsState['lastEvent']>(),[rolling,setRolling]=useState(false);
   const seen=useRef<string|undefined>(undefined),lastRoll=useRef('');
@@ -78,6 +80,7 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
     const t=setTimeout(()=>{setRolling(false);playBattleCue('result');},700);return()=>clearTimeout(t);
   },[rollKey]);
   return <div ref={arenaRef} className={'combat-arena battle-balanced '+(buffs?'combat-party party-count-'+s.players.length:'combat-duel')}>
+    {tiePopup&&<div className="lms-tie-notice" role="status"><h3>✦ {en?'TIED D20 · RANDOM ORDER':'D20 BẰNG ĐIỂM · BỐC THĂM'} ✦</h3>{tiePopup.groups.map(g=><p key={g.roll}>D20 <b>{g.roll}</b> · {g.ids.map(id=>s.players.find(p=>p.id===id)?.name).join(' / ')}<strong>{g.ids.map(id=>s.players.find(p=>p.id===id)?.name).join(' → ')}</strong></p>)}</div>}
     <header className="combat-topbar">
       <div className="combat-heading">{onBack&&<button className="combat-back" onClick={onBack}>{en?'← Back':'← Trở lại'}</button>}<div><small>{title}</small><h2>{en?'ROUND':'VÒNG'} {s.round}</h2></div></div>
       <div className="combat-toolbar"><WalletBar/><button className="combat-surrender" disabled={busy||!!s.winner} onClick={onSurrender}>{en?'Surrender':'Đầu hàng'}</button></div>
@@ -86,6 +89,7 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
       const labels:Record<string,string>=en?{initiative:'OPENING D20',charge:'D6 · ATK',charge_defense:'D6 · DEF',skills:'SKILL USING',target:'TARGET',attack:'D20 · ATK',defense:'D20 · DEF',clash:'REACTION',end:stageSequence?'SKILLS / END':'END TURN'}:{initiative:'D20 KHỞI ĐẦU',charge:'D6 · CÔNG',charge_defense:'D6 · THỦ',skills:'DÙNG KỸ NĂNG',target:'MỤC TIÊU',attack:'D20 · CÔNG',defense:'D20 · THỦ',clash:'CAN THIỆP',end:stageSequence?'CHIÊU / KẾT THÚC':'KẾT THÚC'};
       if(s.turnFlow===3)Object.assign(labels,en?{initiative:'ALL ROLL D20',target:'COMPARE / TARGET',skills:'CHARGE / SKILLS',buffs:'USE BUFF',end:'ALL END TURN'}:{initiative:'TẤT CẢ TUNG D20',target:'SO SÁNH / CHỌN',skills:'SẠC / KỸ NĂNG',buffs:'DÙNG BUFF',end:'TẤT CẢ KẾT THÚC'});
       const descriptions:Record<string,string>=en?{charge:'Attacker rolls D6 to charge shared PTS.',charge_defense:'Defender rolls D6 to charge shared PTS.',skills:'Both players may spend shared PTS on skills, then confirm End Turn.',target:'Choose the opponent to attack.',attack:'Attacker rolls D20.',defense:'Defender rolls D20.',clash:'Resolve the hit and available reactions.',end:'Finish available actions, then end the turn.'}:{charge:'Bên công tung D6 để sạc PTS.',charge_defense:'Bên thủ tung D6 để sạc PTS.',skills:'Hai bên dùng chung PTS cho kỹ năng rồi bấm Kết thúc lượt.',target:'Chọn đối thủ để tấn công.',attack:'Người tấn công tung D20.',defense:'Người phòng thủ tung D20.',clash:'Xử lý đòn đánh và phản ứng có thể dùng.',end:'Hoàn tất hành động rồi kết thúc lượt.'};
+      if(s.turnFlow===3)Object.assign(descriptions,en?{skills:'All players charge D6 first in descending D20 order, then use skills in the same order. Ties are randomly ordered.',buffs:'Use buffs in descending D20 order; tied players draw a random order.'}:{skills:'Tất cả sạc D6 theo D20 giảm dần, rồi dùng skill theo cùng thứ tự. Bằng điểm thì bốc thăm.',buffs:'Dùng Buff theo D20 giảm dần; bằng điểm thì bốc thăm thứ tự.'});
       return <span key={phase} title={descriptions[phase]} aria-current={shownPhase===phase?'step':undefined} className={shownPhase===phase?'phase-current':stages.indexOf(shownPhase)>i?'phase-complete':''}><i>{i+1}</i><b>{labels[phase]||phaseLabel(phase)}</b></span>;
     })}</nav>
 

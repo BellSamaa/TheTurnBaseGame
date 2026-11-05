@@ -186,9 +186,8 @@ export default function BattleScreen() {
   // Forfeit confirmation modal
   const [forfeitModalOpen, setForfeitModalOpen] = useState(false);
 
-  // Turn countdown timer: 20s for Round 1, 10s for Round 2+
-  const currentRound = battleState?.currentTurn || 1;
-  const [turnTimer, setTurnTimer] = useState<number>(currentRound === 1 ? 20 : 10);
+  // Every active roll step allows 20 seconds.
+  const [turnTimer, setTurnTimer] = useState<number>(20);
 
   // Mounted cleanup ref
   const timersRef = useRef<NodeJS.Timeout[]>([]);
@@ -531,9 +530,9 @@ export default function BattleScreen() {
   }, [phase, mode]);
 
   // Turn Countdown Timer & Auto-Roll Handler
-  // Round 1: 20s, Round 2+: 10s. Resets on each active roll step.
+  // Resets to 20 seconds on each active roll step.
   useEffect(() => {
-    setTurnTimer(currentTurn === 1 ? 20 : 10);
+    setTurnTimer(20);
   }, [currentTurn, turnStep]);
 
   useEffect(() => {

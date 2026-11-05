@@ -13,7 +13,8 @@ import { applyOpponentDamage, recordOpponentDamage } from './combatDamage';
 
 export interface LmsState {
   lastEvent?: {id:string;announcementId?:string;cues?:{effect:string;target:string}[];effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
-  rollDeadline?:number;
+  acceptedActions?:string[];
+  rollDeadline?:number;openingReady?:string[];openingSetupDeadline?:number;stageOrder?:string[];stagePart?:'charge'|'skill';tieNotice?:{id:string;phase:string;groups:{roll:number;ids:string[]}[];order:string[]};
   initiative?: {id:string;roll:number}[];
   extras?: LmsExtras; remainingTargets?: string[];
   turnFlow?:2|3;roundCharges?:Record<string,number[]>;endVotes?:string[];endDeadline?:number;stageDone?:string[];stageDeadline?:number; defenderRolls?:number[]; skillDone?:string[];
@@ -28,7 +29,7 @@ export function createLms(participants: RoomParticipant[], duel = false): LmsSta
     weapon:WEAPON_DEFINITIONS[p.weaponId],hp:Math.round((duel?100:150)*CLASS_DEFINITIONS[p.classType].hpModifier),maxHp:Math.round((duel?100:150)*CLASS_DEFINITIONS[p.classType].hpModifier),
     skillCharge:0,d12Charge:0,isAttacker:false,petRockHp:0,bullets:6 }));
   const initiative = duel?players.map(p=>({id:p.id,roll:rollD20()})).sort((a,b)=>b.roll-a.roll):[];
-  return {players,rollDeadline:duel?undefined:Date.now()+10000,initiative,order:duel?initiative.map(p=>p.id):players.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'initiative',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
+  return {players,rollDeadline:duel?undefined:Date.now()+20000,initiative,order:duel?initiative.map(p=>p.id):players.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'initiative',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
     extras:{buffs:Object.fromEntries(players.map(p=>[p.id,{id:Math.floor(Math.random()*20),used:false,revealed:false}])),flags:{},bombs:[],direction:1,suddenRound:8,eliminated:[]},
     log:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · Initiative D20: '+p.roll),
     logVi:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · D20 khởi đầu: '+p.roll)};
@@ -159,7 +160,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
 function rollStageKey(s:LmsState){return JSON.stringify([s.phase,s.active,s.round,s.target,s.rolls.length,s.defenderRolls?.length]);}
 function armLmsRollTimer(s:LmsState,now:number,previous?:LmsState){
  if(!['initiative','attack','defense','charge','charge_defense'].includes(s.phase)){s.rollDeadline=undefined;return;}
- if(!previous||rollStageKey(s)!==rollStageKey(previous)||!s.rollDeadline)s.rollDeadline=now+10000;
+ if(!previous||rollStageKey(s)!==rollStageKey(previous)||!s.rollDeadline)s.rollDeadline=now+20000;
 }
 /** Server clock controls automatic rolls; any connected client can poll safely. */
 export function tickLms(input:LmsState,now=Date.now()):LmsState{
