@@ -1,4 +1,4 @@
-import {rollDuelDefense,settleDuelClash} from '@/lib/pvpDuel';
+import {rollDuelDefense,resolveDuelClash} from '@/lib/pvpDuel';
 import {createRoundLms} from '@/lib/lmsRound';
 import {castPvpSkill,validatePvpSnapshot} from '@/lib/pvpSkills';
 import { finishRank } from '@/lib/onlineRuntime';
@@ -24,6 +24,11 @@ interface RouteContext {
 async function roomView(room: import('@/lib/serverDb').DbOnlineRoom) {
  if(room.status==='finished'&&room.mode==='ranked'&&room.battleState?.winnerId&&room.battleState.winnerId!=='draw'&&!room.rankedResultRecorded){try{await finishRank(room.code);room.rankedResultRecorded=true;}catch(error){console.error('Rank settlement pending',error);}}
  const view=structuredClone(room);const actor=await sessionUser();
+ const clash=view.battleState?.duelClash;
+ if(clash){
+   if(actor!==view.battleState?.attackerId&&clash.attackStake!==undefined)clash.attackStake=0;
+   if(actor!==clash.defenderId&&clash.defenseStake!==undefined)clash.defenseStake=0;
+ }
  const extras=view.battleState?.lms?.extras;
  if(extras){for(const hand of [extras.buffs,extras.bonusBuffs||{}])for(const [id,buff]of Object.entries(hand))if(id!==actor&&!buff.revealed)buff.id=-1;extras.bombs=[];}
  return view;
@@ -41,7 +46,7 @@ export async function GET(req: Request, context: RouteContext) {
     if(room.status==='playing'&&room.battleState?.lms){const next=tickLms(room.battleState.lms);if(next!==room.battleState.lms){room.battleState.lms=next;if(next.winner){room.battleState.winnerId=next.winner;room.status='finished';}try{await updateRoom(room);}catch(e){if((e as Error).message!=='Room changed; retry after synchronization')throw e;const fresh=await getRoomByCodeAsync(code);if(fresh)return NextResponse.json({success:true,room:await roomView(fresh)});}}}
     const duel=room.battleState;
     if(room.status==='playing'&&duel?.duelClash&&Date.now()>=duel.duelClash.deadline){
-      room.battleState=settleDuelClash(duel,duel.duelClash.defenderId,0);
+      room.battleState=resolveDuelClash(duel);
       if(room.battleState.winnerId)room.status='finished';
       try{await updateRoom(room);}catch(e){
         if((e as Error).message!=='Room changed; retry after synchronization')throw e;
@@ -112,10 +117,10 @@ export async function POST(req: Request, context: RouteContext) {
 
       if (room.host.id === guest.id) {
         // Host rejoining
-        return NextResponse.json({ success: true, room });
+        return NextResponse.json({ success: true, room:room.battleState?.duelClash?await roomView(room):room });
       }
 
-      if (room.guest?.id === guest.id) return NextResponse.json({ success: true, room });
+      if (room.guest?.id === guest.id) return NextResponse.json({ success: true, room:room.battleState?.duelClash?await roomView(room):room });
       const lobbyParticipants = room.participants || [room.host, ...(room.guest ? [room.guest] : [])];
       const maxPlayers = room.maxPlayers || (room.gameMode === 'last_man_standing' ? 4 : 2);
       if (lobbyParticipants.length >= maxPlayers || room.status === 'playing' || room.status === 'finished') {
@@ -179,7 +184,7 @@ export async function POST(req: Request, context: RouteContext) {
         }, { status: 409 });
       }
       if (body.userId !== room.host.id) return NextResponse.json({ success: false, error: 'Chỉ chủ phòng hiện tại được bắt đầu trận. Hãy vào lại phòng để cập nhật. / Only the current host can start.' }, { status: 403 });
-      if (room.status === 'playing' && room.battleState) return NextResponse.json({ success: true, room });
+      if (room.status === 'playing' && room.battleState) return NextResponse.json({ success: true, room:room.battleState.duelClash?await roomView(room):room });
 
       const readyPlayers = room.participants || [room.host, ...(room.guest ? [room.guest] : [])];
       const minPlayers = room.gameMode === 'last_man_standing' ? 3 : 2;
@@ -279,7 +284,8 @@ export async function POST(req: Request, context: RouteContext) {
       const actor=await sessionUser(), battle=room.battleState;
       if(!actor||!battle||battle.lms||room.status!=='playing'||![battle.player1.id,battle.player2.id].includes(actor))return NextResponse.json({error:'No active duel'},{status:403});
       if(body.expectedRevision!==(battle.revision??0))return NextResponse.json({room:await roomView(room),error:'State updated; please try again'},{status:409});
-      room.battleState=action==='duel_defend'?rollDuelDefense(battle,actor):settleDuelClash(battle,actor,body.stake);
+      room.battleState=action==='duel_defend'?rollDuelDefense(battle,actor):resolveDuelClash(battle,Date.now(),{actor,stake:body.stake});
+      if(room.battleState===battle)return NextResponse.json({success:true,room:await roomView(room)});
       if(room.battleState.winnerId)room.status='finished';
       try{await updateRoom(room);}catch(e){
         if((e as Error).message!=='Room changed; retry after synchronization')throw e;
@@ -305,7 +311,7 @@ export async function POST(req: Request, context: RouteContext) {
       const { battleState } = body;
       if(await sessionUser()!==body.userId)return NextResponse.json({error:'Sign in required'},{status:403});
       if (body.userId !== room.host.id && body.userId !== room.guest?.id) return NextResponse.json({ success: false }, { status: 403 });
-      if (room.status !== 'playing' || !room.battleState || body.expectedRevision !== (room.battleState.revision ?? 0)) return NextResponse.json({ success: false, room }, { status: 409 });
+      if (room.status !== 'playing' || !room.battleState || body.expectedRevision !== (room.battleState.revision ?? 0)) return NextResponse.json({ success: false, room:await roomView(room) }, { status: 409 });
       if (battleState && battleState.id === room.battleState.id) {
         const otherPlayer = body.userId===room.battleState.player1.id ? room.battleState.player2 : room.battleState.player1;
         const surrender = battleState.phase==='game_over' && battleState.winnerId===otherPlayer.id;
@@ -324,7 +330,7 @@ export async function POST(req: Request, context: RouteContext) {
         await updateRoom(room);
         // Settlement is retried by roomView without losing the accepted result.
       }
-      return NextResponse.json({ success: true, room });
+      return NextResponse.json({ success: true, room:room.battleState?.duelClash?await roomView(room):room });
     }
 
     // 5. LEAVE ROOM
@@ -338,6 +344,7 @@ export async function POST(req: Request, context: RouteContext) {
         room.participants=(room.participants||[room.host, ...(room.guest?[room.guest]:[])]).filter(p=>p.id!==userId).map(p=>({...p,isReady:false}));
         room.guest=room.participants.find(p=>p.id!==room.host.id)||null;
         room.status = room.participants.length>1?'ready':'waiting';
+        if(room.battleState)delete room.battleState.duelClash;
         await updateRoom(room);
         return NextResponse.json({ success: true, room });
       }

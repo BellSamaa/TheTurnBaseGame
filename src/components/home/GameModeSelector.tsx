@@ -74,7 +74,7 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       playersText: 'SOLO SURVIVAL',
       descriptionVi: 'Phòng sinh tồn riêng 3–4 người. Buff bí mật, can thiệp xúc xắc và vòng bo.',
       descriptionEn: 'Private 3–4 player rooms with hidden buffs, dice clashes and sudden death.',
-      spriteImage: '/assets/sprites/ui/modes/mode_special.png',
+      spriteImage: '/assets/sprites/ui/modes/mode_ranked.png',
       isAvailable: true,
     },
     {
@@ -85,7 +85,7 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       playersText: '1 VS 1',
       descriptionVi: 'Đấu hạng 1v1 với người thật. Tích điểm, tăng sao, nhận quà và khung avatar.',
       descriptionEn: 'Real 1v1 ranked matches. Earn stars, rewards and avatar frames.',
-      spriteImage: '/assets/sprites/ui/modes/mode_ranked.png',
+      spriteImage: '/assets/sprites/ui/modes/mode_casual.png',
       isAvailable: true,
     },
     {
@@ -96,7 +96,7 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       playersText: '4 PLAYERS',
       descriptionVi: 'Chế độ loạn đấu 4 người chơi cùng lúc trên 1 chiến trường hỗn loạn.',
       descriptionEn: 'Chaotic 4-player battle royale where 4 contenders roll together.',
-      spriteImage: '/assets/sprites/ui/modes/mode_casual.png',
+      spriteImage: '/assets/sprites/ui/modes/mode_special.png',
       isAvailable: false,
       lockReasonVi: 'Chưa khả dụng - Chế độ Party 4 người đang hoàn thiện',
       lockReasonEn: 'Coming Soon - 4-Player Party Mode in active development',

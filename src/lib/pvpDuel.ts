@@ -1,19 +1,19 @@
 import type { BattleState, BattleLogEntry } from '@/types/game';
 import { calculateDuelCombat, rollD20 } from './battleLogic';
-import { clashStake, openDuelClash } from './duelRules';
+import { clashCanResolve, openDuelClash, submitClashWager } from './duelRules';
 import { applyOpponentDamage, recordOpponentDamage } from './combatDamage';
 import { normalAttackEffect } from './skillPresentation';
 import { prepareWeaponCharge, weaponD20 } from './weaponUpdateHooks';
 import { drainWeaponEvents } from './weaponUpdateState';
 
-function settleDefense(state: BattleState, stake: number, now: number) {
+function settleDefense(state: BattleState, now: number) {
   const firstAttacks = state.attackerId === state.player1.id;
   const attacker = firstAttacks ? state.player1 : state.player2;
   const defender = firstAttacks ? state.player2 : state.player1;
   const attack = (firstAttacks ? state.p1D20 : state.p2D20) ?? 0;
   const defense = (firstAttacks ? state.p2D20 : state.p1D20) ?? 0;
   const round = state.currentTurn;
-  const result = calculateDuelCombat(attack, defense, attacker, defender, round, stake);
+  const result = calculateDuelCombat(attack, defense, attacker, defender, round, state.duelClash?.attackStake, state.duelClash?.defenseStake);
   recordOpponentDamage(defender, Math.min(defender.hp, result.damage), round);
   defender.hp = Math.max(0, defender.hp - result.damage);
   const attackSide = firstAttacks ? 'p1' : 'p2';
@@ -86,14 +86,21 @@ export function rollDuelDefense(input: BattleState, actor: string, now = Date.no
     state.damagePopup = null;
     return state;
   }
-  return settleDefense(state, 0, now);
+  return settleDefense(state, now);
 }
 
-export function settleDuelClash(input: BattleState, actor: string, wager: unknown, now = Date.now()) {
-  if (!input.duelClash || input.turnStep !== 'clash' || input.winnerId) throw Error('No clash is open.');
-  const defender = input.player1.id === input.duelClash.defenderId ? input.player1 : input.player2;
-  const stake = clashStake(input.duelClash, actor, wager, defender.d12Charge ?? 0, now);
-  const next = settleDefense(structuredClone(input), stake, now);
+export function resolveDuelClash(input: BattleState, now = Date.now(), submission?: {actor: string; stake: unknown}) {
+  const clash = input.duelClash;
+  if (!clash || input.turnStep !== 'clash' || input.winnerId) throw Error('No clash is open.');
+  const next = structuredClone(input);
+  if (submission && now < clash.deadline) {
+    const actor = [input.player1, input.player2].find(player => player.id === submission.actor);
+    if (!actor) throw Error('Only duel participants can wager.');
+    next.duelClash = submitClashWager(clash, input.attackerId, actor, submission.stake);
+    if (next.duelClash === clash) return input;
+  }
+  if (clashCanResolve(next.duelClash!, now)) settleDefense(next, now);
+  else if (!submission) return input;
   next.revision = (input.revision ?? 0) + 1;
   return next;
 }

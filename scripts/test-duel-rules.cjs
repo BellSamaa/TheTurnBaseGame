@@ -4,7 +4,8 @@ const { calculateDuelCombat } = require('../src/lib/battleLogic.ts');
 const { critChance, recordDuelComparison, rollLuckyAttack } = require('../src/lib/duelRules.ts');
 const { WEAPON_DEFINITIONS } = require('../src/lib/constants.ts');
 const { createPve, advancePve } = require('../src/lib/pve.ts');
-const { rollDuelDefense, settleDuelClash } = require('../src/lib/pvpDuel.ts');
+const { rollDuelDefense, resolveDuelClash } = require('../src/lib/pvpDuel.ts');
+const { createRoundLms, roundLmsAction } = require('../src/lib/lmsRound.ts');
 const { activeWeather, advanceWeather, syncWeather } = require('../src/lib/weaponUpdateState.ts');
 
 const participant = (id, weaponId = 'greatsword') => ({
@@ -26,27 +27,37 @@ const pending = random(.42, () => rollDuelDefense(duel, 'def', 1000));
 assert.equal(pending.turnStep, 'clash');
 assert.equal(pending.duelClash.deadline, 6000);
 assert.equal(pending.revision, 6);
-assert.throws(() => settleDuelClash(pending, 'atk', 3, 2000));
-assert.throws(() => settleDuelClash(pending, 'def', 4, 2000));
-assert.throws(() => settleDuelClash({ ...pending, player2: { ...pending.player2, d12Charge: 1 } }, 'def', 2, 2000));
-for (const stake of [0, 1, 2, 3]) {
-  const chance = (35 + stake * 10) / 100;
-  const counter = random(chance - .001, () => settleDuelClash(pending, 'def', stake, 2000));
-  assert.equal(counter.player1.hp, 94);
-  assert.equal(counter.player2.hp, 100);
-  assert.equal(counter.player2.d12Charge, 3 - stake);
-  assert.equal(counter.turnStep, 'd6_atk');
-  assert.equal(counter.revision, 7);
-  assert.throws(() => settleDuelClash(counter, 'def', stake, 2000));
-  const attack = random(chance, () => settleDuelClash(pending, 'def', stake, 2000));
-  assert.equal(attack.player2.hp, 94);
+const submit = (state, actor, stake, now = 2000) => resolveDuelClash(state, now, { actor, stake });
+assert.throws(() => submit(pending, 'spectator', 3));
+assert.throws(() => submit(pending, 'def', 4));
+assert.throws(() => submit({ ...pending, player2: { ...pending.player2, d12Charge: 1 } }, 'def', 2));
+for (const attackStake of [0, 1, 2, 3]) {
+  const locked = submit(pending, 'atk', attackStake);
+  assert.equal(locked.duelClash.attackStake, attackStake);
+  assert.equal(locked.player1.d12Charge, 3);
+  assert.equal(submit(locked, 'atk', (attackStake + 1) % 4), locked);
+  assert.equal(resolveDuelClash(locked, 5999), locked);
+  for (const defenseStake of [0, 1, 2, 3]) {
+    const chance = (35 + (defenseStake - attackStake) * 10) / 100;
+    const counter = random(chance - .001, () => submit(locked, 'def', defenseStake));
+    assert.equal(counter.player1.hp, 94);
+    assert.equal(counter.player2.hp, 100);
+    assert.equal(counter.player1.d12Charge, 3 - attackStake);
+    assert.equal(counter.player2.d12Charge, 3 - defenseStake);
+    assert.equal(counter.turnStep, 'd6_atk');
+    assert.equal(counter.revision, 8);
+    assert.throws(() => submit(counter, 'def', defenseStake));
+    const attack = random(chance, () => submit(locked, 'def', defenseStake));
+    assert.equal(attack.player2.hp, 94);
+  }
 }
 assert.equal(pending.player2.d12Charge, 3);
-const expired = random(.4, () => settleDuelClash(pending, 'def', 3, 6000));
+const expired = random(.2, () => submit(submit(pending, 'atk', 2), 'def', 3, 6000));
 assert.equal(expired.player2.hp, 94);
+assert.equal(expired.player1.d12Charge, 1);
 assert.equal(expired.player2.d12Charge, 3);
 
-for (const [weapon, tier, chance] of [['greatsword', 'common', .05], ['chronos_watch', 'mythic', .06], ['infinity_ring', 'secret', .075]]) {
+for (const [weapon, tier, chance] of [['greatsword', 'common', .5], ['chronos_watch', 'mythic', .6], ['infinity_ring', 'secret', .75]]) {
   assert.equal(critChance(tier), chance);
   assert.equal(random(chance - .001, () => calculateDuelCombat(20, 20, player('a', weapon), player('b'), 1)).damage, 20);
   assert.equal(random(chance, () => calculateDuelCombat(20, 20, player('a', weapon), player('b'), 1)).damage, 0);
@@ -82,6 +93,27 @@ const wager = random(.64, () => advancePve(run, 'hero', 'duel_wager', { stake: 3
 assert.equal(wager.combat.players[1].hp, 94);
 assert.equal(wager.combat.players[0].d12Charge, 0);
 assert.ok(wager.combat.log.some(line => line.includes('6 HP')));
+let attackRun = createPve(participant('hero'));
+attackRun.combat.players[0].d12Charge = 3;
+attackRun = random(.42, () => advancePve(attackRun, 'hero', 'attack'));
+assert.equal(attackRun.combat.duelClash.defenseStake, 0);
+attackRun = random(.2, () => advancePve(attackRun, 'hero', 'duel_wager', { stake: 2 }));
+assert.equal(attackRun.combat.players[1].hp, 94);
+assert.equal(attackRun.combat.players[0].d12Charge, 1);
+
+let lms = createRoundLms([participant('chrono', 'chronos_watch'), participant('winner'), participant('target')]);
+lms.players[0].weaponUpdate = { extraAttacks: 2 };
+lms = random(.2, () => roundLmsAction(lms, 'chrono', 'initiative', {}, 1000));
+assert.equal(lms.players[0].weaponUpdate.extraAttacks, 1);
+lms = random(.6, () => roundLmsAction(lms, 'target', 'initiative', {}, 1000));
+lms = random(.8, () => roundLmsAction(lms, 'winner', 'initiative', {}, 1000));
+assert.equal(lms.order[0], 'winner');
+assert.throws(() => roundLmsAction(lms, 'chrono', 'target', { target: 'target' }, 1000));
+lms = roundLmsAction(lms, 'winner', 'target', { target: 'target' }, 1000);
+assert.equal(lms.attack, 17);
+assert.throws(() => roundLmsAction(lms, 'chrono', 'clash', { delta: -1 }, 1001));
+lms = roundLmsAction(lms, 'winner', 'resolve', {}, 6000);
+assert.equal(lms.players[2].hp, 133);
 let luckyRun = createPve(participant('hero'));
 luckyRun.combat.players[0].duelLuck = { hits: 0, misses: 3, mode: 'unlucky' };
 const sequence = [.2, .1, .75, .1, .9];

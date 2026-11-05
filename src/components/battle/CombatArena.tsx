@@ -121,7 +121,7 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
 
       </section>;})}
     </div>
-    {s.duelClash&&!s.winner&&<DuelClashPanel clash={s.duelClash} viewer={viewer} points={s.players.find(p=>p.id===viewer)?.d12Charge??0} en={en} busy={busy} onWager={onDuelWager}/>}
+    {s.duelClash&&!s.winner&&<DuelClashPanel clash={s.duelClash} attackerId={active.id} viewer={viewer} points={s.players.find(p=>p.id===viewer)?.d12Charge??0} en={en} busy={busy} onWager={onDuelWager}/>}
     <DuelResultNotice notice={s.duelNotice} en={en}/>
     <div className="combat-result-strip" role="status" aria-live="polite">{rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong><em>{en?'Rolled!':'Đã tung!'}</em></div>)}</div>:<div className="combat-roll-notice" hidden={!notice} title={notice}>{notice}</div>}</div>
     {banner?.nameEn&&<div key={banner.id} className="combat-skill-flash"><img src={effectFrame(banner.effect,1)} alt=""/><div><small>{s.players.find(p=>p.id===banner.caster)?.name} · {en?'SKILL':'KỸ NĂNG'} {banner.slot}</small><strong>{en?banner.nameEn:banner.nameVi}</strong></div><span className="skill-sweep-spark" aria-hidden="true">✦</span></div>}

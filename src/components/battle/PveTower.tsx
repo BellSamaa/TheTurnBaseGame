@@ -19,13 +19,13 @@ export default function PveTower(){
  (async()=>{try{await flushProfile();const r=await fetch('/api/pve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({move:'resume'})});const b=await r.json();if(!r.ok)throw Error(tx(b.error));if(alive){setRun(b.run);}}catch(e){if(alive)setError((e as Error).message);}finally{if(alive){setBusy(false);lock.current=false;}}})();return()=>{alive=false;};},[currentUser?.id]);
  async function act(move:string,args:Record<string,unknown>={}){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
-  try{if(move!=='duel_wager'&&move!=='resolve')await flushProfile();const r=await fetch('/api/pve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({move,args,id:run?.id,revision:run?.revision})});const b=await r.json();if(!r.ok){if(b.run)setRun(b.run);throw Error(tx(b.error));}if(b.abandoned){setRun(null);setPage('play');return;}for(const frame of b.frames||[]){if(!alive.current)return;setRun({...b.run,state:frame});if(frame.combat.duelClash?.defenderId===currentUser?.id)continue;await new Promise(resolve=>setTimeout(resolve,2600));}if(!alive.current)return;if(b.run)setRun(b.run);if(b.run.state.combat.winner===currentUser?.id)loadProgress().catch(()=>{});}
+  try{if(move!=='duel_wager'&&move!=='resolve')await flushProfile();const r=await fetch('/api/pve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({move,args,id:run?.id,revision:run?.revision})});const b=await r.json();if(!r.ok){if(b.run)setRun(b.run);throw Error(tx(b.error));}if(b.abandoned){setRun(null);setPage('play');return;}for(const frame of b.run?.state.combat.duelClash?[]:b.frames||[]){if(!alive.current)return;setRun({...b.run,state:frame});await new Promise(resolve=>setTimeout(resolve,2600));}if(!alive.current)return;if(b.run)setRun(b.run);if(b.run.state.combat.winner===currentUser?.id)loadProgress().catch(()=>{});}
   catch(e){setError(e instanceof Error?e.message:tx('Mất kết nối'));}finally{lock.current=false;setBusy(false);}
  }
  const s=run?.state.combat,me=s?.players.find(p=>p.id===currentUser?.id),mine=s?.order[s.active]===me?.id,won=s?.winner===me?.id;
  const pendingClash=s?.duelClash;
  useEffect(()=>{
-  if(!pendingClash||busy||pendingClash.defenderId!==currentUser?.id)return;
+  if(!pendingClash||busy||!currentUser)return;
   const timer=setTimeout(()=>void act('resolve'),Math.max(error?1000:120,pendingClash.deadline-Date.now()+120));
   return()=>clearTimeout(timer);
  },[pendingClash?.deadline,busy,run?.revision,currentUser?.id]);

@@ -1,4 +1,4 @@
-import {clashStake,openDuelClash,rollLuckyAttack,type DuelClash,type DuelNotice} from './duelRules';
+import {clashCanResolve,openDuelClash,rollLuckyAttack,submitClashWager,type DuelClash,type DuelNotice} from './duelRules';
 import {weaponD20,tickWeaponRound,nextWeaponAttacker,prepareWeaponCharge,outgoingDamage} from './weaponUpdateHooks';
 import {syncWeather,weaponState,drainWeaponEvents,advanceWeather} from './weaponUpdateState';
 import {d6Allowance,attackDice,recordAttackRoll} from './classMechanics';
@@ -58,7 +58,14 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
   if(s.phase==='initiative'&&action!=='surrender'){
     if(action!=='initiative')throw Error('Wait for every player to roll opening D20');
     if(s.initiative?.some(r=>r.id===actor))throw Error('Opening D20 already rolled');
-    const result=recordAttackRoll(user,s.round,weaponD20(user,rollD20(),'attack',s.round,target||s.players.find(p=>p.id!==user.id&&p.hp>0)));Object.assign(user,result.player);const roll=result.value;
+    let rolled=rollD20();
+    const chrono=user.weaponUpdate;
+    if(s.players.length>2&&user.boxerAttackRound!==s.round&&chrono&&(chrono.extraAttacks??0)>0){
+      rolled=Math.max(rolled,rollD20());
+      chrono.extraAttacks!--;
+      add(user.name+' · Đổi Thời Gian: lấy D20 cao hơn.','Time Changer · '+user.name+' keeps the higher D20.');
+    }
+    const result=recordAttackRoll(user,s.round,weaponD20(user,rolled,'attack',s.round,target||s.players.find(p=>p.id!==user.id&&p.hp>0)));Object.assign(user,result.player);const roll=result.value;
     if(!result.done){add(user.name+' · Boxer D20 1/2: '+roll);s.revision++;return s;}
     (s.initiative??=[]).push({id:actor,roll});
     add(user.name+' · D20 khởi đầu: '+roll,user.name+' · Opening D20: '+roll);
@@ -80,9 +87,14 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     if(s.phase!=='clash'||!target) throw Error('No clash to resolve');
     const duel=s.players.length===2;
     if(action==='duel_wager'&&(!duel||!s.duelClash)) throw Error('No wager is available');
-    if(action==='resolve'&&now<(s.deadline??Infinity)) throw Error('Chờ hết 5 giây can thiệp');
-    const stake=s.duelClash?clashStake(s.duelClash,actor,args.stake,target.d12Charge??0,now):0;
-    const result=duel?calculateDuelCombat(s.attack!,s.defense!,attacker,target,s.round,stake):calculateD20Combat(s.attack!,s.defense!,CLASS_DEFINITIONS[attacker.classType],CLASS_DEFINITIONS[target.classType],attacker,target,s.round);
+    if(s.duelClash){
+      if(action==='duel_wager'&&now<s.duelClash.deadline) s.duelClash=submitClashWager(s.duelClash,attacker.id,user,args.stake);
+      if(!clashCanResolve(s.duelClash,now)){
+        if(action==='resolve')throw Error('Chờ hết 5 giây can thiệp');
+        s.revision++;return s;
+      }
+    }else if(now<(s.deadline??Infinity)) throw Error('Chờ hết 5 giây can thiệp');
+    const result=duel?calculateDuelCombat(s.attack!,s.defense!,attacker,target,s.round,s.duelClash?.attackStake,s.duelClash?.defenseStake):calculateD20Combat(s.attack!,s.defense!,CLASS_DEFINITIONS[attacker.classType],CLASS_DEFINITIONS[target.classType],attacker,target,s.round);
     s.duelClash=undefined;
     if(duel&&'notice' in result) s.duelNotice=result.notice as DuelNotice|undefined;
     const flags=s.extras!.flags;let damage=result.damage;
@@ -155,7 +167,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       advanceWeather(s.players,s.round);s.duelNotice=undefined;
       const previousRound=s.round;const previousActor=attacker.id;
       do{s.active=(s.active+s.extras!.direction+s.order.length)%s.order.length;if(s.active===(s.extras!.direction===1?0:s.order.length-1))s.round++;}while(s.players.find(p=>p.id===s.order[s.active])!.hp<=0);
-      const chosen=nextWeaponAttacker(s.players,previousActor,s.order[s.active]);if(chosen!==s.order[s.active]){s.active=s.order.indexOf(chosen);if(s.round===previousRound)s.round++;}
+      if(s.players.length===2){const chosen=nextWeaponAttacker(s.players,previousActor,s.order[s.active]);if(chosen!==s.order[s.active]){s.active=s.order.indexOf(chosen);if(s.round===previousRound)s.round++;}}
       if(s.round!==previousRound){
         if(previousRound<30&&s.round>=30&&!s.extras!.bonusRound){
           s.extras!.bonusRound=30;

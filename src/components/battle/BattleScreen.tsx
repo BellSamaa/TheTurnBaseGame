@@ -1,5 +1,5 @@
 'use client';
-import {rollDuelDefense,settleDuelClash} from '@/lib/pvpDuel';
+import {rollDuelDefense,resolveDuelClash} from '@/lib/pvpDuel';
 import {rollLuckyAttack} from '@/lib/duelRules';
 import {effectFrame} from '@/lib/weaponUpdateAssets';
 import {weaponD20,tickWeaponRound,outgoingDamage} from '@/lib/weaponUpdateHooks';
@@ -438,7 +438,7 @@ export default function BattleScreen() {
       ? (isEn ? 'Roll D20 Defense' : 'Tung D20 Phòng Thủ')
       : (isEn ? 'Waiting for Defender D20...' : 'Chờ Bên Thủ Tung D20...');
   } else if (turnStep === 'clash') {
-    rollButtonTitle = isEn ? 'Clashing · Defender chooses a wager' : 'Va chạm · Bên Thủ chọn mức cược';
+    rollButtonTitle = isEn ? 'Clashing · Both sides can wager' : 'Va chạm · Hai bên có thể cược';
   } else if (turnStep === 'd6_atk') {
     canLocalRoll = isAttacker && !isRollingD6;
     rollButtonTitle = isAttacker
@@ -656,23 +656,35 @@ export default function BattleScreen() {
   // ==========================================
   // DISCRETE ROLL STEP 2: D20 DEFENSE
   // ==========================================
-  async function duelAction(action: 'duel_defend' | 'duel_wager', stake = 0, actor = myPlayer.id) {
+  async function duelAction(action: 'duel_defend' | 'duel_wager' | 'duel_resolve', stake = 0, actor = myPlayer.id) {
     if (syncPendingRef.current) return;
     syncPendingRef.current = true;
     try {
       const latest = useGameStore.getState().battleState;
       if (!latest) return;
       if (onlineRoomCode) {
-        const response = await fetch('/api/rooms/' + onlineRoomCode, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({action, stake, expectedRevision:latest.revision ?? 0}),
-        });
-        const result = await response.json();
-        if (result.room?.battleState) setBattleState(result.room.battleState);
-        if (!response.ok) throw Error(result.error || 'Duel action failed');
+        let state = latest;
+        for (let attempt = 0; ; attempt++) {
+          const response = await fetch('/api/rooms/' + onlineRoomCode, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({action, stake, expectedRevision:state.revision ?? 0}),
+          });
+          const result = await response.json();
+          const fresh: BattleState | undefined = result.room?.battleState;
+          if (fresh) setBattleState(fresh);
+          if (response.ok) break;
+          if (response.status === 409 && action === 'duel_wager' && fresh) {
+            if (fresh.duelClash?.deadline !== latest.duelClash?.deadline) break;
+            if (attempt < 2) {
+              state = fresh;
+              continue;
+            }
+          }
+          throw Error(result.error || 'Duel action failed');
+        }
       } else {
-        const next = action === 'duel_defend' ? rollDuelDefense(latest, actor) : settleDuelClash(latest, actor, stake);
+        const next = action === 'duel_defend' ? rollDuelDefense(latest, actor) : resolveDuelClash(latest, Date.now(), action === 'duel_wager' ? {actor, stake} : undefined);
         setBattleState(next);
       }
     } catch (error) {
@@ -697,12 +709,11 @@ export default function BattleScreen() {
   const localClash = battleState.duelClash;
   useEffect(() => {
     if (onlineRoomCode || !localClash) return;
-    const botDefends = isAiOpponent && localClash.defenderId === player2.id;
-    const timer = setTimeout(() => {
-      void duelAction('duel_wager', 0, localClash.defenderId);
-    }, botDefends ? 0 : Math.max(0, localClash.deadline - Date.now()));
-    return () => clearTimeout(timer);
-  }, [onlineRoomCode, localClash?.deadline, localClash?.defenderId, isAiOpponent, player2.id]);
+    const botStake = localClash.defenderId === player2.id ? localClash.defenseStake : localClash.attackStake;
+    const botTimer = isAiOpponent && botStake === undefined ? setTimeout(() => void duelAction('duel_wager', 0, player2.id), 0) : undefined;
+    const timer = setTimeout(() => void duelAction('duel_resolve'), Math.max(0, localClash.deadline - Date.now()));
+    return () => { clearTimeout(timer); clearTimeout(botTimer); };
+  }, [onlineRoomCode, localClash?.deadline, localClash?.defenderId, localClash?.attackStake, localClash?.defenseStake, isAiOpponent, player2.id]);
 
   // ==========================================
   // DISCRETE ROLL STEP 3: D6 ATTACK (Skill Charge + Passive Skill 1)

@@ -4,6 +4,8 @@ export interface DuelClash {
   score: number;
   defenderId: string;
   deadline: number;
+  attackStake?: number;
+  defenseStake?: number;
 }
 
 export interface DuelNotice {
@@ -14,7 +16,7 @@ export interface DuelNotice {
 }
 
 export function critChance(tier: WeaponTier) {
-  return tier === 'secret' ? 0.075 : tier === 'mythic' ? 0.06 : 0.05;
+  return tier === 'secret' ? 0.75 : tier === 'mythic' ? 0.6 : 0.5;
 }
 
 export function openDuelClash(attack: number, defense: number, defenderId: string, now: number): DuelClash | undefined {
@@ -23,13 +25,19 @@ export function openDuelClash(attack: number, defense: number, defenderId: strin
   }
 }
 
-export function clashStake(clash: DuelClash, actor: string, stake: unknown, points: number, now: number) {
-  if (now >= clash.deadline) return 0;
-  if (actor !== clash.defenderId) throw Error('Only the defender can choose a clash wager.');
+export function submitClashWager(clash: DuelClash, attackerId: string, actor: PlayerState, stake: unknown) {
+  if (actor.id !== attackerId && actor.id !== clash.defenderId) throw Error('Only duel participants can wager.');
+  const side = actor.id === attackerId ? 'attackStake' : 'defenseStake';
+  if (clash[side] !== undefined) return clash;
+  const points = actor.d12Charge ?? 0;
   if (typeof stake !== 'number' || !Number.isInteger(stake) || stake < 0 || stake > 3 || stake > points) {
     throw Error('Choose an affordable wager from 0 to 3 PTS.');
   }
-  return stake;
+  return { ...clash, [side]: stake };
+}
+
+export function clashCanResolve(clash: DuelClash, now: number) {
+  return now >= clash.deadline || (clash.attackStake !== undefined && clash.defenseStake !== undefined);
 }
 
 export function rollLuckyAttack(player: PlayerState, roll: () => number, random = Math.random) {

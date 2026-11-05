@@ -18,6 +18,7 @@ function nextRound(s:LmsState,now:number){
 }
 export function roundLmsAction(input:LmsState,actor:string,action:string,args:Parameters<typeof lmsAction>[3]={},now=Date.now()):LmsState{
  let s=structuredClone(input);s.players.forEach(p=>{if(s.round>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;});const user=s.players.find(p=>p.id===actor);if(!user||user.hp<=0||s.winner)throw Error('Không thể hành động');
+ if(action==='clash')throw Error('LMS attack uses the winning D20 roll.');
  if(action==='ready_opening'){
   if(s.round!==1||s.phase!=='initiative')return s;
   if(!s.openingReady?.includes(actor))(s.openingReady??=[]).push(actor);
@@ -88,10 +89,10 @@ function randomOrder(s:LmsState,phase:string){
  if(ties.length)s.tieNotice={id:crypto.randomUUID(),phase,groups:ties,order};return order;
 }
 function rankInitiative(s:LmsState){
- s.order=randomOrder(s,'initiative');const extra=s.players.find(p=>p.hp>0&&(p.weaponUpdate?.extraAttacks??0)>0);if(extra){extra.weaponUpdate!.extraAttacks!--;s.order=[extra.id,...s.order.filter(id=>id!==extra.id)];}s.active=0;s.players.forEach(p=>{p.isAttacker=p.id===s.order[0];});
+ s.order=randomOrder(s,'initiative');s.active=0;s.players.forEach(p=>{p.isAttacker=p.id===s.order[0];});
  const name=s.players.find(p=>p.id===s.order[0])!.name;
- s.log[0]=name+(extra?' · Time Changer grants another attack.':' has the highest D20 and chooses a target (ties decided randomly).');
- if(s.logVi)s.logVi[0]=name+(extra?' · Đổi Thời Gian cho thêm lượt công.':' có D20 cao nhất và được chọn mục tiêu (bằng điểm thì bốc thăm).');
+ s.log[0]=name+' has the highest D20 and chooses a target (ties decided randomly).';
+ if(s.logVi)s.logVi[0]=name+' có D20 cao nhất và được chọn mục tiêu (bằng điểm thì bốc thăm).';
 }
 function startOrderedStage(s:LmsState,phase:'skills'|'buffs',now:number){s.phase=phase;if(phase==='skills')s.players.forEach(p=>prepareWeaponCharge(p,s.round));s.stagePart=phase==='skills'?'charge':undefined;s.stageDone=[];s.stageOrder=randomOrder(s,phase);s.stageDeadline=now+20000;s.rollDeadline=undefined;}
 function fillCharge(s:LmsState,p:LmsState['players'][number]){const rolls=(s.roundCharges??={})[p.id]??=[];while(rolls.length<d6Allowance(p,s.round)){const raw=rollD6();Object.assign(p,chargeSkillPoints(p,[raw],s.round));const roll=p.weaponUpdate?.lastChargeValue??raw;if(roll>0)rolls.push(roll);s.log.unshift(p.name+" · Auto D6: "+roll+" → "+p.d12Charge+" PTS");s.logVi?.unshift(p.name+" · Tự tung D6: "+roll+" → "+p.d12Charge+" PTS");}}

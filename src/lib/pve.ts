@@ -17,9 +17,13 @@ export function advancePve(input:PveState,actor:string,move:string,args:Paramete
   let s=out.combat;if(s.phase==='finished')break;
   const bot=s.players.find(p=>p.id==='pve_bot')!,active=s.order[s.active];
   if(s.phase==='clash'){
-   if(s.duelClash?.defenderId===actor&&Date.now()<s.duelClash.deadline)break;
-   const move=s.duelClash?.defenderId==='pve_bot'?'duel_wager':'resolve';
-   out.combat=lmsAction(s,move==='duel_wager'?'pve_bot':actor,move,{stake:0});
+   const clash=s.duelClash;
+   if(clash&&Date.now()<clash.deadline){
+    const botStake=clash.defenderId==='pve_bot'?clash.defenseStake:clash.attackStake;
+    if(botStake!==undefined)break;
+    out.combat=lmsAction(s,'pve_bot','duel_wager',{stake:0});
+    if(out.combat.phase==='clash')break;
+   }else out.combat=lmsAction(s,actor,'resolve');
    onFrame?.(structuredClone(out));continue;
   }
    if(s.phase==='defense'&&s.target==='pve_bot'){out.combat=lmsAction(s,'pve_bot','defend');if(!out.combat.duelClash)onFrame?.(structuredClone(out));continue;}

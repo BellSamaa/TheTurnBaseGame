@@ -152,11 +152,14 @@ export function calculateD20Combat(
 }
 
 /** Duel rules use the displayed dice, before equipment changes to ATK/DEF. */
-export function calculateDuelCombat(attack: number, defense: number, attacker: PlayerState, defender: PlayerState, round: number, stake = 0) {
+export function calculateDuelCombat(attack: number, defense: number, attacker: PlayerState, defender: PlayerState, round: number, attackStake = 0, defenseStake = 0) {
   const reward = recordDuelComparison(attacker, defender, attack, defense);
   const tied = !!openDuelClash(attack, defense, defender.id, 0);
-  if (tied) defender.d12Charge = (defender.d12Charge ?? 0) - stake;
-  const counter = tied && Math.random() < (35 + stake * 10) / 100;
+  if (tied) {
+    attacker.d12Charge = (attacker.d12Charge ?? 0) - attackStake;
+    defender.d12Charge = (defender.d12Charge ?? 0) - defenseStake;
+  }
+  const counter = tied && Math.random() < (35 + (defenseStake - attackStake) * 10) / 100;
   const critical = attack === 20 && Math.random() < critChance(attacker.weapon.tier);
   const clashDamage = Math.round(attack * 2 / 3);
   let counterDamage = 0;
@@ -181,8 +184,8 @@ export function calculateDuelCombat(attack: number, defense: number, attacker: P
     const en = counter ? 'Defense counters' : 'Attack wins';
     const vi = counter ? 'Thủ phản đòn' : 'Công thắng';
     notice = { id:crypto.randomUUID(), kind:'clash', en:'Clashing · '+en+' · '+(counter ? counterDamage : result.damage)+' HP', vi:'Va chạm · '+vi+' · '+(counter ? counterDamage : result.damage)+' HP' };
-    result.logTextEn = notice.en + ' · wager '+stake+' PTS';
-    result.logTextVi = notice.vi + ' · cược '+stake+' PTS';
+    result.logTextEn = notice.en + ' · wagers ATK '+attackStake+' / DEF '+defenseStake+' PTS';
+    result.logTextVi = notice.vi + ' · cược Công '+attackStake+' / Thủ '+defenseStake+' PTS';
   }
   return {...result, critical:critical && result.isHit, counter, counterDamage, notice};
 }
