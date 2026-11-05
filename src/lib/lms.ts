@@ -1,3 +1,4 @@
+import {attackerHasActed} from './skillPriority';
 import {roundLmsAction,roundLmsTick} from './lmsRound';
 import {skillPresentation,skillEffectPlan,normalAttackEffect} from './skillPresentation';
 import {translateText} from './localeText';
@@ -106,6 +107,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       s.target=args.target;s.phase='attack';
     } else if(action==='skill') {
       if(!(s.turnFlow===2?s.phase==='skills':['target','attack'].includes(s.phase))||(args.slot!==1&&args.slot!==2))throw Error('Dùng skill sau khi cả hai đã tung D6');
+      if(s.players.length===2&&actor!==attacker.id&&!attackerHasActed(attacker,s.round,!!s.skillDone?.includes(attacker.id)))throw Error('Chờ bên Công dùng skill hoặc End Turn');
       const victim=s.players.find(p=>p.id===args.target&&p.hp>0&&p.id!==actor);if(!victim)throw Error('Chọn mục tiêu skill');
       if(s.extras?.silencedRound===s.round)throw Error('Vòng này cấm kỹ năng');
       const cast=castChargedSkill(user,victim,args.slot,s.round,args.form,args.lockSlot);if(!cast)throw Error('Chưa đủ điều kiện dùng skill');

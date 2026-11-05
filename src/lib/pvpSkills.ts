@@ -1,3 +1,4 @@
+import {canUsePvpSkill} from './skillPriority';
 import type {BattleState} from '@/types/game';
 import {castChargedSkill} from './chargedSkills';
 import {skillPresentation,skillEffectPlan} from './skillPresentation';
@@ -8,6 +9,7 @@ export function castPvpSkill(input:BattleState,actor:string,slot:1|2,form?:numbe
   if(!isP1&&input.player2.id!==actor)throw Error('Not a participant');
   if(isP1?input.p1EndedTurn:input.p2EndedTurn)throw Error('Your turn has ended.');
   const user=isP1?input.player1:input.player2,foe=isP1?input.player2:input.player1;
+  if(!canUsePvpSkill(input,actor))throw Error('Attacker uses skills first. Wait for their skill or End Turn.');
   const cast=castChargedSkill(user,foe,slot,input.currentTurn,form,lockSlot);
   if(!cast)throw Error('Skill already used, locked, or insufficient PTS.');
   const next=structuredClone(input),art=skillPresentation(user,slot,form),caster=isP1?'p1':'p2',opponent=isP1?'p2':'p1';

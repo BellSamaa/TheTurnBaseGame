@@ -1,3 +1,4 @@
+import {attackerHasActed} from './skillPriority';
 import {createLms,lmsAction,type LmsState} from './lms';
 import type {RoomParticipant} from './serverDb';
 import {PVE_WEAPONS,pveReward} from './progression';
@@ -20,6 +21,8 @@ export function advancePve(input:PveState,actor:string,move:string,args:Paramete
   if(s.phase==='charge_defense'&&s.target==='pve_bot'){out.combat=lmsAction(s,'pve_bot','charge');onFrame?.(structuredClone(out));continue;}
   if(s.phase==='skills'){
    if(s.skillDone?.includes('pve_bot'))break;
+   const attacker=s.players.find(p=>p.id===active)!;
+   if(active!=='pve_bot'&&!attackerHasActed(attacker,s.round,!!s.skillDone?.includes(active)))break;
    for(const slot of [1,2] as const){
     const forms=bot.weapon.skill1.triggerNumber;
     try{out.combat=lmsAction(out.combat,'pve_bot','skill',{target:actor,slot,form:slot===1&&Array.isArray(forms)?forms[0]:slot===2&&bot.weapon.id==='fire_headband'?20:slot===2&&bot.weapon.id==='infinity_ring'?1:undefined});}catch{}

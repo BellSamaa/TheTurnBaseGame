@@ -1,4 +1,5 @@
 'use client';
+import {canUsePvpSkill} from '@/lib/skillPriority';
 import {tx} from '@/lib/uiLocale';
 import CombatArena from './CombatArena';
 import CombatSkills from './CombatSkills';
@@ -874,6 +875,7 @@ export default function BattleScreen() {
     if (castLockRef.current || syncPendingRef.current || phase === 'game_over' || turnStep !== 'd12') return;
     const isP1 = bot ? false : isP1User;
     if (onlineRoomCode && (isP1 ? battleState.p1EndedTurn : battleState.p2EndedTurn)) return;
+    if(!canUsePvpSkill(battleState,isP1?player1.id:player2.id))return;
     const caster = isP1 ? player1 : player2;
     const opponent = isP1 ? player2 : player1;
     const forms = caster.weapon.skill1.triggerNumber;
@@ -1116,8 +1118,8 @@ export default function BattleScreen() {
   if(sharedEffects.length||sharedBanner){const v=sharedEffects[0];const targetId=(target:string)=>target==='p1'?player1.id:target==='p2'?player2.id:'center';arenaState.lastEvent={id:sharedBanner?.id||v.id,announcementId:sharedBanner?.id,effect:v?.effect||'impact_physical',caster:[player1,player2].find(p=>p.name===sharedBanner?.casterName)?.id||myPlayer.id,target:v?targetId(v.target):'center',cues:sharedEffects.map(c=>({effect:c.effect,target:targetId(c.target)})),nameEn:sharedBanner?.skillNameEn,nameVi:sharedBanner?.skillNameVi,slot:sharedBanner?.slot};}
 
   return <div className="battle-screen revised-battle">{battleState.purpleSky&&<PurpleSkyEffect key={battleState.purpleSky.id} startedAt={battleState.purpleSky.startedAt}/>} <RankResult battleId={battleState.id} winner={winnerId} mode={mode}/><CombatArena stageSequence={['attack','defense','charge','charge_defense','skills']} state={arenaState} viewer={myPlayer.id} title={isEn?mapData.name:mapData.nameVi} onSurrender={()=>{if(window.confirm(isEn?'Surrender?':'Đầu hàng?'))handleConfirmForfeit();}}>
-    <div className="combat-status">{turnBannerText||rollButtonTitle}</div>
-    <div className="four-commands"><PixelSpriteButton sprite="roll_dice" disabled={!canLocalRoll||isRollingD20||isRollingD6||phase==='game_over'} onClick={handleRollDice} title={rollButtonTitle}/><PixelSpriteButton sprite="end_turn" disabled={!bothPlayersHaveRolled||hasLocalPlayerEndedTurn||isEndingTurn||phase==='game_over'} onClick={handleEndTurn}/><CombatSkills player={myPlayer} round={currentTurn} enabled={turnStep==='d12'&&!hasLocalPlayerEndedTurn&&phase!=='game_over'} busy={syncPendingRef.current} onCast={args=>handleCastSkill(args.slot as 1|2,false,args as {form?:number;lockSlot?:1|2})}/></div>
+    <div className="combat-status">{turnStep==='d12'&&!canUsePvpSkill(battleState,myPlayer.id)?(isEn?'Waiting for attacker’s skill or End Turn':'Chờ bên Công dùng skill hoặc End Turn'):turnBannerText||rollButtonTitle}</div>
+    <div className="four-commands"><PixelSpriteButton sprite="roll_dice" disabled={!canLocalRoll||isRollingD20||isRollingD6||phase==='game_over'} onClick={handleRollDice} title={rollButtonTitle}/><PixelSpriteButton sprite="end_turn" disabled={!bothPlayersHaveRolled||hasLocalPlayerEndedTurn||isEndingTurn||phase==='game_over'} onClick={handleEndTurn}/><CombatSkills player={myPlayer} round={currentTurn} enabled={canUsePvpSkill(battleState,myPlayer.id)&&turnStep==='d12'&&!hasLocalPlayerEndedTurn&&phase!=='game_over'} busy={syncPendingRef.current} onCast={args=>handleCastSkill(args.slot as 1|2,false,args as {form?:number;lockSlot?:1|2})}/></div>
     {winnerId&&<div className="battle-result"><h2>{winnerId===myPlayer.id?(isEn?'VICTORY':'CHIẾN THẮNG'):(isEn?'DEFEAT':'THẤT BẠI')}</h2><button className="primary-action" onClick={returnToLobby} disabled={returningToLobby}>{isEn?'RETURN TO LOBBY':'VỀ PHÒNG'}</button>{lobbyError&&<p>{lobbyError}</p>}</div>}
   </CombatArena></div>;
 }
