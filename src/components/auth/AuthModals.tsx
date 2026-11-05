@@ -1,7 +1,8 @@
 'use client';
 
 import AccountPanel from '@/components/progression/AccountPanel';
-import React, { useState } from 'react';
+import {flushProfile} from '@/lib/profileSync';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
@@ -42,6 +43,8 @@ export default function AuthModals() {
   const [editName, setEditName] = useState(profile.name);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(()=>{if(authModal!=='profile')return;setEditName(currentUser?.username||profile.name);setEditBio(currentUser?.bio||'');setSavedSuccess(false);setErrorMsg('');},[authModal,currentUser?.id]);
 
   if (authModal === 'none') return null;
 
@@ -98,13 +101,13 @@ export default function AuthModals() {
     }
   };
 
-  const handleSaveProfile = () => {
-    if (editName.trim()) {
-      updateProfile({ name: editName.trim() });
-    }
-    updateUserBio(editBio);
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2000);
+  const handleSaveProfile = async () => {
+    setIsLoading(true);setSavedSuccess(false);setErrorMsg('');
+    try{
+      await flushProfile();
+      const r=await fetch('/api/auth/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:editName.trim(),bio:editBio})});const b=await r.json();if(!r.ok||!b.success)throw Error(b.error||'Profile save failed');
+      useGameStore.setState(st=>({currentUser:b.user,profile:{...st.profile,name:b.user.username},accounts:st.accounts.map(a=>a.id===b.user.id?b.user:a)}));setSavedSuccess(true);
+    }catch(e){setErrorMsg((e as Error).message);}finally{setIsLoading(false);}
   };
 
   const c = profile.character;
@@ -236,7 +239,7 @@ export default function AuthModals() {
                   <input
                     type="text"
                     value={signupUsername}
-                    maxLength={16}
+                    maxLength={32}
                     onChange={(e) => setSignupUsername(e.target.value)}
                     placeholder="e.g. DragonKnight"
                     className="w-full bg-slate-900 border-2 border-cyan-500/70 p-2 text-xs text-cyan-300 font-pixel focus:outline-none"
@@ -345,6 +348,7 @@ export default function AuthModals() {
                     </label>
                     <textarea
                       rows={3}
+                      maxLength={1000}
                       value={editBio}
                       onChange={(e) => setEditBio(e.target.value)}
                       placeholder="Share your battle glory..."
@@ -352,6 +356,7 @@ export default function AuthModals() {
                     />
                   </div>
 
+                  {errorMsg&&<p role="alert" className="text-xs text-red-300">{errorMsg}</p>}
                   {/* Action Buttons */}
                   <div className="flex items-center justify-between pt-2 border-t border-slate-800">
                     <PixelButton
@@ -365,7 +370,7 @@ export default function AuthModals() {
                       {isEn ? 'LOG OUT' : 'ĐĂNG XUẤT'}
                     </PixelButton>
 
-                    <PixelButton variant="success" size="sm" onClick={handleSaveProfile}>
+                    <PixelButton variant="success" size="sm" disabled={isLoading} onClick={handleSaveProfile}>
                       {savedSuccess ? (isEn ? 'SAVED!' : 'ĐÃ LƯU!') : isEn ? 'SAVE PROFILE' : 'LƯU HỒ SƠ'}
                     </PixelButton>
                   </div>

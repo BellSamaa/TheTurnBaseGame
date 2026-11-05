@@ -31,11 +31,25 @@ export default function GameMasterPage() {
   const langClass = settings?.language === 'vi' ? 'lang-vi' : 'lang-en';
 
   React.useEffect(()=>{
-    const key='room-before-refresh';
-    const leave=(code:string)=>fetch('/api/rooms/'+code,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'refresh_leave'}),keepalive:true}).catch(()=>{});
-    const stale=sessionStorage.getItem(key);if(stale){void leave(stale);sessionStorage.removeItem(key);useGameStore.setState({onlineRoomCode:null,battleState:null,currentPage:'home'});}
-    const onHide=()=>{const code=useGameStore.getState().onlineRoomCode;if(code){sessionStorage.setItem(key,code);void leave(code);}};
-    window.addEventListener('pagehide',onHide);return()=>window.removeEventListener('pagehide',onHide);
+    const key='active-online-battle';let active=true;
+    const legacy=sessionStorage.getItem('room-before-refresh'),legacyUser=useGameStore.getState().currentUser;if(legacy&&legacyUser&&!sessionStorage.getItem(key))sessionStorage.setItem(key,JSON.stringify({code:legacy,userId:legacyUser.id}));sessionStorage.removeItem('room-before-refresh');
+    const restore=async()=>{
+      const cached=sessionStorage.getItem(key);if(!cached)return;
+      try{
+        const st=useGameStore.getState();if(st.currentPage==='battle'||st.currentPage==='pve')return;const saved=JSON.parse(cached),user=st.currentUser;if(!user||saved.userId!==user.id){sessionStorage.removeItem(key);return;}
+        if(saved.mode==='pve'){useGameStore.setState({currentPage:'pve'});return;}
+        const response=await fetch('/api/rooms/'+encodeURIComponent(saved.code),{cache:'no-store'}),body=await response.json();if(!active)return;
+        if(!response.ok){if(response.status===404)sessionStorage.removeItem(key);return;}
+        const room=body.room,participants=room?.participants||[room?.host,room?.guest].filter(Boolean);
+        if(!room?.battleState||!participants.some((p:{id:string})=>p.id===user.id)||!['playing','finished'].includes(room.status)){sessionStorage.removeItem(key);return;}
+        useGameStore.setState({onlineRoomCode:saved.code,battleState:room.battleState,currentPage:'battle'});
+      }catch{/* Leave the marker intact so a temporary network error can retry on focus. */}
+    };
+    void restore();window.addEventListener('focus',restore);
+    const remember=()=>{const st=useGameStore.getState();if(st.currentPage==='pve'&&st.currentUser){sessionStorage.setItem(key,JSON.stringify({mode:'pve',userId:st.currentUser.id}));return;}if(st.onlineRoomCode&&st.battleState&&st.currentUser&&st.currentPage==='battle')sessionStorage.setItem(key,JSON.stringify({code:st.onlineRoomCode,userId:st.currentUser.id}));};
+    const unsubscribe=useGameStore.subscribe((st,prev)=>{if((prev.onlineRoomCode&&!st.onlineRoomCode)||(prev.currentPage==='pve'&&st.currentPage!=='pve'))sessionStorage.removeItem(key);else remember();});
+    const onHide=()=>{const st=useGameStore.getState();if(st.onlineRoomCode&&st.battleState&&st.currentPage==='battle'){remember();return;}if(st.onlineRoomCode)void fetch('/api/rooms/'+st.onlineRoomCode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'refresh_leave'}),keepalive:true}).catch(()=>{});};
+    window.addEventListener('pagehide',onHide);return()=>{active=false;unsubscribe();window.removeEventListener('focus',restore);window.removeEventListener('pagehide',onHide);};
   },[]);
   React.useEffect(()=>{document.documentElement.lang=settings.language||'en';},[settings.language]);
   React.useEffect(() => {

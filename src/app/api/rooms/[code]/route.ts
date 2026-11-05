@@ -63,6 +63,8 @@ export async function POST(req: Request, context: RouteContext) {
     if(action==='refresh_leave'){
       const actor=await sessionUser();const people=room.participants||[room.host,...(room.guest?[room.guest]:[])];
       if(!actor||!people.some(p=>p.id===actor))return NextResponse.json({error:'Not in room'},{status:403});
+      // Old browser bundles may still send refresh_leave during deployment. Preserve active matches.
+      if(room.status==='playing'&&room.battleState)return NextResponse.json({success:true,preserved:true});
       if(actor===room.host.id){await deleteRoom(room.code);return NextResponse.json({success:true});}
       if(room.status==='playing'&&room.battleState?.lms){
         const combat=room.battleState.lms;if(combat.players.some(p=>p.id===actor&&p.hp>0)&&!combat.winner)room.battleState.lms=lmsAction(combat,actor,'surrender');

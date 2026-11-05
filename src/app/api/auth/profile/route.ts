@@ -15,6 +15,8 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({success:false,error:'Sign in required'},{status:401});
     if (selectedWeapon && !WEAPON_DEFINITIONS[selectedWeapon]) return NextResponse.json({success:false,error:'Invalid weapon'},{status:400});
     if (selectedClass && !CLASS_DEFINITIONS[selectedClass as keyof typeof CLASS_DEFINITIONS]) return NextResponse.json({success:false,error:'Invalid class'},{status:400});
+    if(username!==undefined&&(typeof username!=='string'||username.trim().length<2||username.trim().length>32))return NextResponse.json({error:'Callsign must contain 2–32 characters'},{status:400});
+    if(bio!==undefined&&(typeof bio!=='string'||bio.length>1000))return NextResponse.json({error:'Bio must be at most 1000 characters'},{status:400});
     if (username && username !== user.username) {
       const taken=await getUserByUsernameAsync(username);
       if(taken && taken.id!==actor) return NextResponse.json({success:false,error:'Username already taken'},{status:409});

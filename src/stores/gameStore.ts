@@ -232,11 +232,7 @@ export const useGameStore = create<GameStore>()(
         set((state) => {
           if (!state.currentUser) return state;
           const updated = { ...state.currentUser, bio };
-          fetch('/api/auth/profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: updated.username, bio }),
-          }).catch(() => {});
+          saveProfilePatch({bio});
           return {
             currentUser: updated,
             accounts: state.accounts.map((a) =>
