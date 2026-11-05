@@ -181,3 +181,53 @@
 @keyframes door-label-glint{0%,100%{color:#56320c;text-shadow:0 0 3px #fff9c3,0 0 6px #ffd64f}50%{color:#8a4e08;text-shadow:0 0 2px #fff,0 0 5px #fff8bf,0 0 12px #ffca35}}
 @media(max-width:767px){.battle-balanced .combat-console{padding:8px 6px;gap:5px}.battle-balanced .combat-phase-bar{padding:3px}.battle-balanced .combat-result-strip{min-height:38px}.opponent-roll-alert{gap:6px;padding:5px 8px}.opponent-roll-alert>span{font-size:7px;max-width:110px}.opponent-roll-alert small{font-size:6px}.opponent-roll-alert strong{font-size:14px}.opponent-roll-badge{top:-20px;gap:2px}.opponent-roll-badge>span{gap:2px;padding:3px}.opponent-roll-badge small{font-size:4px}.opponent-roll-badge b{font-size:6px}}
 @media(prefers-reduced-motion:reduce){.battle-balanced .combat-console,.battle-balanced .combat-phase-bar,.lobby-flat .lobby-door-label,.opponent-roll-alert,.opponent-roll-badge>span{animation:none}}
+/* Body, aura and impact share one center; the stand occupies the rear shoulder. */
+.battle-balanced .combat-avatar>.character-motion{position:absolute;left:50%;bottom:0;transform:translateX(-50%)}
+.battle-balanced .combat-avatar>.combat-immunity{left:8%;bottom:0;width:84%;height:96%;transform:none;border:2px solid #fff;box-shadow:0 0 14px #fff9,inset 0 0 18px #fff8;z-index:0}
+.battle-balanced .combat-fighter .weapon-stand{width:220px;height:180px;max-width:none;bottom:8px;opacity:.72;mask-image:radial-gradient(ellipse at center,#000 50%,transparent 76%)}
+.battle-balanced .weapon-stand-left{left:50%;transform:translateX(calc(-50% - 54px))}
+.battle-balanced .weapon-stand-right{left:50%;transform:translateX(calc(-50% + 54px))}
+.battle-balanced .weapon-stand img{object-fit:contain}
+.battle-balanced .combat-stage-vfx{position:absolute;inset:0;z-index:12;display:grid;place-items:center;pointer-events:none}
+.battle-balanced .combat-command-panel{min-inline-size:0}
+.battle-balanced .combat-command-panel:disabled .four-commands{opacity:.65}
+.battle-balanced .combat-name{overflow:visible;position:relative}
+.battle-balanced .combat-name .combat-buffs{position:static;display:flex;flex-direction:row;gap:3px;flex-shrink:0;margin-left:3px;transform:none}
+.battle-balanced .combat-name .buff-card{width:22px;height:30px;padding:0;border:0;position:relative}
+.battle-balanced .combat-name .buff-card>img{width:100%;height:100%;object-fit:contain}
+.battle-balanced .combat-name .buff-card-tooltip{top:100%;bottom:auto;left:auto;right:0;transform:none;z-index:50}
+.battle-balanced.combat-party .combat-seat{width:24%;max-width:260px}
+.battle-balanced.combat-party .combat-seat-0{left:20%;top:auto;bottom:3%}
+.battle-balanced.combat-party .combat-seat-1{left:4%;top:auto;bottom:23%}
+.battle-balanced.combat-party .combat-seat-2{left:56%;top:auto;bottom:33%}
+.battle-balanced.combat-party .combat-seat-3{left:72%;right:auto;top:auto;bottom:13%}
+.battle-balanced.combat-party.party-count-3 .combat-seat-0{left:32%;bottom:3%}
+.battle-balanced.combat-party.party-count-3 .combat-seat-1{left:7%;bottom:25%}
+.battle-balanced.combat-party.party-count-3 .combat-seat-2{left:66%;bottom:33%}
+.battle-balanced.combat-party .combat-fighter .weapon-stand{width:150px;height:120px;bottom:0}
+.battle-balanced.combat-party .weapon-stand-left{transform:translateX(calc(-50% - 30px))}
+.battle-balanced.combat-party .weapon-stand-right{transform:translateX(calc(-50% + 30px))}
+.opponent-roll-alert strong{background:linear-gradient(110deg,#ffc535 20%,#fffde2 45%,#fff 50%,#ffbd27 70%);background-size:220% 100%;background-clip:text;color:transparent;animation:roll-number-shine .8s linear infinite;font-size:24px}
+.opponent-roll-alert em{font-size:8px;font-style:normal;color:#a1f7e6}
+@keyframes roll-number-shine{to{background-position:220% 0}}
+/* Full-screen card reveal: the animation displays all 20 assets; the final card is server assigned. */
+.buff-reveal{position:fixed;inset:0;z-index:150;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:radial-gradient(ellipse,#141233c9,#030613f5);padding:20px;text-align:center;overflow:auto}
+.buff-reveal header,.buff-reveal footer{position:relative;z-index:2;width:min(90vw,650px)}
+.buff-reveal h2{font-size:clamp(14px,2vw,25px);color:#ffe089;line-height:1.7;text-shadow:0 0 18px #ffcd4877}
+.buff-reveal p{font-size:clamp(9px,1vw,12px);line-height:1.8;color:#d5dfef;margin:8px 0}
+.buff-reveal-stage{position:relative;width:min(40vh,300px);height:min(53vh,410px);display:grid;place-items:center;flex-shrink:0}
+.buff-reveal-halo{position:absolute;inset:-15%;background:repeating-conic-gradient(from 0deg,#ffe07755 0deg 8deg,transparent 8deg 22deg),radial-gradient(ellipse,#e6adffb0,transparent 65%);filter:blur(5px) hue-rotate(var(--buff-hue));border-radius:50%;animation:buff-halo-turn 12s linear infinite}
+.buff-reveal-card{position:relative;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 24px #c898ff99);animation:buff-card-reveal .12s ease-out}
+.buff-reveal-done .buff-reveal-card{animation:buff-card-land .6s ease-out;filter:drop-shadow(0 0 28px #ffe393aa)}
+.buff-reveal h3{font-size:clamp(12px,1.7vw,19px);color:#fff0b5;line-height:1.6;margin:4px 0}
+.buff-reveal button{margin-top:10px}
+@keyframes buff-halo-turn{to{transform:rotate(360deg)}}
+@keyframes buff-card-reveal{from{opacity:.5;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@keyframes buff-card-land{0%{transform:scale(.85);filter:brightness(2)}50%{transform:scale(1.07)}100%{transform:scale(1)}}
+@media(max-width:767px){.battle-balanced .combat-fighter .weapon-stand{width:160px;height:130px;bottom:0}.battle-balanced .weapon-stand-left{transform:translateX(calc(-50% - 37px))}.battle-balanced .weapon-stand-right{transform:translateX(calc(-50% + 37px))}.battle-balanced.combat-party .combat-seat{width:30%}.battle-balanced.combat-party .combat-seat-0{left:17%;bottom:3%}.battle-balanced.combat-party .combat-seat-1{left:1%;bottom:25%}.battle-balanced.combat-party .combat-seat-2{left:53%;bottom:35%}.battle-balanced.combat-party .combat-seat-3{left:69%;bottom:13%}.battle-balanced.combat-party.party-count-3 .combat-seat-0{left:35%;bottom:3%}.battle-balanced.combat-party.party-count-3 .combat-seat-1{left:1%;bottom:25%}.battle-balanced.combat-party.party-count-3 .combat-seat-2{left:69%;bottom:35%}.battle-balanced.combat-party .combat-fighter .weapon-stand{width:100px;height:85px}.battle-balanced.combat-party .weapon-stand-left{transform:translateX(calc(-50% - 22px))}.battle-balanced.combat-party .weapon-stand-right{transform:translateX(calc(-50% + 22px))}.battle-balanced .combat-name{gap:3px;padding:3px}.battle-balanced .combat-name .buff-card{width:17px;height:24px}.battle-balanced .combat-name b{flex:1;min-width:0}.opponent-roll-alert strong{font-size:19px}.opponent-roll-alert em{font-size:6px}.buff-reveal{padding:14px;gap:8px}.buff-reveal-stage{width:min(55vw,260px);height:min(43vh,350px)}}
+@media(prefers-reduced-motion:reduce){.opponent-roll-alert strong,.buff-reveal-halo,.buff-reveal-card,.buff-reveal-done .buff-reveal-card{animation:none}}
+
+.buff-reveal-stage{width:min(30vh,300px);height:auto;aspect-ratio:2/3;margin:8px 0 16px}
+.buff-reveal-art{position:relative;width:100%;height:100%}
+.buff-reveal-title{position:absolute;left:15%;right:15%;top:77%;height:13%;display:flex;align-items:center;justify-content:center;padding:2px;background:#100c30;color:#ffe17a;font-size:clamp(9px,1.1vw,14px);line-height:1.4;text-wrap:balance}
+@media(max-width:767px){.battle-balanced.combat-party .combat-seat{width:27%}.battle-balanced.combat-party .combat-seat-0{left:25%}.battle-balanced.combat-party .combat-seat-1{left:3%}.battle-balanced.combat-party .combat-seat-2{left:48%}.battle-balanced.combat-party .combat-seat-3{left:70%}.buff-reveal-stage{width:min(52vw,28vh);height:auto;aspect-ratio:2/3}.buff-reveal-title{font-size:8px}}
