@@ -1,7 +1,9 @@
 'use client';
+import {rollDuelDefense,settleDuelClash} from '@/lib/pvpDuel';
+import {rollLuckyAttack} from '@/lib/duelRules';
 import {effectFrame} from '@/lib/weaponUpdateAssets';
-import {weaponD20,tickWeaponRound,nextWeaponAttacker,prepareWeaponCharge,outgoingDamage} from '@/lib/weaponUpdateHooks';
-import {syncWeather,drainWeaponEvents} from '@/lib/weaponUpdateState';
+import {weaponD20,tickWeaponRound,outgoingDamage} from '@/lib/weaponUpdateHooks';
+import {syncWeather,advanceWeather} from '@/lib/weaponUpdateState';
 import {d6Allowance,recordAttackRoll,decideMageBonus} from '@/lib/classMechanics';
 import {canUsePvpSkill} from '@/lib/skillPriority';
 import {tx} from '@/lib/uiLocale';
@@ -24,10 +26,9 @@ import {
 import {
   rollD20,
   rollD6,
-  calculateD20Combat,
 } from '@/lib/battleLogic';
 import type { BattleLogEntry, BattleState, PlayerState } from '@/types/game';
-import { normalAttackEffect, skillPresentation, skillEffectPlan } from '@/lib/skillPresentation';
+import { skillPresentation, skillEffectPlan } from '@/lib/skillPresentation';
 import { castChargedSkill, skillCost } from '@/lib/chargedSkills';
 import WeaponStand from './WeaponStand';
 import { RockHealthBar, RockCompanion } from './RockCompanion';
@@ -36,7 +37,7 @@ import PixelButton from '@/components/ui/PixelButton';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
-import { applyOpponentDamage, recordOpponentDamage, skillIsLocked } from '@/lib/combatDamage';
+import { applyOpponentDamage, skillIsLocked } from '@/lib/combatDamage';
 import { applyChargeRoll } from '@/lib/chargeRoll';
 import PurpleSkyEffect from './PurpleSkyEffect';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
@@ -137,7 +138,7 @@ export default function BattleScreen() {
   const [returningToLobby, setReturningToLobby] = useState(false);
 
   // Rolling states
-  const [turnStep, setTurnStep] = useState<'d20_atk' | 'd20_def' | 'd6_atk' | 'd6_def' | 'd12'>(
+  const [turnStep, setTurnStep] = useState<NonNullable<BattleState['turnStep']>>(
     battleState?.turnStep || 'd20_atk'
   );
   const [isRollingD20, setIsRollingD20] = useState(false);
@@ -436,6 +437,8 @@ export default function BattleScreen() {
     rollButtonTitle = !isAttacker
       ? (isEn ? 'Roll D20 Defense' : 'Tung D20 Phòng Thủ')
       : (isEn ? 'Waiting for Defender D20...' : 'Chờ Bên Thủ Tung D20...');
+  } else if (turnStep === 'clash') {
+    rollButtonTitle = isEn ? 'Clashing · Defender chooses a wager' : 'Va chạm · Bên Thủ chọn mức cược';
   } else if (turnStep === 'd6_atk') {
     canLocalRoll = isAttacker && !isRollingD6;
     rollButtonTitle = isAttacker
@@ -611,7 +614,7 @@ export default function BattleScreen() {
     const attackingPlayer = structuredClone(isP1Attacking ? player1 : player2);
     const defendingPlayer=structuredClone(isP1Attacking?player2:player1);
     const emptyRevolver = attackingPlayer.weapon.id === 'revolver' && (attackingPlayer.bullets ?? 6) <= 0;
-    const attackRoll=recordAttackRoll(attackingPlayer,currentTurn,emptyRevolver?0:weaponD20(attackingPlayer,rollD20(),'attack',currentTurn,defendingPlayer));
+    const attackRoll=recordAttackRoll(attackingPlayer,currentTurn,emptyRevolver?0:weaponD20(attackingPlayer,rollLuckyAttack(attackingPlayer,rollD20),'attack',currentTurn,defendingPlayer));
     const finalD20=attackRoll.value;
     const nextAttackStep=attackRoll.done?'d20_def':'d20_atk';
 
@@ -653,176 +656,53 @@ export default function BattleScreen() {
   // ==========================================
   // DISCRETE ROLL STEP 2: D20 DEFENSE
   // ==========================================
+  async function duelAction(action: 'duel_defend' | 'duel_wager', stake = 0, actor = myPlayer.id) {
+    if (syncPendingRef.current) return;
+    syncPendingRef.current = true;
+    try {
+      const latest = useGameStore.getState().battleState;
+      if (!latest) return;
+      if (onlineRoomCode) {
+        const response = await fetch('/api/rooms/' + onlineRoomCode, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({action, stake, expectedRevision:latest.revision ?? 0}),
+        });
+        const result = await response.json();
+        if (result.room?.battleState) setBattleState(result.room.battleState);
+        if (!response.ok) throw Error(result.error || 'Duel action failed');
+      } else {
+        const next = action === 'duel_defend' ? rollDuelDefense(latest, actor) : settleDuelClash(latest, actor, stake);
+        setBattleState(next);
+      }
+    } catch (error) {
+      setTurnBannerText(error instanceof Error ? error.message : 'Duel action failed');
+      addTimer(setTimeout(() => setTurnBannerText(null), 2200));
+    } finally {
+      syncPendingRef.current = false;
+    }
+  }
+
   const executeRollD20Def = () => {
-    if (isRollingD20 || phase === 'game_over') return;
+    if (isRollingD20 || phase === 'game_over' || syncPendingRef.current) return;
     setIsRollingD20(true);
     playDiceRollSound();
-
-    const isP1Defending = !p1IsAttacker;
-    const defenderClass = isP1Defending ? p1Class : p2Class;
-    const attackerClass = p1IsAttacker ? p1Class : p2Class;
-    const attackerState = structuredClone(p1IsAttacker ? player1 : player2);
-    const defenderState = structuredClone(p1IsAttacker ? player2 : player1);
-    const defenderTarget: 'p1' | 'p2' = p1IsAttacker ? 'p2' : 'p1';
-
-    const firstDefD20 = weaponD20(defenderState,rollD20(),'defense',currentTurn,attackerState);
-    let finalDefD20 = firstDefD20;
-    let defenderBoxerData: { r1: number; r2: number; chosen: number } | null = null;
-    if (false) {
-      const extra = rollD20();
-      finalDefD20 = Math.max(finalDefD20, extra);
-      defenderBoxerData = { r1: firstDefD20, r2: extra, chosen: finalDefD20 };
-    }
-
-    addTimer(
-      setTimeout(() => {
-        setIsRollingD20(false);
-        setDefRoll(finalDefD20);
-        if (defenderBoxerData) setBoxerRolls(defenderBoxerData);
-
-        const currentAtkRoll = (p1IsAttacker ? battleState.p1D20 : battleState.p2D20) ?? atkRoll ?? 0;
-        const combatResult = calculateD20Combat(
-          currentAtkRoll,
-          finalDefD20,
-          attackerClass,
-          defenderClass,
-          attackerState,
-          defenderState,currentTurn
-        );
-
-        const defName = isP1Defending ? player1.name : player2.name;
-        const logsToAdd: BattleLogEntry[] = [
-          {
-            turn: currentTurn,
-            type: 'defend',
-            message: isEn
-              ? `${defName} rolled D20 Defense: ${finalDefD20}`
-              : `${defName} tung D20 Phòng Thủ: ${finalDefD20}`,
-            messageVi: `${defName} tung D20 Phòng Thủ: ${finalDefD20}`,
-            timestamp: Date.now(),
-          },
-        ];
-
-        // Set Combat Formula display
-        setCombatFormula({
-          isHit: combatResult.isHit,
-          damage: combatResult.damage,
-          atkRoll: currentAtkRoll,
-          defRoll: finalDefD20,
-        });
-
-        let newActiveVfx: BattleState['activeVfx'] = null;
-        let newDamagePopup: BattleState['damagePopup'] = null;
-
-        if (combatResult.damage > 0) {
-          playWeaponSound(attackerState.weapon.id);
-          const vfxName = normalAttackEffect(attackerState.weapon.id);
-          newActiveVfx = {
-            id: String(Date.now()),
-            effect: vfxName,
-            target: defenderTarget,
-            size: 160,
-          };
-
-          if (defenderTarget === 'p1') {
-            setP1IsHit(true);
-            setTimeout(() => setP1IsHit(false), 400);
-          } else {
-            setP2IsHit(true);
-            setTimeout(() => setP2IsHit(false), 400);
-          }
-
-          const isCrit = currentAtkRoll === 20;
-          newDamagePopup = {
-            id: String(Date.now()),
-            target: defenderTarget,
-            text: isCrit ? `CRIT! -${combatResult.damage} DMG` : `-${combatResult.damage} DMG`,
-            type: isCrit ? 'crit' : 'damage',
-            subtext: isCrit ? (isEn ? 'CRITICAL HIT 20!' : 'BẠO KÍCH XÚC XẮC 20!') : undefined,
-          };
-          seenPopups.current.add(newDamagePopup.id);
-          setDamagePopup(newDamagePopup);
-
-          logsToAdd.unshift({
-            turn: currentTurn,
-            type: 'damage',
-            message: isEn ? combatResult.logTextEn : combatResult.logTextVi,
-            messageVi: combatResult.logTextVi,
-            timestamp: Date.now() + 1,
-          });
-        } else {
-          playBlockSound();
-          newDamagePopup = {
-            id: String(Date.now()),
-            target: defenderTarget,
-            text: combatResult.isDodged
-              ? (isEn ? 'EVADED!' : 'NÉ ĐÒN!')
-              : combatResult.isImmune
-              ? (isEn ? 'IMMUNE!' : 'MIỄN NHIỄM!')
-              : (isEn ? 'BLOCKED!' : 'ĐỠ ĐÒN THÀNH CÔNG!'),
-            type: 'block',
-            subtext: combatResult.absorbedByRock ? 'ROCK -' + combatResult.absorbedByRock + ' HP' : combatResult.isImmune || combatResult.isDodged ? undefined : (isEn ? `${currentAtkRoll} ≤ ${finalDefD20}` : `Công ${currentAtkRoll} ≤ Thủ ${finalDefD20}`),
-          };
-          setDamagePopup(newDamagePopup);
-
-          logsToAdd.unshift({
-            turn: currentTurn,
-            type: 'defend',
-            message: isEn ? combatResult.logTextEn : combatResult.logTextVi,
-            messageVi: combatResult.logTextVi,
-            timestamp: Date.now() + 1,
-          });
-        }
-
-        recordOpponentDamage(defenderState, Math.min(defenderState.hp, combatResult.damage), currentTurn);
-        defenderState.hp = Math.max(0, defenderState.hp - combatResult.damage);
-        const vfxSequence: VfxEvent[] = [];
-        const reaction = (effect: string) => ({ id: crypto.randomUUID(), effect, target: defenderTarget, size: 140 });
-        if (newActiveVfx) vfxSequence.push(newActiveVfx);
-        if (combatResult.absorbedByRock) vfxSequence.push(reaction('rock_block'));
-        else if (combatResult.isImmune) vfxSequence.push(reaction('infinity'));
-        else if (combatResult.isDodged) vfxSequence.push(reaction('dodge_attack'));
-        else if (!combatResult.isHit) vfxSequence.push(reaction('guard'));
-        const rockFollows = combatResult.isHit && attackerState.weapon.id === 'spirit_stone' && (attackerState.petRockHp ?? 0) > 0 && defenderState.hp > 0;
-        const petHpBefore = defenderState.petRockHp ?? 0;
-        const immuneBefore = defenderState.immuneDamageNext;
-        const rockDamage = rockFollows ? applyOpponentDamage(defenderState, attackerState.petRockEnraged&&currentTurn<=(attackerState.petRockEnrageUntilRound??0)?5:2, currentTurn) : 0;
-        if (rockFollows) {
-          vfxSequence.push(reaction('rock_roll'));
-          if ((defenderState.petRockHp ?? 0) < petHpBefore) vfxSequence.push(reaction('rock_block'));
-          else if (immuneBefore && !defenderState.immuneDamageNext) vfxSequence.push(reaction('infinity'));
-        }
-        if (rockFollows) logsToAdd.unshift({ turn: currentTurn, type: 'damage', timestamp: Date.now() + 2,
-          message: `Pet Rock follows its owner: ${rockDamage} damage.`, messageVi: `Lượt Pet Rock: tấn công sau chủ nhân, gây ${rockDamage} sát thương.` });
-        for(const e of drainWeaponEvents([attackerState,defenderState])){vfxSequence.push({id:crypto.randomUUID(),effect:e.effect,target:e.target===player1.id?'p1':'p2',size:140});logsToAdd.unshift({turn:currentTurn,type:'system',timestamp:Date.now(),message:e.text,messageVi:e.textVi});}
-        prepareWeaponCharge(attackerState,currentTurn);prepareWeaponCharge(defenderState,currentTurn);
-        setTurnStep('d6_atk');
-
-        setBattleState((prev) => {
-          if (!prev) return null;
-          const updated: BattleState = {
-            ...prev,
-            p1D20: !p1IsAttacker ? finalDefD20 : prev.p1D20,
-            p2D20: p1IsAttacker ? finalDefD20 : prev.p2D20,
-            turnStep: 'd6_atk',
-            activeVfx: newActiveVfx, vfxSequence,
-            damagePopup: newDamagePopup,
-            battleLog: [...logsToAdd, ...prev.battleLog],
-            player1: {
-              ...(p1IsAttacker ? attackerState : defenderState),
-            },
-            player2: {
-              ...(p1IsAttacker ? defenderState : attackerState),
-            },
-          };
-          syncOnlineBattle(updated);
-          return updated;
-        });
-
-        addTimer(setTimeout(() => setDamagePopup(null), 1800));
-      }, 700)
-    );
+    const defenderId = p1IsAttacker ? player2.id : player1.id;
+    addTimer(setTimeout(async () => {
+      await duelAction('duel_defend', 0, defenderId);
+      setIsRollingD20(false);
+    }, 700));
   };
+
+  const localClash = battleState.duelClash;
+  useEffect(() => {
+    if (onlineRoomCode || !localClash) return;
+    const botDefends = isAiOpponent && localClash.defenderId === player2.id;
+    const timer = setTimeout(() => {
+      void duelAction('duel_wager', 0, localClash.defenderId);
+    }, botDefends ? 0 : Math.max(0, localClash.deadline - Date.now()));
+    return () => clearTimeout(timer);
+  }, [onlineRoomCode, localClash?.deadline, localClash?.defenderId, isAiOpponent, player2.id]);
 
   // ==========================================
   // DISCRETE ROLL STEP 3: D6 ATTACK (Skill Charge + Passive Skill 1)
@@ -1011,6 +891,7 @@ export default function BattleScreen() {
       if (!prev) return null;
       const burnedP1 = structuredClone(prev.player1), burnedP2 = structuredClone(prev.player2);
       if(keepAttack){const owner=p1IsAttacker?burnedP1:burnedP2;if(owner.weaponUpdate)owner.weaponUpdate.extraAttacks=Math.max(0,(owner.weaponUpdate.extraAttacks||0)-1);}
+      advanceWeather([burnedP1,burnedP2],currentTurn);
       const weaponEvents=tickWeaponRound([burnedP1,burnedP2],currentTurn+1);
       for(const p of [burnedP1,burnedP2])if(currentTurn+1>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;
       applyOpponentDamage(burnedP1,burnedP1.weaponUpdate?.burnOwner===burnedP2.id?outgoingDamage(burnedP2,p1BurnDmg,currentTurn):p1BurnDmg,currentTurn,false,burnedP2);
@@ -1023,6 +904,7 @@ export default function BattleScreen() {
       const updated: BattleState = {
         ...prev,
         currentTurn: prev.currentTurn + 1,
+        duelClash:undefined,duelNotice:undefined,
         battleLog:[...weaponEvents.map(e=>({turn:currentTurn+1,type:'system' as const,message:e.text,messageVi:e.textVi,timestamp:Date.now()})),...prev.battleLog],
         attackerId: nextP1IsAttacker ? prev.player1.id : prev.player2.id,
         turnStep: 'd20_atk',
@@ -1123,12 +1005,12 @@ export default function BattleScreen() {
 
   // Skill 1 trigger glow & vibrate detection (Auto-triggers on matching D6 roll!)
 
-  const arenaState:LmsState={players:[player1,player2],order:[player1.id,player2.id],active:p1IsAttacker?0:1,round:currentTurn,phase:phase==='game_over'?'finished':turnStep==='d12'?'skills':turnStep==='d6_def'?'charge_defense':turnStep==='d6_atk'?'charge':turnStep==='d20_def'?'defense':'attack',target:p1IsAttacker?player2.id:player1.id,attack:(p1IsAttacker?battleState.p1D20:battleState.p2D20)??undefined,defense:(p1IsAttacker?battleState.p2D20:battleState.p1D20)??undefined,rolls:(p1IsAttacker?battleState.d6Results?.player1:battleState.d6Results?.player2)||[],defenderRolls:(p1IsAttacker?battleState.d6Results?.player2:battleState.d6Results?.player1)||[],log:battleLog.map(l=>isEn?l.message:l.messageVi||l.message),winner:winnerId||undefined,revision:battleState.revision??0};
+  const arenaState:LmsState={duelClash:battleState.duelClash,duelNotice:battleState.duelNotice,players:[player1,player2],order:[player1.id,player2.id],active:p1IsAttacker?0:1,round:currentTurn,phase:phase==='game_over'?'finished':turnStep==='d12'?'skills':turnStep==='d6_def'?'charge_defense':turnStep==='d6_atk'?'charge':turnStep==='clash'?'clash':turnStep==='d20_def'?'defense':'attack',target:p1IsAttacker?player2.id:player1.id,attack:(p1IsAttacker?battleState.p1D20:battleState.p2D20)??undefined,defense:(p1IsAttacker?battleState.p2D20:battleState.p1D20)??undefined,rolls:(p1IsAttacker?battleState.d6Results?.player1:battleState.d6Results?.player2)||[],defenderRolls:(p1IsAttacker?battleState.d6Results?.player2:battleState.d6Results?.player1)||[],log:battleLog.map(l=>isEn?l.message:l.messageVi||l.message),winner:winnerId||undefined,revision:battleState.revision??0};
   const sharedEffects=battleState.vfxSequence?.length?battleState.vfxSequence:battleState.activeVfx?[battleState.activeVfx]:[];
   const sharedBanner=battleState.activeSkillBanner;
   if(sharedEffects.length||sharedBanner){const v=sharedEffects[0];const targetId=(target:string)=>target==='p1'?player1.id:target==='p2'?player2.id:'center';arenaState.lastEvent={id:sharedBanner?.id||v.id,announcementId:sharedBanner?.id,effect:v?.effect||'impact_physical',caster:[player1,player2].find(p=>p.name===sharedBanner?.casterName)?.id||myPlayer.id,target:v?targetId(v.target):'center',cues:sharedEffects.map(c=>({effect:c.effect,target:targetId(c.target)})),nameEn:sharedBanner?.skillNameEn,nameVi:sharedBanner?.skillNameVi,slot:sharedBanner?.slot};}
 
-  return <div className="battle-screen revised-battle">{battleState.purpleSky&&<PurpleSkyEffect key={battleState.purpleSky.id} startedAt={battleState.purpleSky.startedAt}/>} <RankResult battleId={battleState.id} winner={winnerId} mode={mode}/><CombatArena stageSequence={['attack','defense','charge','charge_defense','skills']} state={arenaState} viewer={myPlayer.id} title={isEn?mapData.name:mapData.nameVi} onSurrender={()=>{if(window.confirm(isEn?'Surrender?':'Đầu hàng?'))handleConfirmForfeit();}}>
+  return <div className="battle-screen revised-battle">{battleState.purpleSky&&<PurpleSkyEffect key={battleState.purpleSky.id} startedAt={battleState.purpleSky.startedAt}/>} <RankResult battleId={battleState.id} winner={winnerId} mode={mode}/><CombatArena stageSequence={['attack','defense','charge','charge_defense','skills']} state={arenaState} viewer={myPlayer.id} onDuelWager={stake=>void duelAction('duel_wager',stake)} title={isEn?mapData.name:mapData.nameVi} onSurrender={()=>{if(window.confirm(isEn?'Surrender?':'Đầu hàng?'))handleConfirmForfeit();}}>
     <div className="combat-status">{turnStep==='d12'&&!canUsePvpSkill(battleState,myPlayer.id)?(isEn?'Waiting for attacker’s skill or End Turn':'Chờ bên Công dùng skill hoặc End Turn'):turnBannerText||rollButtonTitle}</div>
     <div className="four-commands"><PixelSpriteButton sprite="roll_dice" disabled={chargeBlocked||!canLocalRoll||isRollingD20||isRollingD6||phase==='game_over'} onClick={handleRollDice} title={rollButtonTitle}/><PixelSpriteButton sprite="end_turn" disabled={(!bothPlayersHaveRolled&&!(chargeBlocked&&canLocalRoll))||hasLocalPlayerEndedTurn||isEndingTurn||phase==='game_over'} onClick={()=>chargeBlocked?chargePlayer(isAttacker):handleEndTurn()}/><CombatSkills player={myPlayer} round={currentTurn} enabled={canUsePvpSkill(battleState,myPlayer.id)&&turnStep==='d12'&&!hasLocalPlayerEndedTurn&&phase!=='game_over'} busy={syncPendingRef.current} onCast={args=>handleCastSkill(args.slot as 1|2,false,args as {form?:number;lockSlot?:1|2})}/></div>
     {winnerId&&<div className="battle-result"><h2>{winnerId===myPlayer.id?(isEn?'VICTORY':'CHIẾN THẮNG'):(isEn?'DEFEAT':'THẤT BẠI')}</h2><button className="primary-action" onClick={returnToLobby} disabled={returningToLobby}>{isEn?'RETURN TO LOBBY':'VỀ PHÒNG'}</button>{lobbyError&&<p>{lobbyError}</p>}</div>}

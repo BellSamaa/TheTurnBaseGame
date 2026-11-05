@@ -342,3 +342,48 @@
 @media(max-width:767px){.battle-balanced .lms-bottom-layout .combat-console{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:4px;padding:3px}.battle-balanced .four-commands,.battle-balanced .four-commands>.combat-skills{gap:2px 3px}.battle-balanced .four-commands>button,.battle-balanced .four-commands .combat-skill-cast{height:40px!important;min-height:40px!important}.battle-balanced .four-commands>button img{max-height:39px!important}.battle-balanced .four-commands .combat-skill-cast>img:not(.weapon-skill-art){height:34px!important}.battle-balanced .combat-skill-cost{font-size:6px}.battle-balanced .combat-skill-info summary{font-size:5px}}
 @media(max-width:767px){.battle-balanced .lms-bottom-layout{grid-template-columns:1fr}.battle-balanced .lms-history>div{height:65px}}
 .boxer-roll-progress{font-size:8px;text-align:center;color:#ffe48c;text-shadow:0 0 7px #f6bf4466;padding:3px;margin:1px auto}@media(max-width:767px){.boxer-roll-progress{font-size:6px}}
+/* Two compact columns: dice actions on the left, skill actions on the right. */
+.battle-balanced .four-commands { column-gap:6px; row-gap:3px; }
+.battle-balanced .four-commands > .combat-skills { display:contents; }
+.battle-balanced .four-commands > button:nth-child(1) { grid-area:1 / 1; }
+.battle-balanced .four-commands > button:nth-child(2) { grid-area:2 / 1; }
+.battle-balanced .four-commands .combat-skill:nth-child(1) { grid-area:1 / 2; }
+.battle-balanced .four-commands .combat-skill:nth-child(2) { grid-area:2 / 2; }
+.battle-balanced .combat-skill { position:relative; }
+.battle-balanced .four-commands .combat-skill-cast > img:not(.weapon-skill-art) { height:100%!important; }
+.battle-balanced .combat-skill-cost { display:block; text-align:center; }
+.battle-balanced .combat-skill-cast img.weapon-skill-art { left:auto; right:4px; top:auto; bottom:-7px; transform:none; }
+.skill-hover-panel { position:absolute; bottom:100%; right:0; width:min(300px,78vw); padding:12px; z-index:75; background:#090d1c; color:#eee4ca; border:1px solid #e2bc61; box-shadow:0 6px 22px #000c; font-size:9px; line-height:1.7; text-align:left; }
+.skill-hover-panel img { width:34px; height:34px; object-fit:contain; float:left; margin-right:6px; }
+.skill-hover-panel p { margin:5px 0; }
+.skill-hover-panel select { display:block; width:100%; padding:5px; margin-top:6px; background:#151d33; color:#ffe6a3; border:1px solid #9e7f42; }
+.skill-touch-info { position:absolute; bottom:-1px; left:0; font-size:10px; color:#ffdf8c; opacity:0; }
+.skill-touch-info:focus-visible { opacity:1; }
+@media(hover:none),(pointer:coarse) { .skill-touch-info { opacity:1; min-width:22px; min-height:20px; } }
+.weapon-weather { z-index:2; }
+.weapon-weather > img { object-fit:contain; opacity:.10; }
+.weapon-weather .weather-particles { opacity:.23; }
+.weapon-weather > span { left:auto; right:6px; transform:none; }
+.weather-snow,.weather-heat,.weather-superconduct { background:transparent; }
+.duel-clash-panel { position:fixed; z-index:130; left:50%; top:22%; transform:translateX(-50%); width:min(420px,92vw); padding:15px; text-align:center; color:#ffe6aa; border:12px solid transparent; border-image:url('/assets/sprites/ui/frames/battle_commands.png') 22 fill stretch; background:#100b21f5; box-shadow:0 0 42px #a65aff55; }
+.duel-clash-panel h3 { font-size:14px; color:#ffe99a; text-shadow:0 0 10px #ef9d27; }
+.duel-clash-panel p { font-size:9px; margin:4px; }
+.duel-clash-score { display:flex; align-items:center; justify-content:center; gap:16px; margin:6px 0; }
+.duel-clash-score strong { font-size:22px; color:#fff0ae; }
+.duel-clash-score strong { animation:duel-clash-spark 1.25s ease-in-out infinite alternate; }
+@keyframes duel-clash-spark { to { text-shadow:0 0 10px #ffd456,0 0 23px #c865ff; } }
+.duel-clash-panel progress { width:85%; height:8px; accent-color:#ffc85a; }
+.duel-clash-clock { font-size:9px; margin-left:5px; }
+.duel-wager-options { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; margin-top:8px; }
+.duel-wager-options button { display:grid; justify-items:center; gap:3px; padding:7px 2px; border:1px solid #b89446; color:#ffe8a4; background:#281933; font-size:8px; }
+.duel-wager-options button:hover:not(:disabled) { background:#56305f; box-shadow:0 0 8px #ffcf73; }
+.duel-wager-options button:disabled { opacity:.38; }
+.duel-wager-options small { font-size:6px; color:#d7d7ee; }
+.duel-result-notice { width:fit-content; max-width:94%; margin:4px auto; padding:6px 12px; font-size:9px; color:#ffefb1; border:1px solid #daa943; background:#211932; box-shadow:0 0 12px #f5b92e55; text-align:center; }
+.duel-result-defense { color:#9ceeff; border-color:#5ab3d6; }
+.duel-result-crit { color:#ffc0a2; border-color:#ff7e51; }
+.duel-luck-tag { display:block; margin:3px auto; width:fit-content; padding:2px 5px; font-size:5px; text-align:center; }
+.duel-luck-unlucky { color:#fff3a8; background:#493612e8; border:1px solid #ffd459; animation:duel-luck-glow 1.5s ease-in-out infinite; }
+.duel-luck-lucky { color:#d4b6ff; background:#090412; border:1px solid #704896; box-shadow:0 0 9px #49245d; }
+@keyframes duel-luck-glow { 50% { box-shadow:0 0 9px #ffd459; } }
+@media(prefers-reduced-motion:reduce) { .duel-luck-unlucky,.duel-clash-score strong { animation:none; } }

@@ -1,3 +1,4 @@
+import {rollDuelDefense,settleDuelClash} from '@/lib/pvpDuel';
 import {createRoundLms} from '@/lib/lmsRound';
 import {castPvpSkill,validatePvpSnapshot} from '@/lib/pvpSkills';
 import { finishRank } from '@/lib/onlineRuntime';
@@ -38,6 +39,17 @@ export async function GET(req: Request, context: RouteContext) {
       );
     }
     if(room.status==='playing'&&room.battleState?.lms){const next=tickLms(room.battleState.lms);if(next!==room.battleState.lms){room.battleState.lms=next;if(next.winner){room.battleState.winnerId=next.winner;room.status='finished';}try{await updateRoom(room);}catch(e){if((e as Error).message!=='Room changed; retry after synchronization')throw e;const fresh=await getRoomByCodeAsync(code);if(fresh)return NextResponse.json({success:true,room:await roomView(fresh)});}}}
+    const duel=room.battleState;
+    if(room.status==='playing'&&duel?.duelClash&&Date.now()>=duel.duelClash.deadline){
+      room.battleState=settleDuelClash(duel,duel.duelClash.defenderId,0);
+      if(room.battleState.winnerId)room.status='finished';
+      try{await updateRoom(room);}catch(e){
+        if((e as Error).message!=='Room changed; retry after synchronization')throw e;
+        const fresh=await getRoomByCodeAsync(code);
+        if(fresh)return NextResponse.json({success:true,room:await roomView(fresh)});
+        return NextResponse.json({error:'Room not found'},{status:404});
+      }
+    }
     return NextResponse.json({ success: true, room:await roomView(room) });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Server error';
@@ -263,6 +275,20 @@ export async function POST(req: Request, context: RouteContext) {
       return NextResponse.json({ success: true, room });
     }
 
+    if(action==='duel_defend'||action==='duel_wager'){
+      const actor=await sessionUser(), battle=room.battleState;
+      if(!actor||!battle||battle.lms||room.status!=='playing'||![battle.player1.id,battle.player2.id].includes(actor))return NextResponse.json({error:'No active duel'},{status:403});
+      if(body.expectedRevision!==(battle.revision??0))return NextResponse.json({room:await roomView(room),error:'State updated; please try again'},{status:409});
+      room.battleState=action==='duel_defend'?rollDuelDefense(battle,actor):settleDuelClash(battle,actor,body.stake);
+      if(room.battleState.winnerId)room.status='finished';
+      try{await updateRoom(room);}catch(e){
+        if((e as Error).message!=='Room changed; retry after synchronization')throw e;
+        const fresh=await getRoomByCodeAsync(code);
+        return NextResponse.json({room:fresh?await roomView(fresh):undefined,error:'State updated; please try again'},{status:409});
+      }
+      return NextResponse.json({success:true,room:await roomView(room)});
+    }
+
     if(action==='cast_skill'){
       const actor=await sessionUser();
       if(!actor||!room.battleState||room.battleState.lms||room.status!=='playing')return NextResponse.json({error:'No active duel'},{status:403});
@@ -281,6 +307,13 @@ export async function POST(req: Request, context: RouteContext) {
       if (body.userId !== room.host.id && body.userId !== room.guest?.id) return NextResponse.json({ success: false }, { status: 403 });
       if (room.status !== 'playing' || !room.battleState || body.expectedRevision !== (room.battleState.revision ?? 0)) return NextResponse.json({ success: false, room }, { status: 409 });
       if (battleState && battleState.id === room.battleState.id) {
+        const otherPlayer = body.userId===room.battleState.player1.id ? room.battleState.player2 : room.battleState.player1;
+        const surrender = battleState.phase==='game_over' && battleState.winnerId===otherPlayer.id;
+        const defenseTransition = room.battleState.turnStep==='clash' || (room.battleState.turnStep==='d20_def' && battleState.turnStep!=='d20_def');
+        if(!surrender&&(defenseTransition||battleState.turnStep==='clash'||battleState.duelClash)){
+          return NextResponse.json({room:await roomView(room),error:'Use the duel defense action'},{status:409});
+        }
+        if(surrender)battleState.duelClash=undefined;
         validatePvpSnapshot(room.battleState,battleState);
         battleState.revision = (room.battleState.revision ?? 0) + 1;
         room.battleState = battleState;

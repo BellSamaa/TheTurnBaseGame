@@ -75,6 +75,7 @@ export interface UserAccount {
 }
 
 export interface PlayerState {
+  duelLuck?: { hits: number; misses: number; mode?: "lucky" | "unlucky" };
   weaponUpdate?:WeaponUpdateState;
   id: string;
   name: string;
@@ -144,6 +145,8 @@ export type BattlePhase =
   | 'game_over';
 
 export interface BattleState {
+  duelClash?: import("@/lib/duelRules").DuelClash;
+  duelNotice?: import("@/lib/duelRules").DuelNotice;
   lms?: import('@/lib/lms').LmsState;
   revision?: number;
   purpleSky?: { id: string; startedAt: number };
@@ -167,7 +170,7 @@ export interface BattleState {
   p2D20?: number | null;
   p1D6?: number | null;
   p2D6?: number | null;
-  turnStep?: 'd20_atk' | 'd20_def' | 'd6_atk' | 'd6_def' | 'd12';
+  turnStep?: 'd20_atk' | 'd20_def' | 'clash' | 'd6_atk' | 'd6_def' | 'd12';
   p1EndedTurn?: boolean;
   p2EndedTurn?: boolean;
   activeVfx?: {

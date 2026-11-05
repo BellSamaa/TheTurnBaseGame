@@ -50,8 +50,8 @@ const SPRITE_PATHS: Record<SpriteButtonName, { src: string; width: number; heigh
   exit: { src: '/assets/sprites/ui/buttons/btn_exit.png', width: 438, height: 172, alt: 'EXIT' },
   inventory: { src: '/assets/sprites/ui/buttons/btn_inventory.png', width: 440, height: 175, alt: 'INVENTORY' },
   shop: { src: '/assets/sprites/ui/buttons/btn_shop.png', width: 440, height: 175, alt: 'SHOP' },
-  roll_dice: { src: '/assets/sprites/ui/frames/btn_roll_dice.png', width: 2114, height: 621, alt: 'ROLL DICE' },
-  end_turn: { src: '/assets/sprites/ui/frames/btn_end_turn.png', width: 2039, height: 559, alt: 'END TURN' },
+  roll_dice: { src: '/assets/sprites/ui/frames/btn_roll_dice.png', width: 1120, height: 240, alt: 'ROLL DICE' },
+  end_turn: { src: '/assets/sprites/ui/frames/btn_end_turn.png', width: 1120, height: 240, alt: 'END TURN' },
 };
 
 interface PixelSpriteButtonProps {

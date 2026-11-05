@@ -1,4 +1,5 @@
 'use client';
+import {DuelClashPanel,DuelResultNotice} from './DuelNotices';
 import {WeaponWeather,WeaponSummons,WeaponStatus,WeaponAura} from './WeaponWorldEffects';
 import {effectFrame,preloadWeaponEffects} from '@/lib/weaponUpdateAssets';
 import {useEffect,useRef,useState} from 'react';
@@ -18,7 +19,7 @@ import VfxAnimationPlayer from './VfxAnimationPlayer';
 import {playDiceRollSound,playBattleCue,playBattleEffect} from '@/lib/soundEffects';
 
 /** Presentation only: all values and dice results come from the battle server. */
-export default function CombatArena({state:s,viewer,busy=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,children}:{state:LmsState;viewer?:string;busy?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;children:React.ReactNode}){
+export default function CombatArena({state:s,viewer,busy=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,onDuelWager,children}:{state:LmsState;viewer?:string;busy?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;onDuelWager?:(stake:number)=>void;children:React.ReactNode}){
   const weaponKey=s.players.map(p=>p.weapon.id).join(',');
   useEffect(()=>{preloadWeaponEffects(weaponKey.split(','));},[weaponKey]);
   const mapId=useGameStore(st=>st.battleState?.mapId)||'castle';
@@ -115,11 +116,13 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
           {event?.target===p.id&&<div className="combat-hit-overlay"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?320:buffs?120:180,flipX:displayPlayers.findIndex(x=>x.id===event.caster)>i}}/></div>}
         </div>
         <div className="combat-equipment"><img src={p.weapon.image} alt=""/><span>{en?p.weapon.name:p.weapon.nameVi}<small>{en?CLASS_DEFINITIONS[p.classType].name:CLASS_DEFINITIONS[p.classType].nameVi} · {p.weapon.tier}</small></span></div>
-        <WeaponStatus player={p} round={s.round}/><div className="combat-stats"><b>{p.d12Charge??0} PTS</b>{p.weapon.id==='revolver'&&<span>◈ {p.bullets??6}/6</span>}{p.burnTicks? <span title={en?'Burn turns remaining':'Số lượt thiêu đốt còn lại'}>🔥 {p.burnTicks}</span>:null}{p.panicTurns?<span title="Panic −5 ATK">⚠ {p.panicTurns}</span>:null}{p.lockedSkill&&p.skillLockTurn===s.round?<span>🔒 S{p.lockedSkill}</span>:null}</div>
+        <WeaponStatus player={p} round={s.round}/>{p.duelLuck?.mode&&<span className={'duel-luck-tag duel-luck-'+p.duelLuck.mode}>{p.duelLuck.mode==='unlucky'?(en?'✦ TOO UNLUCKY · LUCK BOOST':'✦ QUÁ ĐEN · TĂNG MAY MẮN'):(en?'☾ TOO LUCKY · LUCK PENALTY':'☾ QUÁ MAY · GIẢM MAY MẮN')}</span>}<div className="combat-stats"><b>{p.d12Charge??0} PTS</b>{p.weapon.id==='revolver'&&<span>◈ {p.bullets??6}/6</span>}{p.burnTicks? <span title={en?'Burn turns remaining':'Số lượt thiêu đốt còn lại'}>🔥 {p.burnTicks}</span>:null}{p.panicTurns?<span title="Panic −5 ATK">⚠ {p.panicTurns}</span>:null}{p.lockedSkill&&p.skillLockTurn===s.round?<span>🔒 S{p.lockedSkill}</span>:null}</div>
         <div className="combat-seat-dice" hidden><span>D6 · {p.id===active.id?s.rolls.join(' + ')||'—':'—'}</span><span>D20 · {p.id===active.id?s.attack??'—':p.id===victim?.id?s.defense??'—':'—'}</span></div>
 
       </section>;})}
     </div>
+    {s.duelClash&&!s.winner&&<DuelClashPanel clash={s.duelClash} viewer={viewer} points={s.players.find(p=>p.id===viewer)?.d12Charge??0} en={en} busy={busy} onWager={onDuelWager}/>}
+    <DuelResultNotice notice={s.duelNotice} en={en}/>
     <div className="combat-result-strip" role="status" aria-live="polite">{rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong><em>{en?'Rolled!':'Đã tung!'}</em></div>)}</div>:<div className="combat-roll-notice" hidden={!notice} title={notice}>{notice}</div>}</div>
     {banner?.nameEn&&<div key={banner.id} className="combat-skill-flash"><img src={effectFrame(banner.effect,1)} alt=""/><div><small>{s.players.find(p=>p.id===banner.caster)?.name} · {en?'SKILL':'KỸ NĂNG'} {banner.slot}</small><strong>{en?banner.nameEn:banner.nameVi}</strong></div><span className="skill-sweep-spark" aria-hidden="true">✦</span></div>}
     {boxerDice.length>0&&<div className="boxer-roll-progress" role="status">{boxerDice.length===1?(en?'BOXER · D20 1/2 · Roll again':'BOXER · D20 1/2 · Tung lần nữa'):(en?'BOXER · D20 2/2 · Highest: ':'BOXER · D20 2/2 · Số cao nhất: ')+Math.max(...boxerDice)}</div>}

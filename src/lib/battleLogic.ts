@@ -1,6 +1,7 @@
+import {critChance, openDuelClash, recordDuelComparison, type DuelNotice} from './duelRules';
 import {normalSetup,normalReactions,updateNormalDamage,absorbUpdateDamage} from './weaponUpdateHooks';
 import {warriorBonus} from './classMechanics';
-import { reflectedDamage, absorbWithRock } from './combatDamage';
+import { reflectedDamage, absorbWithRock, applyOpponentDamage } from './combatDamage';
 import type {
   BattleState,
   PlayerState,
@@ -37,7 +38,8 @@ export function calculateD20Combat(
   defenderClass: ClassInfo,
   attackerState?: PlayerState,
   defenderState?: PlayerState,
-  round=1
+  round=1,
+  fixedDamage?: number
 ): {
   damage: number;
   rawDiff: number;
@@ -82,7 +84,7 @@ export function calculateD20Combat(
 
   const rawDiff = effectiveAtk - defenderD20;
 
-  if (rawDiff <= 0) {
+  if (rawDiff <= 0 && fixedDamage === undefined) {
     let damage=0;if(attackerState&&defenderState){if(setup?.cleave){damage=updateNormalDamage(attackerState,5,false,round);if(defenderState.immuneDamageNext){defenderState.immuneDamageNext=false;damage=0;}damage=absorbUpdateDamage(defenderState,Math.max(0,damage-absorbWithRock(defenderState,damage)));}normalReactions(attackerState,defenderState,false,damage,defenderD20,round);}
     return {
       damage,
@@ -125,6 +127,7 @@ export function calculateD20Combat(
   modifiedDamage = Math.max(0, Math.round(modifiedDamage));
 
   if(attackerState)modifiedDamage=updateNormalDamage(attackerState,modifiedDamage,!!setup?.cleave,round);
+  if(fixedDamage !== undefined) modifiedDamage = fixedDamage;
   const absorbedByRock = defenderState ? absorbWithRock(defenderState, modifiedDamage) : 0;
   modifiedDamage -= absorbedByRock;
   if(defenderState)modifiedDamage=absorbUpdateDamage(defenderState,modifiedDamage);
@@ -146,6 +149,42 @@ export function calculateD20Combat(
     logTextVi: `Đòn đánh trúng! (Công ${effectiveAtk} - Thủ ${defenderD20} = ${rawDiff})${modNotes} · ${rawDiff} xúc xắc + ${warriorBonus(attackerState)} cuồng nộ, sau hiệu ứng -> Gây ${modifiedDamage} sát thương!`,
     logTextEn: `Direct Hit! (Atk ${effectiveAtk} - Def ${defenderD20} = ${rawDiff})${modNotes} · ${rawDiff} dice + ${warriorBonus(attackerState)} rage, after effects -> Deals ${modifiedDamage} damage!`,
   };
+}
+
+/** Duel rules use the displayed dice, before equipment changes to ATK/DEF. */
+export function calculateDuelCombat(attack: number, defense: number, attacker: PlayerState, defender: PlayerState, round: number, stake = 0) {
+  const reward = recordDuelComparison(attacker, defender, attack, defense);
+  const tied = !!openDuelClash(attack, defense, defender.id, 0);
+  if (tied) defender.d12Charge = (defender.d12Charge ?? 0) - stake;
+  const counter = tied && Math.random() < (35 + stake * 10) / 100;
+  const critical = attack === 20 && Math.random() < critChance(attacker.weapon.tier);
+  const clashDamage = Math.round(attack * 2 / 3);
+  let counterDamage = 0;
+  let result: ReturnType<typeof calculateD20Combat>;
+  if (counter) {
+    normalSetup(attacker, defender, attack, defense, round);
+    attacker.isStunned = false;
+    attacker.timeLockActive = false;
+    counterDamage = applyOpponentDamage(attacker, clashDamage, round, true, defender);
+    result = {damage:0, rawDiff:0, isHit:false, logTextEn:'Clashing · '+defender.name+' counters for '+counterDamage+' HP.', logTextVi:'Va chạm · '+defender.name+' phản '+counterDamage+' HP.'};
+  } else {
+    result = calculateD20Combat(attack, defense, CLASS_DEFINITIONS[attacker.classType], CLASS_DEFINITIONS[defender.classType], attacker, defender, round, critical ? 20 : tied ? clashDamage : undefined);
+  }
+  let notice: DuelNotice | undefined = reward;
+  if (critical && result.isHit) {
+    notice = { id:crypto.randomUUID(), kind:'crit', en:'Critical Hit · '+result.damage+' HP', vi:'Chí mạng · '+result.damage+' HP' };
+    result.logTextEn = 'Critical Hit! D20 ATK 20 bypasses the defense roll. Deals '+result.damage+' damage.';
+    result.logTextVi = 'Chí mạng! D20 Công 20 xuyên qua điểm Thủ. Gây '+result.damage+' sát thương.';
+    if(reward) { notice.en += ' · '+reward.en; notice.vi += ' · '+reward.vi; }
+  }
+  if (tied) {
+    const en = counter ? 'Defense counters' : 'Attack wins';
+    const vi = counter ? 'Thủ phản đòn' : 'Công thắng';
+    notice = { id:crypto.randomUUID(), kind:'clash', en:'Clashing · '+en+' · '+(counter ? counterDamage : result.damage)+' HP', vi:'Va chạm · '+vi+' · '+(counter ? counterDamage : result.damage)+' HP' };
+    result.logTextEn = notice.en + ' · wager '+stake+' PTS';
+    result.logTextVi = notice.vi + ' · cược '+stake+' PTS';
+  }
+  return {...result, critical:critical && result.isHit, counter, counterDamage, notice};
 }
 
 // ------------------------------------------------------------

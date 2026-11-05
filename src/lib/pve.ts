@@ -16,8 +16,13 @@ export function advancePve(input:PveState,actor:string,move:string,args:Paramete
  for(let step=0;step<30;step++){
   let s=out.combat;if(s.phase==='finished')break;
   const bot=s.players.find(p=>p.id==='pve_bot')!,active=s.order[s.active];
-  if(s.phase==='clash'){s.deadline=0;out.combat=lmsAction(s,s.players.find(p=>p.hp>0)!.id,'resolve');onFrame?.(structuredClone(out));continue;}
-  if(s.phase==='defense'&&s.target==='pve_bot'){out.combat=lmsAction(s,'pve_bot','defend');onFrame?.(structuredClone(out));continue;}
+  if(s.phase==='clash'){
+   if(s.duelClash?.defenderId===actor&&Date.now()<s.duelClash.deadline)break;
+   const move=s.duelClash?.defenderId==='pve_bot'?'duel_wager':'resolve';
+   out.combat=lmsAction(s,move==='duel_wager'?'pve_bot':actor,move,{stake:0});
+   onFrame?.(structuredClone(out));continue;
+  }
+   if(s.phase==='defense'&&s.target==='pve_bot'){out.combat=lmsAction(s,'pve_bot','defend');if(!out.combat.duelClash)onFrame?.(structuredClone(out));continue;}
   if(s.phase==='charge_defense'&&s.target==='pve_bot'){out.combat=lmsAction(s,'pve_bot','charge');onFrame?.(structuredClone(out));continue;}
   if(s.phase==='skills'){
    if(s.skillDone?.includes('pve_bot'))break;

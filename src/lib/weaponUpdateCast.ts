@@ -28,7 +28,7 @@ export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:numbe
  if(!UPDATE_IDS.has(u.weapon.id))return undefined;
  const s=weaponState(u),v=weaponState(t),weather=activeWeather(u,round);let damage=0,piercing=false,drain=false;let die:number|undefined;let effect='';
  const rng=()=>Math.random(),roll=()=>resolutionDie??1+Math.floor(rng()*6);const hit=(n:number)=>{damage=n;};
- const climate=(kind:WeatherKind,n:number,variant?:number)=>{s.weather={kind,until:round+n,started:Math.max(Date.now(),s.weather?.started||0,v.weather?.started||0)+1,owner:u.id,variant};};
+ const climate=(kind:WeatherKind,n:number,variant?:number)=>{s.weather={kind,until:round+n,remainingTurns:n,fresh:true,started:Math.max(Date.now(),s.weather?.started||0,v.weather?.started||0)+1,owner:u.id,variant};};
  switch(u.weapon.id){
  case 'shield':s.armor=(s.armor||0)+15;effect='shield_armor';break;
  case 'king_slasher':

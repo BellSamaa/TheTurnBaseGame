@@ -9,7 +9,7 @@ export function WeaponWeather({players,round}:{players:PlayerState[];round:numbe
  useEffect(()=>{if(!weather)return;const timer=setInterval(()=>setFrame(f=>(f+1)%4),220);return()=>clearInterval(timer);},[weather?.kind]);
  if(!weather)return null;
  const label={rain:['RAIN','MƯA'],snow:['FROZEN REALM','BĂNG GIỚI'],heat:['HEAT','NÓNG'],superconduct:['SUPERCONDUCT','SIÊU DẪN']}[weather.kind];
- return <div className={'weapon-weather weather-'+weather.kind} aria-label={label[en?0:1]}><img src={'/assets/weapon-update-1/frames/weather_'+weather.kind+'/'+frame+'.png'} alt=""/><div className="weather-particles"/><span>{label[en?0:1]} · {weather.until-round+1}R</span></div>;
+ return <div className={'weapon-weather weather-'+weather.kind} aria-label={label[en?0:1]}><img src={'/assets/weapon-update-1/frames/weather_'+weather.kind+'/'+frame+'.png'} alt=""/><div className="weather-particles"/><span>{label[en?0:1]} · {weather.remainingTurns??weather.until-round+1}R</span></div>;
 }
 export function WeaponSummons({player,side}:{player:PlayerState;side:'left'|'right'}){
  const [frame,setFrame]=useState(0);const living=player.hp>0?player.weaponUpdate?.summons?.filter(x=>x.hp>0)||[]:[];
