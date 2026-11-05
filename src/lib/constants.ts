@@ -367,8 +367,8 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       name: 'Summon Rock Companion',
       nameVi: 'Triệu Hồi Rock (50 Máu)',
       diceType: 'd6',
-      description: 'Summons Rock (25 HP) if absent or defeated; a living Rock keeps its HP. Absorbs up to 5 damage/hit. Follows each owner attack with a separate 2 damage hit.',
-      descriptionVi: 'Triệu hồi Rock 25 HP nếu chưa có hoặc đã chết; Rock còn sống giữ nguyên HP. Đỡ tối đa 5 sát thương/đòn, tấn công riêng 2 sát thương sau mỗi đòn của chủ nhân.',
+      description: 'Summons Rock (25 HP) if absent or defeated; Skill 1 is locked while Rock is alive. Absorbs up to 5 damage/hit. Follows each owner attack with a separate 2 damage hit.',
+      descriptionVi: 'Triệu hồi Rock 25 HP nếu chưa có hoặc đã chết; Skill 1 bị khóa khi Rock còn sống. Đỡ tối đa 5 sát thương/đòn, tấn công riêng 2 sát thương sau mỗi đòn của chủ nhân.',
       effect: 'rock_summon_shield',
     },
     skill2: {

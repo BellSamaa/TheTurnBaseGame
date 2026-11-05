@@ -323,3 +323,5 @@
 .lobby-help-arrows{display:inline-flex;align-items:center;vertical-align:middle;gap:2px;white-space:nowrap}.lobby-help-arrows svg{display:block;width:1em;height:1em;flex:none;overflow:visible}
 
 .combat-fighter .rock-companion-left{right:auto;left:62%;bottom:0}.combat-fighter .rock-companion-right{left:auto;right:62%;bottom:0}
+
+.combat-skill-cast.rock-summon-locked{filter:grayscale(1) brightness(.35)!important;opacity:.55!important;animation:none!important;box-shadow:none!important}
