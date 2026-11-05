@@ -1,3 +1,4 @@
+import {roundLmsAction,roundLmsTick} from './lmsRound';
 import {skillPresentation,skillEffectPlan,normalAttackEffect} from './skillPresentation';
 import {translateText} from './localeText';
 import {activateBuff,type LmsExtras} from './lmsBuffs';
@@ -13,9 +14,9 @@ export interface LmsState {
   rollDeadline?:number;
   initiative?: {id:string;roll:number}[];
   extras?: LmsExtras; remainingTargets?: string[];
-  turnFlow?:2; defenderRolls?:number[]; skillDone?:string[];
+  turnFlow?:2|3;roundCharges?:Record<string,number[]>;endVotes?:string[];endDeadline?:number; defenderRolls?:number[]; skillDone?:string[];
   players: PlayerState[]; order: string[]; active: number; round: number;
-  phase: 'initiative' | 'charge' | 'charge_defense' | 'skills' | 'target' | 'attack' | 'defense' | 'clash' | 'end' | 'finished';
+  phase: 'initiative' | 'charge' | 'charge_defense' | 'skills' | 'buffs' | 'target' | 'attack' | 'defense' | 'clash' | 'end' | 'finished';
   target?: string; attack?: number; defense?: number; deadline?: number;
   rolls: number[]; log: string[]; logVi?:string[]; winner?: string; revision: number;
 }
@@ -31,6 +32,7 @@ export function createLms(participants: RoomParticipant[], duel = false): LmsSta
     logVi:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · D20 khởi đầu: '+p.roll)};
 }
 export function lmsAction(input:LmsState, actor:string, action:string, args:{target?:string;slot?:1|2;form?:number;lockSlot?:1|2;delta?:number;choice?:string;buffSlot?:'initial'|'bonus'}={}, now=Date.now()):LmsState {
+  if(input.turnFlow===3)return roundLmsAction(input,actor,action,args,now);
   const s=structuredClone(input), user=s.players.find(p=>p.id===actor);
   if(!user || (user.hp<=0 && !(action==='end'&&actor===s.order[s.active])) || s.phase==='finished') throw Error('Không thể hành động');
   const attacker=s.players.find(p=>p.id===s.order[s.active])!;
@@ -158,6 +160,7 @@ function armLmsRollTimer(s:LmsState,now:number,previous?:LmsState){
 }
 /** Server clock controls automatic rolls; any connected client can poll safely. */
 export function tickLms(input:LmsState,now=Date.now()):LmsState{
+ if(input.turnFlow===3)return roundLmsTick(input,now);
  if(input.winner)return input;
  if(input.phase==='clash'&&now>=(input.deadline??Infinity))return lmsAction(input,input.players.find(p=>p.hp>0)!.id,'resolve',{},now);
  if(!['initiative','attack','defense','charge','charge_defense'].includes(input.phase))return input;

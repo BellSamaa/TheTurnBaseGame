@@ -1,3 +1,4 @@
+import {createRoundLms} from '@/lib/lmsRound';
 import {castPvpSkill,validatePvpSnapshot} from '@/lib/pvpSkills';
 import { finishRank } from '@/lib/onlineRuntime';
 import { createLms, lmsAction, tickLms } from '@/lib/lms';
@@ -59,6 +60,17 @@ export async function POST(req: Request, context: RouteContext) {
     const { action } = body;
     if(room.gameMode==='last_man_standing'&&action!=='lms_action'){const actor=await sessionUser();if(!actor||((body.userId||body.guest?.id)&&actor!==(body.userId||body.guest?.id)))return NextResponse.json({error:'Sign in required'},{status:401});}
 
+    if(action==='refresh_leave'){
+      const actor=await sessionUser();const people=room.participants||[room.host,...(room.guest?[room.guest]:[])];
+      if(!actor||!people.some(p=>p.id===actor))return NextResponse.json({error:'Not in room'},{status:403});
+      if(actor===room.host.id){await deleteRoom(room.code);return NextResponse.json({success:true});}
+      if(room.status==='playing'&&room.battleState?.lms){
+        const combat=room.battleState.lms;if(combat.players.some(p=>p.id===actor&&p.hp>0)&&!combat.winner)room.battleState.lms=lmsAction(combat,actor,'surrender');
+        if(room.battleState.lms.winner){room.battleState.winnerId=room.battleState.lms.winner;room.status='finished';}
+      }else if(room.status==='playing'&&room.battleState){room.battleState.winnerId=room.host.id;room.status='finished';}
+      room.participants=people.filter(p=>p.id!==actor);room.guest=room.participants.find(p=>p.id!==room.host.id)||null;
+      if(room.status!=='playing'&&room.status!=='finished')room.status=room.guest?'ready':'waiting';await updateRoom(room);return NextResponse.json({success:true});
+    }
     if (action === 'heartbeat') {
       if (body.userId !== room.host.id) return NextResponse.json({ success: false }, { status: 403 });
       await updateRoom(room);
@@ -240,7 +252,7 @@ export async function POST(req: Request, context: RouteContext) {
         mode: room.mode,
       };
 
-      if (room.gameMode === 'last_man_standing') initialBattle.lms = createLms(readyPlayers);
+      if (room.gameMode === 'last_man_standing') initialBattle.lms = createRoundLms(readyPlayers);
       room.status = 'playing';
       room.battleState = initialBattle;
       await updateRoom(room);

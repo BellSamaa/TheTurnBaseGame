@@ -30,6 +30,13 @@ export default function GameMasterPage() {
   const { currentPage, settings, battleState } = useGameStore();
   const langClass = settings?.language === 'vi' ? 'lang-vi' : 'lang-en';
 
+  React.useEffect(()=>{
+    const key='room-before-refresh';
+    const leave=(code:string)=>fetch('/api/rooms/'+code,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'refresh_leave'}),keepalive:true}).catch(()=>{});
+    const stale=sessionStorage.getItem(key);if(stale){void leave(stale);sessionStorage.removeItem(key);useGameStore.setState({onlineRoomCode:null,battleState:null,currentPage:'home'});}
+    const onHide=()=>{const code=useGameStore.getState().onlineRoomCode;if(code){sessionStorage.setItem(key,code);void leave(code);}};
+    window.addEventListener('pagehide',onHide);return()=>window.removeEventListener('pagehide',onHide);
+  },[]);
   React.useEffect(()=>{document.documentElement.lang=settings.language||'en';},[settings.language]);
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
