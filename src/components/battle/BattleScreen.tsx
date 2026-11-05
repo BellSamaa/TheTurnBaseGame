@@ -1,4 +1,5 @@
 'use client';
+import {d6Allowance} from '@/lib/classMechanics';
 import {canUsePvpSkill} from '@/lib/skillPriority';
 import {tx} from '@/lib/uiLocale';
 import CombatArena from './CombatArena';
@@ -450,7 +451,7 @@ export default function BattleScreen() {
 
   if (canLocalRoll && (turnStep === 'd6_atk' || turnStep === 'd6_def')) {
     const rollingPlayer = isP1User ? player1 : player2;
-    const count = 1 + (CLASS_DEFINITIONS[rollingPlayer.classType]?.extraD6Rolls ?? 0);
+    const count = d6Allowance(rollingPlayer,currentTurn);
     const completed = battleState.d6Results?.[isP1User ? 'player1' : 'player2']?.length ?? 0;
     rollButtonTitle += ' · ' + Math.min(count, completed + 1) + '/' + count;
   }
@@ -669,7 +670,7 @@ export default function BattleScreen() {
     const firstDefD20 = rollD20();
     let finalDefD20 = firstDefD20;
     let defenderBoxerData: { r1: number; r2: number; chosen: number } | null = null;
-    if (defenderClass.extraD20Rolls > 0) {
+    if (false) {
       const extra = rollD20();
       finalDefD20 = Math.max(finalDefD20, extra);
       defenderBoxerData = { r1: firstDefD20, r2: extra, chosen: finalDefD20 };

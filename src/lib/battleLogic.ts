@@ -1,3 +1,4 @@
+import {warriorBonus} from './classMechanics';
 import { reflectedDamage, absorbWithRock } from './combatDamage';
 import type {
   BattleState,
@@ -100,7 +101,7 @@ export function calculateD20Combat(
   }
 
   // Hit! Add base damage before class modifiers and absorption.
-  let modifiedDamage = rawDiff * attackerClass.damageModifier * defenderClass.damageReduction;
+  let modifiedDamage = (rawDiff+warriorBonus(attackerState)) * attackerClass.damageModifier * defenderClass.damageReduction;
 
   // Bleed bonus (+5 damage from Bow Skill 1)
   if (defenderState?.isBleeding) {
@@ -132,8 +133,8 @@ export function calculateD20Combat(
     rawDiff,
     isHit: true,
     absorbedByRock,
-    logTextVi: `Đòn đánh trúng! (Công ${effectiveAtk} - Thủ ${defenderD20} = ${rawDiff})${modNotes} · 15 cơ sở + ${rawDiff}, sau hiệu ứng -> Gây ${modifiedDamage} sát thương!`,
-    logTextEn: `Direct Hit! (Atk ${effectiveAtk} - Def ${defenderD20} = ${rawDiff})${modNotes} · 15 base + ${rawDiff}, after effects -> Deals ${modifiedDamage} damage!`,
+    logTextVi: `Đòn đánh trúng! (Công ${effectiveAtk} - Thủ ${defenderD20} = ${rawDiff})${modNotes} · ${rawDiff} xúc xắc + ${warriorBonus(attackerState)} cuồng nộ, sau hiệu ứng -> Gây ${modifiedDamage} sát thương!`,
+    logTextEn: `Direct Hit! (Atk ${effectiveAtk} - Def ${defenderD20} = ${rawDiff})${modNotes} · ${rawDiff} dice + ${warriorBonus(attackerState)} rage, after effects -> Deals ${modifiedDamage} damage!`,
   };
 }
 

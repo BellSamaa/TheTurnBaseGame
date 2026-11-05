@@ -1,3 +1,4 @@
+import {d6Allowance,decideMageBonus} from './classMechanics';
 import type { BattleState } from '@/types/game';
 import { CLASS_DEFINITIONS } from './constants';
 import { chargeSkillPoints } from './chargedSkills';
@@ -9,11 +10,12 @@ export function applyChargeRoll(state: BattleState, isP1: boolean, roll: number)
   if (state.phase === 'game_over' || state.turnStep !== (attacking ? 'd6_atk' : 'd6_def') || !Number.isInteger(roll) || roll < 1 || roll > 6) return null;
   const key = isP1 ? 'player1' : 'player2';
   const previous = state.d6Results?.[key] ?? [];
-  const allowance = 1 + (CLASS_DEFINITIONS[player.classType]?.extraD6Rolls ?? 0);
+  const charged=chargeSkillPoints(player,[roll],state.currentTurn);
+  const allowance=d6Allowance(charged,state.currentTurn);
   if (previous.length >= allowance) return null;
   const rolls = [...previous, roll];
   return { ...state,
-    [key]: chargeSkillPoints(player, [roll], state.currentTurn),
+    [key]: charged,
     d6Results: { player1: state.d6Results?.player1 ?? [], player2: state.d6Results?.player2 ?? [], [key]: rolls },
     [isP1 ? 'p1D6' : 'p2D6']: rolls.reduce((sum, value) => sum + value, 0),
     turnStep: rolls.length < allowance ? state.turnStep : attacking ? 'd6_def' : 'd12',

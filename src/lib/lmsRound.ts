@@ -1,3 +1,4 @@
+import {d6Allowance} from './classMechanics';
 import {activateBuff,LMS_BUFFS} from './lmsBuffs';
 import {createLms,lmsAction,tickLms,type LmsState} from './lms';
 import type {RoomParticipant} from './serverDb';
@@ -28,7 +29,7 @@ export function roundLmsAction(input:LmsState,actor:string,action:string,args:Pa
   (s.stageDone??=[]).push(actor);s.revision++;advanceStage(s,now);return s;
  }
  if(action==='charge'&&s.phase==='skills'){
-  const rolls=(s.roundCharges??={})[actor]??=[];if(rolls.length>=1+CLASS_DEFINITIONS[user.classType].extraD6Rolls)throw Error('Đã tung đủ D6');
+  const rolls=(s.roundCharges??={})[actor]??=[];if(rolls.length>=d6Allowance(user,s.round))throw Error('Đã tung đủ D6');
   const roll=rollD6();rolls.push(roll);Object.assign(user,chargeSkillPoints(user,[roll],s.round));s.log.unshift(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');s.logVi?.unshift(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');s.revision++;return s;
  }
  if(action==='end'){
@@ -37,7 +38,7 @@ export function roundLmsAction(input:LmsState,actor:string,action:string,args:Pa
  }
  if(action==='buff'&&!['buffs','clash','attack','defense','target'].includes(s.phase))throw Error('Dùng bài ở giai đoạn Buff hoặc đúng thời điểm phản ứng');
  if(action==='skill'&&s.phase!=='skills')throw Error('Chưa đến giai đoạn kỹ năng');
- if(action==='skill'&&(s.roundCharges?.[actor]?.length||0)<1+CLASS_DEFINITIONS[user.classType].extraD6Rolls)throw Error('Tung D6 trước khi dùng kỹ năng');
+ if(action==='skill'&&(s.roundCharges?.[actor]?.length||0)<d6Allowance(user,s.round))throw Error('Tung D6 trước khi dùng kỹ năng');
  const legacy=structuredClone(s);legacy.turnFlow=2;
  if(action==='target'&&s.phase==='target'){
   let next=lmsAction(legacy,actor,action,args,now);next.attack=s.initiative?.find(r=>r.id===actor)?.roll;next.phase='clash';next.defense=0;next.deadline=now+5000;if(next.extras!.flags['aoe:'+actor]){next.remainingTargets=next.players.filter(p=>p.hp>0&&p.id!==actor&&p.id!==args.target).map(p=>p.id);delete next.extras!.flags['aoe:'+actor];}next.rollDeadline=now+10000;next.turnFlow=3;return next;
@@ -75,7 +76,7 @@ export function roundLmsTick(input:LmsState,now=Date.now()):LmsState{
   if(now<input.stageDeadline)return input;
   const s=structuredClone(input);
   // Preserve this round's charge opportunity for players who skip or time out.
-  if(s.phase==='skills')for(const p of s.players.filter(p=>p.hp>0&&!s.stageDone?.includes(p.id))){const rolls=(s.roundCharges??={})[p.id]??=[];while(rolls.length<1+CLASS_DEFINITIONS[p.classType].extraD6Rolls){const roll=rollD6();rolls.push(roll);Object.assign(p,chargeSkillPoints(p,[roll],s.round));}}
+  if(s.phase==='skills')for(const p of s.players.filter(p=>p.hp>0&&!s.stageDone?.includes(p.id))){const rolls=(s.roundCharges??={})[p.id]??=[];while(rolls.length<d6Allowance(p,s.round)){const roll=rollD6();rolls.push(roll);Object.assign(p,chargeSkillPoints(p,[roll],s.round));}}
   s.stageDone=s.players.filter(p=>p.hp>0).map(p=>p.id);advanceStage(s,now);s.revision++;return s;
  }
  const legacy=structuredClone(input);legacy.turnFlow=2;const next=tickLms(legacy,now);if(next===legacy)return input;

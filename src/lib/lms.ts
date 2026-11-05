@@ -1,3 +1,4 @@
+import {d6Allowance,attackDice} from './classMechanics';
 import {attackerHasActed} from './skillPriority';
 import {roundLmsAction,roundLmsTick} from './lmsRound';
 import {skillPresentation,skillEffectPlan,normalAttackEffect} from './skillPresentation';
@@ -51,7 +52,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
   if(s.phase==='initiative'&&action!=='surrender'){
     if(action!=='initiative')throw Error('Wait for every player to roll opening D20');
     if(s.initiative?.some(r=>r.id===actor))throw Error('Opening D20 already rolled');
-    const roll=rollD20();(s.initiative??=[]).push({id:actor,roll});
+    const roll=attackDice(user,rollD20);(s.initiative??=[]).push({id:actor,roll});
     add(user.name+' · D20 khởi đầu: '+roll,user.name+' · Opening D20: '+roll);
     completeInitiative();armLmsRollTimer(s,now,input);s.revision++;return s;
   }
@@ -89,11 +90,11 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     user.d12Charge!-=3;s.attack=Math.max(1,Math.min(20,s.attack!+args.delta!));add(user.name+' can thiệp Công '+(args.delta!>0?'+1':'−1'));
   } else if(action==='defend') {
     if(s.phase!=='defense'||target?.id!==actor)throw Error('Chưa đến lượt phòng thủ');
-    s.defense=rollD20();if(user.classType==='boxer')s.defense=Math.max(s.defense,rollD20());s.phase='clash';s.deadline=now+5000;add(user.name+' Thủ '+s.defense);
+    s.defense=rollD20();s.phase='clash';s.deadline=now+5000;add(user.name+' Thủ '+s.defense);
   } else if(action==='charge'&&s.phase==='charge_defense') {
     if(target?.id!==actor)throw Error('Chưa đến lượt D6 phòng thủ');
     const roll=rollD6();(s.defenderRolls??=[]).push(roll);Object.assign(user,chargeSkillPoints(user,[roll],s.round));add(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');
-    if(s.defenderRolls.length>=1+CLASS_DEFINITIONS[user.classType].extraD6Rolls)s.phase='skills';
+    if(s.defenderRolls.length>=d6Allowance(user,s.round))s.phase='skills';
   } else {
     const skillActor=s.turnFlow===2&&s.phase==='skills'&&(actor===attacker.id||actor===target?.id);
     if(actor!==attacker.id&&!skillActor)throw Error('Chưa đến lượt bạn');
@@ -101,7 +102,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     if(action==='charge') {
       if(s.phase!=='charge')throw Error('Đã sạc đủ');
       const roll=rollD6();s.rolls.push(roll);Object.assign(user,chargeSkillPoints(user,[roll],s.round));add(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');
-      if(s.rolls.length>=1+CLASS_DEFINITIONS[user.classType].extraD6Rolls)s.phase=s.turnFlow===2?'charge_defense':'target';
+      if(s.rolls.length>=d6Allowance(user,s.round))s.phase=s.turnFlow===2?'charge_defense':'target';
     } else if(action==='target') {
       if(s.phase!=='target'||!s.players.some(p=>p.id===args.target&&p.id!==actor&&p.hp>0))throw Error('Chọn người còn sống');
       s.target=args.target;s.phase='attack';

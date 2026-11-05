@@ -93,6 +93,8 @@ export interface PlayerState {
   character: CharacterCustomization;
   // Weapon dynamic state mechanics
   bullets?: number; // Revolver cylinder (0-6)
+  mageBonusRound?: number;
+  mageBonusD6?: boolean;
   petRockHp?: number; // The Pet Rock HP (0-50)
   petRockHits?: number; // The Pet Rock hits received (0-5)
   petRockEnraged?: boolean;

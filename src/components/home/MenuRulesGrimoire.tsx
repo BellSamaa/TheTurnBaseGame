@@ -186,7 +186,7 @@ export default function MenuRulesGrimoire({ isEn }: MenuRulesGrimoireProps) {
                     </div>
                   </div>
 
-                  {/* Wax Seal Stamp */}
+                  <p className="text-[8px] text-amber-200">{isEn?'Warrior: below 30% HP, +3 attack damage; +1 more per further 5% HP lost. Boxer: attack dice only.':'Warrior: dưới 30% HP, +3 sát thương; thêm +1 mỗi 5% HP mất tiếp. Boxer chỉ thêm xúc xắc Công.'}</p>{/* Wax Seal Stamp */}
                   <div className="mt-auto flex items-center justify-end gap-2 pt-2 border-t border-[#4a2e16]">
                     <div className="text-[7px] font-pixel text-amber-500/80 uppercase">
                       {isEn ? 'OFFICIAL DICE GUILD CODEX' : 'CON DẤU QUY CHUẨN HIỆP HỘI'}
@@ -217,11 +217,11 @@ export default function MenuRulesGrimoire({ isEn }: MenuRulesGrimoireProps) {
                   <p className="text-[9px] sm:text-[9.5px] font-pixel text-amber-100/90 leading-relaxed">
                     {isEn ? (
                       <>
-                        Every duelist enters the arena with <strong>150 Base HP (200 in LMS)</strong> (modified by your tactical class archetype 113–225 HP in duels, 150–300 HP in LMS).
+                        Every duelist enters the arena with <strong>100 Base HP (150 in LMS)</strong> (modified by your tactical class archetype 75–150 HP in duels, 113–225 HP in LMS).
                       </>
                     ) : (
                       <>
-                        Mọi đấu sĩ bước vào đấu trường với <strong>150 HP gốc (200 trong LMS)</strong> (được gia giảm tùy theo hệ nghề chiến đấu 113–225 HP khi đấu đôi, 150–300 HP trong LMS).
+                        Mọi đấu sĩ bước vào đấu trường với <strong>100 HP gốc (150 trong LMS)</strong> (được gia giảm tùy theo hệ nghề chiến đấu 75–150 HP khi đấu đôi, 113–225 HP trong LMS).
                       </>
                     )}
                   </p>
@@ -284,7 +284,7 @@ export default function MenuRulesGrimoire({ isEn }: MenuRulesGrimoireProps) {
                   <div className="space-y-2 my-1 text-[8px] font-pixel text-slate-300">
                     <div className="bg-[#24170e] border border-purple-500/50 p-2 flex items-center justify-between">
                       <span className="text-purple-300">{isEn ? 'Mage Dual Arcana:' : 'Pháp Sư Bí Thuật:'}</span>
-                      <span className="text-yellow-300">{isEn ? 'Casts 2x D6 per turn' : 'Tung 2 viên D6 mỗi lượt'}</span>
+                      <span className="text-yellow-300">{isEn ? '50% chance for +1 D6 each turn' : '50% cơ hội thêm 1 lần D6 mỗi lượt'}</span>
                     </div>
                     <div className="bg-[#24170e] border border-emerald-500/50 p-2 flex items-center justify-between">
                       <span className="text-emerald-300">{isEn ? 'Boxer Advantage:' : 'Võ Sĩ Quyền Cước:'}</span>

@@ -130,7 +130,7 @@ export default function MenuClassesVerticalStack({ isEn }: MenuClassesVerticalSt
               {currentClass.extraD6Rolls > 0 && (
                 <span className="bg-purple-950/90 border border-purple-500 text-purple-300 px-2.5 py-1 text-[8.5px] font-pixel flex items-center gap-1 shadow">
                   <PixelIcon name="lightning" size={11} color="#c084fc" />
-                  <span>+1 EXTRA D6 CHARGE</span>
+                  <span>50%: +1 D6</span>
                 </span>
               )}
 

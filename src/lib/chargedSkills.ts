@@ -1,3 +1,4 @@
+import {decideMageBonus} from './classMechanics';
 import { applyOpponentDamage, skillIsLocked } from './combatDamage';
 import type { PlayerState } from '@/types/game';
 import { WEAPON_DEFINITIONS } from './constants';
@@ -67,6 +68,7 @@ export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1
 // Read the balance BEFORE this round's roll: crossing the threshold with a 2
 // does not unlock the skill. A later roll must contain 2 while already funded.
 export function chargeSkillPoints(player: PlayerState, rolls: number[], turn: number): PlayerState {
+  player=decideMageBonus(player,turn);
   const before = player.d12Charge ?? 0;
   const points = rolls.reduce((sum, n) => sum + n, 0);
   return { ...player, d12Charge: before + points,
