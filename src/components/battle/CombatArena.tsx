@@ -2,6 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {useGameStore} from '@/stores/gameStore';
 import type {LmsState} from '@/lib/lms';
+import {opponentRolls,type OpponentRoll} from '@/lib/opponentRolls';
 import {CLASS_DEFINITIONS,MAP_DEFINITIONS} from '@/lib/constants';
 import {tx,phaseLabel} from '@/lib/uiLocale';
 import {WalletBar} from '@/components/progression/AccountPanel';
@@ -33,6 +34,17 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   const oldRoll=useRef({d20:personalD20,count:personalRolls.length});
   const oldPhase=useRef(shownPhase);
   useEffect(()=>{if(oldPhase.current!==shownPhase){oldPhase.current=shownPhase;playBattleCue(shownPhase==='skills'?'ready':'phase');}},[shownPhase]);
+  const otherRolls=opponentRolls(s,viewer),otherRollKey=otherRolls.map(r=>r.key).join('|');
+  const seenOtherRolls=useRef(new Set(otherRolls.map(r=>r.key)));
+  const [rollAlerts,setRollAlerts]=useState<OpponentRoll[]>([]);
+  useEffect(()=>{
+    const fresh=otherRolls.filter(r=>!seenOtherRolls.current.has(r.key));
+    otherRolls.forEach(r=>seenOtherRolls.current.add(r.key));
+    if(!fresh.length)return;
+    if(seenOtherRolls.current.size>200)seenOtherRolls.current=new Set(otherRolls.map(r=>r.key));
+    setRollAlerts(fresh);playBattleCue('result');
+  },[otherRollKey]);
+  useEffect(()=>{if(!rollAlerts.length)return;const timer=setTimeout(()=>setRollAlerts([]),4200);return()=>clearTimeout(timer);},[rollAlerts]);
   const viewerIndex=Math.max(0,s.players.findIndex(p=>p.id===viewer));
   const displayPlayers=[...s.players.slice(viewerIndex),...s.players.slice(0,viewerIndex)];
   const active=s.players.find(p=>p.id===s.order[s.active])!,victim=s.players.find(p=>p.id===s.target);
@@ -62,10 +74,11 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
       const descriptions:Record<string,string>=en?{charge:'Attacker rolls D6 to charge shared PTS.',charge_defense:'Defender rolls D6 to charge shared PTS.',skills:'Both players may spend shared PTS on skills, then confirm End Turn.',target:'Choose the opponent to attack.',attack:'Attacker rolls D20.',defense:'Defender rolls D20.',clash:'Resolve the hit and available reactions.',end:'Finish available actions, then end the turn.'}:{charge:'Bên công tung D6 để sạc PTS.',charge_defense:'Bên thủ tung D6 để sạc PTS.',skills:'Hai bên dùng chung PTS cho kỹ năng rồi bấm Kết thúc lượt.',target:'Chọn đối thủ để tấn công.',attack:'Người tấn công tung D20.',defense:'Người phòng thủ tung D20.',clash:'Xử lý đòn đánh và phản ứng có thể dùng.',end:'Hoàn tất hành động rồi kết thúc lượt.'};
       return <span key={phase} title={descriptions[phase]} aria-current={shownPhase===phase?'step':undefined} className={shownPhase===phase?'phase-current':stages.indexOf(shownPhase)>i?'phase-complete':''}><i>{i+1}</i><b>{labels[phase]||phaseLabel(phase)}</b></span>;
     })}</nav>
-    <div key={s.log[0]} className="combat-roll-notice" role="status" title={s.log[0]}>{en?s.log[0]:(s.logVi||s.log)[0]}</div>
+    <div className="combat-result-strip" role="status" aria-live="polite">{rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong></div>)}</div>:<div key={s.log[0]} className="combat-roll-notice" title={s.log[0]}>{en?s.log[0]:(s.logVi||s.log)[0]}</div>}</div>
     <div className="combat-stage"><img className="battle-background-2d" src={map.image.replace(/\.png$/,'.webp')} alt=""/>
       <div className="combat-vs"><img src="/assets/sprites/ui/frames/battle_vs.png" alt="VS"/><small>{victim?active.name+' → '+victim.name:en?'Choose a target':'Chọn mục tiêu'}</small></div>
       {displayPlayers.map((p,i)=>{const side=i%2===0?'left':'right';return <section key={p.id} className={'combat-seat combat-seat-'+i+(p.id===active.id?' combat-active':'')+(p.hp<=0?' combat-out':'')}>
+        {p.id!==viewer&&<div className="opponent-roll-badge">{otherRolls.filter(r=>r.playerId===p.id).map(r=><span key={r.key} title={r.name+' · '+r.die+' '+r.role}><small>{r.die}</small><b>{r.values.join('+')}</b></span>)}</div>}
         <div className="combat-name"><b>{p.id==='pve_bot'?tx(p.name):p.name}</b><small>{p.id===viewer?(en?'YOU':'BẠN'):p.hp<=0?(en?'ELIMINATED':'ĐÃ BỊ LOẠI'):p.id===active.id?'ATK':p.id===victim?.id?'DEF':''}</small></div>
         <HealthBar current={p.hp} max={p.maxHp}/><RockHealthBar player={p}/>
         <div className="combat-fighter"><WeaponStand weaponId={p.weapon.id} side={side}/><div className="combat-avatar"><CharacterRenderer character={p.character} weapon={p.weapon} size={buffs?'md':'lg'} facing={side==='left'?'right':'left'} animation="idle"/></div><RockCompanion player={p} side={side}/>

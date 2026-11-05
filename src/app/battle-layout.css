@@ -157,3 +157,27 @@
 .battle-balanced .combat-skill-cast img{height:50px}
 .battle-balanced .combat-skill-cost{display:block;text-align:center;font-size:7px;color:#ffe4ac;line-height:1.5;padding:2px 0}
 @media(max-width:767px){.battle-balanced .combat-skill-cast img{height:38px}.battle-balanced .combat-skill-cost{font-size:5px}}
+/* Compact gold outlines replace decorative frame images on both battle bars. */
+.battle-balanced .combat-console,.battle-balanced .combat-phase-bar{border:2px solid #e8bf55!important;border-image:none!important;border-radius:6px;box-shadow:inset 0 0 0 1px #604517,0 0 12px #e9bc4933;animation:battle-gold-glint 3s ease-in-out infinite;background:#070b13f5}
+.battle-balanced .combat-console{max-width:820px;padding:10px 14px;gap:10px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin:8px auto 0}
+.battle-balanced .combat-phase-bar{max-width:1040px;padding:4px 6px}
+.battle-balanced .combat-dice-dock{max-width:350px}
+.battle-balanced .combat-status{padding-bottom:3px}
+.battle-balanced .four-commands,.battle-balanced .four-commands>.combat-skills{gap:4px}
+.battle-balanced .combat-result-strip{min-height:42px;display:flex;align-items:center;justify-content:center;margin:3px 0 6px}
+.battle-balanced .combat-result-strip .combat-roll-notice{margin:0}
+.opponent-roll-alerts{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;width:100%}
+.opponent-roll-alert{display:flex;align-items:center;justify-content:center;gap:12px;padding:6px 14px;border:1px solid #f5cf65;border-radius:5px;background:linear-gradient(100deg,#192842,#332a16);color:#fff2ae;animation:battle-notice-in .25s ease-out}
+.opponent-roll-alert>span{font-size:9px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.opponent-roll-alert small{font-size:7px;color:#9ce9ff}.opponent-roll-alert strong{font-size:19px;color:#ffe167;text-shadow:0 0 10px #ffd25877;white-space:nowrap}
+.opponent-roll-badge{position:absolute;top:-24px;left:50%;transform:translateX(-50%);display:flex;gap:4px;white-space:nowrap;pointer-events:none}
+.opponent-roll-badge>span{display:flex;align-items:center;gap:4px;background:#071326ed;border:1px solid #cbb164;padding:4px 6px;border-radius:3px;animation:battle-notice-in .2s ease-out}
+.opponent-roll-badge small{font-size:6px;color:#a6dded}.opponent-roll-badge b{font-size:9px;color:#ffe480}
+.lobby-flat .lobby-door-label{box-sizing:border-box;white-space:nowrap;line-height:1.4;letter-spacing:0;padding:0;text-align:center;color:#56320c;text-shadow:0 0 3px #fff9c3,0 0 8px #ffd64f;animation:door-label-glint 2.6s ease-in-out infinite}
+.lobby-flat .lobby-touch{display:grid;grid-template-columns:repeat(2,36px);grid-template-rows:repeat(2,36px);gap:5px;align-items:center;justify-items:center}
+.lobby-flat .lobby-touch button{display:grid;place-items:center;width:36px;height:36px;padding:0;line-height:1;touch-action:none}
+.lobby-flat .lobby-arrow{display:block;width:20px;height:20px;flex-shrink:0;filter:drop-shadow(0 1px 1px #000)}
+.lobby-arrow.arrow-left{transform:rotate(-90deg)}.lobby-arrow.arrow-down{transform:rotate(180deg)}.lobby-arrow.arrow-right{transform:rotate(90deg)}
+@keyframes battle-gold-glint{0%,100%{border-color:#d5a53b;box-shadow:inset 0 0 0 1px #604517,0 0 8px #e9bc4933}50%{border-color:#ffeaa0;box-shadow:inset 0 0 0 1px #a78130,0 0 14px #e9bc4966}}
+@keyframes door-label-glint{0%,100%{color:#56320c;text-shadow:0 0 3px #fff9c3,0 0 6px #ffd64f}50%{color:#8a4e08;text-shadow:0 0 2px #fff,0 0 5px #fff8bf,0 0 12px #ffca35}}
+@media(max-width:767px){.battle-balanced .combat-console{padding:8px 6px;gap:5px}.battle-balanced .combat-phase-bar{padding:3px}.battle-balanced .combat-result-strip{min-height:38px}.opponent-roll-alert{gap:6px;padding:5px 8px}.opponent-roll-alert>span{font-size:7px;max-width:110px}.opponent-roll-alert small{font-size:6px}.opponent-roll-alert strong{font-size:14px}.opponent-roll-badge{top:-20px;gap:2px}.opponent-roll-badge>span{gap:2px;padding:3px}.opponent-roll-badge small{font-size:4px}.opponent-roll-badge b{font-size:6px}}
+@media(prefers-reduced-motion:reduce){.battle-balanced .combat-console,.battle-balanced .combat-phase-bar,.lobby-flat .lobby-door-label,.opponent-roll-alert,.opponent-roll-badge>span{animation:none}}

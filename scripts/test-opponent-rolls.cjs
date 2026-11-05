@@ -1,0 +1,11 @@
+require('./test-charged-skills.cjs');
+const assert=require('node:assert/strict');
+const {opponentRolls}=require('../src/lib/opponentRolls.ts');
+const s={players:[{id:'a',name:'Alice'},{id:'b',name:'Bob'},{id:'c',name:'Cara'}],order:['a','b','c'],active:0,round:1,target:'b',attack:17,defense:12,rolls:[4,4],defenderRolls:[2,6]};
+assert.deepEqual(opponentRolls(s,'a').map(r=>[r.name,r.die,r.values]),[['Bob','D20',[12]],['Bob','D6',[2,6]]]);
+assert.deepEqual(opponentRolls(s,'b').map(r=>[r.name,r.die,r.values]),[['Alice','D20',[17]],['Alice','D6',[4,4]]]);
+assert.equal(opponentRolls(s,'c').length,4);
+const before=opponentRolls({...s,defenderRolls:[2]},'a');const after=opponentRolls({...s,defenderRolls:[2,2]},'a');assert.notEqual(before[1].key,after[1].key,'same face on second D6 remains a distinct result');
+assert.notEqual(after[0].key,opponentRolls({...s,round:2},'a')[0].key,'same value next round is new');
+assert.deepEqual(opponentRolls({...s,attack:undefined,defense:undefined,rolls:[],defenderRolls:[]},'a'),[]);
+console.log('PASS: shared opponent D20/D6, attacker/defender/spectator, repeated faces, round reset, empty results');
