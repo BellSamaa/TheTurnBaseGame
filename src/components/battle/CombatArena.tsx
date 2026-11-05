@@ -25,7 +25,7 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   const lang=useGameStore(st=>st.settings.language),en=lang==='en';
   const [banner,setBanner]=useState<LmsState['lastEvent']>();
   const [event,setEvent]=useState<LmsState['lastEvent']>(),[rolling,setRolling]=useState(false);
-  const seen=useRef(s.lastEvent?.id),lastRoll=useRef('');
+  const seen=useRef<string|undefined>(undefined),lastRoll=useRef('');
   const nextShownPhase=s.phase==='target'?'attack':s.phase==='clash'?'defense':s.phase==='end'?'skills':s.phase;
   const [shownPhase,setShownPhase]=useState(nextShownPhase),[phaseWaiting,setPhaseWaiting]=useState(false);
   useEffect(()=>{if(nextShownPhase===shownPhase)return;setPhaseWaiting(true);const t=setTimeout(()=>{setShownPhase(nextShownPhase);setPhaseWaiting(false);},2200);return()=>clearTimeout(t);},[nextShownPhase,shownPhase]);
@@ -55,15 +55,20 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
     const cues=incoming.cues?.length?incoming.cues:[{effect:incoming.effect,target:incoming.target}];
     const timers=cues.map((cue,i)=>setTimeout(()=>setEvent({...incoming,...cue,id:incoming.id+':'+i}),i*520));
     if(!incoming.slot)playBattleEffect(incoming.effect,false);
-    timers.push(setTimeout(()=>setEvent(undefined),Math.max(1800,cues.length*520+180)));return()=>timers.forEach(clearTimeout);
+    return()=>timers.forEach(clearTimeout);
   },[s.lastEvent?.id]);
+  useEffect(()=>{if(!event)return;const timer=setTimeout(()=>setEvent(undefined),650);return()=>clearTimeout(timer);},[event?.id]);
+  const [notice,setNotice]=useState<string>();
+  const logMessage=en?s.log[0]:(s.logVi||s.log)[0];
+  useEffect(()=>{if(logMessage)setNotice(logMessage);},[logMessage]);
+  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(undefined),3000);return()=>clearTimeout(timer);},[notice]);
   const announcementKey=s.lastEvent?.announcementId||s.lastEvent?.id;
-  const seenAnnouncement=useRef(announcementKey);
+  const seenAnnouncement=useRef<string|undefined>(undefined);
   useEffect(()=>{
     if(!s.lastEvent?.nameEn||seenAnnouncement.current===announcementKey)return;
     seenAnnouncement.current=announcementKey;setBanner(s.lastEvent);playBattleEffect(s.lastEvent.effect,true);
-    const timer=setTimeout(()=>setBanner(undefined),2400);return()=>clearTimeout(timer);
   },[announcementKey]);
+  useEffect(()=>{if(!banner)return;const timer=setTimeout(()=>setBanner(undefined),2400);return()=>clearTimeout(timer);},[banner?.id]);
   useEffect(()=>{
     const changed=lastRoll.current&&lastRoll.current!==rollKey;
     const added=personalRolls.length>oldRoll.current.count, rolledD20=personalD20!==undefined&&personalD20!==oldRoll.current.d20;
@@ -102,7 +107,7 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
 
       </section>;})}
     </div>
-    <div className="combat-result-strip" role="status" aria-live="polite">{rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong><em>{en?'Rolled!':'Đã tung!'}</em></div>)}</div>:<div key={s.log[0]} className="combat-roll-notice" title={s.log[0]}>{en?s.log[0]:(s.logVi||s.log)[0]}</div>}</div>
+    <div className="combat-result-strip" role="status" aria-live="polite">{rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong><em>{en?'Rolled!':'Đã tung!'}</em></div>)}</div>:<div className="combat-roll-notice" hidden={!notice} title={notice}>{notice}</div>}</div>
     {banner?.nameEn&&<div key={banner.id} className="combat-skill-flash"><img src={'/assets/vfx/frames/'+banner.effect+'/1.png'} alt=""/><div><small>{s.players.find(p=>p.id===banner.caster)?.name} · {en?'SKILL':'KỸ NĂNG'} {banner.slot}</small><strong>{en?banner.nameEn:banner.nameVi}</strong></div><span className="skill-sweep-spark" aria-hidden="true">✦</span></div>}
     <div className="combat-console"><div className="combat-dice-dock">
       <div className="personal-d20"><DiceRoller3D diceType="d20" isRolling={rolling&&rollingDie==='d20'} targetValue={personalD20??null} label="D20"/></div>
