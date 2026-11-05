@@ -284,7 +284,7 @@ export default function MenuRulesGrimoire({ isEn }: MenuRulesGrimoireProps) {
                   <div className="space-y-2 my-1 text-[8px] font-pixel text-slate-300">
                     <div className="bg-[#24170e] border border-purple-500/50 p-2 flex items-center justify-between">
                       <span className="text-purple-300">{isEn ? 'Mage Dual Arcana:' : 'Pháp Sư Bí Thuật:'}</span>
-                      <span className="text-yellow-300">{isEn ? '50% chance for +1 D6 each turn' : '50% cơ hội thêm 1 lần D6 mỗi lượt'}</span>
+                      <span className="text-yellow-300">{isEn ? '55% chance for +1 D6 each turn' : '55% cơ hội thêm 1 lần D6 mỗi lượt'}</span>
                     </div>
                     <div className="bg-[#24170e] border border-emerald-500/50 p-2 flex items-center justify-between">
                       <span className="text-emerald-300">{isEn ? 'Boxer Advantage:' : 'Võ Sĩ Quyền Cước:'}</span>

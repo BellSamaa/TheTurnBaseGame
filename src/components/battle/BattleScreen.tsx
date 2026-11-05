@@ -1,5 +1,5 @@
 'use client';
-import {d6Allowance} from '@/lib/classMechanics';
+import {d6Allowance,recordAttackRoll} from '@/lib/classMechanics';
 import {canUsePvpSkill} from '@/lib/skillPriority';
 import {tx} from '@/lib/uiLocale';
 import CombatArena from './CombatArena';
@@ -606,29 +606,23 @@ export default function BattleScreen() {
 
     const attackingPlayer = isP1Attacking ? player1 : player2;
     const emptyRevolver = attackingPlayer.weapon.id === 'revolver' && (attackingPlayer.bullets ?? 6) <= 0;
-    let finalD20 = emptyRevolver ? 0 : rollD20();
-    let boxerData: { r1: number; r2: number; chosen: number } | null = null;
-    if (!emptyRevolver && attackerClass.extraD20Rolls > 0) {
-      const first = finalD20;
-      const extra = rollD20();
-      finalD20 = Math.max(first, extra);
-      boxerData = { r1: first, r2: extra, chosen: finalD20 };
-      setBoxerRolls(boxerData);
-    }
+    const attackRoll=recordAttackRoll(attackingPlayer,currentTurn,emptyRevolver?0:rollD20());
+    const finalD20=attackRoll.value;
+    const nextAttackStep=attackRoll.done?'d20_def':'d20_atk';
 
     addTimer(
       setTimeout(() => {
         setIsRollingD20(false);
         setAtkRoll(finalD20);
-        setTurnStep('d20_def');
+        setTurnStep(nextAttackStep);
 
         const atkName = isP1Attacking ? player1.name : player2.name;
         const newLogEntry: BattleLogEntry = {
           turn: currentTurn,
           type: 'attack',
           message: isEn
-            ? `${atkName} rolled D20 Attack: ${finalD20}`
-            : `${atkName} tung D20 Tấn Công: ${finalD20}`,
+            ? `${atkName} rolled D20 Attack: ${attackRoll.rolls.join(" / ")} → ${finalD20}`
+            : `${atkName} tung D20 Tấn Công: ${attackRoll.rolls.join(" / ")} → ${finalD20}`,
           messageVi: `${atkName} tung D20 Tấn Công: ${finalD20}`,
           timestamp: Date.now(),
         };
@@ -639,9 +633,9 @@ export default function BattleScreen() {
             ...prev,
             p1D20: isP1Attacking ? finalD20 : prev.p1D20,
             p2D20: !isP1Attacking ? finalD20 : prev.p2D20,
-            player1: isP1Attacking ? spendAttackBullet(prev.player1) : prev.player1,
-            player2: !isP1Attacking ? spendAttackBullet(prev.player2) : prev.player2,
-            turnStep: 'd20_def',
+            player1: isP1Attacking ? (attackRoll.done?spendAttackBullet(attackRoll.player):attackRoll.player) : prev.player1,
+            player2: !isP1Attacking ? (attackRoll.done?spendAttackBullet(attackRoll.player):attackRoll.player) : prev.player2,
+            turnStep: nextAttackStep,
             battleLog: [newLogEntry, ...prev.battleLog],
           };
           syncOnlineBattle(updated);
@@ -784,10 +778,10 @@ export default function BattleScreen() {
         else if (combatResult.isImmune) vfxSequence.push(reaction('infinity'));
         else if (combatResult.isDodged) vfxSequence.push(reaction('dodge_attack'));
         else if (!combatResult.isHit) vfxSequence.push(reaction('guard'));
-        const rockFollows = attackerState.weapon.id === 'spirit_stone' && (attackerState.petRockHp ?? 0) > 0 && defenderState.hp > 0;
+        const rockFollows = combatResult.isHit && attackerState.weapon.id === 'spirit_stone' && (attackerState.petRockHp ?? 0) > 0 && defenderState.hp > 0;
         const petHpBefore = defenderState.petRockHp ?? 0;
         const immuneBefore = defenderState.immuneDamageNext;
-        const rockDamage = rockFollows ? applyOpponentDamage(defenderState, attackerState.petRockEnraged?5:2, currentTurn) : 0;
+        const rockDamage = rockFollows ? applyOpponentDamage(defenderState, attackerState.petRockEnraged&&currentTurn<=(attackerState.petRockEnrageUntilRound??0)?5:2, currentTurn) : 0;
         if (rockFollows) {
           vfxSequence.push(reaction('rock_roll'));
           if ((defenderState.petRockHp ?? 0) < petHpBefore) vfxSequence.push(reaction('rock_block'));
@@ -830,7 +824,8 @@ export default function BattleScreen() {
     if (chargeRollLockRef.current || isRollingD6 || phase === 'game_over' || syncPendingRef.current) return;
     const isP1 = attacking ? p1IsAttacker : !p1IsAttacker;
     const roll = rollD6();
-    if (!applyChargeRoll(battleState, isP1, roll)) return;
+    const chargePreview=applyChargeRoll(battleState, isP1, roll);
+    if (!chargePreview) return;
     chargeRollLockRef.current = true;
     setIsRollingD6(true);
     playDiceRollSound();
@@ -839,7 +834,9 @@ export default function BattleScreen() {
       setIsRollingD6(false);
       setBattleState(prev => {
         if (!prev || prev.currentTurn !== currentTurn) return prev;
-        const updated = applyChargeRoll(prev, isP1, roll);
+        const decided=isP1?chargePreview.player1:chargePreview.player2;
+        const stable={...prev,[isP1?"player1":"player2"]:{...(isP1?prev.player1:prev.player2),mageBonusRound:decided.mageBonusRound,mageBonusD6:decided.mageBonusD6}};
+        const updated = applyChargeRoll(stable, isP1, roll);
         if (!updated) return prev;
         const player = isP1 ? updated.player1 : updated.player2;
         updated.battleLog = [{ turn: prev.currentTurn, type: 'system', timestamp: Date.now(),
@@ -1005,6 +1002,7 @@ export default function BattleScreen() {
     setBattleState((prev) => {
       if (!prev) return null;
       const burnedP1 = { ...prev.player1 }, burnedP2 = { ...prev.player2 };
+      for(const p of [burnedP1,burnedP2])if(currentTurn+1>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;
       applyOpponentDamage(burnedP1, p1BurnDmg, currentTurn, false);
       applyOpponentDamage(burnedP2, p2BurnDmg, currentTurn, false);
       const burnVfx: VfxEvent[] = [];

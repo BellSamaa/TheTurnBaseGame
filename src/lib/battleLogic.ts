@@ -125,7 +125,7 @@ export function calculateD20Combat(
   if (attackerClass.id === 'juggernaut') modNotes += ' [Khổng Lồ -25%]';
   if (defenderClass.id === 'tanker') modNotes += ' [Đỡ Đòn -30%]';
   if (absorbedByRock > 0 && defenderState) {
-    modNotes += ` [🪨 Rock Đỡ ${absorbedByRock} DMG (Còn ${defenderState.petRockHp}/50 HP)]`;
+    modNotes += ` [🪨 Rock Đỡ ${absorbedByRock} DMG (Còn ${defenderState.petRockHp}/25 HP)]`;
   }
 
   return {
@@ -292,10 +292,10 @@ export function executeSkill1D6(
 
     case 'spirit_stone':
       // The pet rock: triệu hồi rock (50 máu) chặn 5 sát thương cho chủ nhân, dùng D6 gây sát thương
-      if ((user.petRockHp ?? 0) <= 0) { user.petRockHp = 50; user.petRockHits = 0; user.petRockEnraged = false; }
+      if ((user.petRockHp ?? 0) <= 0) { user.petRockHp = 25; user.petRockHits = 0; user.petRockEnraged = false; }
       damage = 0;
-      logTextVi = `Bạn Đá Cưng Rock (${user.petRockHp}/50 Máu, đỡ tối đa 5 sát thương mỗi đòn) và sẽ tấn công riêng 2 sát thương sau mỗi đòn của chủ nhân!`;
-      logTextEn = `Pet Rock (${user.petRockHp}/50 HP, absorbs up to 5 dmg/hit) and follows each owner attack with a separate 2 damage hit!`;
+      logTextVi = `Bạn Đá Cưng Rock (${user.petRockHp}/25 Máu, đỡ tối đa 5 sát thương mỗi đòn) và sẽ tấn công riêng 2 sát thương sau mỗi đòn của chủ nhân!`;
+      logTextEn = `Pet Rock (${user.petRockHp}/25 HP, absorbs up to 5 dmg/hit) and follows each owner attack with a separate 2 damage hit!`;
       break;
 
     default:
@@ -461,7 +461,7 @@ export function executeSkill2D12(
       break;
 
     case 'spirit_stone':
-      if(pts>=cost&&(user.petRockHp??0)>0&&!user.petRockEnraged){user.petRockEnraged=true;user.petRockHp=(user.petRockHp??0)+25;user.d12Charge=pts-cost;burstTriggered=true;logTextEn='Pet Rock enraged: +25 HP, absorbs 7 damage, follows attacks for 5 damage.';logTextVi='Rock cuồng bạo: +25 HP, chắn 7 sát thương, đánh phụ 5 sát thương.';}break;
+      if(pts>=cost&&(user.petRockHp??0)>0&&!user.petRockEnraged){user.petRockEnraged=true;user.hp=Math.min(user.maxHp,user.hp+10);user.d12Charge=pts-cost;burstTriggered=true;logTextEn='Pet Rock enraged: heals owner 10 HP for 5 rounds, absorbs 7 damage, follows attacks for 5 damage.';logTextVi='Rock cuồng bạo: hồi chủ 10 HP trong 5 round, chắn 7 sát thương, đánh phụ 5 sát thương.';}break;
 
     default:
       if (pts >= cost) {

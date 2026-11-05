@@ -274,7 +274,7 @@ export default function SettingsPanel() {
                   <p>• <b>Assassin:</b> +50% DMG, -25% Max HP (75 HP; LMS 113).</p>
                   <p>• <b>Tanker:</b> Reduces incoming damage by 30%.</p>
                   <p>• <b>Juggernaut:</b> +50% Max HP (150 HP; LMS 225), -25% DMG.</p>
-                  <p>• <b>Mage:</b> {isEn?'50% chance for one additional D6 each turn.':'50% cơ hội tung thêm một D6 mỗi lượt.'}</p>
+                  <p>• <b>Mage:</b> {isEn?'55% chance for one additional D6 each turn.':'55% cơ hội tung thêm một D6 mỗi lượt.'}</p>
                   <p>• <b>Boxer:</b> Rolls attack D20 twice and takes the higher roll.</p>
                   <p>• <b>Warrior:</b> {isEn?'100 base HP (LMS 150). Below 30% HP: +3 damage, +1 more per further 5% HP lost.':'100 HP gốc (LMS 150). Dưới 30% HP: +3 sát thương, thêm +1 mỗi 5% HP mất tiếp.'}</p>
                 </div>

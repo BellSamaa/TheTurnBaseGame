@@ -32,7 +32,9 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   const [shownPhase,setShownPhase]=useState(nextShownPhase),[phaseWaiting,setPhaseWaiting]=useState(false);
   useEffect(()=>{if(nextShownPhase===shownPhase)return;setPhaseWaiting(true);const t=setTimeout(()=>{setShownPhase(nextShownPhase);setPhaseWaiting(false);},2200);return()=>clearTimeout(t);},[nextShownPhase,shownPhase]);
   const personalRolls=s.turnFlow===3?s.roundCharges?.[viewer||'']||[]:viewer===s.order[s.active]?s.rolls:viewer===s.target?s.defenderRolls||[]:[];
-  const personalD20=s.turnFlow===3?s.initiative?.find(r=>r.id===viewer)?.roll:s.phase==='initiative'?s.initiative?.find(r=>r.id===viewer)?.roll:viewer===s.order[s.active]?s.attack:viewer===s.target?s.defense:undefined;
+  const partialBoxer=s.players.find(p=>p.id===viewer);
+  const boxerPartial=partialBoxer?.boxerAttackRound===s.round?partialBoxer.boxerAttackRolls?.at(-1):undefined;
+  const personalD20=s.turnFlow===3?(s.initiative?.find(r=>r.id===viewer)?.roll??boxerPartial):s.phase==='initiative'?s.initiative?.find(r=>r.id===viewer)?.roll:viewer===s.order[s.active]?s.attack:viewer===s.target?s.defense:undefined;
   const rollKey=JSON.stringify([s.round,s.active,personalD20,personalRolls]);
   const [rollingDie,setRollingDie]=useState<'d20'|'d6'>('d20');
   const oldRoll=useRef({d20:personalD20,count:personalRolls.length});

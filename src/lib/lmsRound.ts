@@ -15,7 +15,7 @@ function nextRound(s:LmsState,now:number){
  if(!next.winner){next.phase='initiative';next.rollDeadline=now+20000;}return next;
 }
 export function roundLmsAction(input:LmsState,actor:string,action:string,args:Parameters<typeof lmsAction>[3]={},now=Date.now()):LmsState{
- let s=structuredClone(input);const user=s.players.find(p=>p.id===actor);if(!user||user.hp<=0||s.winner)throw Error('Không thể hành động');
+ let s=structuredClone(input);s.players.forEach(p=>{if(s.round>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;});const user=s.players.find(p=>p.id===actor);if(!user||user.hp<=0||s.winner)throw Error('Không thể hành động');
  if(action==='ready_opening'){
   if(s.round!==1||s.phase!=='initiative')return s;
   if(!s.openingReady?.includes(actor))(s.openingReady??=[]).push(actor);

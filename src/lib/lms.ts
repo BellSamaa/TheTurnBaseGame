@@ -1,4 +1,4 @@
-import {d6Allowance,attackDice} from './classMechanics';
+import {d6Allowance,attackDice,recordAttackRoll} from './classMechanics';
 import {attackerHasActed} from './skillPriority';
 import {roundLmsAction,roundLmsTick} from './lmsRound';
 import {skillPresentation,skillEffectPlan,normalAttackEffect} from './skillPresentation';
@@ -36,7 +36,7 @@ export function createLms(participants: RoomParticipant[], duel = false): LmsSta
 }
 export function lmsAction(input:LmsState, actor:string, action:string, args:{target?:string;slot?:1|2;form?:number;lockSlot?:1|2;delta?:number;choice?:string;buffSlot?:'initial'|'bonus'}={}, now=Date.now()):LmsState {
   if(input.turnFlow===3)return roundLmsAction(input,actor,action,args,now);
-  const s=structuredClone(input), user=s.players.find(p=>p.id===actor);
+  const s=structuredClone(input);s.players.forEach(p=>{if(s.round>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;});const user=s.players.find(p=>p.id===actor);
   if(!user || (user.hp<=0 && !(action==='end'&&actor===s.order[s.active])) || s.phase==='finished') throw Error('Không thể hành động');
   const attacker=s.players.find(p=>p.id===s.order[s.active])!;
   const target=s.players.find(p=>p.id===s.target);
@@ -53,7 +53,9 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
   if(s.phase==='initiative'&&action!=='surrender'){
     if(action!=='initiative')throw Error('Wait for every player to roll opening D20');
     if(s.initiative?.some(r=>r.id===actor))throw Error('Opening D20 already rolled');
-    const roll=attackDice(user,rollD20);(s.initiative??=[]).push({id:actor,roll});
+    const result=recordAttackRoll(user,s.round,rollD20());Object.assign(user,result.player);const roll=result.value;
+    if(!result.done){add(user.name+' · Boxer D20 1/2: '+roll);s.revision++;return s;}
+    (s.initiative??=[]).push({id:actor,roll});
     add(user.name+' · D20 khởi đầu: '+roll,user.name+' · Opening D20: '+roll);
     completeInitiative();armLmsRollTimer(s,now,input);s.revision++;return s;
   }
@@ -79,7 +81,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     if(flags['phoenix:'+target.id]&&damage>=target.hp){damage=Math.max(0,target.hp-1);target.d12Charge=(target.d12Charge??0)+20;delete flags['phoenix:'+target.id];}
     const lost=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);recordOpponentDamage(target,lost,s.round);
     for(const p of s.players)if(flags['watch:'+p.id]){p.d12Charge=(p.d12Charge??0)+Math.floor(lost/5);delete flags['watch:'+p.id];}
-    if((attacker.petRockHp??0)>0&&target.hp>0)applyOpponentDamage(target,attacker.petRockEnraged?5:2,s.round);
+    if(result.isHit&&(attacker.petRockHp??0)>0&&target.hp>0)applyOpponentDamage(target,attacker.petRockEnraged?5:2,s.round);
     if((attacker.panicTurns??0)>0)attacker.panicTurns!--;
     s.lastEvent={id:crypto.randomUUID(),effect:result.isImmune?'infinity':result.isDodged?'dodge_attack':result.absorbedByRock?'rock_block':result.isHit?normalAttackEffect(attacker.weapon.id):'guard',caster:attacker.id,target:target.id};
     add(result.logTextVi,result.logTextEn);
@@ -118,7 +120,8 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       Object.assign(user,cast.caster);Object.assign(victim,cast.opponent);add(cast.logTextVi,cast.logTextEn);if(victim.hp<=0&&s.target===victim.id){if(s.turnFlow===2)s.phase='end';else{s.target=undefined;s.phase='target';}}finish();
     } else if(action==='attack') {
       if(s.phase!=='attack')throw Error('Chọn mục tiêu trước');
-      s.attack=rollD20();if(user.classType==='boxer')s.attack=Math.max(s.attack,rollD20());
+      const result=recordAttackRoll(user,s.round,rollD20());Object.assign(user,result.player);s.attack=result.value;
+      if(!result.done){add(user.name+' · Boxer D20 1/2: '+s.attack);armLmsRollTimer(s,now);s.revision++;return s;}
       if(user.weapon.id==='revolver'){if((user.bullets??0)<=0)s.attack=0;else user.bullets!--;}
       if(s.extras!.flags['blood:'+actor]){s.attack=20;delete s.extras!.flags['blood:'+actor];}
       if(s.extras!.flags['aoe:'+actor]){const victims=s.players.filter(p=>p.id!==actor&&p.hp>0).map(p=>p.id);s.target=victims.shift();s.remainingTargets=victims;delete s.extras!.flags['aoe:'+actor];}
@@ -172,7 +175,7 @@ export function tickLms(input:LmsState,now=Date.now()):LmsState{
  if(now<input.rollDeadline)return input;
  let s=input;
  if(s.phase==='initiative'){
-  for(const p of input.players.filter(p=>p.hp>0&&!input.initiative?.some(r=>r.id===p.id)))s=lmsAction(s,p.id,'initiative',{},now);
+  for(const p of input.players.filter(p=>p.hp>0&&!input.initiative?.some(r=>r.id===p.id))){s=lmsAction(s,p.id,'initiative',{},now);if(s.phase==='initiative'&&!s.initiative?.some(r=>r.id===p.id))s=lmsAction(s,p.id,'initiative',{},now);}
   return s;
  }
  const actor=['defense','charge_defense'].includes(s.phase)?s.target!:s.order[s.active];

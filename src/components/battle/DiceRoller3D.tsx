@@ -48,6 +48,7 @@ export default function DiceRoller3D({
     const width = container.clientWidth || 200;
     const height = container.clientHeight || 200;
 
+    let disposed=false;
     // Scene
     const scene = new THREE.Scene();
     sceneRef.current = scene;
@@ -92,6 +93,7 @@ export default function DiceRoller3D({
     loader.load(
       modelPath,
       (gltf) => {
+        if(disposed)return;
         const root = gltf.scene;
 
         // Auto-fit & scale
@@ -126,6 +128,7 @@ export default function DiceRoller3D({
       },
       undefined,
       (err) => {
+        if(disposed)return;
         // Fallback procedural dice geometry if GLB loading fails
         const geom =
           diceType === 'd20'
@@ -203,6 +206,9 @@ export default function DiceRoller3D({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      disposed=true;
+      scene.traverse(object=>{const mesh=object as THREE.Mesh;if(mesh.geometry)mesh.geometry.dispose();const materials=mesh.material?(Array.isArray(mesh.material)?mesh.material:[mesh.material]):[];materials.forEach(material=>{Object.values(material).forEach(value=>{if(value instanceof THREE.Texture)value.dispose();});material.dispose();});});
+      renderer.dispose();renderer.forceContextLoss();
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
       if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
