@@ -9,31 +9,32 @@ export function createPve(hero:RoomParticipant,stage=1):PveState{
  combat.extras!.suddenRound=999;Object.values(combat.extras!.buffs).forEach(b=>{b.used=true;b.id=-1;});
  return {rulesVersion:3,stage,combat,reward:pveReward(stage)};
 }
-export function advancePve(input:PveState,actor:string,move:string,args:Parameters<typeof lmsAction>[3]={}):PveState{
+export function advancePve(input:PveState,actor:string,move:string,args:Parameters<typeof lmsAction>[3]={},onFrame?:(state:PveState)=>void):PveState{
  const out=structuredClone(input);out.combat=lmsAction(out.combat,actor,move,move==='target'?{...args,target:'pve_bot'}:args);
+ onFrame?.(structuredClone(out));
  for(let step=0;step<30;step++){
   let s=out.combat;if(s.phase==='finished')break;
   const bot=s.players.find(p=>p.id==='pve_bot')!,active=s.order[s.active];
-  if(s.phase==='clash'){s.deadline=0;out.combat=lmsAction(s,s.players.find(p=>p.hp>0)!.id,'resolve');continue;}
-  if(s.phase==='defense'&&s.target==='pve_bot'){out.combat=lmsAction(s,'pve_bot','defend');continue;}
-  if(s.phase==='charge_defense'&&s.target==='pve_bot'){out.combat=lmsAction(s,'pve_bot','charge');continue;}
+  if(s.phase==='clash'){s.deadline=0;out.combat=lmsAction(s,s.players.find(p=>p.hp>0)!.id,'resolve');onFrame?.(structuredClone(out));continue;}
+  if(s.phase==='defense'&&s.target==='pve_bot'){out.combat=lmsAction(s,'pve_bot','defend');onFrame?.(structuredClone(out));continue;}
+  if(s.phase==='charge_defense'&&s.target==='pve_bot'){out.combat=lmsAction(s,'pve_bot','charge');onFrame?.(structuredClone(out));continue;}
   if(s.phase==='skills'){
    if(s.skillDone?.includes('pve_bot'))break;
    for(const slot of [1,2] as const){
     const forms=bot.weapon.skill1.triggerNumber;
     try{out.combat=lmsAction(out.combat,'pve_bot','skill',{target:actor,slot,form:slot===1&&Array.isArray(forms)?forms[0]:slot===2&&bot.weapon.id==='fire_headband'?20:slot===2&&bot.weapon.id==='infinity_ring'?1:undefined});}catch{}
-    if(out.combat.phase==='finished')break;
+    onFrame?.(structuredClone(out));if(out.combat.phase==='finished')break;
    }
-   if(out.combat.phase==='skills'){out.combat=lmsAction(out.combat,'pve_bot','end');continue;}
+   if(out.combat.phase==='skills'){out.combat=lmsAction(out.combat,'pve_bot','end');onFrame?.(structuredClone(out));continue;}
    if(out.combat.phase==='finished')break;
   }
   if(active!=='pve_bot')break;
-  if(s.phase==='charge'){out.combat=lmsAction(s,'pve_bot','charge');continue;}
+  if(s.phase==='charge'){out.combat=lmsAction(s,'pve_bot','charge');onFrame?.(structuredClone(out));continue;}
   if(s.phase==='target'){
-   out.combat=lmsAction(out.combat,'pve_bot','target',{target:actor});continue;
+   out.combat=lmsAction(out.combat,'pve_bot','target',{target:actor});onFrame?.(structuredClone(out));continue;
   }
-  if(s.phase==='attack'){out.combat=lmsAction(s,'pve_bot','attack');continue;}
-  if(s.phase==='end'){out.combat=lmsAction(s,'pve_bot','end');continue;}
+  if(s.phase==='attack'){out.combat=lmsAction(s,'pve_bot','attack');onFrame?.(structuredClone(out));continue;}
+  if(s.phase==='end'){out.combat=lmsAction(s,'pve_bot','end');onFrame?.(structuredClone(out));continue;}
   break;
  }
  return out;

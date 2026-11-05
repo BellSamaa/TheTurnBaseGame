@@ -1,9 +1,18 @@
-export type CharacterMotion = 'idle' | 'walk' | 'run' | 'still';
+export type CharacterMotion = 'idle' | 'walk' | 'run' | 'still' | 'sit';
 
 // Pose the already-composited 64x96 character so equipment colors stay aligned.
 export function drawCharacterPose(ctx: CanvasRenderingContext2D, sprite: HTMLCanvasElement, motion: CharacterMotion, elapsedMs: number) {
   ctx.clearRect(0, 0, 64, 96);
   ctx.imageSmoothingEnabled = false;
+  if (motion === 'sit') {
+    // Bend the legs at the chair edge while keeping the torso upright.
+    ctx.drawImage(sprite, 0, 0, 64, 62, 0, 12, 64, 62);
+    ctx.drawImage(sprite, 0, 62, 32, 20, -4, 70, 36, 10);
+    ctx.drawImage(sprite, 32, 62, 32, 20, 32, 70, 36, 10);
+    ctx.drawImage(sprite, 0, 82, 32, 14, -4, 80, 32, 14);
+    ctx.drawImage(sprite, 32, 82, 32, 14, 36, 80, 32, 14);
+    return;
+  }
   if (motion === 'still') { ctx.drawImage(sprite, 0, 0); return; }
   if (motion === 'idle') {
     const breath = Math.sin(elapsedMs / 2200 * Math.PI * 2) > 0 ? 1 : 0;

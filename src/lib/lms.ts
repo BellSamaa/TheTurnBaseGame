@@ -14,7 +14,7 @@ export interface LmsState {
   extras?: LmsExtras; remainingTargets?: string[];
   turnFlow?:2; defenderRolls?:number[]; skillDone?:string[];
   players: PlayerState[]; order: string[]; active: number; round: number;
-  phase: 'charge' | 'charge_defense' | 'skills' | 'target' | 'attack' | 'defense' | 'clash' | 'end' | 'finished';
+  phase: 'initiative' | 'charge' | 'charge_defense' | 'skills' | 'target' | 'attack' | 'defense' | 'clash' | 'end' | 'finished';
   target?: string; attack?: number; defense?: number; deadline?: number;
   rolls: number[]; log: string[]; logVi?:string[]; winner?: string; revision: number;
 }
@@ -23,8 +23,8 @@ export function createLms(participants: RoomParticipant[], duel = false): LmsSta
   const players = participants.map(p => ({ id:p.id,name:p.name,character:p.character,classType:p.classType,
     weapon:WEAPON_DEFINITIONS[p.weaponId],hp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),maxHp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),
     skillCharge:0,d12Charge:0,isAttacker:false,petRockHp:0,bullets:6 }));
-  const initiative = players.map(p=>({id:p.id,roll:rollD20()})).sort((a,b)=>b.roll-a.roll);
-  return {players,initiative,order:initiative.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'target',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
+  const initiative = duel?players.map(p=>({id:p.id,roll:rollD20()})).sort((a,b)=>b.roll-a.roll):[];
+  return {players,initiative,order:duel?initiative.map(p=>p.id):players.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'initiative',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
     extras:{buffs:Object.fromEntries(players.map(p=>[p.id,{id:Math.floor(Math.random()*20),used:false,revealed:false}])),flags:{},bombs:[],direction:1,suddenRound:8,eliminated:[]},
     log:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · Initiative D20: '+p.roll),
     logVi:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · D20 khởi đầu: '+p.roll)};
@@ -34,8 +34,23 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
   if(!user || (user.hp<=0 && !(action==='end'&&actor===s.order[s.active])) || s.phase==='finished') throw Error('Không thể hành động');
   const attacker=s.players.find(p=>p.id===s.order[s.active])!;
   const target=s.players.find(p=>p.id===s.target);
-  s.players.forEach(p=>{p.isAttacker=p.id===attacker.id;});
+  s.players.forEach(p=>{p.isAttacker=s.phase!=='initiative'&&p.id===attacker.id;});
   const add=(text:string,en?:string)=>{s.logVi??=[...s.log];s.log.unshift(en||translateText(text,'en'));s.logVi.unshift(text);};
+  const completeInitiative=()=>{
+    if(s.players.filter(p=>p.hp>0).every(p=>s.initiative?.some(r=>r.id===p.id))){
+      s.order=[...s.players].sort((a,b)=>(s.initiative?.find(r=>r.id===b.id)?.roll??-1)-(s.initiative?.find(r=>r.id===a.id)?.roll??-1)).map(p=>p.id);
+      s.active=0;s.phase='target';s.players.forEach(p=>{p.isAttacker=p.id===s.order[0];});
+      const first=s.players.find(p=>p.id===s.order[0])!;
+      add(first.name+' có D20 khởi đầu cao nhất, được chọn mục tiêu.',first.name+' has the highest opening D20 and chooses a target.');
+    }
+  };
+  if(s.phase==='initiative'&&action!=='surrender'){
+    if(action!=='initiative')throw Error('Wait for every player to roll opening D20');
+    if(s.initiative?.some(r=>r.id===actor))throw Error('Opening D20 already rolled');
+    const roll=rollD20();(s.initiative??=[]).push({id:actor,roll});
+    add(user.name+' · D20 khởi đầu: '+roll,user.name+' · Opening D20: '+roll);
+    completeInitiative();s.revision++;return s;
+  }
   const finish=()=>{
     const killer=action==='skill'?user:attacker;
     for(const p of s.players.filter(p=>p.hp<=0)) if(!s.extras!.eliminated.includes(p.id)) {
@@ -46,7 +61,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       }
     }
     const alive=s.players.filter(p=>p.hp>0);if(alive.length<=1){s.winner=alive[0]?.id??'draw';s.phase='finished';}};
-  if(action==='surrender'){user.hp=0;add(user.name+' đã đầu hàng.',user.name+' surrendered.');finish();if(!s.winner&&(actor===attacker.id||actor===target?.id))s.phase='end';}
+  if(action==='surrender'){user.hp=0;add(user.name+' đã đầu hàng.',user.name+' surrendered.');finish();if(!s.winner&&input.phase==='initiative')completeInitiative();else if(!s.winner&&(actor===attacker.id||actor===target?.id))s.phase='end';}
   else if(action==='buff'){activateBuff(s,actor,args);finish();}
   else if(action==='resolve') {
     if(s.phase!=='clash'||now<(s.deadline??Infinity)||!target) throw Error('Chờ hết 5 giây can thiệp');

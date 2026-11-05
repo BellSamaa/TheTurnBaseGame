@@ -4,7 +4,7 @@ import {tx} from '@/lib/uiLocale';
 import PlayerAvatar from '@/components/ui/PlayerAvatar';
 import {rankProgress} from '@/lib/progression';
 import {WalletBar,useProgress} from '@/components/progression/AccountPanel';
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/stores/gameStore';
@@ -30,6 +30,8 @@ export default function HomeScreen() {
     logoutUser,
   } = useGameStore();
 
+  const [entering,setEntering]=useState(false);
+  useEffect(()=>{if(!entering)return;const t=setTimeout(()=>setPage('play'),3000);return()=>clearTimeout(t);},[entering,setPage]);
   const accountProgress=useProgress();
   const lang = settings.language;
   const isEn = lang === 'en';
@@ -42,6 +44,7 @@ export default function HomeScreen() {
 
   return (
     <div className="relative min-h-screen w-full flex flex-col bg-[#07090e] text-slate-100 overflow-x-hidden select-none">
+      {entering&&<div className="lobby-loading" role="status"><img src="/assets/images/lobby/lounge.png" alt=""/><div><strong>{isEn?'LOADING TO LOBBY':'ĐANG VÀO SẢNH'}</strong><span>✦ ✧ ✦</span><i/></div></div>}
       {/* ============================================================ */}
       {/* 1. HERO SECTION (Above the fold) */}
       {/* ============================================================ */}
@@ -204,7 +207,7 @@ export default function HomeScreen() {
               >
                 <PixelSpriteButton
                   sprite="start"
-                  onClick={() => setPage('play')}
+                  onClick={() => setEntering(true)}
                   className="w-[280px] sm:w-[320px]"
                 />
               </motion.div>

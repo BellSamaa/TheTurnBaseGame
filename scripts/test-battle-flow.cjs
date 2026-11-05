@@ -3,7 +3,8 @@ const assert=require('node:assert/strict');
 const {createLms,lmsAction}=require('../src/lib/lms.ts');
 for(const count of [2,3,4]){
  let s=createLms(Array.from({length:count},(_,i)=>({id:'p'+i,name:'P'+i,character:{},classType:'mage',weaponId:'infinity_ring',isReady:true})),count===2);
- assert.equal(s.initiative.length,count);assert.deepEqual(s.initiative.map(r=>r.id),s.order);assert.ok(s.initiative.every((r,i)=>r.roll>=1&&r.roll<=20&&(!i||s.initiative[i-1].roll>=r.roll)));
+ if(count>2){assert.deepEqual(s.initiative,[]);for(const p of s.players)s=lmsAction(s,p.id,'initiative');}
+ assert.equal(s.initiative.length,count);assert.ok(s.initiative.every(r=>r.roll>=1&&r.roll<=20));const ordered=s.order.map(id=>s.initiative.find(r=>r.id===id).roll);assert.ok(ordered.every((n,i)=>!i||ordered[i-1]>=n));
  const a=s.order[0],d=s.players.find(p=>p.id!==a).id,outsider=s.players.find(p=>p.id!==a&&p.id!==d)?.id;
  if(s.phase==='target')s=lmsAction(s,a,'target',{target:d});
  assert.throws(()=>lmsAction(s,a,'charge'));

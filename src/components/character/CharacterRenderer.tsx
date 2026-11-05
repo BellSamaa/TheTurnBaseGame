@@ -165,7 +165,7 @@ export default function CharacterRenderer({
     const start = performance.now();
     const render = (now: number) => {
       if (now - previous >= 80 && spriteRef.current && !document.hidden) {
-        drawCharacterPose(ctx, spriteRef.current, reduced.matches || isHit ? 'still' : animation, now - start);
+        drawCharacterPose(ctx, spriteRef.current, animation === 'sit' ? 'sit' : reduced.matches || isHit ? 'still' : animation, now - start);
         previous = now;
       }
       frame = requestAnimationFrame(render);

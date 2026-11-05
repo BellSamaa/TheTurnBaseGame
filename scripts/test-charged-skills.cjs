@@ -220,7 +220,7 @@ for(const [atk,def,expected] of [[20,4,31],[10,9,16],[12,5,22],[5,5,0],[1,20,0]]
 const {createLms,lmsAction}=require('../src/lib/lms.ts');
 const roster=[0,1,2,3].map(i=>({id:'lms'+i,name:'Player '+i,character:{},classType:'warrior',weaponId:'greatsword',isReady:true}));
 for(const count of [3,4]) {
- let s=createLms(roster.slice(0,count));const actor=s.order[0];const target=s.players.find(p=>p.id!==actor).id;
+ let s=createLms(roster.slice(0,count));assert.equal(s.phase,'initiative');for(const p of s.players)s=lmsAction(s,p.id,'initiative');const actor=s.order[0];const target=s.players.find(p=>p.id!==actor).id;
  assert.equal(s.players.length,count);assert.equal(s.players[0].hp,200);
  assert.throws(()=>lmsAction(s,target,'charge'));
  assert.equal(s.phase,'target');assert.throws(()=>lmsAction(s,actor,'charge'));

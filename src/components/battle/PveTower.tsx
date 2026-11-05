@@ -7,17 +7,19 @@ import type {PveState} from '@/lib/pve';
 import {loadProgress,WalletBar} from '@/components/progression/AccountPanel';
 import CombatArena from './CombatArena';
 import CombatSkills from './CombatSkills';
+import PixelFrame from '@/components/ui/PixelFrame';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 type Run={id:string;revision:number;state:PveState};
 export default function PveTower(){
  const {currentUser,setPage,setAuthModal,settings}=useGameStore(),en=settings.language==='en';
  const [run,setRun]=useState<Run|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),lock=useRef(false);
+ const alive=useRef(true);useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const [notice,setNotice]=useState('');
  useEffect(()=>{if(!currentUser)return;let alive=true;setBusy(true);lock.current=true;
  (async()=>{try{await flushProfile();const r=await fetch('/api/pve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({move:'resume'})});const b=await r.json();if(!r.ok)throw Error(tx(b.error));if(alive){setRun(b.run);if(b.loadoutSynced)setNotice(en?'Equipment synced. This floor restarted with your equipped weapon.':'Đã đồng bộ trang bị. Tầng hiện tại bắt đầu lại với vũ khí bạn đang dùng.');}}catch(e){if(alive)setError((e as Error).message);}finally{if(alive){setBusy(false);lock.current=false;}}})();return()=>{alive=false;};},[currentUser?.id]);
  async function act(move:string,args:Record<string,unknown>={}){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
-  try{await flushProfile();const r=await fetch('/api/pve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({move,args,id:run?.id,revision:run?.revision})});const b=await r.json();if(b.run)setRun(b.run);if(!r.ok)throw Error(tx(b.error));if(b.run.state.combat.winner===currentUser?.id)loadProgress().catch(()=>{});}
+  try{await flushProfile();const r=await fetch('/api/pve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({move,args,id:run?.id,revision:run?.revision})});const b=await r.json();if(!r.ok){if(b.run)setRun(b.run);throw Error(tx(b.error));}if(b.abandoned){setRun(null);setPage('play');return;}for(const frame of b.frames||[]){if(!alive.current)return;setRun({...b.run,state:frame});await new Promise(resolve=>setTimeout(resolve,2600));}if(!alive.current)return;if(b.run)setRun(b.run);if(b.run.state.combat.winner===currentUser?.id)loadProgress().catch(()=>{});}
   catch(e){setError(e instanceof Error?e.message:tx('Mất kết nối'));}finally{lock.current=false;setBusy(false);}
  }
  const s=run?.state.combat,me=s?.players.find(p=>p.id===currentUser?.id),mine=s?.order[s.active]===me?.id,won=s?.winner===me?.id;
@@ -33,5 +35,6 @@ export default function PveTower(){
  <button aria-label={en?'End turn':'Kết thúc lượt'} className="combat-roll" disabled={busy||!((mine&&s.phase==='end')||(s.phase==='skills'&&!s.skillDone?.includes(me.id)))} onClick={()=>act('end')}><img src="/assets/sprites/ui/frames/btn_end_turn.png" alt=""/></button>
  <CombatSkills player={me} round={s.round} enabled={s.phase==='skills'&&!s.skillDone?.includes(me.id)} busy={busy} onCast={args=>act('skill',{...args,target:'pve_bot'})}/>
  </div></>}
- </CombatArena>}{error&&!s&&<p role="alert">{error}</p>}</div>;
+ </CombatArena>}
+ {won&&run&&<div className="pve-victory-overlay"><PixelFrame variant="gold" title={en?'FLOOR CLEARED!':'VƯỢT TẦNG!'}><div className="pve-victory-content"><h2>{en?'Victory':'Chiến thắng'} · {run.state.stage}</h2><p>◆ {run.state.reward.gems} Gem · ♦ {run.state.reward.rubies} Ruby · +{run.state.reward.exp} EXP</p><small>{en?'Rewards saved. Rest now or challenge the next floor.':'Đã lưu phần thưởng. Nghỉ tại đây hoặc thử sức tầng kế tiếp.'}</small><div><button disabled={busy} onClick={()=>setPage('play')}>{en?'Claim & rest':'Nhận thưởng & nghỉ'}</button><button disabled={busy} onClick={()=>act('next')}>{en?'Continue':'Tiếp tục'}</button></div></div></PixelFrame></div>}{error&&!s&&<p role="alert">{error}</p>}</div>;
 }
