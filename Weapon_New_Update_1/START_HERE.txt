@@ -1,0 +1,9 @@
+WEAPON NEW UPDATE 1
+
+Giải nén toàn bộ thư mục, rồi mở START_HERE.html để xem ảnh, luật và chạy thử hiệu ứng.
+Luật chi tiết: WEAPON_NEW_UPDATE_1_CHI_TIET.md
+Dữ liệu: weapons.json
+Điểm chưa rõ: UNRESOLVED_RULES.json
+Tích hợp: docs/INTEGRATION_GUIDE_VI.md
+
+Các thông số chưa được người dùng cung cấp được đánh dấu chưa chốt/null. Không tự coi null là 0 hoặc 100%.

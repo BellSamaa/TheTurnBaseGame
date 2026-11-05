@@ -1,0 +1,14 @@
+PASS: 18 weapon skills, shared balance, exact costs, once per round, insufficient PTS, ammo, shield, form selection, manual Rock summon
+PASS: Leaf D6 condition, 5 HP cost, 3 x 5 burn; Rock absorbs 5 of 12; skill reusable next round
+PASS: later-round Leaf unlock, explicit 20/30 PTS meteors, exact costs and Panic
+PASS: Infinity reflection, Akai 12, one-hit immunity, Purple 50, Purple Sky 30, selected next-round lock and expiry
+PASS: Mage two separate D6 clicks, both sides, shared-state round trip, exact PTS, roll limit, next-round reset
+PASS: Rock absorbs skill and companion hits, loses real HP, handles death/immune, and cannot refill while alive
+PASS: dead Rock requires paid Skill 1 resummon and resets summon status
+PASS: each skill/form uses a real effect asset, correct caster/opponent target, and chosen form name
+PASS: all 128 effect frames match original kit; multi-stage Purple, Rock, Bow and Meteor effects
+PASS: Immune persists through end-turn burn until direct opponent damage
+PASS: 15+actual D20 difference; real 3/4 player LMS phases and actor gates
+PASS: WASD moves the lobby character
+PASS: 360/390/768/1024/1440, equal fighter sizes, no overflow
+{ errors: [], overflow: false }

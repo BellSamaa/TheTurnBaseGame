@@ -1,0 +1,2216 @@
+{
+  "version": 1,
+  "timingPolicy": "visual proposals, not combat rules",
+  "abilities": [
+    {
+      "id": "shield.s1",
+      "weaponId": "shield",
+      "label": "Shield · Gia cố phòng thủ",
+      "activation": {
+        "mode": "automatic",
+        "die": "D6",
+        "face": 4
+      },
+      "rule": "Tự động sử dụng khi lần tung D6 của người chơi ra mặt 4. Cộng thêm 2 điểm phòng thủ cho 2 lượt phòng thủ tiếp theo.",
+      "costPts": 2,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "shield_proc",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "shield_guard",
+          "anchor": "caster.chest",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Chưa quy định giới hạn cộng dồn/làm mới của +2 Thủ và 15 giáp.",
+        "Chưa quy định thời hạn của giáp hoặc cách xử lý tự kích hoạt khi không đủ PTS."
+      ]
+    },
+    {
+      "id": "shield.s2",
+      "weaponId": "shield",
+      "label": "Shield · Tạo giáp",
+      "activation": "D6 PTS 20",
+      "rule": "Tạo 15 giáp cho người chơi.",
+      "costPts": 20,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "shield_armor",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Chưa quy định giới hạn cộng dồn/làm mới của +2 Thủ và 15 giáp.",
+        "Chưa quy định thời hạn của giáp hoặc cách xử lý tự kích hoạt khi không đủ PTS."
+      ]
+    },
+    {
+      "id": "king_slasher.s1.bat",
+      "weaponId": "king_slasher",
+      "label": "King Slasher (Sukuna) · Bát",
+      "activation": "D6 PTS 10",
+      "rule": "Enchant đòn đánh thường trong 3 round tấn công tiếp theo của người dùng; không tiêu hao thời hạn khi phòng thủ. Nếu tấn công thành công: cộng thêm 4 sát thương vào đòn đánh. Nếu tấn công thất bại do số thủ đối phương lớn hơn: vẫn tất trúng 5 sát thương. VFX: hai lát cắt trắng hình chữ X.",
+      "costPts": 10,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "white_cross",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            135,
+            135
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Giải: chưa xác định 5 sát thương là tổng của 3 tia hay sát thương mỗi tia.",
+        "Giải: chưa rõ hiệu ứng phản 3 sát thương còn tiếp tục sau khi chém liên tục 7 sát thương đã kích hoạt hay không.",
+        "Skill 2 dạng 1: chưa có thời hạn của đốt cháy 3 sát thương/round.",
+        "Khắc ấn: chưa quy định có bị tiêu thụ khi dùng skill ẩn, có làm mới hay cộng dồn.",
+        "Chưa quy định nhát cắt xuyên mọi giáp/né/immune tương tác thế nào với HP của nhân vật triệu hồi đứng đỡ đòn."
+      ]
+    },
+    {
+      "id": "king_slasher.s1.giai",
+      "weaponId": "king_slasher",
+      "label": "King Slasher (Sukuna) · Giải",
+      "activation": "D6 PTS 10",
+      "rule": "Bắn 3 tia lát cắt trắng vào đối thủ; thông số sát thương được cung cấp là 5, cách chia cho 3 tia chưa rõ. Kèm Slashing trong 3 round phòng thủ tiếp theo của người dùng. Mỗi lần đối phương tấn công thành công trong cửa sổ đó: tự động dội ngược 3 sát thương. Chỉ cần đối phương tấn công thất bại 1 lần trong 3 round thủ: kích hoạt một đợt chém liên tục gây 7 sát thương.",
+      "costPts": 10,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "white_triple",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "white_flurry",
+          "anchor": "target.chest",
+          "startMs": 260,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Giải: chưa xác định 5 sát thương là tổng của 3 tia hay sát thương mỗi tia.",
+        "Giải: chưa rõ hiệu ứng phản 3 sát thương còn tiếp tục sau khi chém liên tục 7 sát thương đã kích hoạt hay không.",
+        "Skill 2 dạng 1: chưa có thời hạn của đốt cháy 3 sát thương/round.",
+        "Khắc ấn: chưa quy định có bị tiêu thụ khi dùng skill ẩn, có làm mới hay cộng dồn.",
+        "Chưa quy định nhát cắt xuyên mọi giáp/né/immune tương tác thế nào với HP của nhân vật triệu hồi đứng đỡ đòn."
+      ]
+    },
+    {
+      "id": "king_slasher.s1.fire_arrow",
+      "weaponId": "king_slasher",
+      "label": "King Slasher (Sukuna) · Mũi tên lửa",
+      "activation": "D6 PTS 10",
+      "rule": "Bắn mũi tên lửa nổ xuống mặt đất, gây 12 sát thương. Khắc ấn mục tiêu trong 3 round tiếp theo, không phân biệt tấn công hay phòng thủ. Mục tiêu có khắc ấn cho phép hiển thị Skill 2 dạng ẩn.",
+      "costPts": 10,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "fire_arrow",
+          "anchor": "caster.hand",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            105,
+            105
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        },
+        {
+          "effect": "king_mark",
+          "anchor": "target.aboveHead",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Giải: chưa xác định 5 sát thương là tổng của 3 tia hay sát thương mỗi tia.",
+        "Giải: chưa rõ hiệu ứng phản 3 sát thương còn tiếp tục sau khi chém liên tục 7 sát thương đã kích hoạt hay không.",
+        "Skill 2 dạng 1: chưa có thời hạn của đốt cháy 3 sát thương/round.",
+        "Khắc ấn: chưa quy định có bị tiêu thụ khi dùng skill ẩn, có làm mới hay cộng dồn.",
+        "Chưa quy định nhát cắt xuyên mọi giáp/né/immune tương tác thế nào với HP của nhân vật triệu hồi đứng đỡ đòn."
+      ]
+    },
+    {
+      "id": "king_slasher.s2.fire_arrow",
+      "weaponId": "king_slasher",
+      "label": "King Slasher (Sukuna) · Mũi tên lửa khổng lồ",
+      "activation": "D6 PTS 30",
+      "rule": "Bắn một mũi tên lửa rất lớn gây 28 sát thương. Gây đốt cháy: mỗi round mất thêm 3 HP, không phân biệt tấn công hay phòng thủ. Thời hạn đốt cháy chưa được cung cấp.",
+      "costPts": 30,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "giant_fire_arrow",
+          "anchor": "caster.hand",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            105,
+            105
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        },
+        {
+          "effect": "fire_bomb",
+          "anchor": "target.chest",
+          "startMs": 260,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Giải: chưa xác định 5 sát thương là tổng của 3 tia hay sát thương mỗi tia.",
+        "Giải: chưa rõ hiệu ứng phản 3 sát thương còn tiếp tục sau khi chém liên tục 7 sát thương đã kích hoạt hay không.",
+        "Skill 2 dạng 1: chưa có thời hạn của đốt cháy 3 sát thương/round.",
+        "Khắc ấn: chưa quy định có bị tiêu thụ khi dùng skill ẩn, có làm mới hay cộng dồn.",
+        "Chưa quy định nhát cắt xuyên mọi giáp/né/immune tương tác thế nào với HP của nhân vật triệu hồi đứng đỡ đòn."
+      ]
+    },
+    {
+      "id": "king_slasher.s2.world_slash",
+      "weaponId": "king_slasher",
+      "label": "King Slasher (Sukuna) · Nhát cắt xuyên thế giới — skill ẩn",
+      "activation": "D6 PTS 30",
+      "rule": "Chỉ hiển thị cho người chơi bấm nếu đối phương đang có khắc ấn từ Mũi tên lửa. Màn hình sáng bừng, rồi một nhát cắt cực lớn, dài và có màu sắc cắt ngang giữa màn hình. Gây 40 sát thương xuyên mọi loại giáp, né và immune từ tất cả vũ khí trong game.",
+      "costPts": 30,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "world_slash",
+          "anchor": "arena.center",
+          "startMs": 200,
+          "durationMs": 520,
+          "size": [
+            900,
+            95
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Giải: chưa xác định 5 sát thương là tổng của 3 tia hay sát thương mỗi tia.",
+        "Giải: chưa rõ hiệu ứng phản 3 sát thương còn tiếp tục sau khi chém liên tục 7 sát thương đã kích hoạt hay không.",
+        "Skill 2 dạng 1: chưa có thời hạn của đốt cháy 3 sát thương/round.",
+        "Khắc ấn: chưa quy định có bị tiêu thụ khi dùng skill ẩn, có làm mới hay cộng dồn.",
+        "Chưa quy định nhát cắt xuyên mọi giáp/né/immune tương tác thế nào với HP của nhân vật triệu hồi đứng đỡ đòn."
+      ],
+      "screenFlash": {
+        "startMs": 150,
+        "durationMs": 110
+      }
+    },
+    {
+      "id": "substitute_doll.s1",
+      "weaponId": "substitute_doll",
+      "label": "Hình nhân thế mạng · Phản thế mạng",
+      "activation": "D6 PTS 10",
+      "rule": "Lấy lượng sát thương ở lượt gần nhất bạn bị đối thủ tấn công thành công. Phản lại 2/3 lượng sát thương đó, làm tròn.",
+      "costPts": 10,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "doll_reflect",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Skill 1: làm tròn 2/3 sát thương nhưng chưa xác định quy tắc làm tròn ở trường hợp .5.",
+        "Chưa có giới hạn thời gian để lưu đòn tấn công thành công gần nhất hoặc quy định lưu riêng từng kẻ địch.",
+        "Chưa quy định phản sát thương tính trước hay sau giáp/giảm sát thương."
+      ]
+    },
+    {
+      "id": "substitute_doll.s2",
+      "weaponId": "substitute_doll",
+      "label": "Hình nhân thế mạng · Đinh thế mạng",
+      "activation": "D6 PTS 18",
+      "rule": "Một cái đinh khổng lồ đâm từ trên cao xuống đối thủ, gây 10 sát thương. Tạo hiệu ứng cho 2 lần đối phương tấn công thành công tiếp theo: mỗi lần phản lại 3 sát thương cho đối phương. Thời hạn này gắn với các lần tấn công thành công, không tự đổi thành 2 giây animation.",
+      "costPts": 18,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "giant_nail",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 480,
+          "size": [
+            140,
+            200
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        },
+        {
+          "effect": "nail_impact",
+          "anchor": "target.feet",
+          "startMs": 420,
+          "durationMs": 380,
+          "size": [
+            180,
+            150
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Skill 1: làm tròn 2/3 sát thương nhưng chưa xác định quy tắc làm tròn ở trường hợp .5.",
+        "Chưa có giới hạn thời gian để lưu đòn tấn công thành công gần nhất hoặc quy định lưu riêng từng kẻ địch.",
+        "Chưa quy định phản sát thương tính trước hay sau giáp/giảm sát thương."
+      ]
+    },
+    {
+      "id": "death_note.s1",
+      "weaponId": "death_note",
+      "label": "Death Note · Ghi tên",
+      "activation": "D6 PTS 10",
+      "rule": "Chọn mục tiêu và ghi tên chúng vào sổ; sau đó tung thêm một D6 để xét kết quả. D6 = 1–2: tên bị từ chối; người dùng nhận 3 sát thương, mục tiêu vẫn nhận 5 sát thương. D6 = 3–4: mục tiêu nhận ceil(D6 × 2,5) sát thương. D6 = 5–6: mục tiêu nhận D6 × 3 sát thương. Demo cơ bản chỉ ghi tên; xem từng kết quả D6 trong danh sách sự kiện.",
+      "costPts": 10,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "name_write",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 800,
+          "size": [
+            150,
+            150
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Ghi tên thất bại có khiến mục tiêu được xem là đã ghi tên để dùng Phán quyết hay không chưa rõ.",
+        "Chưa quy định trạng thái ghi tên tồn tại bao lâu, ghi được bao nhiêu mục tiêu và có bị xóa khi đổi mục tiêu không."
+      ]
+    },
+    {
+      "id": "death_note.s2",
+      "weaponId": "death_note",
+      "label": "Death Note · Phán quyết",
+      "activation": "D6 PTS 50",
+      "rule": "Nhắm mục tiêu đã bị ghi tên. Trừ ceil(75% × lượng HP hiện tại của mục tiêu). Dùng HP hiện tại tại thời điểm áp dụng, không dùng HP tối đa.",
+      "costPts": 50,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "judgement",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Ghi tên thất bại có khiến mục tiêu được xem là đã ghi tên để dùng Phán quyết hay không chưa rõ.",
+        "Chưa quy định trạng thái ghi tên tồn tại bao lâu, ghi được bao nhiêu mục tiêu và có bị xóa khi đổi mục tiêu không."
+      ]
+    },
+    {
+      "id": "kagutsuchi.s1",
+      "weaponId": "kagutsuchi",
+      "label": "Đoản Đao Kagutsuchi · Liên trảm và Huyết aura",
+      "activation": "D6 PTS 12",
+      "rule": "Chém liên tục gây 10 sát thương. Tạo aura đỏ trong 2 lần tấn công thành công tiếp theo của đối phương. Mỗi lần đủ điều kiện đó có 50% né được đòn.",
+      "costPts": 12,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "red_multi_slash",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "red_dodge_aura",
+          "anchor": "caster.chest",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tung thêm D20: chưa rõ lấy kết quả mới, cao nhất hay cho người chơi chọn.",
+        "Phản công khi thủ: câu “tấn công bằng đúng số xúc xắc phòng thủ” chưa xác định đó là sát thương trực tiếp hay D20 Công để tiếp tục tính hit.",
+        "Hiệu ứng mưa 3 round chưa quy định đếm theo toàn bàn hay chỉ round có người dùng tham gia."
+      ]
+    },
+    {
+      "id": "kagutsuchi.s2",
+      "weaponId": "kagutsuchi",
+      "label": "Đoản Đao Kagutsuchi · Vũ kiếm",
+      "activation": "D6 PTS 17",
+      "rule": "Gây 10 sát thương và tạo mưa trong 3 round tiếp theo, tính cả tấn công và phòng thủ. Trong mưa, ở round phòng thủ: có 10% phản công bằng đúng số D20 Thủ vừa tung, dù phòng thủ thành công hay thất bại. Nếu số D20 Thủ lớn hơn 15 thì giá trị phản công = ceil(D20 Thủ / 2); còn lại giữ nguyên. Trong mưa, ở round tấn công: có 10% gây thêm 3 sát thương dù đòn đánh thành công hay thất bại.",
+      "costPts": 17,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "rain_cast",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "rain_counter",
+          "anchor": "target.chest",
+          "startMs": 260,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tung thêm D20: chưa rõ lấy kết quả mới, cao nhất hay cho người chơi chọn.",
+        "Phản công khi thủ: câu “tấn công bằng đúng số xúc xắc phòng thủ” chưa xác định đó là sát thương trực tiếp hay D20 Công để tiếp tục tính hit.",
+        "Hiệu ứng mưa 3 round chưa quy định đếm theo toàn bàn hay chỉ round có người dùng tham gia."
+      ]
+    },
+    {
+      "id": "infinity_void.s1.aoi",
+      "weaponId": "infinity_void",
+      "label": "Infinity Void / Ifinity Void · Aoi — giữ từ kit gốc",
+      "activation": {
+        "die": "D6",
+        "face": 3,
+        "source": "original_skill_kit"
+      },
+      "rule": "D6 = 3 theo file Skill mẫu. Hút mục tiêu và làm choáng 1 lượt; kit gốc không cộng thêm sát thương. Nội dung này giữ nguyên, không thuộc phần tăng sức mạnh Akai.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "legacy_void_blue",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "legacy_stun",
+          "anchor": "target.aboveHead",
+          "startMs": 260,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tier không được cung cấp trong cập nhật hoặc trong abilities.json mẫu.",
+        "Giữ điều kiện D6 = 4 của Akai từ kit gốc; cập nhật này không cung cấp giá PTS mới.",
+        "“Hiệu ứng vẫn thế” của lần Akai bắn thêm chưa xác định có làm mới cửa sổ 3 round hoặc kích hoạt chuỗi proc tiếp hay không.",
+        "Hollow Purple trong kit gốc ghi cần charge ≥ 30 nhưng quy tắc trừ charge và phạm vi mục tiêu vẫn chưa rõ."
+      ]
+    },
+    {
+      "id": "infinity_void.s1.akai",
+      "weaponId": "infinity_void",
+      "label": "Infinity Void / Ifinity Void · Akai (Red) — cập nhật",
+      "activation": {
+        "die": "D6",
+        "face": 4,
+        "source": "original_skill_kit"
+      },
+      "rule": "D6 = 4 theo file Skill mẫu. Sát thương chính đổi từ 10 trong kit gốc thành 12 theo cập nhật mới. Gắn hiệu ứng teleport trong 3 round tiếp theo, tính cả tấn công và phòng thủ. Tại giai đoạn D20: mỗi cơ hội có 5% nhân vật bất ngờ lao đến và bắn thêm Akai, gây thêm 5 sát thương. Lần bắn thêm vẫn có hiệu ứng Akai; cơ chế làm mới hoặc nối chuỗi chưa được chốt.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "legacy_void_red",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "void_teleport",
+          "anchor": "caster.chest",
+          "startMs": 260,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "void_red_echo",
+          "anchor": "caster.hand",
+          "startMs": 520,
+          "durationMs": 450,
+          "size": [
+            105,
+            105
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tier không được cung cấp trong cập nhật hoặc trong abilities.json mẫu.",
+        "Giữ điều kiện D6 = 4 của Akai từ kit gốc; cập nhật này không cung cấp giá PTS mới.",
+        "“Hiệu ứng vẫn thế” của lần Akai bắn thêm chưa xác định có làm mới cửa sổ 3 round hoặc kích hoạt chuỗi proc tiếp hay không.",
+        "Hollow Purple trong kit gốc ghi cần charge ≥ 30 nhưng quy tắc trừ charge và phạm vi mục tiêu vẫn chưa rõ."
+      ]
+    },
+    {
+      "id": "infinity_void.s1.infinity",
+      "weaponId": "infinity_void",
+      "label": "Infinity Void / Ifinity Void · Infinity — giữ từ kit gốc",
+      "activation": {
+        "die": "D6",
+        "face": 6,
+        "source": "original_skill_kit"
+      },
+      "rule": "D6 = 6 theo file Skill mẫu. Miễn nhiễm 1 lần sát thương, dừng hiệu ứng khi lần miễn nhiễm đã bị tiêu thụ.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "legacy_infinity",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tier không được cung cấp trong cập nhật hoặc trong abilities.json mẫu.",
+        "Giữ điều kiện D6 = 4 của Akai từ kit gốc; cập nhật này không cung cấp giá PTS mới.",
+        "“Hiệu ứng vẫn thế” của lần Akai bắn thêm chưa xác định có làm mới cửa sổ 3 round hoặc kích hoạt chuỗi proc tiếp hay không.",
+        "Hollow Purple trong kit gốc ghi cần charge ≥ 30 nhưng quy tắc trừ charge và phạm vi mục tiêu vẫn chưa rõ."
+      ]
+    },
+    {
+      "id": "infinity_void.s2.purple",
+      "weaponId": "infinity_void",
+      "label": "Infinity Void / Ifinity Void · Hollow Purple — giữ từ kit gốc",
+      "activation": "D6 PTS None",
+      "rule": "Theo file Skill mẫu: cần charge ≥ 30. Gây 50 sát thương. Kit gốc chưa xác định cách trừ charge và phạm vi mục tiêu; không tự quy đổi thành một giá PTS đã chốt.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "legacy_void_blue",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "legacy_void_red",
+          "anchor": "target.chest",
+          "startMs": 260,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "legacy_hollow_purple",
+          "anchor": "target.chest",
+          "startMs": 520,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tier không được cung cấp trong cập nhật hoặc trong abilities.json mẫu.",
+        "Giữ điều kiện D6 = 4 của Akai từ kit gốc; cập nhật này không cung cấp giá PTS mới.",
+        "“Hiệu ứng vẫn thế” của lần Akai bắn thêm chưa xác định có làm mới cửa sổ 3 round hoặc kích hoạt chuỗi proc tiếp hay không.",
+        "Hollow Purple trong kit gốc ghi cần charge ≥ 30 nhưng quy tắc trừ charge và phạm vi mục tiêu vẫn chưa rõ."
+      ]
+    },
+    {
+      "id": "bee_shooter.s1",
+      "weaponId": "bee_shooter",
+      "label": "Bee Shooter · Worker Bees",
+      "activation": "D6 PTS 5",
+      "rule": "Bắn 1 ong thợ gây 1 sát thương. Gắn độc: mất 1 HP mỗi lượt trong 2 lượt. Độc cộng dồn tối đa 2 tầng.",
+      "costPts": 5,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "worker_bee",
+          "anchor": "caster.hand",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            105,
+            105
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        },
+        {
+          "effect": "bee_poison",
+          "anchor": "target.aboveHead",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "5 ong thợ từ Queen Bee: chưa rõ sát thương ngẫu nhiên 1–5 là tổng cả đàn hay mỗi con.",
+        "Độc Worker Bee: chưa quy định làm mới thời hạn khi cộng tầng và tick ở đầu hay cuối lượt."
+      ]
+    },
+    {
+      "id": "bee_shooter.s2",
+      "weaponId": "bee_shooter",
+      "label": "Bee Shooter · Queen Bee",
+      "activation": "D6 PTS 20",
+      "rule": "Bắn 1 ong chúa gây 3 sát thương và triệu hồi 5 ong thợ. Đàn ong tồn tại 5 lượt, gây ngẫu nhiên 1–5 sát thương; các ong thợ này không gây hiệu ứng. Gắn độc ong chúa: giảm 3 điểm thủ trong 5 lượt phòng thủ của mục tiêu.",
+      "costPts": 20,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "queen_bee",
+          "anchor": "caster.hand",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            105,
+            105
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        },
+        {
+          "effect": "bee_swarm",
+          "anchor": "caster.hand",
+          "startMs": 260,
+          "durationMs": 450,
+          "size": [
+            105,
+            105
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        },
+        {
+          "effect": "bee_poison",
+          "anchor": "target.aboveHead",
+          "startMs": 520,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "5 ong thợ từ Queen Bee: chưa rõ sát thương ngẫu nhiên 1–5 là tổng cả đàn hay mỗi con.",
+        "Độc Worker Bee: chưa quy định làm mới thời hạn khi cộng tầng và tick ở đầu hay cuối lượt."
+      ]
+    },
+    {
+      "id": "thunder_spear.s1.yellow",
+      "weaponId": "thunder_spear",
+      "label": "Giáo sấm sét · Sấm sét vàng",
+      "activation": "D6 PTS 12",
+      "rule": "Bắn sấm sét vàng gây 10 sát thương. Gắn tê liệt cho 5 round tấn công tiếp theo của đối phương. Mỗi round đó có 5% hủy đòn tấn công, tự skip và chuyển thành cho người dùng vũ khí tấn công.",
+      "costPts": 12,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "lightning_yellow",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            150,
+            180
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        },
+        {
+          "effect": "paralysis",
+          "anchor": "target.aboveHead",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tung thêm D20: chưa có quy tắc chọn kết quả.",
+        "Khi tê liệt bỏ lượt: thứ tự chuyển quyền tấn công trong trận nhiều người cần game xác định.",
+        "Hai dạng Skill 1 cường hóa có thể được chọn hay ngẫu nhiên chưa được nêu."
+      ]
+    },
+    {
+      "id": "thunder_spear.s2",
+      "weaponId": "thunder_spear",
+      "label": "Giáo sấm sét · Gọi mưa giông",
+      "activation": "D6 PTS 20",
+      "rule": "Tạo mưa trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ. Trong môi trường này Skill 1 có hai dạng cường hóa, mỗi dạng chỉ tốn 5 PTS.",
+      "costPts": 20,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "weather_rain",
+          "anchor": "arena.center",
+          "startMs": 0,
+          "durationMs": 1000,
+          "size": [
+            860,
+            320
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        },
+        {
+          "effect": "paralysis",
+          "anchor": "target.aboveHead",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tung thêm D20: chưa có quy tắc chọn kết quả.",
+        "Khi tê liệt bỏ lượt: thứ tự chuyển quyền tấn công trong trận nhiều người cần game xác định.",
+        "Hai dạng Skill 1 cường hóa có thể được chọn hay ngẫu nhiên chưa được nêu."
+      ]
+    },
+    {
+      "id": "thunder_spear.s1.red",
+      "weaponId": "thunder_spear",
+      "label": "Giáo sấm sét · Cường hóa — Sét đỏ",
+      "activation": "D6 PTS 5",
+      "rule": "Chỉ là dạng cường hóa trong mưa do Skill 2 thiết lập. Gây 15 sát thương. Tê liệt 5 round tấn công của đối phương; xác suất hủy đòn và chuyển quyền tấn công tăng thành 10%.",
+      "costPts": 5,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "lightning_red",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            150,
+            180
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        },
+        {
+          "effect": "paralysis",
+          "anchor": "target.aboveHead",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tung thêm D20: chưa có quy tắc chọn kết quả.",
+        "Khi tê liệt bỏ lượt: thứ tự chuyển quyền tấn công trong trận nhiều người cần game xác định.",
+        "Hai dạng Skill 1 cường hóa có thể được chọn hay ngẫu nhiên chưa được nêu."
+      ]
+    },
+    {
+      "id": "thunder_spear.s1.blue",
+      "weaponId": "thunder_spear",
+      "label": "Giáo sấm sét · Cường hóa — Sét xanh",
+      "activation": "D6 PTS 5",
+      "rule": "Chỉ là dạng cường hóa trong mưa do Skill 2 thiết lập. Gây 5 sát thương mỗi lần trong 3 round liên tiếp, tính cả tấn công lẫn phòng thủ. Lần nổ 1: có 5% gây thêm 5 sát thương. Lần nổ 2: có 5% hồi 5 PTS cho người dùng. Lần nổ 3: có 5% hồi 10 HP cho người dùng.",
+      "costPts": 5,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "lightning_blue",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            150,
+            180
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tung thêm D20: chưa có quy tắc chọn kết quả.",
+        "Khi tê liệt bỏ lượt: thứ tự chuyển quyền tấn công trong trận nhiều người cần game xác định.",
+        "Hai dạng Skill 1 cường hóa có thể được chọn hay ngẫu nhiên chưa được nêu."
+      ]
+    },
+    {
+      "id": "ice_spear.s1",
+      "weaponId": "ice_spear",
+      "label": "Giáo Băng · Ice Spear",
+      "activation": "D6 PTS 12",
+      "rule": "Thả một giáo băng từ trời xuống gây 10 sát thương. Gắn làm chậm trong 5 round tiếp theo, không phân biệt tấn công hay phòng thủ. Trong thời hạn đó, mỗi cơ hội có 5% khóa khả năng tung D6; mục tiêu chỉ có thể bấm End Turn.",
+      "costPts": 12,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "ice_spear",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            150,
+            180
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        },
+        {
+          "effect": "freeze",
+          "anchor": "target.chest",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tỷ lệ kích hoạt passive đóng băng chưa được cung cấp.",
+        "Khi bị khóa phòng thủ, chưa rõ cách kết toán đòn đánh và D20 Thủ.",
+        "Hiệu ứng chỉ cho End Turn cần thống nhất cách áp dụng nếu kích hoạt tại round phòng thủ ngoài lượt người đó."
+      ]
+    },
+    {
+      "id": "ice_spear.s2",
+      "weaponId": "ice_spear",
+      "label": "Giáo Băng · Môi trường băng giá",
+      "activation": "D6 PTS 20",
+      "rule": "Tạo môi trường băng giá trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ. Màn hình xanh hơn, có hạt tuyết rơi. Trong môi trường do Skill 2 tạo ra, Skill 1 giảm còn 5 PTS và đổi thành Giáo băng khổng lồ.",
+      "costPts": 20,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "weather_snow",
+          "anchor": "arena.center",
+          "startMs": 0,
+          "durationMs": 1000,
+          "size": [
+            860,
+            320
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tỷ lệ kích hoạt passive đóng băng chưa được cung cấp.",
+        "Khi bị khóa phòng thủ, chưa rõ cách kết toán đòn đánh và D20 Thủ.",
+        "Hiệu ứng chỉ cho End Turn cần thống nhất cách áp dụng nếu kích hoạt tại round phòng thủ ngoài lượt người đó."
+      ]
+    },
+    {
+      "id": "ice_spear.s1.enchanted",
+      "weaponId": "ice_spear",
+      "label": "Giáo Băng · Cường hóa — Giáo băng khổng lồ",
+      "activation": "D6 PTS 5",
+      "rule": "Gây 15 sát thương. Có 30% nổ băng giá làm đối phương đóng băng: không thể tấn công hoặc phòng thủ trong lượt kế tiếp.",
+      "costPts": 5,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "giant_ice_spear",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            150,
+            180
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        },
+        {
+          "effect": "freeze",
+          "anchor": "target.chest",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Tỷ lệ kích hoạt passive đóng băng chưa được cung cấp.",
+        "Khi bị khóa phòng thủ, chưa rõ cách kết toán đòn đánh và D20 Thủ.",
+        "Hiệu ứng chỉ cho End Turn cần thống nhất cách áp dụng nếu kích hoạt tại round phòng thủ ngoài lượt người đó."
+      ]
+    },
+    {
+      "id": "frying_pan.s1",
+      "weaponId": "frying_pan",
+      "label": "Frying Pan · Bong",
+      "activation": "D6 PTS 10",
+      "rule": "Dùng chảo đập đầu đối thủ, gây 7 sát thương. Làm choáng khiến đối thủ mất 1 lượt tấn công tiếp theo. Trong môi trường nóng: có 25% gây bỏng, thêm 5 sát thương. Nội tại trong môi trường nóng có 10% lặp lại Skill 1 miễn PTS.",
+      "costPts": 10,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "pan_bonk",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "pan_stun",
+          "anchor": "target.aboveHead",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        },
+        {
+          "effect": "fire_bomb",
+          "anchor": "target.chest",
+          "startMs": 520,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Chưa quy định lần dùng thêm có thể tiếp tục kích hoạt dùng thêm hay không.",
+        "Tăng sát thương Skill 1 trong 2 lượt chưa có quy định đếm lượt cụ thể.",
+        "Bỏng của Bong được ghi gây thêm 5 sát thương; không tự đặt thêm tick hoặc thời hạn DoT."
+      ]
+    },
+    {
+      "id": "frying_pan.s2",
+      "weaponId": "frying_pan",
+      "label": "Frying Pan · Big Meal",
+      "activation": "D6 PTS 27",
+      "rule": "Tạo môi trường nóng trong 5 lượt: màn hình hơi đỏ và một số cột khói bốc từ dưới lên. Người dùng nấu món ăn; khi ăn hồi 5 HP. Tăng 2 sát thương cho Skill 1 trong 2 lượt.",
+      "costPts": 27,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "weather_heat",
+          "anchor": "arena.center",
+          "startMs": 0,
+          "durationMs": 1000,
+          "size": [
+            860,
+            320
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        },
+        {
+          "effect": "meal_heal",
+          "anchor": "caster.chest",
+          "startMs": 260,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Chưa quy định lần dùng thêm có thể tiếp tục kích hoạt dùng thêm hay không.",
+        "Tăng sát thương Skill 1 trong 2 lượt chưa có quy định đếm lượt cụ thể.",
+        "Bỏng của Bong được ghi gây thêm 5 sát thương; không tự đặt thêm tick hoặc thời hạn DoT."
+      ]
+    },
+    {
+      "id": "dual_spears.s1.lightning",
+      "weaponId": "dual_spears",
+      "label": "Song Giáo Băng và Sấm sét · Dạng 1 — Sấm sét vàng",
+      "activation": "D6 PTS 10",
+      "rule": "Bắn sấm sét vàng gây 12 sát thương. Gắn co giật trong 3 lượt tiếp theo, tính cả tấn công và phòng thủ. Có 10% đối thủ không thể dùng D6 để sạc PTS.",
+      "costPts": 10,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "lightning_yellow",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            150,
+            180
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        },
+        {
+          "effect": "paralysis",
+          "anchor": "target.aboveHead",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Sát thương của Skill 1 dạng Ice Spear chưa được cung cấp; không tự gán sát thương mỗi giáo.",
+        "Sát thương của hai nhát chém Skill 1 dạng 3 chưa được cung cấp.",
+        "Xác suất gắn Siêu Dẫn của Skill 1 dạng 3 và tác dụng cụ thể của trạng thái đó chưa được cung cấp.",
+        "Tăng 20% xác suất ra 10–20 chưa xác định tăng tương đối hay 20 điểm phần trăm, cũng chưa có phân phối kết quả.",
+        "Cường hóa +5% cho cả 3 dạng chưa xác định tăng tương đối hay điểm phần trăm; dạng 3 chưa có tỷ lệ nền.",
+        "Chưa quy định hai môi trường/cường hóa từ hai dạng Skill 2 thay thế, cộng dồn hay cùng tồn tại."
+      ]
+    },
+    {
+      "id": "dual_spears.s1.ice",
+      "weaponId": "dual_spears",
+      "label": "Song Giáo Băng và Sấm sét · Dạng 2 — Ba Ice Spear",
+      "activation": "D6 PTS 10",
+      "rule": "Bắn 3 giáo băng vào đối thủ; sát thương chưa được cung cấp. Gắn hiệu ứng băng giá trong 2 lượt phòng thủ tiếp theo của đối thủ. Mỗi lượt phòng thủ đó có 10% đối thủ không thể thủ.",
+      "costPts": 10,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "ice_spears_three",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            150,
+            180
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        },
+        {
+          "effect": "freeze",
+          "anchor": "target.chest",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Sát thương của Skill 1 dạng Ice Spear chưa được cung cấp; không tự gán sát thương mỗi giáo.",
+        "Sát thương của hai nhát chém Skill 1 dạng 3 chưa được cung cấp.",
+        "Xác suất gắn Siêu Dẫn của Skill 1 dạng 3 và tác dụng cụ thể của trạng thái đó chưa được cung cấp.",
+        "Tăng 20% xác suất ra 10–20 chưa xác định tăng tương đối hay 20 điểm phần trăm, cũng chưa có phân phối kết quả.",
+        "Cường hóa +5% cho cả 3 dạng chưa xác định tăng tương đối hay điểm phần trăm; dạng 3 chưa có tỷ lệ nền.",
+        "Chưa quy định hai môi trường/cường hóa từ hai dạng Skill 2 thay thế, cộng dồn hay cùng tồn tại."
+      ]
+    },
+    {
+      "id": "dual_spears.s1.dual",
+      "weaponId": "dual_spears",
+      "label": "Song Giáo Băng và Sấm sét · Dạng 3 — Song trảm",
+      "activation": "D6 PTS 10",
+      "rule": "Chém 2 nhát: một nhát băng, một nhát điện. Có xác suất gắn Siêu Dẫn trong 3 lượt tiếp theo, tính cả tấn công và phòng thủ. Cả sát thương và xác suất nền gắn hiệu ứng chưa được cung cấp.",
+      "costPts": 10,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "dual_slash",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "superconduct_aura",
+          "anchor": "target.chest",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Sát thương của Skill 1 dạng Ice Spear chưa được cung cấp; không tự gán sát thương mỗi giáo.",
+        "Sát thương của hai nhát chém Skill 1 dạng 3 chưa được cung cấp.",
+        "Xác suất gắn Siêu Dẫn của Skill 1 dạng 3 và tác dụng cụ thể của trạng thái đó chưa được cung cấp.",
+        "Tăng 20% xác suất ra 10–20 chưa xác định tăng tương đối hay 20 điểm phần trăm, cũng chưa có phân phối kết quả.",
+        "Cường hóa +5% cho cả 3 dạng chưa xác định tăng tương đối hay điểm phần trăm; dạng 3 chưa có tỷ lệ nền.",
+        "Chưa quy định hai môi trường/cường hóa từ hai dạng Skill 2 thay thế, cộng dồn hay cùng tồn tại."
+      ]
+    },
+    {
+      "id": "dual_spears.s2.orb",
+      "weaponId": "dual_spears",
+      "label": "Song Giáo Băng và Sấm sét · Dạng 1 — Cầu Siêu Dẫn",
+      "activation": "D6 PTS 25",
+      "rule": "Quả cầu cực lớn nửa băng nửa điện rơi từ trên trời xuống giữa màn hình, gây 25 sát thương. Tạo môi trường Siêu Dẫn trong 5 lượt tiếp theo. Cường hóa Skill 1: cả 3 dạng được tăng thêm 5% tỷ lệ thành công.",
+      "costPts": 25,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "superconduct_orb",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "weather_superconduct",
+          "anchor": "arena.center",
+          "startMs": 260,
+          "durationMs": 1000,
+          "size": [
+            860,
+            320
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Sát thương của Skill 1 dạng Ice Spear chưa được cung cấp; không tự gán sát thương mỗi giáo.",
+        "Sát thương của hai nhát chém Skill 1 dạng 3 chưa được cung cấp.",
+        "Xác suất gắn Siêu Dẫn của Skill 1 dạng 3 và tác dụng cụ thể của trạng thái đó chưa được cung cấp.",
+        "Tăng 20% xác suất ra 10–20 chưa xác định tăng tương đối hay 20 điểm phần trăm, cũng chưa có phân phối kết quả.",
+        "Cường hóa +5% cho cả 3 dạng chưa xác định tăng tương đối hay điểm phần trăm; dạng 3 chưa có tỷ lệ nền.",
+        "Chưa quy định hai môi trường/cường hóa từ hai dạng Skill 2 thay thế, cộng dồn hay cùng tồn tại."
+      ]
+    },
+    {
+      "id": "dual_spears.s2.beam",
+      "weaponId": "dual_spears",
+      "label": "Song Giáo Băng và Sấm sét · Dạng 2 — Chưởng Siêu Dẫn",
+      "activation": "D6 PTS 25",
+      "rule": "Bắn chưởng nửa băng nửa điện vào đối thủ gây 30 sát thương. Tạo môi trường Siêu Dẫn trong 5 lượt tiếp theo. Cường hóa Skill 1: khi dùng một trong 3 dạng, có 10% hoàn trả số PTS đã mất cho lần dùng Skill 1 đó.",
+      "costPts": 25,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "superconduct_beam",
+          "anchor": "arena.center",
+          "startMs": 160,
+          "durationMs": 620,
+          "size": [
+            480,
+            155
+          ]
+        },
+        {
+          "effect": "weather_superconduct",
+          "anchor": "arena.center",
+          "startMs": 260,
+          "durationMs": 1000,
+          "size": [
+            860,
+            320
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Sát thương của Skill 1 dạng Ice Spear chưa được cung cấp; không tự gán sát thương mỗi giáo.",
+        "Sát thương của hai nhát chém Skill 1 dạng 3 chưa được cung cấp.",
+        "Xác suất gắn Siêu Dẫn của Skill 1 dạng 3 và tác dụng cụ thể của trạng thái đó chưa được cung cấp.",
+        "Tăng 20% xác suất ra 10–20 chưa xác định tăng tương đối hay 20 điểm phần trăm, cũng chưa có phân phối kết quả.",
+        "Cường hóa +5% cho cả 3 dạng chưa xác định tăng tương đối hay điểm phần trăm; dạng 3 chưa có tỷ lệ nền.",
+        "Chưa quy định hai môi trường/cường hóa từ hai dạng Skill 2 thay thế, cộng dồn hay cùng tồn tại."
+      ]
+    },
+    {
+      "id": "mirror_of_life.s1",
+      "weaponId": "mirror_of_life",
+      "label": "Mirror of Life · Life Reflect",
+      "activation": "D6 PTS 20",
+      "rule": "Dùng gương phản chiếu vào kẻ địch. Nếu HP đối phương cao hơn 20% HP người dùng: đổi lượng HP hiện tại giữa hai người. Ví dụ theo yêu cầu: người dùng 80 HP, đối phương 100 HP → người dùng 100 HP, đối phương 80 HP. Nếu HP đối phương “thấp hơn 20%”: tạo suy nhược, mọi nguồn sát thương của đối phương — cả đánh thường và skill — giảm 7 trong 2 lượt. Điều kiện bổ sung được cung cấp: “nếu người chơi nhận sát thương từ bất kỳ nguồn nào”; chưa tự diễn giải thành một trigger khác.",
+      "costPts": 20,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "hp_swap",
+          "anchor": "arena.center",
+          "startMs": 0,
+          "durationMs": 800,
+          "size": [
+            300,
+            200
+          ]
+        },
+        {
+          "effect": "weakness",
+          "anchor": "target.aboveHead",
+          "startMs": 260,
+          "durationMs": 600,
+          "size": [
+            155,
+            155
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Điều kiện “máu cao hơn 20% máu người chơi” có thể hiểu là ≥120% HP người dùng; ví dụ 80 và 100 thỏa mãn, nhưng dấu > hay ≥ chưa được chốt.",
+        "Nhánh “máu đối phương thấp hơn 20%” chưa rõ là thấp hơn ngưỡng 120% hay thấp hơn người dùng 20%.",
+        "Cụm “nếu người chơi nhận sát thương từ bất kỳ nguồn nào” ở nhánh suy nhược chưa rõ là điều kiện kích hoạt hay điều kiện duy trì.",
+        "Chưa quy định mức sàn sát thương khi giảm 7, hoặc cách đổi HP vượt HP tối đa khi hai bên có trần HP khác nhau."
+      ]
+    },
+    {
+      "id": "mirror_of_life.s2",
+      "weaponId": "mirror_of_life",
+      "label": "Mirror of Life · Mirror Suck",
+      "activation": "D6 PTS 30",
+      "rule": "Hút 20 HP từ đối phương để hồi cho người dùng. HP hồi vượt quá HP tối đa chuyển thành giáp ảo với lượng bằng phần dư. Ví dụ trần 100 HP: đang đủ 100 HP → hút 20 tạo 20 giáp. Ví dụ trần 100 HP: đang 81 HP → hồi 19 về 100 HP và tạo 1 giáp. Chưa quy định lượng hồi nếu đối thủ còn dưới 20 HP.",
+      "costPts": 30,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "life_drain",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 650,
+          "size": [
+            135,
+            135
+          ],
+          "to": "caster.chest",
+          "mirrorForCaster": true
+        },
+        {
+          "effect": "overflow_armor",
+          "anchor": "caster.chest",
+          "startMs": 260,
+          "durationMs": 420,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Điều kiện “máu cao hơn 20% máu người chơi” có thể hiểu là ≥120% HP người dùng; ví dụ 80 và 100 thỏa mãn, nhưng dấu > hay ≥ chưa được chốt.",
+        "Nhánh “máu đối phương thấp hơn 20%” chưa rõ là thấp hơn ngưỡng 120% hay thấp hơn người dùng 20%.",
+        "Cụm “nếu người chơi nhận sát thương từ bất kỳ nguồn nào” ở nhánh suy nhược chưa rõ là điều kiện kích hoạt hay điều kiện duy trì.",
+        "Chưa quy định mức sàn sát thương khi giảm 7, hoặc cách đổi HP vượt HP tối đa khi hai bên có trần HP khác nhau."
+      ]
+    },
+    {
+      "id": "elemental_rings.s1",
+      "weaponId": "elemental_rings",
+      "label": "Nhẫn ba màu / Nhẫn nguyên tố · Triệu hồi nguyên tố",
+      "activation": "D6 PTS 15",
+      "rule": "Sau khi trả PTS, tung thêm 1 D6 để chọn summon. D6 = 1–2: Golem Đất 10 HP. Trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ, tự ném đá ở giai đoạn skill, mỗi lần 2 sát thương. Hết 5 lượt dừng ném nhưng vẫn đứng lại. D6 = 3–4: Người Lửa 5 HP. Khi được triệu hồi bắn cầu lửa gây 10 sát thương. Trong 5 lượt kế tiếp có 10% phát nổ, gây 5 sát thương trực tiếp và gắn cháy mất 1 HP mỗi round trong 5 round tiếp theo. Nếu không nổ thì đứng yên. D6 = 5–6: Nhân Ngư 3 HP. Khi được triệu hồi bắn cầu nước gây 5 sát thương. Trong 5 lượt kế tiếp, mỗi round hồi 3 HP cho chủ. Cả ba summon nhỏ đứng chắn sát thương: mọi sát thương D20, Skill 1 và Skill 2 đi vào HP summon trước, rồi mới tới chủ khi summon bị hạ. Nếu có 2–3 summon, đặt chúng cạnh người chơi, không đè lên nhau. Chọn nhánh D6 1–2, 3–4 hoặc 5–6 trong danh sách sự kiện để xem đúng một summon.",
+      "costPts": 15,
+      "impactMs": 450,
+      "cues": [],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Skill 1: không đặt giới hạn số summon vì yêu cầu chỉ cho ví dụ khi có 2–3 summon.",
+        "Chưa quy định summon nhận sát thương dư sau khi bị hạ, thứ tự chắn đòn khi có nhiều summon, hoặc summon còn lại sau khi chủ bị hạ.",
+        "Người lửa: chưa quy định tự hủy sau khi phát nổ hay có thể nổ nhiều lần.",
+        "Niko: có 25 HP nhưng yêu cầu chưa xác nhận kế thừa cơ chế đứng đỡ sát thương cho chủ như ba summon nhỏ.",
+        "Tỷ lệ chọn 1 trong 3 hành động của Niko chưa được cung cấp; không tự mặc định chia đều.",
+        "Earth Shield ghi khoảng 15 giáp: lưu 15 là giá trị đề xuất, chưa coi là thông số chính xác đã chốt.",
+        "Phản 2/3 của Earth Shield chưa xác định quy tắc làm tròn và tính trước hay sau giáp."
+      ]
+    },
+    {
+      "id": "elemental_rings.s2",
+      "weaponId": "elemental_rings",
+      "label": "Nhẫn ba màu / Nhẫn nguyên tố · Niko — Chimera ba nguyên tố",
+      "activation": "D6 PTS 40",
+      "rule": "Xóa toàn bộ nhân vật mà người dùng đã triệu hồi trước đó. Triệu hồi Chimera lai cả ba nguyên tố, tên Niko, có 25 HP. Ngay khi dùng skill, Niko bắn tia năng lượng ba màu xanh, đỏ, nâu gây 20 sát thương. Trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ: có 30% Niko thực hiện 1 trong 3 hành động dưới đây. Life Steel: hút 12 HP của đối thủ và hồi 12 HP cho chủ. Fire Bomb: ném cầu lửa gây 5 sát thương; có 50% gắn bỏng, mất 1 HP mỗi round trong 5 round tiếp theo. Earth Shield: tạo khoảng 15 giáp ảo màu nâu; khi chủ nhận sát thương từ bất kỳ nguồn nào, phản lại 2/3 lượng sát thương nhận. Hiệu ứng phản có 2 lần.",
+      "costPts": 40,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "niko",
+          "anchor": "caster.summon1",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            115,
+            125
+          ],
+          "loop": true,
+          "demoTtlMs": 4500
+        },
+        {
+          "effect": "elemental_beam",
+          "anchor": "arena.center",
+          "startMs": 650,
+          "durationMs": 700,
+          "size": [
+            480,
+            140
+          ]
+        }
+      ],
+      "scope": "visual demo only; game owns RNG, HP, PTS, target selection and statuses",
+      "externalRequirements": [
+        "Skill 1: không đặt giới hạn số summon vì yêu cầu chỉ cho ví dụ khi có 2–3 summon.",
+        "Chưa quy định summon nhận sát thương dư sau khi bị hạ, thứ tự chắn đòn khi có nhiều summon, hoặc summon còn lại sau khi chủ bị hạ.",
+        "Người lửa: chưa quy định tự hủy sau khi phát nổ hay có thể nổ nhiều lần.",
+        "Niko: có 25 HP nhưng yêu cầu chưa xác nhận kế thừa cơ chế đứng đỡ sát thương cho chủ như ba summon nhỏ.",
+        "Tỷ lệ chọn 1 trong 3 hành động của Niko chưa được cung cấp; không tự mặc định chia đều.",
+        "Earth Shield ghi khoảng 15 giáp: lưu 15 là giá trị đề xuất, chưa coi là thông số chính xác đã chốt.",
+        "Phản 2/3 của Earth Shield chưa xác định quy tắc làm tròn và tính trước hay sau giáp."
+      ]
+    },
+    {
+      "id": "king_slasher.normal",
+      "weaponId": "king_slasher",
+      "label": "Đánh thường — White Slash",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Hình ảnh đòn thường, sát thương do combat engine tính.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "white_slash",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 480,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "king_slasher.bat.hit",
+      "weaponId": "king_slasher",
+      "label": "Bát — đánh thành công",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Đòn trúng có +4 sát thương.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "white_cross",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 480,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "king_slasher.bat.miss",
+      "weaponId": "king_slasher",
+      "label": "Bát — tất trúng khi đánh hụt",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Đòn thất bại vẫn gây 5 sát thương theo điều kiện đã mô tả.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "white_cross",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 480,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "king_slasher.giai.reflect",
+      "weaponId": "king_slasher",
+      "label": "Giải — dội ngược 3",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Phản 3 khi đối phương đánh trúng trong cửa sổ Slashing.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "white_triple",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 480,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "king_slasher.giai.flurry",
+      "weaponId": "king_slasher",
+      "label": "Giải — chém liên tục 7",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Một lần đối phương đánh hụt kích hoạt đợt chém 7 sát thương.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "white_flurry",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            210,
+            210
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "substitute_doll.counter",
+      "weaponId": "substitute_doll",
+      "label": "Đinh — phản 3 sát thương",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Một trong hai lần phản đòn được gameplay kích hoạt.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "doll_counter",
+          "anchor": "target.chest",
+          "startMs": 0,
+          "durationMs": 480,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "death_note.roll_1",
+      "weaponId": "death_note",
+      "label": "Ghi tên — D6 = 1",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Mục tiêu mất 5 HP. Người dùng mất 3 HP.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "name_write",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "name_reject",
+          "anchor": "target.chest",
+          "startMs": 420,
+          "durationMs": 650,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "name_reject",
+          "anchor": "caster.chest",
+          "startMs": 420,
+          "durationMs": 500,
+          "size": [
+            95,
+            95
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "death_note.roll_2",
+      "weaponId": "death_note",
+      "label": "Ghi tên — D6 = 2",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Mục tiêu mất 5 HP. Người dùng mất 3 HP.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "name_write",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "name_reject",
+          "anchor": "target.chest",
+          "startMs": 420,
+          "durationMs": 650,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "name_reject",
+          "anchor": "caster.chest",
+          "startMs": 420,
+          "durationMs": 500,
+          "size": [
+            95,
+            95
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "death_note.roll_3",
+      "weaponId": "death_note",
+      "label": "Ghi tên — D6 = 3",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Mục tiêu mất 8 HP.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "name_write",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "name_success",
+          "anchor": "target.chest",
+          "startMs": 420,
+          "durationMs": 650,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "death_note.roll_4",
+      "weaponId": "death_note",
+      "label": "Ghi tên — D6 = 4",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Mục tiêu mất 10 HP.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "name_write",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "name_success",
+          "anchor": "target.chest",
+          "startMs": 420,
+          "durationMs": 650,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "death_note.roll_5",
+      "weaponId": "death_note",
+      "label": "Ghi tên — D6 = 5",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Mục tiêu mất 15 HP.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "name_write",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "name_success",
+          "anchor": "target.chest",
+          "startMs": 420,
+          "durationMs": 650,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "death_note.roll_6",
+      "weaponId": "death_note",
+      "label": "Ghi tên — D6 = 6",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Mục tiêu mất 18 HP.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "name_write",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            155,
+            155
+          ]
+        },
+        {
+          "effect": "name_success",
+          "anchor": "target.chest",
+          "startMs": 420,
+          "durationMs": 650,
+          "size": [
+            155,
+            155
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "infinity_void.akai.proc",
+      "weaponId": "infinity_void",
+      "label": "Akai — teleport và bắn thêm",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Proc 5% tại giai đoạn D20 trong cửa sổ 3 round; thêm 5 sát thương.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "void_teleport",
+          "anchor": "caster.feet",
+          "startMs": 0,
+          "durationMs": 300,
+          "size": [
+            180,
+            150
+          ]
+        },
+        {
+          "effect": "void_red_echo",
+          "anchor": "caster.hand",
+          "startMs": 230,
+          "durationMs": 300,
+          "size": [
+            130,
+            130
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        },
+        {
+          "effect": "void_pulse",
+          "anchor": "target.chest",
+          "startMs": 500,
+          "durationMs": 350,
+          "size": [
+            180,
+            180
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": [],
+      "actorMotion": "teleport_lunge"
+    },
+    {
+      "id": "kagutsuchi.dodge",
+      "weaponId": "kagutsuchi",
+      "label": "Aura đỏ — né đòn",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Một lần kiểm tra né 50% được combat engine xác nhận.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "red_dodge_aura",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            185,
+            185
+          ]
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "bee_shooter.worker_tick",
+      "weaponId": "bee_shooter",
+      "label": "Đàn ong — lượt gây sát thương",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Ngẫu nhiên 1–5 theo quy mô chưa chốt; VFX không tự tính RNG.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "bee_swarm",
+          "anchor": "caster.hand",
+          "startMs": 0,
+          "durationMs": 650,
+          "size": [
+            180,
+            120
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "thunder_spear.blue_tick_1",
+      "weaponId": "thunder_spear",
+      "label": "Sét xanh — lần nổ 1",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Gây 5; lần 1 có proc riêng 5% theo đặc tả.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "lightning_blue",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            140,
+            220
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "thunder_spear.blue_tick_2",
+      "weaponId": "thunder_spear",
+      "label": "Sét xanh — lần nổ 2",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Gây 5; lần 2 có proc riêng 5% theo đặc tả.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "lightning_blue",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            140,
+            220
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "thunder_spear.blue_tick_3",
+      "weaponId": "thunder_spear",
+      "label": "Sét xanh — lần nổ 3",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Gây 5; lần 3 có proc riêng 5% theo đặc tả.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "lightning_blue",
+          "anchor": "target.sky",
+          "startMs": 0,
+          "durationMs": 450,
+          "size": [
+            140,
+            220
+          ],
+          "to": "target.chest",
+          "orientToPath": true
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "elemental_rings.summon_golem",
+      "weaponId": "elemental_rings",
+      "label": "Triệu hồi — D6 1–2: golem",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Summon 10 HP; đòn minh họa 2 sát thương. Golem ném ở giai đoạn skill, không tự gán sát thương triệu hồi ngay.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "golem",
+          "anchor": "caster.summon1",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            95,
+            110
+          ],
+          "loop": true,
+          "demoTtlMs": 4500
+        },
+        {
+          "effect": "legacy_rock_roll",
+          "anchor": "caster.summon1",
+          "startMs": 700,
+          "durationMs": 500,
+          "size": [
+            95,
+            95
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": [],
+      "summonEntity": "golem"
+    },
+    {
+      "id": "elemental_rings.summon_fire_person",
+      "weaponId": "elemental_rings",
+      "label": "Triệu hồi — D6 3–4: fire_person",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Summon 5 HP; đòn minh họa 10 sát thương. Golem ném ở giai đoạn skill, không tự gán sát thương triệu hồi ngay.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "fire_person",
+          "anchor": "caster.summon1",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            95,
+            110
+          ],
+          "loop": true,
+          "demoTtlMs": 4500
+        },
+        {
+          "effect": "fire_bomb",
+          "anchor": "caster.summon1",
+          "startMs": 700,
+          "durationMs": 500,
+          "size": [
+            95,
+            95
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": [],
+      "summonEntity": "fire_person"
+    },
+    {
+      "id": "elemental_rings.summon_mermaid",
+      "weaponId": "elemental_rings",
+      "label": "Triệu hồi — D6 5–6: mermaid",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Summon 3 HP; đòn minh họa 5 sát thương. Golem ném ở giai đoạn skill, không tự gán sát thương triệu hồi ngay.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "mermaid",
+          "anchor": "caster.summon1",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            95,
+            110
+          ],
+          "loop": true,
+          "demoTtlMs": 4500
+        },
+        {
+          "effect": "water_orb",
+          "anchor": "caster.summon1",
+          "startMs": 700,
+          "durationMs": 500,
+          "size": [
+            95,
+            95
+          ],
+          "to": "target.chest",
+          "mirrorForCaster": true
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": [],
+      "summonEntity": "mermaid"
+    },
+    {
+      "id": "elemental_rings.layout",
+      "weaponId": "elemental_rings",
+      "label": "Bố trí 3 summon cạnh chủ",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Chỉ minh họa vị trí tách biệt; không phải một lần Skill 1 gọi đồng thời cả ba.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "golem",
+          "anchor": "caster.summon1",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            80,
+            90
+          ],
+          "loop": true,
+          "demoTtlMs": 4500
+        },
+        {
+          "effect": "fire_person",
+          "anchor": "caster.summon2",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            80,
+            90
+          ],
+          "loop": true,
+          "demoTtlMs": 4500
+        },
+        {
+          "effect": "mermaid",
+          "anchor": "caster.summon3",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            80,
+            90
+          ],
+          "loop": true,
+          "demoTtlMs": 4500
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "elemental_rings.niko.life_steel",
+      "weaponId": "elemental_rings",
+      "label": "Niko — Life Steel",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Hút 12 và hồi 12 cho chủ.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "niko",
+          "anchor": "caster.summon1",
+          "startMs": 0,
+          "durationMs": 700,
+          "size": [
+            110,
+            120
+          ],
+          "loop": true,
+          "demoTtlMs": 3000
+        },
+        {
+          "effect": "life_drain",
+          "anchor": "target.chest",
+          "startMs": 500,
+          "durationMs": 750,
+          "size": [
+            150,
+            150
+          ],
+          "to": "caster.chest"
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "elemental_rings.niko.fire_bomb",
+      "weaponId": "elemental_rings",
+      "label": "Niko — Fire Bomb",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "5 sát thương; 50% bỏng 1 HP/round trong 5 round, do engine xét.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "fire_bomb",
+          "anchor": "caster.summon1",
+          "startMs": 0,
+          "durationMs": 600,
+          "size": [
+            160,
+            160
+          ],
+          "to": "target.chest"
+        },
+        {
+          "effect": "legacy_burn_orange",
+          "anchor": "target.feet",
+          "startMs": 600,
+          "durationMs": 500,
+          "size": [
+            130,
+            160
+          ],
+          "loop": true,
+          "demoTtlMs": 1800
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    },
+    {
+      "id": "elemental_rings.niko.earth_shield",
+      "weaponId": "elemental_rings",
+      "label": "Niko — Earth Shield",
+      "activation": "gameplay event / selected outcome, not extra paid cast",
+      "rule": "Khoảng 15 giáp và hai lần phản 2/3 lượng sát thương nhận.",
+      "costPts": null,
+      "impactMs": 450,
+      "cues": [
+        {
+          "effect": "earth_shield",
+          "anchor": "caster.chest",
+          "startMs": 0,
+          "durationMs": 800,
+          "size": [
+            190,
+            200
+          ],
+          "loop": true,
+          "demoTtlMs": 2200
+        }
+      ],
+      "scope": "visual event; does not apply gameplay changes",
+      "externalRequirements": []
+    }
+  ]
+}

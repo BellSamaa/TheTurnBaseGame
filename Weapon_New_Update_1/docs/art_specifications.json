@@ -1,0 +1,415 @@
+{
+  "weapons": [
+    [
+      "shield",
+      "Shield",
+      "Common",
+      "A sturdy polished steel heater shield, warm gold rim, compact ruby center jewel and small blue accents. Practical low-tier item, front-three-quarter view, no grand wings."
+    ],
+    [
+      "king_slasher",
+      "King Slasher",
+      "Secret",
+      "A sinister floating silver cursed finger-blade talisman with a dark crimson handle and angular black curse marks; three razor-thin WHITE cutting trails orbit the weapon, subtle ember accent. King Slasher cursed slash focus inspired by Sukuna, no person and no text."
+    ],
+    [
+      "substitute_doll",
+      "Hình nhân thế mạng",
+      "Rare",
+      "A small stitched straw voodoo substitute doll tied with crimson thread, dark wooden body, three steel ritual nails and one oversized iron nail placed diagonally behind it. Cute eerie cursed tool, no gore."
+    ],
+    [
+      "death_note",
+      "Death Note",
+      "Secret",
+      "A dark black leather supernatural notebook, silver metal corners, crimson bookmark, open cream pages and a white quill angled beside it, faint violet death aura. No writing or letters anywhere."
+    ],
+    [
+      "kagutsuchi",
+      "Đoản Đao Kagutsuchi",
+      "Epic",
+      "A beautiful compact Japanese short dagger, pale silver blade, black and crimson hilt, ornate gold guard, red fiery aura coiling around blade with a few blue rain droplets. Distinct from the blue fire dragon dagger reference."
+    ],
+    [
+      "bee_shooter",
+      "Bee Shooter",
+      "Rare",
+      "A whimsical handheld firearm shaped like a honeybee hive, golden hexagonal honeycomb barrel, honey-yellow wooden body, black bee-stripe grip, amber honey drops and tiny translucent decorative wing, points right. One weapon only."
+    ],
+    [
+      "thunder_spear",
+      "Giáo sấm sét",
+      "Epic",
+      "A long elegant lightning spear placed diagonally, golden forked spearhead shaped like lightning bolt, silver shaft with black and gold wraps, yellow electrical arcs, small sapphire near guard."
+    ],
+    [
+      "ice_spear",
+      "Giáo Băng",
+      "Epic",
+      "A long elegant ice spear placed diagonally, faceted cyan translucent ice spearhead, frosty silver shaft, snowflake filigree guard and pale blue crystal gem, cold blue sparkle."
+    ],
+    [
+      "frying_pan",
+      "Frying Pan",
+      "Epic",
+      "An enchanted cast iron frying pan shown diagonally from front three-quarter view, heavy circular dark metal pan, rich golden rim, red leather wrapped long handle, small fiery orange magical heat highlights and tiny food-shaped charm."
+    ],
+    [
+      "dual_spears",
+      "Song Giáo Băng và Sấm sét",
+      "Mythic",
+      "A matched pair of crossed spears: left spear icy cyan crystal, right spear golden lightning fork. Ornate dark gold silver shafts, small luminous intertwined cyan-gold electrical aura where they cross. One paired weapon set."
+    ],
+    [
+      "mirror_of_life",
+      "Mirror of Life",
+      "Legend",
+      "An ornate handheld golden fantasy mirror with emerald vines, ruby heart-shaped jewel atop frame, reflective turquoise glass, elegant narrow gold handle, gentle green healing glimmer."
+    ],
+    [
+      "elemental_rings",
+      "Nhẫn nguyên tố ba màu",
+      "Mythic",
+      "Exactly THREE ornate golden elemental rings arranged together in a triangular composition, each one distinct gemstone: blue water, red fire, brown earth. Subtle blue water wisp, red flame and brown rock spark, jeweled fantasy metalwork."
+    ]
+  ],
+  "atlases": [
+    [
+      "shield_fx",
+      [
+        [
+          "shield_guard",
+          "a cyan defensive shield with two small rising gold chevrons, protecting from the front"
+        ],
+        [
+          "shield_armor",
+          "a luminous golden armored barrier and small plate fragments assembling"
+        ],
+        [
+          "shield_proc",
+          "a compact gold and cyan shield activation sparkle"
+        ],
+        [
+          "armor_break",
+          "a golden shield breaking into small harmless fragments"
+        ]
+      ]
+    ],
+    [
+      "king_slash_fx",
+      [
+        [
+          "white_slash",
+          "one sharp bright WHITE horizontal crescent cutting trail"
+        ],
+        [
+          "white_cross",
+          "two sharp WHITE cutting trails forming a clear X"
+        ],
+        [
+          "white_triple",
+          "exactly THREE parallel thin WHITE cutting rays"
+        ],
+        [
+          "white_flurry",
+          "many fast WHITE slashing streaks crossing in a tight cluster"
+        ]
+      ]
+    ],
+    [
+      "king_flame_fx",
+      [
+        [
+          "fire_arrow",
+          "one orange red flaming arrow pointing RIGHT with trailing embers"
+        ],
+        [
+          "king_mark",
+          "a crimson-black curse seal floating above a target, no readable letters"
+        ],
+        [
+          "giant_fire_arrow",
+          "a massive bright orange WHITE-core flame arrow pointing RIGHT"
+        ],
+        [
+          "world_slash",
+          "one huge razor thin WHITE and rainbow-edged horizontal slash, intensely luminous center"
+        ]
+      ]
+    ],
+    [
+      "doll_fx",
+      [
+        [
+          "doll_reflect",
+          "crimson curse threads curling around a small spectral straw doll and reflecting a red bolt"
+        ],
+        [
+          "giant_nail",
+          "one enormous iron ritual nail pointing DOWN with a dark red aura"
+        ],
+        [
+          "nail_impact",
+          "a ritual nail impact with dark red ring and steel sparks, no body"
+        ],
+        [
+          "doll_counter",
+          "a red needle-like curse strike snapping back toward the LEFT"
+        ]
+      ]
+    ],
+    [
+      "death_note_fx",
+      [
+        [
+          "name_write",
+          "a spectral quill writing bright red abstract strokes in an open black notebook, no readable words"
+        ],
+        [
+          "name_reject",
+          "a black notebook rejecting a crimson glowing sigil in a short purple puff"
+        ],
+        [
+          "name_success",
+          "a red death sigil pulsing above an open notebook with violet smoke"
+        ],
+        [
+          "judgement",
+          "a huge ominous black-red clockwork death seal and downward crimson judgment beam"
+        ]
+      ]
+    ],
+    [
+      "kagutsuchi_fx",
+      [
+        [
+          "red_multi_slash",
+          "three fast silver and red short-blade slashing crescents"
+        ],
+        [
+          "red_dodge_aura",
+          "a red swirling protective aura ring surrounding a transparent empty body-space"
+        ],
+        [
+          "rain_cast",
+          "a miniature blue magical raincloud with falling blue raindrops"
+        ],
+        [
+          "rain_counter",
+          "a silver short-blade counterattack slash with blue raindrops and red sparks"
+        ]
+      ]
+    ],
+    [
+      "void_patch_fx",
+      [
+        [
+          "void_teleport",
+          "a violet-cyan teleport ring with sharp spatial rifts and no character"
+        ],
+        [
+          "void_red_echo",
+          "an intense red orb with white core firing toward RIGHT"
+        ],
+        [
+          "void_afterimage",
+          "three abstract violet humanoid silhouette AFTERIMAGE outlines moving right, no detailed character"
+        ],
+        [
+          "void_pulse",
+          "a red circular shockwave with violet star-like fragments"
+        ]
+      ]
+    ],
+    [
+      "bee_fx",
+      [
+        [
+          "worker_bee",
+          "ONE cute yellow-black worker honeybee flying RIGHT, flapping translucent wings"
+        ],
+        [
+          "queen_bee",
+          "ONE larger golden queen honeybee with tiny crown flying RIGHT"
+        ],
+        [
+          "bee_swarm",
+          "a group of exactly FIVE small yellow-black worker bees spreading right"
+        ],
+        [
+          "bee_poison",
+          "a purple-green poison cloud with honeycomb droplets and tiny gold stinger motif"
+        ]
+      ]
+    ],
+    [
+      "thunder_fx",
+      [
+        [
+          "lightning_yellow",
+          "a bright yellow lightning bolt striking DOWN with white core"
+        ],
+        [
+          "lightning_red",
+          "a more intense crimson red lightning bolt striking DOWN"
+        ],
+        [
+          "lightning_blue",
+          "a vivid electric BLUE lightning bolt striking DOWN"
+        ],
+        [
+          "paralysis",
+          "a compact halo of electric yellow zigzags surrounding empty transparent body-space"
+        ]
+      ]
+    ],
+    [
+      "ice_fx",
+      [
+        [
+          "ice_spear",
+          "one faceted cyan ice spear falling DOWN"
+        ],
+        [
+          "ice_spears_three",
+          "exactly THREE faceted cyan ice spears falling DOWN in a spread"
+        ],
+        [
+          "giant_ice_spear",
+          "one enormous sharp faceted cyan ice spear falling DOWN with frost shards"
+        ],
+        [
+          "freeze",
+          "a translucent cyan ice prison crystal forming around a transparent empty inner body-space"
+        ]
+      ]
+    ],
+    [
+      "pan_fx",
+      [
+        [
+          "pan_bonk",
+          "a dark cast iron frying pan swinging into an orange impact burst"
+        ],
+        [
+          "pan_stun",
+          "three small gold stars circling a transparent empty head-space"
+        ],
+        [
+          "meal_heal",
+          "a steaming delicious meal on a gold-rimmed plate with green healing sparkles"
+        ],
+        [
+          "heat_smoke",
+          "a column of warm gray smoke and red heat shimmer rising from below"
+        ]
+      ]
+    ],
+    [
+      "dual_fx",
+      [
+        [
+          "dual_slash",
+          "two crossing slashes, one icy cyan and one electric gold"
+        ],
+        [
+          "superconduct_orb",
+          "a large descending energy sphere split evenly icy cyan and electric yellow"
+        ],
+        [
+          "superconduct_beam",
+          "a wide horizontal RIGHT-facing beam split icy cyan and electric gold"
+        ],
+        [
+          "superconduct_aura",
+          "a swirling cyan frost and gold electricity ring with transparent empty center"
+        ]
+      ]
+    ],
+    [
+      "mirror_fx",
+      [
+        [
+          "hp_swap",
+          "two red heart silhouettes exchanging positions through a golden turquoise mirror"
+        ],
+        [
+          "weakness",
+          "a dull violet broken sword aura with descending black-purple wisps"
+        ],
+        [
+          "life_drain",
+          "red life-energy droplets flowing LEFT into a golden turquoise mirror"
+        ],
+        [
+          "overflow_armor",
+          "a luminous turquoise mirror shield assembling around a red heart"
+        ]
+      ]
+    ],
+    [
+      "elemental_fx",
+      [
+        [
+          "elemental_beam",
+          "a RIGHT-facing energy beam of exactly THREE color strands blue red brown"
+        ],
+        [
+          "fire_bomb",
+          "a compact orange-red fireball exploding into a circular flame burst"
+        ],
+        [
+          "water_orb",
+          "a bright blue water orb flying RIGHT with splash trails"
+        ],
+        [
+          "earth_shield",
+          "a thick BROWN earthen shield assembling with rocky plates and gold reflect sparks"
+        ]
+      ]
+    ],
+    [
+      "summons_fx",
+      [
+        [
+          "golem",
+          "a friendly compact BROWN rock golem with chunky arms and glowing amber eyes, idle breathing"
+        ],
+        [
+          "fire_person",
+          "a small RED flame humanoid spirit with bright orange core, idle flicker"
+        ],
+        [
+          "mermaid",
+          "a small BLUE water mermaid spirit with fin tail and turquoise hair, idle float"
+        ],
+        [
+          "niko",
+          "a cute but majestic chimera combining a brown rocky armored body, red fiery mane, blue aquatic tail and small wings, idle breath"
+        ]
+      ]
+    ],
+    [
+      "weather_fx",
+      [
+        [
+          "weather_rain",
+          "a sparse localized column of blue rain streaks and small splash flecks, empty surrounding"
+        ],
+        [
+          "weather_snow",
+          "a sparse localized flurry of icy blue snowflakes and soft cyan mist, empty surrounding"
+        ],
+        [
+          "weather_heat",
+          "a sparse localized rising plume of red-gold heat wisps and soft gray smoke"
+        ],
+        [
+          "weather_superconduct",
+          "a sparse localized mixture of electric gold sparks and cyan snow crystals"
+        ]
+      ]
+    ]
+  ],
+  "generation_method": "Built-in image generation; transparent PNG; frame extraction preserves source pixels."
+}

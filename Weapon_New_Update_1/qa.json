@@ -1,0 +1,187 @@
+{
+  "newEffects": 64,
+  "reusedEffects": 7,
+  "frames": 284,
+  "emptyFrames": [],
+  "edgeActivity": [
+    {
+      "file": "frames/shield_armor/1.png",
+      "edgePixels": 162,
+      "foregroundPixels": 23272
+    },
+    {
+      "file": "frames/shield_armor/2.png",
+      "edgePixels": 169,
+      "foregroundPixels": 47608
+    },
+    {
+      "file": "frames/white_triple/1.png",
+      "edgePixels": 4,
+      "foregroundPixels": 24137
+    },
+    {
+      "file": "frames/white_triple/2.png",
+      "edgePixels": 8,
+      "foregroundPixels": 43173
+    },
+    {
+      "file": "frames/white_flurry/1.png",
+      "edgePixels": 74,
+      "foregroundPixels": 24799
+    },
+    {
+      "file": "frames/white_flurry/2.png",
+      "edgePixels": 83,
+      "foregroundPixels": 48635
+    },
+    {
+      "file": "frames/fire_arrow/2.png",
+      "edgePixels": 4,
+      "foregroundPixels": 31819
+    },
+    {
+      "file": "frames/king_mark/2.png",
+      "edgePixels": 8,
+      "foregroundPixels": 52197
+    },
+    {
+      "file": "frames/giant_fire_arrow/2.png",
+      "edgePixels": 13,
+      "foregroundPixels": 52768
+    },
+    {
+      "file": "frames/giant_fire_arrow/3.png",
+      "edgePixels": 5,
+      "foregroundPixels": 21547
+    },
+    {
+      "file": "frames/name_success/2.png",
+      "edgePixels": 25,
+      "foregroundPixels": 55772
+    },
+    {
+      "file": "frames/judgement/2.png",
+      "edgePixels": 20,
+      "foregroundPixels": 62281
+    },
+    {
+      "file": "frames/void_red_echo/1.png",
+      "edgePixels": 2,
+      "foregroundPixels": 21280
+    },
+    {
+      "file": "frames/void_red_echo/2.png",
+      "edgePixels": 12,
+      "foregroundPixels": 42624
+    },
+    {
+      "file": "frames/void_afterimage/1.png",
+      "edgePixels": 41,
+      "foregroundPixels": 27655
+    },
+    {
+      "file": "frames/void_afterimage/2.png",
+      "edgePixels": 47,
+      "foregroundPixels": 41272
+    },
+    {
+      "file": "frames/void_pulse/1.png",
+      "edgePixels": 11,
+      "foregroundPixels": 23046
+    },
+    {
+      "file": "frames/void_pulse/2.png",
+      "edgePixels": 27,
+      "foregroundPixels": 47697
+    },
+    {
+      "file": "frames/queen_bee/1.png",
+      "edgePixels": 116,
+      "foregroundPixels": 33009
+    },
+    {
+      "file": "frames/queen_bee/2.png",
+      "edgePixels": 108,
+      "foregroundPixels": 49229
+    },
+    {
+      "file": "frames/bee_poison/2.png",
+      "edgePixels": 23,
+      "foregroundPixels": 49198
+    },
+    {
+      "file": "frames/meal_heal/2.png",
+      "edgePixels": 8,
+      "foregroundPixels": 49713
+    },
+    {
+      "file": "frames/heat_smoke/2.png",
+      "edgePixels": 8,
+      "foregroundPixels": 44113
+    },
+    {
+      "file": "frames/superconduct_orb/2.png",
+      "edgePixels": 51,
+      "foregroundPixels": 60954
+    },
+    {
+      "file": "frames/superconduct_beam/1.png",
+      "edgePixels": 49,
+      "foregroundPixels": 23088
+    },
+    {
+      "file": "frames/superconduct_beam/2.png",
+      "edgePixels": 266,
+      "foregroundPixels": 42052
+    },
+    {
+      "file": "frames/superconduct_aura/2.png",
+      "edgePixels": 269,
+      "foregroundPixels": 42448
+    },
+    {
+      "file": "frames/overflow_armor/2.png",
+      "edgePixels": 7,
+      "foregroundPixels": 53742
+    },
+    {
+      "file": "frames/elemental_beam/2.png",
+      "edgePixels": 35,
+      "foregroundPixels": 39008
+    },
+    {
+      "file": "frames/water_orb/1.png",
+      "edgePixels": 36,
+      "foregroundPixels": 20774
+    },
+    {
+      "file": "frames/water_orb/2.png",
+      "edgePixels": 42,
+      "foregroundPixels": 37858
+    },
+    {
+      "file": "frames/earth_shield/2.png",
+      "edgePixels": 134,
+      "foregroundPixels": 54761
+    }
+  ],
+  "totalEffects": 71,
+  "expectedNewFrames": 256,
+  "notes": [
+    "Edge activity is reported, not automatically erased. Source pixels are preserved.",
+    "Animation timings are visual suggestions, never gameplay durations.",
+    "No project code was provided; integration is not tested in the real game."
+  ],
+  "checks": {
+    "weapon_images_rgba": 13,
+    "all_frame_paths_exist": true,
+    "all_source_rectangles_in_bounds": true,
+    "new_frames_nonempty": 256,
+    "javascript_syntax_checked": true,
+    "runtime_ability_draw_cleanup_checked": 62,
+    "runtime_mock_draw_calls": 2365,
+    "browser_execution_tested": false,
+    "tested_in_actual_game": false
+  },
+  "transparentNewFrames": 256
+}

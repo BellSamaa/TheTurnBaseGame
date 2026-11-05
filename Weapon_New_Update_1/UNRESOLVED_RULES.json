@@ -1,0 +1,114 @@
+[
+  {
+    "weapon": "Shield",
+    "items": [
+      "Chưa quy định giới hạn cộng dồn/làm mới của +2 Thủ và 15 giáp.",
+      "Chưa quy định thời hạn của giáp hoặc cách xử lý tự kích hoạt khi không đủ PTS."
+    ]
+  },
+  {
+    "weapon": "King Slasher (Sukuna)",
+    "items": [
+      "Giải: chưa xác định 5 sát thương là tổng của 3 tia hay sát thương mỗi tia.",
+      "Giải: chưa rõ hiệu ứng phản 3 sát thương còn tiếp tục sau khi chém liên tục 7 sát thương đã kích hoạt hay không.",
+      "Skill 2 dạng 1: chưa có thời hạn của đốt cháy 3 sát thương/round.",
+      "Khắc ấn: chưa quy định có bị tiêu thụ khi dùng skill ẩn, có làm mới hay cộng dồn.",
+      "Chưa quy định nhát cắt xuyên mọi giáp/né/immune tương tác thế nào với HP của nhân vật triệu hồi đứng đỡ đòn."
+    ]
+  },
+  {
+    "weapon": "Hình nhân thế mạng",
+    "items": [
+      "Skill 1: làm tròn 2/3 sát thương nhưng chưa xác định quy tắc làm tròn ở trường hợp .5.",
+      "Chưa có giới hạn thời gian để lưu đòn tấn công thành công gần nhất hoặc quy định lưu riêng từng kẻ địch.",
+      "Chưa quy định phản sát thương tính trước hay sau giáp/giảm sát thương."
+    ]
+  },
+  {
+    "weapon": "Death Note",
+    "items": [
+      "Ghi tên thất bại có khiến mục tiêu được xem là đã ghi tên để dùng Phán quyết hay không chưa rõ.",
+      "Chưa quy định trạng thái ghi tên tồn tại bao lâu, ghi được bao nhiêu mục tiêu và có bị xóa khi đổi mục tiêu không."
+    ]
+  },
+  {
+    "weapon": "Đoản Đao Kagutsuchi",
+    "items": [
+      "Tung thêm D20: chưa rõ lấy kết quả mới, cao nhất hay cho người chơi chọn.",
+      "Phản công khi thủ: câu “tấn công bằng đúng số xúc xắc phòng thủ” chưa xác định đó là sát thương trực tiếp hay D20 Công để tiếp tục tính hit.",
+      "Hiệu ứng mưa 3 round chưa quy định đếm theo toàn bàn hay chỉ round có người dùng tham gia."
+    ]
+  },
+  {
+    "weapon": "Infinity Void / Ifinity Void",
+    "items": [
+      "Tier không được cung cấp trong cập nhật hoặc trong abilities.json mẫu.",
+      "Giữ điều kiện D6 = 4 của Akai từ kit gốc; cập nhật này không cung cấp giá PTS mới.",
+      "“Hiệu ứng vẫn thế” của lần Akai bắn thêm chưa xác định có làm mới cửa sổ 3 round hoặc kích hoạt chuỗi proc tiếp hay không.",
+      "Hollow Purple trong kit gốc ghi cần charge ≥ 30 nhưng quy tắc trừ charge và phạm vi mục tiêu vẫn chưa rõ."
+    ]
+  },
+  {
+    "weapon": "Bee Shooter",
+    "items": [
+      "5 ong thợ từ Queen Bee: chưa rõ sát thương ngẫu nhiên 1–5 là tổng cả đàn hay mỗi con.",
+      "Độc Worker Bee: chưa quy định làm mới thời hạn khi cộng tầng và tick ở đầu hay cuối lượt."
+    ]
+  },
+  {
+    "weapon": "Giáo sấm sét",
+    "items": [
+      "Tung thêm D20: chưa có quy tắc chọn kết quả.",
+      "Khi tê liệt bỏ lượt: thứ tự chuyển quyền tấn công trong trận nhiều người cần game xác định.",
+      "Hai dạng Skill 1 cường hóa có thể được chọn hay ngẫu nhiên chưa được nêu."
+    ]
+  },
+  {
+    "weapon": "Giáo Băng",
+    "items": [
+      "Tỷ lệ kích hoạt passive đóng băng chưa được cung cấp.",
+      "Khi bị khóa phòng thủ, chưa rõ cách kết toán đòn đánh và D20 Thủ.",
+      "Hiệu ứng chỉ cho End Turn cần thống nhất cách áp dụng nếu kích hoạt tại round phòng thủ ngoài lượt người đó."
+    ]
+  },
+  {
+    "weapon": "Frying Pan",
+    "items": [
+      "Chưa quy định lần dùng thêm có thể tiếp tục kích hoạt dùng thêm hay không.",
+      "Tăng sát thương Skill 1 trong 2 lượt chưa có quy định đếm lượt cụ thể.",
+      "Bỏng của Bong được ghi gây thêm 5 sát thương; không tự đặt thêm tick hoặc thời hạn DoT."
+    ]
+  },
+  {
+    "weapon": "Song Giáo Băng và Sấm sét",
+    "items": [
+      "Sát thương của Skill 1 dạng Ice Spear chưa được cung cấp; không tự gán sát thương mỗi giáo.",
+      "Sát thương của hai nhát chém Skill 1 dạng 3 chưa được cung cấp.",
+      "Xác suất gắn Siêu Dẫn của Skill 1 dạng 3 và tác dụng cụ thể của trạng thái đó chưa được cung cấp.",
+      "Tăng 20% xác suất ra 10–20 chưa xác định tăng tương đối hay 20 điểm phần trăm, cũng chưa có phân phối kết quả.",
+      "Cường hóa +5% cho cả 3 dạng chưa xác định tăng tương đối hay điểm phần trăm; dạng 3 chưa có tỷ lệ nền.",
+      "Chưa quy định hai môi trường/cường hóa từ hai dạng Skill 2 thay thế, cộng dồn hay cùng tồn tại."
+    ]
+  },
+  {
+    "weapon": "Mirror of Life",
+    "items": [
+      "Điều kiện “máu cao hơn 20% máu người chơi” có thể hiểu là ≥120% HP người dùng; ví dụ 80 và 100 thỏa mãn, nhưng dấu > hay ≥ chưa được chốt.",
+      "Nhánh “máu đối phương thấp hơn 20%” chưa rõ là thấp hơn ngưỡng 120% hay thấp hơn người dùng 20%.",
+      "Cụm “nếu người chơi nhận sát thương từ bất kỳ nguồn nào” ở nhánh suy nhược chưa rõ là điều kiện kích hoạt hay điều kiện duy trì.",
+      "Chưa quy định mức sàn sát thương khi giảm 7, hoặc cách đổi HP vượt HP tối đa khi hai bên có trần HP khác nhau."
+    ]
+  },
+  {
+    "weapon": "Nhẫn ba màu / Nhẫn nguyên tố",
+    "items": [
+      "Skill 1: không đặt giới hạn số summon vì yêu cầu chỉ cho ví dụ khi có 2–3 summon.",
+      "Chưa quy định summon nhận sát thương dư sau khi bị hạ, thứ tự chắn đòn khi có nhiều summon, hoặc summon còn lại sau khi chủ bị hạ.",
+      "Người lửa: chưa quy định tự hủy sau khi phát nổ hay có thể nổ nhiều lần.",
+      "Niko: có 25 HP nhưng yêu cầu chưa xác nhận kế thừa cơ chế đứng đỡ sát thương cho chủ như ba summon nhỏ.",
+      "Tỷ lệ chọn 1 trong 3 hành động của Niko chưa được cung cấp; không tự mặc định chia đều.",
+      "Earth Shield ghi khoảng 15 giáp: lưu 15 là giá trị đề xuất, chưa coi là thông số chính xác đã chốt.",
+      "Phản 2/3 của Earth Shield chưa xác định quy tắc làm tròn và tính trước hay sau giáp."
+    ]
+  }
+]
