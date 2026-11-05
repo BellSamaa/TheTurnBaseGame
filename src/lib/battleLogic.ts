@@ -1,3 +1,4 @@
+import {normalSetup,normalReactions,updateNormalDamage,absorbUpdateDamage} from './weaponUpdateHooks';
 import {warriorBonus} from './classMechanics';
 import { reflectedDamage, absorbWithRock } from './combatDamage';
 import type {
@@ -35,7 +36,8 @@ export function calculateD20Combat(
   attackerClass: ClassInfo,
   defenderClass: ClassInfo,
   attackerState?: PlayerState,
-  defenderState?: PlayerState
+  defenderState?: PlayerState,
+  round=1
 ): {
   damage: number;
   rawDiff: number;
@@ -46,6 +48,9 @@ export function calculateD20Combat(
   logTextVi: string;
   logTextEn: string;
 } {
+  const setup=attackerState&&defenderState?normalSetup(attackerState,defenderState,attackerD20,defenderD20,round):undefined;
+  if(setup){attackerD20=setup.atk;defenderD20=setup.def;if(setup.cancel)attackerState!.isStunned=true;}
+  if(setup?.dodge)return {damage:0,rawDiff:attackerD20-defenderD20,isHit:false,isDodged:true,logTextEn:'Crimson aura evades the attack.',logTextVi:'Aura đỏ né đòn.'};
   if (attackerState?.isStunned || attackerState?.timeLockActive) {
     attackerState.isStunned = false;
     attackerState.timeLockActive = false;
@@ -78,12 +83,13 @@ export function calculateD20Combat(
   const rawDiff = effectiveAtk - defenderD20;
 
   if (rawDiff <= 0) {
+    let damage=0;if(attackerState&&defenderState){if(setup?.cleave){damage=updateNormalDamage(attackerState,5,false,round);if(defenderState.immuneDamageNext){defenderState.immuneDamageNext=false;damage=0;}damage=absorbUpdateDamage(defenderState,Math.max(0,damage-absorbWithRock(defenderState,damage)));}normalReactions(attackerState,defenderState,false,damage,defenderD20,round);}
     return {
-      damage: 0,
+      damage,
       rawDiff,
       isHit: false,
-      logTextVi: `Phòng thủ thành công! (Công ${effectiveAtk} ≤ Thủ ${defenderD20}) - Không nhận sát thương.`,
-      logTextEn: `Defended successfully! (Atk ${effectiveAtk} ≤ Def ${defenderD20}) - 0 damage taken.`,
+      logTextVi: damage>0?`Bát tất trúng: gây ${damage} sát thương dù Công ${effectiveAtk} ≤ Thủ ${defenderD20}.`:`Phòng thủ thành công! (Công ${effectiveAtk} ≤ Thủ ${defenderD20}) - Không nhận sát thương.`,
+      logTextEn: damage>0?`Cleave guaranteed hit: ${damage} damage despite ATK ${effectiveAtk} ≤ DEF ${defenderD20}.`:`Defended successfully! (Atk ${effectiveAtk} ≤ Def ${defenderD20}) - 0 damage taken.`,
     };
   }
 
@@ -111,14 +117,18 @@ export function calculateD20Combat(
 
   // Flame Blade bonus (+5 damage from Dragon Dagger Skill 1 Form 2)
   if (attackerState?.flameBladeBuff) {
-    modifiedDamage += 5;
+    modifiedDamage += 4;
     attackerState.flameBladeBuff = false;
   }
 
-  modifiedDamage = Math.max(1, Math.round(modifiedDamage));
+  if(attackerState&&(attackerState.daggerBurnHits??0)>0){modifiedDamage-=2;attackerState.daggerBurnHits!--;}
+  modifiedDamage = Math.max(0, Math.round(modifiedDamage));
 
+  if(attackerState)modifiedDamage=updateNormalDamage(attackerState,modifiedDamage,!!setup?.cleave,round);
   const absorbedByRock = defenderState ? absorbWithRock(defenderState, modifiedDamage) : 0;
   modifiedDamage -= absorbedByRock;
+  if(defenderState)modifiedDamage=absorbUpdateDamage(defenderState,modifiedDamage);
+  if(attackerState&&defenderState)normalReactions(attackerState,defenderState,true,modifiedDamage,defenderD20,round);
 
   let modNotes = '';
   if (attackerClass.id === 'assassin') modNotes += ' [Sát Thủ +50%]';
@@ -227,18 +237,17 @@ export function executeSkill1D6(
       // ra 1: ném dao 5 dame + lửa tick 3 lượt mỗi lượt 1 dame
       // ra 2: multi slash 5 dame + hóa lửa dagger (+5 dame lượt kế)
       if (d6Roll === 1) {
-        damage = 5;
-        target.burnTicks = 3;
-        target.burnDmgPerTurn = 1;
+        damage = 8;
+        target.daggerBurnHits = 2;
         statusEffect = 'burn';
-        logTextVi = `Dragon Dagger ra mặt 1: Ném dao Long Hỏa gây 5 sát thương kèm thiêu đốt 3 lượt (1 dame/lượt)!`;
-        logTextEn = `Dragon Dagger rolled 1: Throws fiery dagger dealing 5 damage + Burn 3 turns (1 dmg/turn)!`;
+        logTextVi = `Dragon Dagger ra mặt 1: Ném dao gây 8 sát thương; giảm 2 sát thương trong 2 đòn tấn công trúng kế tiếp của mục tiêu!`;
+        logTextEn = `Dragon Dagger rolled 1: Flame Throw deals 8 damage; target deals 2 less damage on its next 2 successful attacks!`;
       } else if (d6Roll === 2) {
         damage = 5;
         user.flameBladeBuff = true;
         statusEffect = 'flame_blade';
-        logTextVi = `Dragon Dagger ra mặt 2: Lao đến Multi Slash gây 5 sát thương và Hóa Lửa Dagger (+5 dame đòn kế)!`;
-        logTextEn = `Dragon Dagger rolled 2: Multi Slash deals 5 damage and enchants dagger (+5 damage next turn)!`;
+        logTextVi = `Dragon Dagger ra mặt 2: Lao đến Multi Slash gây 5 sát thương và Hóa Lửa Dagger (+4 dame đòn trúng kế)!`;
+        logTextEn = `Dragon Dagger rolled 2: Multi Slash deals 5 damage and enchants dagger (+4 damage next successful hit)!`;
       } else {
         logTextVi = `Dragon Dagger tung ra mặt ${d6Roll} (Cần mặt 1 hoặc 2 để kích hoạt chiêu).`;
         logTextEn = `Dragon Dagger rolled ${d6Roll} (Requires face 1 or 2 to trigger).`;
@@ -402,13 +411,13 @@ export function executeSkill2D12(
       break;
 
     case 'infinity_ring':
-      // Infinity Void: hollow purple tích đủ 40 PTS bắn hollow purple gây 50 dame
+      // Infinity Void: hollow purple tích đủ 40 PTS bắn hollow purple gây 40 dame
       if (pts >= cost) {
         user.d12Charge = Math.max(0, pts - cost);
-        damage = 50;
+        damage = 40;
         burstTriggered = true;
-        logTextVi = `💥💥 BÁT TỬ SẮC [HOLLOW PURPLE]! Tích đủ ${cost} PTS D6, hợp nhất Vô Hạ Hạn hủy diệt gây 50 siêu sát thương cực hạn!`;
-        logTextEn = `💥💥 HOLLOW PURPLE UNLEASHED! Reached ${cost} D6 PTS, limitless collision obliterates for 50 apocalyptic damage!`;
+        logTextVi = `💥💥 BÁT TỬ SẮC [HOLLOW PURPLE]! Tích đủ ${cost} PTS D6, hợp nhất Vô Hạ Hạn hủy diệt gây 40 siêu sát thương cực hạn!`;
+        logTextEn = `💥💥 HOLLOW PURPLE UNLEASHED! Reached ${cost} D6 PTS, limitless collision obliterates for 40 apocalyptic damage!`;
       } else {
         logTextVi = `Infinity Void cần tích đủ ${cost} PTS D6 để bắn Tử Sắc (Hiện có: ${pts}/${cost} PTS).`;
         logTextEn = `Infinity Void requires ${cost} D6 PTS to fire Hollow Purple (Current: ${pts}/${cost} PTS).`;

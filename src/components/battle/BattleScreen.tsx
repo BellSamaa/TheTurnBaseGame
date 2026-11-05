@@ -1,5 +1,8 @@
 'use client';
-import {d6Allowance,recordAttackRoll} from '@/lib/classMechanics';
+import {effectFrame} from '@/lib/weaponUpdateAssets';
+import {weaponD20,tickWeaponRound,nextWeaponAttacker,prepareWeaponCharge,outgoingDamage} from '@/lib/weaponUpdateHooks';
+import {syncWeather,drainWeaponEvents} from '@/lib/weaponUpdateState';
+import {d6Allowance,recordAttackRoll,decideMageBonus} from '@/lib/classMechanics';
 import {canUsePvpSkill} from '@/lib/skillPriority';
 import {tx} from '@/lib/uiLocale';
 import CombatArena from './CombatArena';
@@ -455,6 +458,7 @@ export default function BattleScreen() {
     rollButtonTitle += ' · ' + Math.min(count, completed + 1) + '/' + count;
   }
 
+  const chargeBlocked=['d6_atk','d6_def'].includes(turnStep)&&(isP1User?player1:player2).weaponUpdate?.slowChargeRound===currentTurn&&!!(isP1User?player1:player2).weaponUpdate?.slowChargeBlocked;
   const bothPlayersHaveRolled = turnStep === 'd12';
   const hasLocalPlayerRolled =
     turnStep === 'd12' ||
@@ -604,9 +608,10 @@ export default function BattleScreen() {
     const isP1Attacking = p1IsAttacker;
     const attackerClass = isP1Attacking ? p1Class : p2Class;
 
-    const attackingPlayer = isP1Attacking ? player1 : player2;
+    const attackingPlayer = structuredClone(isP1Attacking ? player1 : player2);
+    const defendingPlayer=structuredClone(isP1Attacking?player2:player1);
     const emptyRevolver = attackingPlayer.weapon.id === 'revolver' && (attackingPlayer.bullets ?? 6) <= 0;
-    const attackRoll=recordAttackRoll(attackingPlayer,currentTurn,emptyRevolver?0:rollD20());
+    const attackRoll=recordAttackRoll(attackingPlayer,currentTurn,emptyRevolver?0:weaponD20(attackingPlayer,rollD20(),'attack',currentTurn,defendingPlayer));
     const finalD20=attackRoll.value;
     const nextAttackStep=attackRoll.done?'d20_def':'d20_atk';
 
@@ -633,8 +638,8 @@ export default function BattleScreen() {
             ...prev,
             p1D20: isP1Attacking ? finalD20 : prev.p1D20,
             p2D20: !isP1Attacking ? finalD20 : prev.p2D20,
-            player1: isP1Attacking ? (attackRoll.done?spendAttackBullet(attackRoll.player):attackRoll.player) : prev.player1,
-            player2: !isP1Attacking ? (attackRoll.done?spendAttackBullet(attackRoll.player):attackRoll.player) : prev.player2,
+            player1: isP1Attacking ? (attackRoll.done?spendAttackBullet(attackRoll.player):attackRoll.player) : defendingPlayer,
+            player2: !isP1Attacking ? (attackRoll.done?spendAttackBullet(attackRoll.player):attackRoll.player) : defendingPlayer,
             turnStep: nextAttackStep,
             battleLog: [newLogEntry, ...prev.battleLog],
           };
@@ -660,7 +665,7 @@ export default function BattleScreen() {
     const defenderState = structuredClone(p1IsAttacker ? player2 : player1);
     const defenderTarget: 'p1' | 'p2' = p1IsAttacker ? 'p2' : 'p1';
 
-    const firstDefD20 = rollD20();
+    const firstDefD20 = weaponD20(defenderState,rollD20(),'defense',currentTurn,attackerState);
     let finalDefD20 = firstDefD20;
     let defenderBoxerData: { r1: number; r2: number; chosen: number } | null = null;
     if (false) {
@@ -682,7 +687,7 @@ export default function BattleScreen() {
           attackerClass,
           defenderClass,
           attackerState,
-          defenderState
+          defenderState,currentTurn
         );
 
         const defName = isP1Defending ? player1.name : player2.name;
@@ -709,7 +714,7 @@ export default function BattleScreen() {
         let newActiveVfx: BattleState['activeVfx'] = null;
         let newDamagePopup: BattleState['damagePopup'] = null;
 
-        if (combatResult.isHit && combatResult.damage > 0) {
+        if (combatResult.damage > 0) {
           playWeaponSound(attackerState.weapon.id);
           const vfxName = normalAttackEffect(attackerState.weapon.id);
           newActiveVfx = {
@@ -789,6 +794,8 @@ export default function BattleScreen() {
         }
         if (rockFollows) logsToAdd.unshift({ turn: currentTurn, type: 'damage', timestamp: Date.now() + 2,
           message: `Pet Rock follows its owner: ${rockDamage} damage.`, messageVi: `Lượt Pet Rock: tấn công sau chủ nhân, gây ${rockDamage} sát thương.` });
+        for(const e of drainWeaponEvents([attackerState,defenderState])){vfxSequence.push({id:crypto.randomUUID(),effect:e.effect,target:e.target===player1.id?'p1':'p2',size:140});logsToAdd.unshift({turn:currentTurn,type:'system',timestamp:Date.now(),message:e.text,messageVi:e.textVi});}
+        prepareWeaponCharge(attackerState,currentTurn);prepareWeaponCharge(defenderState,currentTurn);
         setTurnStep('d6_atk');
 
         setBattleState((prev) => {
@@ -824,8 +831,7 @@ export default function BattleScreen() {
     if (chargeRollLockRef.current || isRollingD6 || phase === 'game_over' || syncPendingRef.current) return;
     const isP1 = attacking ? p1IsAttacker : !p1IsAttacker;
     const roll = rollD6();
-    const chargePreview=applyChargeRoll(battleState, isP1, roll);
-    if (!chargePreview) return;
+    const chargeDecision=decideMageBonus(isP1?battleState.player1:battleState.player2,currentTurn);
     chargeRollLockRef.current = true;
     setIsRollingD6(true);
     playDiceRollSound();
@@ -834,14 +840,14 @@ export default function BattleScreen() {
       setIsRollingD6(false);
       setBattleState(prev => {
         if (!prev || prev.currentTurn !== currentTurn) return prev;
-        const decided=isP1?chargePreview.player1:chargePreview.player2;
+        const decided=chargeDecision;
         const stable={...prev,[isP1?"player1":"player2"]:{...(isP1?prev.player1:prev.player2),mageBonusRound:decided.mageBonusRound,mageBonusD6:decided.mageBonusD6}};
         const updated = applyChargeRoll(stable, isP1, roll);
         if (!updated) return prev;
         const player = isP1 ? updated.player1 : updated.player2;
         updated.battleLog = [{ turn: prev.currentTurn, type: 'system', timestamp: Date.now(),
-          message: player.name + ' rolls D6: +' + roll + ' PTS.',
-          messageVi: player.name + ' tung D6: +' + roll + ' PTS.' }, ...prev.battleLog];
+          message: player.name + ' rolls D6: +' + (player.weaponUpdate?.lastChargeValue??roll) + ' PTS.',
+          messageVi: player.name + ' tung D6: +' + (player.weaponUpdate?.lastChargeValue??roll) + ' PTS.' }, ...prev.battleLog];
         syncOnlineBattle(updated);
         return updated;
       });
@@ -898,10 +904,10 @@ export default function BattleScreen() {
     const vfxTarget = rolledBack || presentation.target === 'caster' ? casterTarget : presentation.target === 'center' ? 'center' : opponentTarget;
     const banner: SkillActivationEvent = { id: crypto.randomUUID(), weaponId: caster.weapon.id,
       skillNameEn: presentation.nameEn, skillNameVi: presentation.nameVi, slot,
-      icon: '/assets/vfx/frames/' + presentation.effect + '/1.png', casterName: caster.name, auraColor: presentation.color };
-    const vfx: VfxEvent = { id: crypto.randomUUID(), effect: presentation.effect, target: vfxTarget, size: slot === 2 ? 180 : 130 };
+      icon: effectFrame(result.effect||presentation.effect,1), casterName: caster.name, auraColor: presentation.color };
+    const vfx: VfxEvent = { id: crypto.randomUUID(), effect: result.effect||presentation.effect, target: vfxTarget, size: slot === 2 ? 180 : 130 };
     const vfxSequence: VfxEvent[] = skillEffectPlan(caster, slot, form).map(cue => ({
-      id: crypto.randomUUID(), effect: cue.effect, size: slot === 2 ? 180 : 130,
+      id: crypto.randomUUID(), effect: result.effect||cue.effect, size: slot === 2 ? 180 : 130,
       target: cue.target === 'caster' || rolledBack ? casterTarget : cue.target === 'center' ? 'center' : opponentTarget,
     }));
     const reaction = (effect: string) => ({ id: crypto.randomUUID(), effect, target: opponentTarget as 'p1' | 'p2', size: 140 });
@@ -912,6 +918,7 @@ export default function BattleScreen() {
     seenSkillBanners.current.add(banner.id);
     setSkillBannerQueue([banner]);
     if (presentation.target === 'caster') playMagicCastSound(); else playWeaponSound(caster.weapon.id);
+    syncWeather([result.caster,result.opponent]);
     setBattleState(prev => {
       if (!prev) return null;
       const next: BattleState = { ...prev,
@@ -987,7 +994,8 @@ export default function BattleScreen() {
     setVfxQueue([]);
     setDamagePopup(null);
 
-    const nextP1IsAttacker = !p1IsAttacker;
+    const keepAttack=((p1IsAttacker?player1:player2).weaponUpdate?.extraAttacks??0)>0;
+    const nextP1IsAttacker=keepAttack?p1IsAttacker:!p1IsAttacker;
     const bannerMsg = nextP1IsAttacker
       ? isEn
         ? 'YOUR TURN - ATTACKING!'
@@ -1001,10 +1009,12 @@ export default function BattleScreen() {
 
     setBattleState((prev) => {
       if (!prev) return null;
-      const burnedP1 = { ...prev.player1 }, burnedP2 = { ...prev.player2 };
+      const burnedP1 = structuredClone(prev.player1), burnedP2 = structuredClone(prev.player2);
+      if(keepAttack){const owner=p1IsAttacker?burnedP1:burnedP2;if(owner.weaponUpdate)owner.weaponUpdate.extraAttacks=Math.max(0,(owner.weaponUpdate.extraAttacks||0)-1);}
+      const weaponEvents=tickWeaponRound([burnedP1,burnedP2],currentTurn+1);
       for(const p of [burnedP1,burnedP2])if(currentTurn+1>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;
-      applyOpponentDamage(burnedP1, p1BurnDmg, currentTurn, false);
-      applyOpponentDamage(burnedP2, p2BurnDmg, currentTurn, false);
+      applyOpponentDamage(burnedP1,burnedP1.weaponUpdate?.burnOwner===burnedP2.id?outgoingDamage(burnedP2,p1BurnDmg,currentTurn):p1BurnDmg,currentTurn,false,burnedP2);
+      applyOpponentDamage(burnedP2,burnedP2.weaponUpdate?.burnOwner===burnedP1.id?outgoingDamage(burnedP1,p2BurnDmg,currentTurn):p2BurnDmg,currentTurn,false,burnedP1);
       const burnVfx: VfxEvent[] = [];
       for (const [before, after, target, amount] of [[prev.player1, burnedP1, 'p1', p1BurnDmg], [prev.player2, burnedP2, 'p2', p2BurnDmg]] as const) {
         if (amount > 0) burnVfx.push({ id: crypto.randomUUID(), target, size: 120,
@@ -1013,6 +1023,7 @@ export default function BattleScreen() {
       const updated: BattleState = {
         ...prev,
         currentTurn: prev.currentTurn + 1,
+        battleLog:[...weaponEvents.map(e=>({turn:currentTurn+1,type:'system' as const,message:e.text,messageVi:e.textVi,timestamp:Date.now()})),...prev.battleLog],
         attackerId: nextP1IsAttacker ? prev.player1.id : prev.player2.id,
         turnStep: 'd20_atk',
         p1HasRolled: false,
@@ -1117,7 +1128,7 @@ export default function BattleScreen() {
 
   return <div className="battle-screen revised-battle">{battleState.purpleSky&&<PurpleSkyEffect key={battleState.purpleSky.id} startedAt={battleState.purpleSky.startedAt}/>} <RankResult battleId={battleState.id} winner={winnerId} mode={mode}/><CombatArena stageSequence={['attack','defense','charge','charge_defense','skills']} state={arenaState} viewer={myPlayer.id} title={isEn?mapData.name:mapData.nameVi} onSurrender={()=>{if(window.confirm(isEn?'Surrender?':'Đầu hàng?'))handleConfirmForfeit();}}>
     <div className="combat-status">{turnStep==='d12'&&!canUsePvpSkill(battleState,myPlayer.id)?(isEn?'Waiting for attacker’s skill or End Turn':'Chờ bên Công dùng skill hoặc End Turn'):turnBannerText||rollButtonTitle}</div>
-    <div className="four-commands"><PixelSpriteButton sprite="roll_dice" disabled={!canLocalRoll||isRollingD20||isRollingD6||phase==='game_over'} onClick={handleRollDice} title={rollButtonTitle}/><PixelSpriteButton sprite="end_turn" disabled={!bothPlayersHaveRolled||hasLocalPlayerEndedTurn||isEndingTurn||phase==='game_over'} onClick={handleEndTurn}/><CombatSkills player={myPlayer} round={currentTurn} enabled={canUsePvpSkill(battleState,myPlayer.id)&&turnStep==='d12'&&!hasLocalPlayerEndedTurn&&phase!=='game_over'} busy={syncPendingRef.current} onCast={args=>handleCastSkill(args.slot as 1|2,false,args as {form?:number;lockSlot?:1|2})}/></div>
+    <div className="four-commands"><PixelSpriteButton sprite="roll_dice" disabled={chargeBlocked||!canLocalRoll||isRollingD20||isRollingD6||phase==='game_over'} onClick={handleRollDice} title={rollButtonTitle}/><PixelSpriteButton sprite="end_turn" disabled={(!bothPlayersHaveRolled&&!(chargeBlocked&&canLocalRoll))||hasLocalPlayerEndedTurn||isEndingTurn||phase==='game_over'} onClick={()=>chargeBlocked?chargePlayer(isAttacker):handleEndTurn()}/><CombatSkills player={myPlayer} round={currentTurn} enabled={canUsePvpSkill(battleState,myPlayer.id)&&turnStep==='d12'&&!hasLocalPlayerEndedTurn&&phase!=='game_over'} busy={syncPendingRef.current} onCast={args=>handleCastSkill(args.slot as 1|2,false,args as {form?:number;lockSlot?:1|2})}/></div>
     {winnerId&&<div className="battle-result"><h2>{winnerId===myPlayer.id?(isEn?'VICTORY':'CHIẾN THẮNG'):(isEn?'DEFEAT':'THẤT BẠI')}</h2><button className="primary-action" onClick={returnToLobby} disabled={returningToLobby}>{isEn?'RETURN TO LOBBY':'VỀ PHÒNG'}</button>{lobbyError&&<p>{lobbyError}</p>}</div>}
   </CombatArena></div>;
 }

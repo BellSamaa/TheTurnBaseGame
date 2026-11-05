@@ -1,6 +1,8 @@
 'use client';
 
 const STANDS: Record<string, { src: string; name: string }> = {
+  king_slasher:{src:'/assets/weapon-update-1/sukuna.png',name:'Sukuna'},
+  death_note:{src:'/assets/weapon-update-1/light.png',name:'Light'},
   infinity_ring: { src: '/assets/sprites/stands/gojo.png', name: 'Gojo' },
   fire_headband: { src: '/assets/sprites/stands/uchiha.png', name: 'Madara & Sasuke' },
 };

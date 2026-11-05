@@ -89,7 +89,7 @@ export default function WeaponsGallery() {
                       boxShadow: isSelected ? itemTier.boxShadow : undefined,
                     }}
                     className={`
-                      relative p-2.5 border-2 cursor-pointer transition select-none flex flex-col items-center justify-between text-center
+                      ${w.tier==='secret'?'secret-galaxy':''} relative p-2.5 border-2 cursor-pointer transition select-none flex flex-col items-center justify-between text-center
                       ${
                         isSelected
                           ? 'bg-yellow-950/60 scale-[1.02]'

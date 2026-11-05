@@ -1,3 +1,4 @@
+import {UPDATE_WEAPONS} from './weaponUpdateCatalog';
 import type { ClassInfo, WeaponInfo, MapInfo, CharacterCustomization } from '@/types/game';
 
 // ============================================================
@@ -133,6 +134,7 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
 // 9 Weapons (Uses individual sliced weapon sprites)
 // ============================================================
 export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
+  ...UPDATE_WEAPONS,
   greatsword: {
     id: 'greatsword',
     name: 'Silver Greatsword',
@@ -266,8 +268,8 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
       nameVi: 'Tử Sắc (Hollow Purple)',
       diceType: 'd6',
       chargeRequired: 28,
-      description: 'Choose: Purple deals 50 damage; Purple Sky deals 30 and locks an enemy skill of your choice next round. Both cost 28 PTS.',
-      descriptionVi: 'Chọn: Cầu tím gây 50 sát thương; Tử Sắc Thiên Không gây 30 và khóa Skill 1 hoặc 2 đối thủ ở hiệp kế tiếp. Cả hai tốn 28 PTS.',
+      description: 'Choose: Purple deals 40 damage; Purple Sky deals 30 and locks an enemy skill of your choice next round. Both cost 28 PTS.',
+      descriptionVi: 'Chọn: Cầu tím gây 40 sát thương; Tử Sắc Thiên Không gây 30 và khóa Skill 1 hoặc 2 đối thủ ở hiệp kế tiếp. Cả hai tốn 28 PTS.',
       effect: 'void_hollow_purple_50',
     },
   },
@@ -280,22 +282,22 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     description: 'Forged from frosted azure dragon scales imbued with blue and crimson flame.',
     descriptionVi: 'Dao găm rèn từ vảy rồng thiêng với ngọn lửa thiêu đốt và đòn ám sát uy lực.',
     skill1: {
-      chargeRequired: 11,
+      chargeRequired: 10,
       name: 'Dragon Strikes',
       nameVi: 'Long Hỏa Công Kích ',
       diceType: 'd6',
       triggerNumber: [1, 2],
-      description: '2 Forms: Choose Throw: Dagger throw dealing 5 damage + 1 burn damage/turn for 3 turns. Choose form 2: Multi Slash dealing 5 damage + enflames dagger (+5 damage next turn)!',
-      descriptionVi: '2 Dạng: Chọn Ném Dao: ném dao gây 5 dame + sát thương lửa tick 3 lượt mỗi lượt 1 dame. Chọn dạng 2: lao đến multi slash gây 5 dame kèm hóa lửa dagger, lượt tiếp theo chém gây thêm 5 dame.',
+      description: '2 Forms: Choose Throw: Dagger throw deals 8 damage and reduces the target’s next 2 successful attacks by 2 damage. Choose form 2: Multi Slash dealing 5 damage + enflames dagger (+4 damage on the next successful attack)!',
+      descriptionVi: '2 Dạng: Chọn Ném Dao: ném dao gây 8 dame; giảm 2 dame trong 2 đòn trúng tiếp theo của mục tiêu. Chọn dạng 2: lao đến multi slash gây 5 dame kèm hóa lửa dagger, đòn trúng tiếp theo gây thêm 4 dame.',
       effect: 'dragon_dagger_forms',
     },
     skill2: {
       name: 'Azure Hellfire Storm',
       nameVi: 'Bão Lửa Lam Đồ Sát',
       diceType: 'd6',
-      chargeRequired: 25,
-      description: 'Accumulate 25 D6 PTS: Awakens Blue Flame, strikes continuously dealing 20 damage + 2 burn damage/turn for 5 turns!',
-      descriptionVi: 'Tích đủ 25 PTS D6: Hóa lửa xanh cho dagger, chém liên hoàn gây 20 dame kèm tick 2 dame trong 5 lượt.',
+      chargeRequired: 28,
+      description: 'Accumulate 28 D6 PTS: Awakens Blue Flame, strikes continuously dealing 20 damage + 2 burn damage/turn for 5 turns!',
+      descriptionVi: 'Tích đủ 28 PTS D6: Hóa lửa xanh cho dagger, chém liên hoàn gây 20 dame kèm tick 2 dame trong 5 lượt.',
       effect: 'dragon_blue_fire_20',
     },
   },
@@ -308,22 +310,23 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
     description: 'Pocket timepiece governing the infinite threads of time, fate, and destiny.',
     descriptionVi: 'Đồng hồ thần khí thao túng dòng thời gian: Đánh dấu khôi phục, Khóa lượt và Xóa bỏ thời gian.',
     skill1: {
-      chargeRequired: 11,
+      chargeRequired: 12,
       name: 'Time Manipulation',
       nameVi: 'Thời Không Biến Trực ',
       diceType: 'd6',
       triggerNumber: [2, 4, 6],
-      description: '3 Forms: Choose form 2: Time Anchor (bookmarks time/state, 2nd cast rewinds back). Choose form 4: Fate Seal (rerolls the next enemy D20 attack and keeps the lower result). Choose form 6: Time Lock (cancels the next enemy attack)!',
-      descriptionVi: '3 Dạng: Chọn dạng 2: tạo điểm đánh dấu thời gian, kích hoạt lần 2 khôi phục trạng thái lúc đánh dấu. Chọn dạng 4: tung lại D20 công kế tiếp của đối thủ, lấy số thấp hơn. Chọn dạng 6: hủy đòn tấn công kế tiếp của đối thủ.',
+      description: 'Anchor saves your state for 5 rounds and rewinds on recast. Fate Seal repeats the next 2 enemy D20 attacks. Time Slow deals 10 and biases D6 toward low values for 2 rounds.',
+      descriptionVi: 'Neo lưu trạng thái 5 round, dùng lại để khôi phục. Phong Ấn bắt tung lại D20 Công trong 2 lượt công tiếp. Chậm Thời Gian gây 10, giảm may mắn D6 trong 2 round.',
       effect: 'chronos_time_forms',
     },
     skill2: {
-      name: 'Eraser Time',
+      name: 'Time Arts',
       nameVi: 'Xóa Bỏ Thời Gian (Eraser Time)',
       diceType: 'd6',
-      chargeRequired: 27,
-      description: 'Accumulate 27 D6 PTS: Restores your Time Anchor HP, or full HP if no anchor exists. Clears the anchor.',
-      descriptionVi: 'Tích đủ 27 PTS D6: Khôi phục HP tại điểm đánh dấu; nếu chưa đánh dấu thì hồi đầy HP. Xóa điểm đánh dấu.',
+      chargeRequired: 20,
+      triggerNumber: [1,2],
+      description: '20 PTS: Erase Time restores HP lost to opponents in the latest round. Time Changer grants 3 consecutive attacks.',
+      descriptionVi: '20 PTS: Xóa Thời Gian hồi HP mất bởi đối thủ ở round gần nhất. Đổi Thời Gian cho 3 lần công liên tiếp.',
       effect: 'chronos_eraser_time',
     },
   },

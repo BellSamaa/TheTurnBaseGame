@@ -1,5 +1,6 @@
 'use client';
 
+import {effectFrame} from '@/lib/weaponUpdateAssets';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,6 +9,7 @@ export interface VfxEvent {
   effect: string; // folder name in /assets/vfx/frames/
   target: 'p1' | 'p2' | 'center';
   size?: number;
+  flipX?:boolean;
 }
 
 interface VfxAnimationPlayerProps {
@@ -64,12 +66,12 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
         {[0, 1, 2, 3].map((f) => (
           <img
             key={f}
-            src={`/assets/vfx/frames/${activeVfx.effect}/${f}.png`}
+            src={effectFrame(activeVfx.effect,f)}
             alt={`${activeVfx.effect}-${f}`}
             className={`absolute inset-0 w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(250,204,21,0.9)] transition-opacity duration-75 ${
               frame === f ? 'opacity-100' : 'opacity-0'
             }`}
-            style={{ imageRendering: 'pixelated' }}
+            style={{ imageRendering: 'pixelated',transform:activeVfx.flipX?'scaleX(-1)':undefined }}
           />
         ))}
       </motion.div>

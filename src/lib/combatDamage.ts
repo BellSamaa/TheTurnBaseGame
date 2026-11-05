@@ -1,3 +1,4 @@
+import {takeArmorAndSummons} from './weaponUpdateState';
 import type { PlayerState } from '@/types/game';
 export function recordOpponentDamage(player: PlayerState, amount: number, turn: number) {
   if (amount <= 0) return;
@@ -23,12 +24,14 @@ export function absorbWithRock(player: PlayerState, amount: number) {
   return absorbed;
 }
 
-export function applyOpponentDamage(player: PlayerState, amount: number, turn: number, directHit = true) {
+export function applyOpponentDamage(player: PlayerState, amount: number, turn: number, directHit = true,source?:PlayerState) {
   if (amount <= 0) return 0;
   if (directHit && player.immuneDamageNext) { player.immuneDamageNext = false; return 0; }
   if (directHit) amount -= absorbWithRock(player, amount);
+  amount=takeArmorAndSummons(player,amount);
   const lost = Math.min(player.hp, amount);
   player.hp = Math.max(0, player.hp - amount);
   recordOpponentDamage(player, lost, turn);
+  if(source&&lost>0&&(player.weaponUpdate?.earthReflects??0)>0){player.weaponUpdate!.earthReflects!--;const reflected=Math.max(0,Math.round(lost*2/3)-((player.weaponUpdate?.weakUntil??0)>=turn?7:0));applyOpponentDamage(source,reflected,turn);}
   return lost;
 }

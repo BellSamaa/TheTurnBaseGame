@@ -61,7 +61,7 @@ export default function MenuWeaponsViewer({ isEn }: MenuWeaponsViewerProps) {
                   setSelectedId(w.id);
                 }}
                 className={`
-                  relative p-2 border text-left flex items-center gap-2.5 transition cursor-pointer select-none
+                  ${w.tier==='secret'?'secret-galaxy':''} relative p-2 border text-left flex items-center gap-2.5 transition cursor-pointer select-none
                   ${
                     isSelected
                       ? 'border-yellow-400 bg-yellow-950/70 shadow-[0_0_10px_rgba(250,204,21,0.5)]'

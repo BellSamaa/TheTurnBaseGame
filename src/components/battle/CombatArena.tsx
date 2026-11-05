@@ -1,4 +1,6 @@
 'use client';
+import {WeaponWeather,WeaponSummons,WeaponStatus,WeaponAura} from './WeaponWorldEffects';
+import {effectFrame,preloadWeaponEffects} from '@/lib/weaponUpdateAssets';
 import {useEffect,useRef,useState} from 'react';
 import {useGameStore} from '@/stores/gameStore';
 import type {LmsState} from '@/lib/lms';
@@ -17,6 +19,8 @@ import {playDiceRollSound,playBattleCue,playBattleEffect} from '@/lib/soundEffec
 
 /** Presentation only: all values and dice results come from the battle server. */
 export default function CombatArena({state:s,viewer,busy=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,children}:{state:LmsState;viewer?:string;busy?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;children:React.ReactNode}){
+  const weaponKey=s.players.map(p=>p.weapon.id).join(',');
+  useEffect(()=>{preloadWeaponEffects(weaponKey.split(','));},[weaponKey]);
   const mapId=useGameStore(st=>st.battleState?.mapId)||'castle';
   const map=MAP_DEFINITIONS.find(m=>m.id===mapId)||MAP_DEFINITIONS[0];
   const arenaRef=useRef<HTMLDivElement>(null);
@@ -97,25 +101,25 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
 
     {buffs&&s.initiative&&<div className="lms-initiative" role="status"><div className="lms-initiative-rolls">{s.order.map((id,index)=>{const p=s.players.find(p=>p.id===id)!;return <span key={id} className={s.phase!=='initiative'&&id===active.id?'initiative-active':''}><small>{index+1}. {p.name}</small><b>D20 <strong>{s.turnFlow===3||s.phase==='initiative'?s.initiative!.find(r=>r.id===id)?.roll??'—':id===s.order[s.active]?s.attack??'—':id===s.target?s.defense??'—':'—'}</strong></b></span>;})}</div><p key={active.id+':'+s.round}>✦ {s.phase==='initiative'?(en?'Waiting for all opening rolls · ':'Chờ tất cả tung D20 · '):false?(en?'Highest opening D20 · First attack: ':'D20 khởi đầu cao nhất · Đi trước: '):(en?'Current attacker: ':'Lượt tấn công: ')}<b>{s.phase==='initiative'?s.initiative.length+'/'+s.players.filter(p=>p.hp>0).length:active.name}</b>{s.extras?.direction===-1?(en?' · Reversed order':' · Đã đảo chiều'):''}</p>{s.attack!==undefined&&s.defense!==undefined&&<p className="lms-dice-comparison">{active.name} <strong>{s.attack}</strong> {s.attack>s.defense?' > ':' ≤ '} <strong>{s.defense}</strong> {victim?.name} · {s.attack>s.defense?(en?'Attack wins · damage after skill effects':'Công thắng · sát thương còn áp dụng hiệu ứng'):(en?'Defense wins · blocked':'Thủ thắng · chặn đòn')}</p>}</div>}
     {targetPrompt&&<div className="combat-target-prompt" role="status">{targetPrompt}</div>}
-    <div className="combat-stage"><img className="battle-background-2d" src={map.image.replace(/\.png$/,'.webp')} alt=""/>
-      {event?.target==='center'&&<div className="combat-stage-vfx"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:240}}/></div>}
+    <div className="combat-stage"><WeaponWeather players={s.players} round={s.round}/><img className="battle-background-2d" src={map.image.replace(/\.png$/,'.webp')} alt=""/>
+      {event?.target==='center'&&<div className="combat-stage-vfx"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?480:240}}/></div>}
       <div className="combat-vs"><img src="/assets/sprites/ui/frames/battle_vs.png" alt="VS"/><small>{victim?active.name+' → '+victim.name:en?'Choose a target':'Chọn mục tiêu'}</small></div>
       {displayPlayers.map((p,i)=>{const side=buffs?(i<2?'left':'right'):i===0?'left':'right';return <section key={p.id} className={'combat-seat combat-seat-'+i+(s.phase!=='initiative'&&p.id===active.id?' combat-active':'')+(p.hp<=0?' combat-out':'')+(targetIds.includes(p.id)?' combat-selectable':'')}>
         {targetIds.includes(p.id)&&<button className="combat-pick-target" disabled={busy||phaseWaiting} aria-label={(en?'Target ':'Chọn ')+p.name} onClick={()=>onPickTarget?.(p.id)}><span>{en?'SELECT TARGET':'CHỌN MỤC TIÊU'}</span></button>}
         {(buffs||p.id!==viewer)&&<div className="opponent-roll-badge">{(buffs?opponentRolls(s):otherRolls).filter(r=>r.playerId===p.id).map(r=><span key={r.key} title={r.name+' · '+r.die+' '+r.role}><small>{r.die}</small><b>{r.values.join('+')}</b></span>)}</div>}
         <div className="combat-name"><b>{p.id==='pve_bot'?tx(p.name):p.name}</b><small>{s.turnFlow===3&&(['skills','buffs'].includes(s.phase)?s.stageDone:s.endVotes)?.includes(p.id)?(en?'DONE':'ĐÃ XONG'):p.id===viewer?(en?'YOU':'BẠN'):p.hp<=0?(en?'ELIMINATED':'ĐÃ BỊ LOẠI'):s.phase!=='initiative'&&p.id===active.id?(en?'ATK':'CÔNG'):p.id===victim?.id?(en?'DEF':'THỦ'):''}</small>{buffs&&<div className="combat-buffs"><BuffCard id={s.extras?.buffs[p.id]?.id??-1} used={s.extras?.buffs[p.id]?.used}/>{s.extras?.bonusBuffs?.[p.id]&&<BuffCard id={s.extras.bonusBuffs[p.id].id} used={s.extras.bonusBuffs[p.id].used}/>}</div>}</div>
         <HealthBar current={p.hp} max={p.maxHp}/><RockHealthBar player={p}/>
-        <div className="combat-fighter"><WeaponStand weaponId={p.weapon.id} side={side}/><div className="combat-avatar">{p.immuneDamageNext&&<div className="combat-immunity" title="Immune"/>}<CharacterRenderer character={p.character} weapon={p.weapon} size={buffs?'md':'lg'} facing={side==='left'?'right':'left'} animation="idle"/></div><RockCompanion player={p} side={side}/>
-          {event?.target===p.id&&<div className="combat-hit-overlay"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:buffs?120:180}}/></div>}
+        <div className="combat-fighter"><WeaponStand weaponId={p.weapon.id} side={side}/><div className="combat-avatar"><WeaponAura player={p} round={s.round}/>{p.immuneDamageNext&&<div className="combat-immunity" title="Immune"/>}<CharacterRenderer character={p.character} weapon={p.weapon} size={buffs?'md':'lg'} facing={side==='left'?'right':'left'} animation="idle"/></div><RockCompanion player={p} side={side}/><WeaponSummons player={p} side={side}/>
+          {event?.target===p.id&&<div className="combat-hit-overlay"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?320:buffs?120:180,flipX:displayPlayers.findIndex(x=>x.id===event.caster)>i}}/></div>}
         </div>
         <div className="combat-equipment"><img src={p.weapon.image} alt=""/><span>{en?p.weapon.name:p.weapon.nameVi}<small>{en?CLASS_DEFINITIONS[p.classType].name:CLASS_DEFINITIONS[p.classType].nameVi} · {p.weapon.tier}</small></span></div>
-        <div className="combat-stats"><b>{p.d12Charge??0} PTS</b>{p.weapon.id==='revolver'&&<span>◈ {p.bullets??6}/6</span>}{p.burnTicks? <span title={en?'Burn turns remaining':'Số lượt thiêu đốt còn lại'}>🔥 {p.burnTicks}</span>:null}{p.panicTurns?<span title="Panic −5 ATK">⚠ {p.panicTurns}</span>:null}{p.lockedSkill&&p.skillLockTurn===s.round?<span>🔒 S{p.lockedSkill}</span>:null}</div>
+        <WeaponStatus player={p} round={s.round}/><div className="combat-stats"><b>{p.d12Charge??0} PTS</b>{p.weapon.id==='revolver'&&<span>◈ {p.bullets??6}/6</span>}{p.burnTicks? <span title={en?'Burn turns remaining':'Số lượt thiêu đốt còn lại'}>🔥 {p.burnTicks}</span>:null}{p.panicTurns?<span title="Panic −5 ATK">⚠ {p.panicTurns}</span>:null}{p.lockedSkill&&p.skillLockTurn===s.round?<span>🔒 S{p.lockedSkill}</span>:null}</div>
         <div className="combat-seat-dice" hidden><span>D6 · {p.id===active.id?s.rolls.join(' + ')||'—':'—'}</span><span>D20 · {p.id===active.id?s.attack??'—':p.id===victim?.id?s.defense??'—':'—'}</span></div>
 
       </section>;})}
     </div>
     <div className="combat-result-strip" role="status" aria-live="polite">{rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong><em>{en?'Rolled!':'Đã tung!'}</em></div>)}</div>:<div className="combat-roll-notice" hidden={!notice} title={notice}>{notice}</div>}</div>
-    {banner?.nameEn&&<div key={banner.id} className="combat-skill-flash"><img src={'/assets/vfx/frames/'+banner.effect+'/1.png'} alt=""/><div><small>{s.players.find(p=>p.id===banner.caster)?.name} · {en?'SKILL':'KỸ NĂNG'} {banner.slot}</small><strong>{en?banner.nameEn:banner.nameVi}</strong></div><span className="skill-sweep-spark" aria-hidden="true">✦</span></div>}
+    {banner?.nameEn&&<div key={banner.id} className="combat-skill-flash"><img src={effectFrame(banner.effect,1)} alt=""/><div><small>{s.players.find(p=>p.id===banner.caster)?.name} · {en?'SKILL':'KỸ NĂNG'} {banner.slot}</small><strong>{en?banner.nameEn:banner.nameVi}</strong></div><span className="skill-sweep-spark" aria-hidden="true">✦</span></div>}
     <div className="lms-bottom-layout"><div className="combat-console"><div className="combat-dice-column"><div className="combat-dice-dock">
       <div className="personal-d20"><DiceRoller3D key={s.round+':'+s.active} diceType="d20" isRolling={rolling&&rollingDie==='d20'} targetValue={personalD20??null} label="D20"/></div>
       <div className="personal-d6"><DiceRoller3D diceType="d6" isRolling={rolling&&rollingDie==='d6'} targetValue={personalRolls.at(-1)??null} label="D6" resultText={personalRolls.length?personalRolls.join(' + '):undefined}/></div>

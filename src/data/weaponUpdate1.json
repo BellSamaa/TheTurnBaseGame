@@ -1,0 +1,1186 @@
+[
+  {
+    "id": "shield",
+    "name": "Shield",
+    "nameVi": "Khiên",
+    "tier": "common",
+    "image": "/assets/weapon-update-1/weapons/shield.png",
+    "skills": [
+      {
+        "id": "shield.s1",
+        "slot": 1,
+        "name": "Gia cố phòng thủ",
+        "cost_pts": 2,
+        "resource": "D6 PTS",
+        "details": [
+          "Tự động sử dụng khi lần tung D6 của người chơi ra mặt 4.",
+          "Cộng thêm 2 điểm phòng thủ cho 2 lượt phòng thủ tiếp theo."
+        ],
+        "effects": [
+          "shield_proc",
+          "shield_guard"
+        ],
+        "activation": {
+          "mode": "automatic",
+          "die": "D6",
+          "face": 4
+        },
+        "duration": {
+          "count": 2,
+          "scope": "owner_defense_rounds"
+        },
+        "defense_bonus": 2,
+        "nameEn": "Fortify",
+        "nameVi": "Gia cố phòng thủ"
+      },
+      {
+        "id": "shield.s2",
+        "slot": 2,
+        "name": "Tạo giáp",
+        "cost_pts": 20,
+        "resource": "D6 PTS",
+        "details": [
+          "Tạo 15 giáp cho người chơi."
+        ],
+        "effects": [
+          "shield_armor"
+        ],
+        "armor": 15,
+        "nameEn": "Aegis Armor",
+        "nameVi": "Tạo giáp"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "king_slasher",
+    "name": "King Slasher",
+    "nameVi": "Vua Trảm Kích",
+    "tier": "secret",
+    "image": "/assets/weapon-update-1/weapons/king_slasher.png",
+    "skills": [
+      {
+        "id": "king_slasher.s1.bat",
+        "slot": 1,
+        "name": "Bát",
+        "cost_pts": 10,
+        "resource": "D6 PTS",
+        "details": [
+          "Enchant đòn đánh thường trong 3 round tấn công tiếp theo của người dùng; không tiêu hao thời hạn khi phòng thủ.",
+          "Nếu tấn công thành công: cộng thêm 4 sát thương vào đòn đánh.",
+          "Nếu tấn công thất bại do số thủ đối phương lớn hơn: vẫn tất trúng 5 sát thương.",
+          "VFX: hai lát cắt trắng hình chữ X."
+        ],
+        "effects": [
+          "white_cross"
+        ],
+        "form": "Bát",
+        "duration": {
+          "count": 3,
+          "scope": "owner_attack_rounds"
+        },
+        "damage": {
+          "on_hit_bonus": 4,
+          "on_miss": 5
+        },
+        "nameEn": "Shrine Arts",
+        "nameVi": "Bát"
+      },
+      {
+        "id": "king_slasher.s1.giai",
+        "slot": 1,
+        "name": "Giải",
+        "cost_pts": 10,
+        "resource": "D6 PTS",
+        "details": [
+          "Bắn 3 tia lát cắt trắng vào đối thủ; thông số sát thương được cung cấp là 5, cách chia cho 3 tia chưa rõ.",
+          "Kèm Slashing trong 3 round phòng thủ tiếp theo của người dùng.",
+          "Mỗi lần đối phương tấn công thành công trong cửa sổ đó: tự động dội ngược 3 sát thương.",
+          "Chỉ cần đối phương tấn công thất bại 1 lần trong 3 round thủ: kích hoạt một đợt chém liên tục gây 7 sát thương."
+        ],
+        "effects": [
+          "white_triple",
+          "white_flurry"
+        ],
+        "form": "Giải",
+        "damage": {
+          "listed_initial": 5,
+          "initial_per_ray": null,
+          "reflect_on_enemy_hit": 3,
+          "flurry_on_enemy_miss": 7
+        },
+        "duration": {
+          "count": 3,
+          "scope": "owner_defense_rounds"
+        },
+        "flurry_trigger_once": true,
+        "nameEn": "Shrine Arts",
+        "nameVi": "Giải"
+      },
+      {
+        "id": "king_slasher.s1.fire_arrow",
+        "slot": 1,
+        "name": "Mũi tên lửa",
+        "cost_pts": 10,
+        "resource": "D6 PTS",
+        "details": [
+          "Bắn mũi tên lửa nổ xuống mặt đất, gây 12 sát thương.",
+          "Khắc ấn mục tiêu trong 3 round tiếp theo, không phân biệt tấn công hay phòng thủ.",
+          "Mục tiêu có khắc ấn cho phép hiển thị Skill 2 dạng ẩn."
+        ],
+        "effects": [
+          "fire_arrow",
+          "king_mark"
+        ],
+        "form": "Mũi tên lửa",
+        "damage": 12,
+        "duration": {
+          "count": 3,
+          "scope": "attack_or_defense_rounds"
+        },
+        "nameEn": "Shrine Arts",
+        "nameVi": "Mũi tên lửa"
+      },
+      {
+        "id": "king_slasher.s2.fire_arrow",
+        "slot": 2,
+        "name": "Mũi tên lửa khổng lồ",
+        "cost_pts": 30,
+        "resource": "D6 PTS",
+        "details": [
+          "Bắn một mũi tên lửa rất lớn gây 28 sát thương.",
+          "Gây đốt cháy: mỗi round mất thêm 3 HP, không phân biệt tấn công hay phòng thủ.",
+          "Thời hạn đốt cháy chưa được cung cấp."
+        ],
+        "effects": [
+          "giant_fire_arrow",
+          "fire_bomb"
+        ],
+        "form": "Dạng 1",
+        "damage": 28,
+        "dot": {
+          "damage": 3,
+          "duration": null,
+          "scope": "attack_or_defense_rounds"
+        },
+        "nameEn": "Divine Flame",
+        "nameVi": "Mũi tên lửa khổng lồ"
+      },
+      {
+        "id": "king_slasher.s2.world_slash",
+        "slot": 2,
+        "name": "Nhát cắt xuyên thế giới — skill ẩn",
+        "cost_pts": 30,
+        "resource": "D6 PTS",
+        "details": [
+          "Chỉ hiển thị cho người chơi bấm nếu đối phương đang có khắc ấn từ Mũi tên lửa.",
+          "Màn hình sáng bừng, rồi một nhát cắt cực lớn, dài và có màu sắc cắt ngang giữa màn hình.",
+          "Gây 40 sát thương xuyên mọi loại giáp, né và immune từ tất cả vũ khí trong game."
+        ],
+        "effects": [
+          "world_slash"
+        ],
+        "form": "Dạng 2 ẩn",
+        "damage": 40,
+        "requires_status": "king_mark",
+        "bypass": [
+          "armor",
+          "dodge",
+          "immune"
+        ],
+        "screen_flash": true,
+        "nameEn": "Divine Flame",
+        "nameVi": "Nhát cắt xuyên thế giới — skill ẩn"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "substitute_doll",
+    "name": "Substitute Doll",
+    "nameVi": "Hình Nhân Thế Mạng",
+    "tier": "rare",
+    "image": "/assets/weapon-update-1/weapons/substitute_doll.png",
+    "skills": [
+      {
+        "id": "substitute_doll.s1",
+        "slot": 1,
+        "name": "Phản thế mạng",
+        "cost_pts": 10,
+        "resource": "D6 PTS",
+        "details": [
+          "Lấy lượng sát thương ở lượt gần nhất bạn bị đối thủ tấn công thành công.",
+          "Phản lại 2/3 lượng sát thương đó, làm tròn."
+        ],
+        "effects": [
+          "doll_reflect"
+        ],
+        "damage": {
+          "formula": "round(last_successful_enemy_attack_damage * 2/3)",
+          "rounding_mode": null
+        },
+        "nameEn": "Voodoo Reflection",
+        "nameVi": "Phản thế mạng"
+      },
+      {
+        "id": "substitute_doll.s2",
+        "slot": 2,
+        "name": "Đinh thế mạng",
+        "cost_pts": 18,
+        "resource": "D6 PTS",
+        "details": [
+          "Một cái đinh khổng lồ đâm từ trên cao xuống đối thủ, gây 10 sát thương.",
+          "Tạo hiệu ứng cho 2 lần đối phương tấn công thành công tiếp theo: mỗi lần phản lại 3 sát thương cho đối phương.",
+          "Thời hạn này gắn với các lần tấn công thành công, không tự đổi thành 2 giây animation."
+        ],
+        "effects": [
+          "giant_nail",
+          "nail_impact",
+          "doll_counter"
+        ],
+        "damage": 10,
+        "retaliation": {
+          "damage": 3,
+          "charges": 2,
+          "trigger": "enemy_successful_attack"
+        },
+        "nameEn": "Sky Nail",
+        "nameVi": "Đinh thế mạng"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "death_note",
+    "name": "Death Note",
+    "nameVi": "Sổ Tử Thần",
+    "tier": "secret",
+    "image": "/assets/weapon-update-1/weapons/death_note.png",
+    "skills": [
+      {
+        "id": "death_note.s1",
+        "slot": 1,
+        "name": "Ghi tên",
+        "cost_pts": 10,
+        "resource": "D6 PTS",
+        "details": [
+          "Chọn mục tiêu và ghi tên chúng vào sổ; sau đó tung thêm một D6 để xét kết quả.",
+          "D6 = 1–2: tên bị từ chối; người dùng nhận 3 sát thương, mục tiêu vẫn nhận 5 sát thương.",
+          "D6 = 3–4: mục tiêu nhận ceil(D6 × 2,5) sát thương.",
+          "D6 = 5–6: mục tiêu nhận D6 × 3 sát thương."
+        ],
+        "effects": [
+          "name_write",
+          "name_reject",
+          "name_success"
+        ],
+        "extra_roll": {
+          "die": "D6",
+          "purpose": "skill_resolution_not_resource_charge"
+        },
+        "outcomes": [
+          {
+            "faces": [
+              1,
+              2
+            ],
+            "self_damage": 3,
+            "target_damage": 5,
+            "result": "rejected"
+          },
+          {
+            "faces": [
+              3
+            ],
+            "target_damage": 8,
+            "result": "normal"
+          },
+          {
+            "faces": [
+              4
+            ],
+            "target_damage": 10,
+            "result": "normal"
+          },
+          {
+            "faces": [
+              5
+            ],
+            "target_damage": 15,
+            "result": "great"
+          },
+          {
+            "faces": [
+              6
+            ],
+            "target_damage": 18,
+            "result": "great"
+          }
+        ],
+        "nameEn": "Write a Name",
+        "nameVi": "Ghi tên"
+      },
+      {
+        "id": "death_note.s2",
+        "slot": 2,
+        "name": "Phán quyết",
+        "cost_pts": 50,
+        "resource": "D6 PTS",
+        "details": [
+          "Nhắm mục tiêu đã bị ghi tên.",
+          "Trừ ceil(75% × lượng HP hiện tại của mục tiêu).",
+          "Dùng HP hiện tại tại thời điểm áp dụng, không dùng HP tối đa."
+        ],
+        "effects": [
+          "judgement"
+        ],
+        "damage": {
+          "formula": "ceil(target_current_hp * 0.75)",
+          "basis": "current_hp"
+        },
+        "requires_status": "name_written",
+        "nameEn": "Judgement",
+        "nameVi": "Phán quyết"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "kagutsuchi",
+    "name": "Kagutsuchi",
+    "nameVi": "Đoản Đao Kagutsuchi",
+    "tier": "epic",
+    "image": "/assets/weapon-update-1/weapons/kagutsuchi.png",
+    "skills": [
+      {
+        "id": "kagutsuchi.s1",
+        "slot": 1,
+        "name": "Liên trảm và Huyết aura",
+        "cost_pts": 12,
+        "resource": "D6 PTS",
+        "details": [
+          "Chém liên tục gây 10 sát thương.",
+          "Tạo aura đỏ trong 2 lần tấn công thành công tiếp theo của đối phương.",
+          "Mỗi lần đủ điều kiện đó có 50% né được đòn."
+        ],
+        "effects": [
+          "red_multi_slash",
+          "red_dodge_aura"
+        ],
+        "damage": 10,
+        "dodge": {
+          "chance": 0.5,
+          "charges": 2,
+          "trigger": "enemy_attack_that_passed_D20_hit_check"
+        },
+        "nameEn": "Crimson Dance",
+        "nameVi": "Liên trảm và Huyết aura"
+      },
+      {
+        "id": "kagutsuchi.s2",
+        "slot": 2,
+        "name": "Vũ kiếm",
+        "cost_pts": 17,
+        "resource": "D6 PTS",
+        "details": [
+          "Gây 10 sát thương và tạo mưa trong 3 round tiếp theo, tính cả tấn công và phòng thủ.",
+          "Trong mưa, ở round phòng thủ: có 10% phản công bằng đúng số D20 Thủ vừa tung, dù phòng thủ thành công hay thất bại.",
+          "Nếu số D20 Thủ lớn hơn 15 thì giá trị phản công = ceil(D20 Thủ / 2); còn lại giữ nguyên.",
+          "Trong mưa, ở round tấn công: có 10% gây thêm 3 sát thương dù đòn đánh thành công hay thất bại."
+        ],
+        "effects": [
+          "rain_cast",
+          "rain_counter"
+        ],
+        "damage": 10,
+        "weather": {
+          "type": "rain",
+          "count": 3,
+          "scope": "attack_or_defense_rounds"
+        },
+        "defense_proc": {
+          "chance": 0.1,
+          "value_formula": "def_roll > 15 ? ceil(def_roll/2) : def_roll",
+          "damage_semantics": null
+        },
+        "attack_proc": {
+          "chance": 0.1,
+          "damage": 3,
+          "requires_hit": false
+        },
+        "nameEn": "Rainblade",
+        "nameVi": "Vũ kiếm"
+      }
+    ],
+    "passives": [
+      {
+        "name": "Kiếm trong mưa",
+        "details": [
+          "Trong thời tiết mưa: có 5% được tung thêm 1 D20, khi tấn công hoặc phòng thủ."
+        ],
+        "chance": 0.05,
+        "condition": "weather_rain",
+        "extra_die": "D20"
+      }
+    ]
+  },
+  {
+    "id": "bee_shooter",
+    "name": "Bee Shooter",
+    "nameVi": "Súng Tổ Ong",
+    "tier": "rare",
+    "image": "/assets/weapon-update-1/weapons/bee_shooter.png",
+    "skills": [
+      {
+        "id": "bee_shooter.s1",
+        "slot": 1,
+        "name": "Worker Bees",
+        "cost_pts": 5,
+        "resource": "D6 PTS",
+        "details": [
+          "Bắn 1 ong thợ gây 1 sát thương.",
+          "Gắn độc: mất 1 HP mỗi lượt trong 2 lượt.",
+          "Độc cộng dồn tối đa 2 tầng."
+        ],
+        "effects": [
+          "worker_bee",
+          "bee_poison"
+        ],
+        "damage": 1,
+        "dot": {
+          "damage_per_stack": 1,
+          "count": 2,
+          "max_stacks": 2
+        },
+        "nameEn": "Worker Bees",
+        "nameVi": "Worker Bees"
+      },
+      {
+        "id": "bee_shooter.s2",
+        "slot": 2,
+        "name": "Queen Bee",
+        "cost_pts": 20,
+        "resource": "D6 PTS",
+        "details": [
+          "Bắn 1 ong chúa gây 3 sát thương và triệu hồi 5 ong thợ.",
+          "Đàn ong tồn tại 5 lượt, gây ngẫu nhiên 1–5 sát thương; các ong thợ này không gây hiệu ứng.",
+          "Gắn độc ong chúa: giảm 3 điểm thủ trong 5 lượt phòng thủ của mục tiêu."
+        ],
+        "effects": [
+          "queen_bee",
+          "bee_swarm",
+          "bee_poison"
+        ],
+        "damage": 3,
+        "workers": {
+          "count": 5,
+          "duration": 5,
+          "random_damage": [
+            1,
+            5
+          ],
+          "per_bee_or_total": null,
+          "apply_status": false
+        },
+        "defense_debuff": {
+          "amount": -3,
+          "count": 5,
+          "scope": "target_defense_rounds"
+        },
+        "nameEn": "Queen Bee",
+        "nameVi": "Queen Bee"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "thunder_spear",
+    "name": "Thunder Spear",
+    "nameVi": "Giáo Sấm Sét",
+    "tier": "epic",
+    "image": "/assets/weapon-update-1/weapons/thunder_spear.png",
+    "skills": [
+      {
+        "id": "thunder_spear.s1.yellow",
+        "slot": 1,
+        "name": "Sấm sét vàng",
+        "cost_pts": 12,
+        "resource": "D6 PTS",
+        "details": [
+          "Bắn sấm sét vàng gây 10 sát thương.",
+          "Gắn tê liệt cho 5 round tấn công tiếp theo của đối phương.",
+          "Mỗi round đó có 5% hủy đòn tấn công, tự skip và chuyển thành cho người dùng vũ khí tấn công."
+        ],
+        "effects": [
+          "lightning_yellow",
+          "paralysis"
+        ],
+        "damage": 10,
+        "paralysis": {
+          "chance": 0.05,
+          "count": 5,
+          "scope": "target_attack_rounds",
+          "on_proc": "skip_target_attack_and_grant_owner_attack"
+        },
+        "nameEn": "Thunderbolt",
+        "nameVi": "Sấm sét vàng"
+      },
+      {
+        "id": "thunder_spear.s2",
+        "slot": 2,
+        "name": "Gọi mưa giông",
+        "cost_pts": 20,
+        "resource": "D6 PTS",
+        "details": [
+          "Tạo mưa trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ.",
+          "Trong môi trường này Skill 1 có hai dạng cường hóa, mỗi dạng chỉ tốn 5 PTS."
+        ],
+        "effects": [
+          "weather_rain",
+          "paralysis"
+        ],
+        "weather": {
+          "type": "rain",
+          "count": 5,
+          "scope": "attack_or_defense_rounds"
+        },
+        "nameEn": "Tempest",
+        "nameVi": "Gọi mưa giông"
+      },
+      {
+        "id": "thunder_spear.s1.red",
+        "slot": 1,
+        "name": "Cường hóa — Sét đỏ",
+        "cost_pts": 5,
+        "resource": "D6 PTS",
+        "details": [
+          "Chỉ là dạng cường hóa trong mưa do Skill 2 thiết lập.",
+          "Gây 15 sát thương.",
+          "Tê liệt 5 round tấn công của đối phương; xác suất hủy đòn và chuyển quyền tấn công tăng thành 10%."
+        ],
+        "effects": [
+          "lightning_red",
+          "paralysis"
+        ],
+        "requires_enchant": "thunder_s2_rain",
+        "damage": 15,
+        "paralysis": {
+          "chance": 0.1,
+          "count": 5,
+          "scope": "target_attack_rounds"
+        },
+        "nameEn": "Thunderbolt",
+        "nameVi": "Cường hóa — Sét đỏ"
+      },
+      {
+        "id": "thunder_spear.s1.blue",
+        "slot": 1,
+        "name": "Cường hóa — Sét xanh",
+        "cost_pts": 5,
+        "resource": "D6 PTS",
+        "details": [
+          "Chỉ là dạng cường hóa trong mưa do Skill 2 thiết lập.",
+          "Gây 5 sát thương mỗi lần trong 3 round liên tiếp, tính cả tấn công lẫn phòng thủ.",
+          "Lần nổ 1: có 5% gây thêm 5 sát thương.",
+          "Lần nổ 2: có 5% hồi 5 PTS cho người dùng.",
+          "Lần nổ 3: có 5% hồi 10 HP cho người dùng."
+        ],
+        "effects": [
+          "lightning_blue"
+        ],
+        "requires_enchant": "thunder_s2_rain",
+        "damage": {
+          "per_tick": 5,
+          "ticks": 3
+        },
+        "ticks": [
+          {
+            "index": 1,
+            "chance": 0.05,
+            "bonus_damage": 5
+          },
+          {
+            "index": 2,
+            "chance": 0.05,
+            "restore_pts": 5
+          },
+          {
+            "index": 3,
+            "chance": 0.05,
+            "heal_hp": 10
+          }
+        ],
+        "nameEn": "Thunderbolt",
+        "nameVi": "Cường hóa — Sét xanh"
+      }
+    ],
+    "passives": [
+      {
+        "name": "Dẫn điện trong mưa",
+        "details": [
+          "Trong mưa: có 10% được tung thêm 1 D20, khi tấn công hoặc phòng thủ."
+        ],
+        "chance": 0.1,
+        "condition": "weather_rain",
+        "extra_die": "D20"
+      }
+    ]
+  },
+  {
+    "id": "ice_spear",
+    "name": "Ice Spear",
+    "nameVi": "Giáo Băng",
+    "tier": "epic",
+    "image": "/assets/weapon-update-1/weapons/ice_spear.png",
+    "skills": [
+      {
+        "id": "ice_spear.s1",
+        "slot": 1,
+        "name": "Ice Spear",
+        "cost_pts": 12,
+        "resource": "D6 PTS",
+        "details": [
+          "Thả một giáo băng từ trời xuống gây 10 sát thương.",
+          "Gắn làm chậm trong 5 round tiếp theo, không phân biệt tấn công hay phòng thủ.",
+          "Trong thời hạn đó, mỗi cơ hội có 5% khóa khả năng tung D6; mục tiêu chỉ có thể bấm End Turn."
+        ],
+        "effects": [
+          "ice_spear",
+          "freeze"
+        ],
+        "damage": 10,
+        "slow": {
+          "chance": 0.05,
+          "count": 5,
+          "scope": "attack_or_defense_rounds",
+          "blocks": [
+            "D6_roll"
+          ],
+          "allowed_action": "End Turn"
+        },
+        "nameEn": "Falling Icicle",
+        "nameVi": "Ice Spear"
+      },
+      {
+        "id": "ice_spear.s2",
+        "slot": 2,
+        "name": "Môi trường băng giá",
+        "cost_pts": 20,
+        "resource": "D6 PTS",
+        "details": [
+          "Tạo môi trường băng giá trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ.",
+          "Màn hình xanh hơn, có hạt tuyết rơi.",
+          "Trong môi trường do Skill 2 tạo ra, Skill 1 giảm còn 5 PTS và đổi thành Giáo băng khổng lồ."
+        ],
+        "effects": [
+          "weather_snow"
+        ],
+        "weather": {
+          "type": "ice",
+          "count": 5,
+          "scope": "attack_or_defense_rounds"
+        },
+        "nameEn": "Frozen Realm",
+        "nameVi": "Môi trường băng giá"
+      },
+      {
+        "id": "ice_spear.s1.enchanted",
+        "slot": 1,
+        "name": "Cường hóa — Giáo băng khổng lồ",
+        "cost_pts": 5,
+        "resource": "D6 PTS",
+        "details": [
+          "Gây 15 sát thương.",
+          "Có 30% nổ băng giá làm đối phương đóng băng: không thể tấn công hoặc phòng thủ trong lượt kế tiếp."
+        ],
+        "effects": [
+          "giant_ice_spear",
+          "freeze"
+        ],
+        "requires_enchant": "ice_s2_weather",
+        "damage": 15,
+        "freeze": {
+          "chance": 0.3,
+          "count": 1,
+          "scope": "target_next_turn",
+          "blocks": [
+            "attack",
+            "defense"
+          ]
+        },
+        "nameEn": "Falling Icicle",
+        "nameVi": "Cường hóa — Giáo băng khổng lồ"
+      }
+    ],
+    "passives": [
+      {
+        "name": "Đóng băng trong giá lạnh",
+        "details": [
+          "Trong thời tiết băng giá: khi tấn công thành công, có xác suất đóng băng đối phương, khiến họ không thể tấn công ở lượt kế tiếp."
+        ],
+        "chance": null,
+        "condition": "weather_ice_and_successful_owner_attack",
+        "skip_target_attacks": 1
+      }
+    ]
+  },
+  {
+    "id": "frying_pan",
+    "name": "Frying Pan",
+    "nameVi": "Chảo Chiến",
+    "tier": "epic",
+    "image": "/assets/weapon-update-1/weapons/frying_pan.png",
+    "skills": [
+      {
+        "id": "frying_pan.s1",
+        "slot": 1,
+        "name": "Bong",
+        "cost_pts": 10,
+        "resource": "D6 PTS",
+        "details": [
+          "Dùng chảo đập đầu đối thủ, gây 7 sát thương.",
+          "Làm choáng khiến đối thủ mất 1 lượt tấn công tiếp theo.",
+          "Trong môi trường nóng: có 25% gây bỏng, thêm 5 sát thương.",
+          "Nội tại trong môi trường nóng có 10% lặp lại Skill 1 miễn PTS."
+        ],
+        "effects": [
+          "pan_bonk",
+          "pan_stun",
+          "fire_bomb"
+        ],
+        "damage": 7,
+        "stun": {
+          "skip_attacks": 1,
+          "scope": "target_next_attack"
+        },
+        "heat_bonus": {
+          "chance": 0.25,
+          "damage": 5
+        },
+        "nameEn": "Bong",
+        "nameVi": "Bong"
+      },
+      {
+        "id": "frying_pan.s2",
+        "slot": 2,
+        "name": "Big Meal",
+        "cost_pts": 27,
+        "resource": "D6 PTS",
+        "details": [
+          "Tạo môi trường nóng trong 5 lượt: màn hình hơi đỏ và một số cột khói bốc từ dưới lên.",
+          "Người dùng nấu món ăn; khi ăn hồi 5 HP.",
+          "Tăng 2 sát thương cho Skill 1 trong 2 lượt."
+        ],
+        "effects": [
+          "weather_heat",
+          "meal_heal"
+        ],
+        "weather": {
+          "type": "heat",
+          "count": 5
+        },
+        "heal_hp": 5,
+        "skill1_bonus": {
+          "damage": 2,
+          "count": 2,
+          "scope": null
+        },
+        "nameEn": "Big Meal",
+        "nameVi": "Big Meal"
+      }
+    ],
+    "passives": [
+      {
+        "name": "Nóng chảo",
+        "details": [
+          "Trong môi trường nóng: Skill 1 có 10% tự dùng thêm một lần, không tốn PTS."
+        ],
+        "condition": "weather_heat",
+        "chance": 0.1,
+        "free_repeat": "skill_1"
+      }
+    ]
+  },
+  {
+    "id": "dual_spears",
+    "name": "Stormfrost Twin Spears",
+    "nameVi": "Song Giáo Băng Lôi",
+    "tier": "mythic",
+    "image": "/assets/weapon-update-1/weapons/dual_spears.png",
+    "skills": [
+      {
+        "id": "dual_spears.s1.lightning",
+        "slot": 1,
+        "name": "Dạng 1 — Sấm sét vàng",
+        "cost_pts": 10,
+        "resource": "D6 PTS",
+        "details": [
+          "Bắn sấm sét vàng gây 12 sát thương.",
+          "Gắn co giật trong 3 lượt tiếp theo, tính cả tấn công và phòng thủ.",
+          "Có 10% đối thủ không thể dùng D6 để sạc PTS."
+        ],
+        "effects": [
+          "lightning_yellow",
+          "paralysis"
+        ],
+        "damage": 12,
+        "status": {
+          "chance": 0.1,
+          "count": 3,
+          "scope": "attack_or_defense_rounds",
+          "blocks": [
+            "D6_charge"
+          ]
+        },
+        "nameEn": "Stormfrost Arts",
+        "nameVi": "Dạng 1 — Sấm sét vàng"
+      },
+      {
+        "id": "dual_spears.s1.ice",
+        "slot": 1,
+        "name": "Dạng 2 — Ba Ice Spear",
+        "cost_pts": 10,
+        "resource": "D6 PTS",
+        "details": [
+          "Bắn 3 giáo băng vào đối thủ; sát thương chưa được cung cấp.",
+          "Gắn hiệu ứng băng giá trong 2 lượt phòng thủ tiếp theo của đối thủ.",
+          "Mỗi lượt phòng thủ đó có 10% đối thủ không thể thủ."
+        ],
+        "effects": [
+          "ice_spears_three",
+          "freeze"
+        ],
+        "damage": null,
+        "status": {
+          "chance": 0.1,
+          "count": 2,
+          "scope": "target_defense_rounds",
+          "blocks": [
+            "defense"
+          ]
+        },
+        "nameEn": "Stormfrost Arts",
+        "nameVi": "Dạng 2 — Ba Ice Spear"
+      },
+      {
+        "id": "dual_spears.s1.dual",
+        "slot": 1,
+        "name": "Dạng 3 — Song trảm",
+        "cost_pts": 10,
+        "resource": "D6 PTS",
+        "details": [
+          "Chém 2 nhát: một nhát băng, một nhát điện.",
+          "Có xác suất gắn Siêu Dẫn trong 3 lượt tiếp theo, tính cả tấn công và phòng thủ.",
+          "Cả sát thương và xác suất nền gắn hiệu ứng chưa được cung cấp."
+        ],
+        "effects": [
+          "dual_slash",
+          "superconduct_aura"
+        ],
+        "damage": null,
+        "status": {
+          "type": "superconduct",
+          "chance": null,
+          "count": 3,
+          "scope": "attack_or_defense_rounds"
+        },
+        "nameEn": "Stormfrost Arts",
+        "nameVi": "Dạng 3 — Song trảm"
+      },
+      {
+        "id": "dual_spears.s2.orb",
+        "slot": 2,
+        "name": "Dạng 1 — Cầu Siêu Dẫn",
+        "cost_pts": 25,
+        "resource": "D6 PTS",
+        "details": [
+          "Quả cầu cực lớn nửa băng nửa điện rơi từ trên trời xuống giữa màn hình, gây 25 sát thương.",
+          "Tạo môi trường Siêu Dẫn trong 5 lượt tiếp theo.",
+          "Cường hóa Skill 1: cả 3 dạng được tăng thêm 5% tỷ lệ thành công."
+        ],
+        "effects": [
+          "superconduct_orb",
+          "weather_superconduct"
+        ],
+        "damage": 25,
+        "weather": {
+          "type": "superconduct",
+          "count": 5
+        },
+        "enchant": {
+          "scope": "all_skill1_forms",
+          "proc_chance_increase": 0.05,
+          "increase_mode": null
+        },
+        "nameEn": "Superconduct",
+        "nameVi": "Dạng 1 — Cầu Siêu Dẫn"
+      },
+      {
+        "id": "dual_spears.s2.beam",
+        "slot": 2,
+        "name": "Dạng 2 — Chưởng Siêu Dẫn",
+        "cost_pts": 25,
+        "resource": "D6 PTS",
+        "details": [
+          "Bắn chưởng nửa băng nửa điện vào đối thủ gây 30 sát thương.",
+          "Tạo môi trường Siêu Dẫn trong 5 lượt tiếp theo.",
+          "Cường hóa Skill 1: khi dùng một trong 3 dạng, có 10% hoàn trả số PTS đã mất cho lần dùng Skill 1 đó."
+        ],
+        "effects": [
+          "superconduct_beam",
+          "weather_superconduct"
+        ],
+        "damage": 30,
+        "weather": {
+          "type": "superconduct",
+          "count": 5
+        },
+        "enchant": {
+          "scope": "all_skill1_forms",
+          "refund_chance": 0.1,
+          "refund": "actual_pts_spent_on_that_skill1_cast"
+        },
+        "nameEn": "Superconduct",
+        "nameVi": "Dạng 2 — Chưởng Siêu Dẫn"
+      }
+    ],
+    "passives": [
+      {
+        "name": "Kế thừa Giáo Băng và Giáo sấm sét",
+        "details": [
+          "Sở hữu cả hai passive của hai vũ khí Epic.",
+          "Trong mưa: kế thừa xác suất 10% tung thêm D20 từ Giáo sấm sét.",
+          "Trong băng giá: kế thừa passive đóng băng khi đánh trúng; tỷ lệ của passive này chưa được cung cấp."
+        ]
+      },
+      {
+        "name": "Siêu Dẫn",
+        "details": [
+          "Trong môi trường Siêu Dẫn, D20 Công tăng 20% tỷ lệ ra kết quả lớn từ 10 đến 20."
+        ],
+        "range": [
+          10,
+          20
+        ],
+        "increase": 0.2,
+        "distribution_rule": null
+      }
+    ]
+  },
+  {
+    "id": "mirror_of_life",
+    "name": "Mirror of Life",
+    "nameVi": "Gương Sinh Mệnh",
+    "tier": "legendary",
+    "image": "/assets/weapon-update-1/weapons/mirror_of_life.png",
+    "skills": [
+      {
+        "id": "mirror_of_life.s1",
+        "slot": 1,
+        "name": "Life Reflect",
+        "cost_pts": 20,
+        "resource": "D6 PTS",
+        "details": [
+          "Dùng gương phản chiếu vào kẻ địch.",
+          "Nếu HP đối phương cao hơn 20% HP người dùng: đổi lượng HP hiện tại giữa hai người.",
+          "Ví dụ theo yêu cầu: người dùng 80 HP, đối phương 100 HP → người dùng 100 HP, đối phương 80 HP.",
+          "Nếu HP đối phương “thấp hơn 20%”: tạo suy nhược, mọi nguồn sát thương của đối phương — cả đánh thường và skill — giảm 7 trong 2 lượt.",
+          "Điều kiện bổ sung được cung cấp: “nếu người chơi nhận sát thương từ bất kỳ nguồn nào”; chưa tự diễn giải thành một trigger khác."
+        ],
+        "effects": [
+          "hp_swap",
+          "weakness"
+        ],
+        "threshold_comparison": null,
+        "swap_current_hp": true,
+        "debuff": {
+          "damage_reduction": 7,
+          "count": 2,
+          "scope": "all_enemy_damage_sources",
+          "trigger": null
+        },
+        "nameEn": "Life Reflect",
+        "nameVi": "Life Reflect"
+      },
+      {
+        "id": "mirror_of_life.s2",
+        "slot": 2,
+        "name": "Mirror Suck",
+        "cost_pts": 30,
+        "resource": "D6 PTS",
+        "details": [
+          "Hút 20 HP từ đối phương để hồi cho người dùng.",
+          "HP hồi vượt quá HP tối đa chuyển thành giáp ảo với lượng bằng phần dư.",
+          "Ví dụ trần 100 HP: đang đủ 100 HP → hút 20 tạo 20 giáp.",
+          "Ví dụ trần 100 HP: đang 81 HP → hồi 19 về 100 HP và tạo 1 giáp.",
+          "Chưa quy định lượng hồi nếu đối thủ còn dưới 20 HP."
+        ],
+        "effects": [
+          "life_drain",
+          "overflow_armor"
+        ],
+        "drain_hp": 20,
+        "overflow": "convert_overheal_to_armor",
+        "target_hp_below_drain_rule": null,
+        "nameEn": "Mirror Suck",
+        "nameVi": "Mirror Suck"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "elemental_rings",
+    "name": "Trinity Rings",
+    "nameVi": "Nhẫn Tam Nguyên",
+    "tier": "mythic",
+    "image": "/assets/weapon-update-1/weapons/elemental_rings.png",
+    "skills": [
+      {
+        "id": "elemental_rings.s1",
+        "slot": 1,
+        "name": "Triệu hồi nguyên tố",
+        "cost_pts": 15,
+        "resource": "D6 PTS",
+        "details": [
+          "Sau khi trả PTS, tung thêm 1 D6 để chọn summon.",
+          "D6 = 1–2: Golem Đất 10 HP. Trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ, tự ném đá ở giai đoạn skill, mỗi lần 2 sát thương. Hết 5 lượt dừng ném nhưng vẫn đứng lại.",
+          "D6 = 3–4: Người Lửa 5 HP. Khi được triệu hồi bắn cầu lửa gây 10 sát thương. Trong 5 lượt kế tiếp có 10% phát nổ, gây 5 sát thương trực tiếp và gắn cháy mất 1 HP mỗi round trong 5 round tiếp theo. Nếu không nổ thì đứng yên.",
+          "D6 = 5–6: Nhân Ngư 3 HP. Khi được triệu hồi bắn cầu nước gây 5 sát thương. Trong 5 lượt kế tiếp, mỗi round hồi 3 HP cho chủ.",
+          "Cả ba summon nhỏ đứng chắn sát thương: mọi sát thương D20, Skill 1 và Skill 2 đi vào HP summon trước, rồi mới tới chủ khi summon bị hạ.",
+          "Nếu có 2–3 summon, đặt chúng cạnh người chơi, không đè lên nhau."
+        ],
+        "effects": [
+          "golem",
+          "fire_person",
+          "mermaid",
+          "fire_bomb",
+          "water_orb"
+        ],
+        "extra_roll": {
+          "die": "D6",
+          "purpose": "summon_selection_not_resource_charge"
+        },
+        "summon_outcomes": [
+          {
+            "faces": [
+              1,
+              2
+            ],
+            "entity": "golem",
+            "hp": 10,
+            "attack_damage": 2,
+            "active_count": 5,
+            "attack_stage": "skill",
+            "scope": "attack_or_defense_rounds",
+            "persists_after_active_count": true,
+            "intercepts": [
+              "D20",
+              "skill_1",
+              "skill_2"
+            ]
+          },
+          {
+            "faces": [
+              3,
+              4
+            ],
+            "entity": "fire_person",
+            "hp": 5,
+            "initial_damage": 10,
+            "active_count": 5,
+            "explosion_chance": 0.1,
+            "explosion_damage": 5,
+            "burn": {
+              "damage": 1,
+              "count": 5
+            },
+            "intercepts": [
+              "D20",
+              "skill_1",
+              "skill_2"
+            ]
+          },
+          {
+            "faces": [
+              5,
+              6
+            ],
+            "entity": "mermaid",
+            "hp": 3,
+            "initial_damage": 5,
+            "active_count": 5,
+            "heal_per_round": 3,
+            "intercepts": [
+              "D20",
+              "skill_1",
+              "skill_2"
+            ]
+          }
+        ],
+        "nameEn": "Elemental Pact",
+        "nameVi": "Triệu hồi nguyên tố"
+      },
+      {
+        "id": "elemental_rings.s2",
+        "slot": 2,
+        "name": "Niko — Chimera ba nguyên tố",
+        "cost_pts": 40,
+        "resource": "D6 PTS",
+        "details": [
+          "Xóa toàn bộ nhân vật mà người dùng đã triệu hồi trước đó.",
+          "Triệu hồi Chimera lai cả ba nguyên tố, tên Niko, có 25 HP.",
+          "Ngay khi dùng skill, Niko bắn tia năng lượng ba màu xanh, đỏ, nâu gây 20 sát thương.",
+          "Trong 5 lượt tiếp theo, tính cả tấn công và phòng thủ: có 30% Niko thực hiện 1 trong 3 hành động dưới đây.",
+          "Life Steel: hút 12 HP của đối thủ và hồi 12 HP cho chủ.",
+          "Fire Bomb: ném cầu lửa gây 5 sát thương; có 50% gắn bỏng, mất 1 HP mỗi round trong 5 round tiếp theo.",
+          "Earth Shield: tạo khoảng 15 giáp ảo màu nâu; khi chủ nhận sát thương từ bất kỳ nguồn nào, phản lại 2/3 lượng sát thương nhận. Hiệu ứng phản có 2 lần."
+        ],
+        "effects": [
+          "niko",
+          "elemental_beam",
+          "life_drain",
+          "fire_bomb",
+          "earth_shield"
+        ],
+        "clear_previous_owner_summons": true,
+        "summon": {
+          "entity": "niko",
+          "hp": 25,
+          "initial_damage": 20,
+          "active_count": 5,
+          "action_chance": 0.3,
+          "scope": "attack_or_defense_rounds",
+          "intercepts_damage": null,
+          "action_weights": null,
+          "actions": [
+            {
+              "id": "life_steel",
+              "drain_hp": 12,
+              "heal_hp": 12
+            },
+            {
+              "id": "fire_bomb",
+              "damage": 5,
+              "burn_chance": 0.5,
+              "burn_damage": 1,
+              "burn_count": 5
+            },
+            {
+              "id": "earth_shield",
+              "armor_approx": 15,
+              "reflect_charges": 2,
+              "reflect_fraction": [
+                2,
+                3
+              ],
+              "rounding": null
+            }
+          ]
+        },
+        "nameEn": "Niko Fusion",
+        "nameVi": "Niko — Chimera ba nguyên tố"
+      }
+    ],
+    "passives": []
+  }
+]

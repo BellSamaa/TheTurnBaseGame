@@ -1,3 +1,4 @@
+import type {WeaponUpdateState} from '@/lib/weaponUpdateState';
 // ============================================================
 // Game types for Dice Maniac RPG Turn-Base Game
 // ============================================================
@@ -74,6 +75,7 @@ export interface UserAccount {
 }
 
 export interface PlayerState {
+  weaponUpdate?:WeaponUpdateState;
   id: string;
   name: string;
   hp: number;
@@ -95,6 +97,7 @@ export interface PlayerState {
   bullets?: number; // Revolver cylinder (0-6)
   boxerAttackRound?: number;
   boxerAttackRolls?: number[];
+  daggerBurnHits?: number;
   petRockEnrageUntilRound?: number;
   mageBonusRound?: number;
   mageBonusD6?: boolean;

@@ -81,17 +81,10 @@ export const TIER_CONFIGS: Record<WeaponTier, TierConfig> = {
     boxShadow: '0 0 22px rgba(239, 68, 68, 0.75)',
   },
   secret: {
-    tier: 'secret',
-    labelEn: 'SECRET VOID',
-    labelVi: 'HƯ KHÔNG BÍ MẬT',
-    borderColor: '#ec4899',
-    glowColor: 'rgba(236, 72, 153, 0.85)',
-    bgGradient: 'from-fuchsia-950/80 via-purple-950/80 to-[#07090e]',
-    textColor: 'text-pink-400',
-    accentColor: '#f472b6',
-    gemColor: '#ec4899',
-    badgeClass: 'bg-gradient-to-r from-pink-900 via-purple-900 to-indigo-900 text-pink-200 border-pink-400',
-    boxShadow: '0 0 26px rgba(236, 72, 153, 0.85)',
+    tier:'secret',labelEn:'SECRET',labelVi:'BÍ MẬT',borderColor:'#ffffff',glowColor:'rgba(255,255,255,.8)',
+    bgGradient:'from-black via-zinc-950 to-black',textColor:'text-white',accentColor:'#ffffff',gemColor:'#ffffff',
+    badgeClass:'secret-galaxy bg-black text-white border-white',boxShadow:'0 0 22px rgba(255,255,255,.6)',
+
   },
 };
 

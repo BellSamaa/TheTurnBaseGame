@@ -1,3 +1,5 @@
+import {syncWeather,drainWeaponEvents} from './weaponUpdateState';
+import {tickWeaponRound,weaponD20,prepareWeaponCharge} from './weaponUpdateHooks';
 import {d6Allowance} from './classMechanics';
 import {activateBuff,LMS_BUFFS} from './lmsBuffs';
 import {createLms,lmsAction,tickLms,type LmsState} from './lms';
@@ -11,7 +13,7 @@ function nextRound(s:LmsState,now:number){
  // Reuse round-boundary bombs, storm, burn and round-30 card logic once.
  const legacy=structuredClone(s);legacy.turnFlow=2;legacy.phase='end';if(legacy.extras!.flags['reverseTie'])legacy.players.reverse();legacy.active=legacy.extras!.direction===1?legacy.order.length-1:0;
  let next=lmsAction(legacy,legacy.order[legacy.active],'end',{},now);
- next.turnFlow=3;next.round=s.round+1;next.initiative=[];next.active=0;next.attack=undefined;next.defense=undefined;next.target=undefined;next.rolls=[];next.defenderRolls=[];next.roundCharges={};next.stageOrder=undefined;next.stagePart=undefined;next.tieNotice=undefined;next.endVotes=[];next.skillDone=[];next.endDeadline=undefined;next.stageDone=[];next.stageDeadline=undefined;next.lastEvent=undefined;
+ next.turnFlow=3;next.round=s.round+1;for(const e of tickWeaponRound(next.players,next.round)){next.log.unshift(e.text);next.logVi?.unshift(e.textVi);}next.initiative=[];next.active=0;next.attack=undefined;next.defense=undefined;next.target=undefined;next.rolls=[];next.defenderRolls=[];next.roundCharges={};next.stageOrder=undefined;next.stagePart=undefined;next.tieNotice=undefined;next.endVotes=[];next.skillDone=[];next.endDeadline=undefined;next.stageDone=[];next.stageDeadline=undefined;next.lastEvent=undefined;
  if(!next.winner){next.phase='initiative';next.rollDeadline=now+20000;}return next;
 }
 export function roundLmsAction(input:LmsState,actor:string,action:string,args:Parameters<typeof lmsAction>[3]={},now=Date.now()):LmsState{
@@ -32,7 +34,7 @@ export function roundLmsAction(input:LmsState,actor:string,action:string,args:Pa
   if(s.phase==='defense')s.rollDeadline=now+20000;
   if(!s.winner&&input.phase==='buffs'){completeStageActor(s,actor,now);}s.revision++;return s;
  }
- if(action==='defend'){if(s.phase!=='defense'||s.extras!.flags['buffDefense']!==actor)throw Error('LMS chỉ có Defense khi dùng buff Ảo Ảnh Kép');s.defense=Math.max(rollD20(),rollD20());delete s.extras!.flags['buffDefense'];s.phase='clash';s.deadline=now+5000;s.rollDeadline=undefined;s.log.unshift(user.name+' Defense buff D20: '+s.defense);s.revision++;return s;}
+ if(action==='defend'){if(s.phase!=='defense'||s.extras!.flags['buffDefense']!==actor)throw Error('LMS chỉ có Defense khi dùng buff Ảo Ảnh Kép');s.defense=weaponD20(user,Math.max(rollD20(),rollD20()),'defense',s.round,s.players.find(p=>p.id===s.order[s.active]));delete s.extras!.flags['buffDefense'];s.phase='clash';s.deadline=now+5000;s.rollDeadline=undefined;s.log.unshift(user.name+' Defense buff D20: '+s.defense);s.revision++;return s;}
  if(action==='clash')throw Error('Can thiệp PTS đã được bỏ');
  if(['skills','buffs'].includes(s.phase)&&s.stageDone?.includes(actor)&&['skill','buff','charge','end','next_stage'].includes(action))throw Error('Bạn đã xong giai đoạn này');
  if((action==='end'||action==='next_stage')&&['skills','buffs'].includes(s.phase)){
@@ -41,7 +43,7 @@ export function roundLmsAction(input:LmsState,actor:string,action:string,args:Pa
  if(action==='charge'&&s.phase==='skills'){
   if(s.stagePart!=='charge')throw Error('Đã kết thúc bước sạc');
   const rolls=(s.roundCharges??={})[actor]??=[];if(rolls.length>=d6Allowance(user,s.round))throw Error('Đã tung đủ D6');
-  const roll=rollD6();rolls.push(roll);Object.assign(user,chargeSkillPoints(user,[roll],s.round));s.log.unshift(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');s.logVi?.unshift(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');if(rolls.length>=d6Allowance(user,s.round))completeStageActor(s,actor,now);else s.stageDeadline=now+20000;s.revision++;return s;
+  const raw=rollD6();Object.assign(user,chargeSkillPoints(user,[raw],s.round));const roll=user.weaponUpdate?.lastChargeValue??raw;if(roll>0)rolls.push(roll);s.log.unshift(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');s.logVi?.unshift(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');for(const e of drainWeaponEvents(s.players)){s.log.unshift(e.text);s.logVi?.unshift(e.textVi);s.lastEvent={id:crypto.randomUUID(),effect:e.effect,caster:e.caster,target:e.target};}if(rolls.length>=d6Allowance(user,s.round))completeStageActor(s,actor,now);else s.stageDeadline=now+20000;s.revision++;return s;
  }
  if(action==='end'){
   if(s.phase!=='end'||s.endVotes?.includes(actor))throw Error('Chưa đến bước kết thúc hoặc đã xác nhận');
@@ -59,12 +61,12 @@ export function roundLmsAction(input:LmsState,actor:string,action:string,args:Pa
  if(s.phase==='buffs')legacy.phase='end';
  let next=lmsAction(legacy,actor,action,args,now);next.turnFlow=3;
  if(action==='skill'){
-  next.target=s.target;
-  if(args.slot===2){for(const original of s.players.filter(p=>p.id!==actor&&p.id!==args.target))Object.assign(next.players.find(p=>p.id===original.id)!,original);}
+  next.target=s.target;syncWeather(next.players);
+  if(args.slot===2){for(const original of s.players.filter(p=>p.id!==actor&&p.id!==args.target))Object.assign(next.players.find(p=>p.id===original.id)!,original);syncWeather(next.players);}
   if(args.slot===1){
-   const first=s.players.find(p=>p.id===args.target)!;const sample=first&&castChargedSkill(user,first,1,s.round,args.form,args.lockSlot);
+   const first=s.players.find(p=>p.id===args.target)!;const already=next.players.find(p=>p.id===args.target);const sample=first&&already?{damage:Math.max(0,first.hp-already.hp),opponent:already}:undefined;
    if(sample&&(sample.damage>0||(sample.opponent.burnTicks||0)>(first.burnTicks||0))){
-    for(const foe of s.players.filter(p=>p.hp>0&&p.id!==actor&&p.id!==args.target)){const cast=castChargedSkill(user,foe,1,s.round,args.form,args.lockSlot);if(cast){Object.assign(next.players.find(p=>p.id===foe.id)!,cast.opponent);if(next.lastEvent)next.lastEvent.cues!.push({effect:next.lastEvent.effect,target:foe.id});}}
+    for(const foe of s.players.filter(p=>p.hp>0&&p.id!==actor&&p.id!==args.target)){const resolvedDie=next.players.find(p=>p.id===actor)?.weaponUpdate?.lastSkillDie;const cast=castChargedSkill(user,foe,1,s.round,args.form,args.lockSlot,resolvedDie);if(cast){Object.assign(next.players.find(p=>p.id===foe.id)!,cast.opponent);if(next.lastEvent)next.lastEvent.cues!.push({effect:next.lastEvent.effect,target:foe.id});}}
    }
   }
   for(const dead of next.players.filter(p=>p.hp<=0&&!next.extras!.eliminated.includes(p.id))){next.extras!.eliminated.push(dead.id);const killer=next.players.find(p=>p.id===actor)!;if(killer.hp>0&&dead.id!==actor){killer.hp=Math.min(killer.maxHp,killer.hp+30);killer.d12Charge=(killer.d12Charge||0)+5;}}
@@ -86,17 +88,17 @@ function randomOrder(s:LmsState,phase:string){
  if(ties.length)s.tieNotice={id:crypto.randomUUID(),phase,groups:ties,order};return order;
 }
 function rankInitiative(s:LmsState){
- s.order=randomOrder(s,'initiative');s.active=0;s.players.forEach(p=>{p.isAttacker=p.id===s.order[0];});
+ s.order=randomOrder(s,'initiative');const extra=s.players.find(p=>p.hp>0&&(p.weaponUpdate?.extraAttacks??0)>0);if(extra){extra.weaponUpdate!.extraAttacks!--;s.order=[extra.id,...s.order.filter(id=>id!==extra.id)];}s.active=0;s.players.forEach(p=>{p.isAttacker=p.id===s.order[0];});
  const name=s.players.find(p=>p.id===s.order[0])!.name;
- s.log[0]=name+' has the highest D20 and chooses a target (ties decided randomly).';
- if(s.logVi)s.logVi[0]=name+' có D20 cao nhất và được chọn mục tiêu (bằng điểm thì bốc thăm).';
+ s.log[0]=name+(extra?' · Time Changer grants another attack.':' has the highest D20 and chooses a target (ties decided randomly).');
+ if(s.logVi)s.logVi[0]=name+(extra?' · Đổi Thời Gian cho thêm lượt công.':' có D20 cao nhất và được chọn mục tiêu (bằng điểm thì bốc thăm).');
 }
-function startOrderedStage(s:LmsState,phase:'skills'|'buffs',now:number){s.phase=phase;s.stagePart=phase==='skills'?'charge':undefined;s.stageDone=[];s.stageOrder=randomOrder(s,phase);s.stageDeadline=now+20000;s.rollDeadline=undefined;}
-function fillCharge(s:LmsState,p:LmsState['players'][number]){const rolls=(s.roundCharges??={})[p.id]??=[];while(rolls.length<d6Allowance(p,s.round)){const roll=rollD6();rolls.push(roll);Object.assign(p,chargeSkillPoints(p,[roll],s.round));s.log.unshift(p.name+" · Auto D6: "+roll+" → "+p.d12Charge+" PTS");s.logVi?.unshift(p.name+" · Tự tung D6: "+roll+" → "+p.d12Charge+" PTS");}}
+function startOrderedStage(s:LmsState,phase:'skills'|'buffs',now:number){s.phase=phase;if(phase==='skills')s.players.forEach(p=>prepareWeaponCharge(p,s.round));s.stagePart=phase==='skills'?'charge':undefined;s.stageDone=[];s.stageOrder=randomOrder(s,phase);s.stageDeadline=now+20000;s.rollDeadline=undefined;}
+function fillCharge(s:LmsState,p:LmsState['players'][number]){const rolls=(s.roundCharges??={})[p.id]??=[];while(rolls.length<d6Allowance(p,s.round)){const raw=rollD6();Object.assign(p,chargeSkillPoints(p,[raw],s.round));const roll=p.weaponUpdate?.lastChargeValue??raw;if(roll>0)rolls.push(roll);s.log.unshift(p.name+" · Auto D6: "+roll+" → "+p.d12Charge+" PTS");s.logVi?.unshift(p.name+" · Tự tung D6: "+roll+" → "+p.d12Charge+" PTS");}}
 function completeStageActor(s:LmsState,actor:string,now:number){if(!s.stageDone?.includes(actor))(s.stageDone??=[]).push(actor);s.stageDeadline=now+20000;advanceStage(s,now);}
 function advanceStage(s:LmsState,now:number){
  if(s.winner||stageActor(s))return;
- if(s.phase==='skills'&&s.stagePart==='charge'){s.stagePart='skill';s.stageDone=[];s.stageDeadline=now+20000;return;}
+ if(s.phase==='skills'&&s.stagePart==='charge'){s.stagePart='skill';for(const e of tickWeaponRound(s.players,s.round,'summons')){s.log.unshift(e.text);s.logVi?.unshift(e.textVi);}s.stageDone=[];s.stageDeadline=now+20000;return;}
  if(s.phase==='skills'){startOrderedStage(s,'buffs',now);return;}
  s.phase='end';s.stageDone=[];s.endVotes=[];s.endDeadline=now+30000;s.stageDeadline=undefined;s.rollDeadline=undefined;
 }
