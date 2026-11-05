@@ -787,8 +787,8 @@ export default function BattleScreen() {
           if ((defenderState.petRockHp ?? 0) < petHpBefore) vfxSequence.push(reaction('rock_block'));
           else if (immuneBefore && !defenderState.immuneDamageNext) vfxSequence.push(reaction('infinity'));
         }
-        if (rockDamage) logsToAdd.unshift({ turn: currentTurn, type: 'damage', timestamp: Date.now() + 2,
-          message: 'Pet Rock follows its owner: 2 damage.', messageVi: tx("Lượt Pet Rock: tấn công sau chủ nhân, gây 2 sát thương.") });
+        if (rockFollows) logsToAdd.unshift({ turn: currentTurn, type: 'damage', timestamp: Date.now() + 2,
+          message: `Pet Rock follows its owner: ${rockDamage} damage.`, messageVi: `Lượt Pet Rock: tấn công sau chủ nhân, gây ${rockDamage} sát thương.` });
         setTurnStep('d6_atk');
 
         setBattleState((prev) => {

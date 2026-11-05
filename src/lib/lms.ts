@@ -81,7 +81,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     if(flags['phoenix:'+target.id]&&damage>=target.hp){damage=Math.max(0,target.hp-1);target.d12Charge=(target.d12Charge??0)+20;delete flags['phoenix:'+target.id];}
     const lost=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);recordOpponentDamage(target,lost,s.round);
     for(const p of s.players)if(flags['watch:'+p.id]){p.d12Charge=(p.d12Charge??0)+Math.floor(lost/5);delete flags['watch:'+p.id];}
-    if(result.isHit&&(attacker.petRockHp??0)>0&&target.hp>0)applyOpponentDamage(target,attacker.petRockEnraged?5:2,s.round);
+    if(result.isHit&&(attacker.petRockHp??0)>0&&target.hp>0){const rockDamage=applyOpponentDamage(target,attacker.petRockEnraged?5:2,s.round);add('Lượt Pet Rock: tấn công sau chủ nhân, gây '+rockDamage+' sát thương.','Pet Rock follows its owner: '+rockDamage+' damage.');}
     if((attacker.panicTurns??0)>0)attacker.panicTurns!--;
     s.lastEvent={id:crypto.randomUUID(),effect:result.isImmune?'infinity':result.isDodged?'dodge_attack':result.absorbedByRock?'rock_block':result.isHit?normalAttackEffect(attacker.weapon.id):'guard',caster:attacker.id,target:target.id};
     add(result.logTextVi,result.logTextEn);
