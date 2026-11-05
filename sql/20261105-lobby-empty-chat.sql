@@ -18,14 +18,14 @@ BEGIN
  IF p_action IN ('join','touch') THEN
    IF p_actor IS NULL OR p_session IS NULL THEN RAISE EXCEPTION 'Session required';END IF;
    -- Clear a previous conversation before admitting the first participant.
-   IF NOT EXISTS(SELECT 1 FROM game_lobby_sessions) THEN DELETE FROM game_lobby_chat; END IF;
+   IF NOT EXISTS(SELECT 1 FROM game_lobby_sessions) THEN DELETE FROM game_lobby_chat WHERE id IS NOT NULL; END IF;
    INSERT INTO game_lobby_sessions(session_id,user_id,expires_at)VALUES(p_session,p_actor,now()+interval '2 minutes')
    ON CONFLICT(session_id) DO UPDATE SET expires_at=excluded.expires_at WHERE game_lobby_sessions.user_id=excluded.user_id;
  ELSIF p_action='leave' THEN
    DELETE FROM game_lobby_sessions WHERE session_id=p_session AND user_id=p_actor;
  END IF;
  SELECT NOT EXISTS(SELECT 1 FROM game_lobby_sessions) INTO v_empty;
- IF v_empty THEN DELETE FROM game_lobby_chat;END IF;
+ IF v_empty THEN DELETE FROM game_lobby_chat WHERE id IS NOT NULL;END IF;
  IF p_action='send' THEN
   IF NOT EXISTS(SELECT 1 FROM game_lobby_sessions WHERE user_id=p_actor) THEN RAISE EXCEPTION 'Enter lobby before chatting';END IF;
   IF p_message IS NULL OR length(trim(p_message))<1 OR length(p_message)>240 THEN RAISE EXCEPTION '1–240 characters required';END IF;

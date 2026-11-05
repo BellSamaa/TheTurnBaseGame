@@ -15,7 +15,7 @@ let actor='user-a',origin=true;const chat=require('../src/app/api/lobby/chat/rou
  for(const r of requests)assert.deepEqual(Object.keys(r.args).sort(),['p_action','p_actor','p_message','p_session']);
  assert.equal((await session.POST(req({session:'------------------------------------',action:'join'}))).status,400);
  const log=console.error;console.error=()=>{};
- try{for(const [code,expected]of [['42501','permission'],['PGRST202','schema cache'],['PGRST203','Conflicting'],['23503','account'],['42P01','table']]){response={data:null,error:{code,message:'diagnostic'}};const r=await chat.GET(),b=await r.json();assert.equal(r.status,503);assert.equal(b.code,code);assert.ok(b.error.includes(expected));assert.ok(!b.error.includes('Apply sql'));}
+ try{for(const [code,expected]of [['21000','safe-delete'],['42501','permission'],['PGRST202','schema cache'],['PGRST203','Conflicting'],['23503','account'],['42P01','table']]){response={data:null,error:{code,message:'diagnostic'}};const r=await chat.GET(),b=await r.json();assert.equal(r.status,503);assert.equal(b.code,code);assert.ok(b.error.includes(expected));assert.ok(!b.error.includes('Apply sql'));}
  response={data:null,error:{code:'P0001',message:'Please wait a second'}};assert.equal((await chat.POST(req({message:'hello'}))).status,429);
  }finally{console.error=log;}
  actor=null;assert.equal((await chat.GET()).status,401);actor='user-a';origin=false;assert.equal((await chat.POST(req({message:'hello'}))).status,403);

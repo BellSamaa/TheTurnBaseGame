@@ -269,3 +269,53 @@
 .lms-tie-notice{position:fixed;z-index:145;top:22%;left:50%;transform:translateX(-50%);width:min(90vw,620px);border:18px solid transparent;border-image:url('/assets/sprites/ui/frames/battle_commands.png') 22 fill stretch;padding:18px;background:#0c1024f2;box-shadow:0 0 50px #c596ff66;text-align:center;color:#ffe8a5;pointer-events:none;animation:initiative-glow 1.5s infinite}.lms-tie-notice h3{font-size:12px;line-height:1.8;color:#fff0a2}.lms-tie-notice p{font-size:10px;line-height:1.9;margin-top:10px}.lms-tie-notice strong{display:block;color:#a4f5ff}.ordered-turn-label{font-size:8px;line-height:1.7;color:#ffe592;text-align:center;overflow-wrap:anywhere}@media(max-width:767px){.lms-tie-notice{padding:10px;border-width:12px}.lms-tie-notice h3{font-size:9px}.lms-tie-notice p{font-size:8px}.ordered-turn-label{font-size:6px}}
 
 .round-flow-help{font-size:8px;line-height:1.6;margin:3px 0;overflow-wrap:anywhere}.round-flow-help b{white-space:nowrap}@media(max-width:767px){.round-flow-help{font-size:6px;line-height:1.6}}
+/* LMS: keep the arena dominant and the personal card directly under the dice. */
+.combat-dice-column{order:2;min-width:0;display:grid;justify-items:center;align-content:center;gap:5px;width:100%}
+.combat-dice-column>.combat-dice-dock{margin:0 auto}
+.battle-balanced.combat-party .lms-initiative{width:fit-content;max-width:100%;margin:2px auto;padding:2px 10px;background:#111525c9;border:1px solid #aa874e}
+.battle-balanced.combat-party .lms-initiative-rolls{gap:5px}
+.battle-balanced.combat-party .lms-initiative-rolls>span{min-width:80px;gap:1px;padding:2px 7px}
+.battle-balanced.combat-party .lms-initiative small{font-size:6px}
+.battle-balanced.combat-party .lms-initiative strong{font-size:13px}
+.battle-balanced.combat-party .lms-initiative b,.battle-balanced.combat-party .lms-initiative p{font-size:7px;line-height:1.4}
+.battle-balanced.combat-party .combat-stage{height:clamp(320px,49svh,510px)!important;overflow:hidden}
+.battle-balanced.combat-party .combat-fighter{height:120px!important}
+.battle-balanced.combat-party .combat-avatar{height:120px;transform:scale(.57)!important;transform-origin:bottom center}
+.battle-balanced.combat-party .combat-seat{width:23%;max-width:250px}
+.battle-balanced.combat-party .combat-seat-0{left:21%;bottom:3%}
+.battle-balanced.combat-party .combat-seat-1{left:5%;bottom:26%}
+.battle-balanced.combat-party .combat-seat-2{left:51%;bottom:35%}
+.battle-balanced.combat-party .combat-seat-3{left:72%;bottom:13%}
+.battle-balanced.combat-party.party-count-3 .combat-seat-0{left:38.5%;bottom:3%}
+.battle-balanced.combat-party.party-count-3 .combat-seat-1{left:9%;bottom:26%}
+.battle-balanced.combat-party.party-count-3 .combat-seat-2{left:68%;bottom:26%}
+.combat-party .lms-bottom-layout{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:8px;margin:3px auto}
+.combat-party .lms-bottom-layout .combat-console{grid-template-columns:minmax(0,1.3fr) minmax(150px,1fr);padding:3px 5px;border-width:12px;align-items:start}
+.combat-party .lms-bottom-layout .combat-dice-dock{width:160px!important;height:88px!important}
+.combat-party .lms-controls{display:grid;gap:3px}
+.combat-party .ordered-turn-label,.combat-party .round-flow-help{font-size:6px;margin:1px 0;line-height:1.6}
+.combat-party .lms-history{padding:4px 7px;align-self:stretch}
+.combat-party .lms-history>div{height:146px}
+.combat-party .combat-result-strip:has([hidden]):not(:has(.opponent-roll-alert)){min-height:4px;margin:1px}
+.personal-buff-panel{width:100%;max-width:260px;margin:0!important;padding:5px!important;border:1px solid #a784f2!important;border-radius:5px;background:linear-gradient(135deg,#25153bed,#101526f5)!important;color:#f1d7ff;box-shadow:inset 0 0 12px #aa76df26,0 0 7px #ad73e938;font-size:7px;line-height:1.6;min-width:0}
+.personal-buff-panel summary{display:flex;align-items:center;gap:5px;cursor:pointer;list-style:none;color:#ffe8a4!important;text-shadow:0 0 6px #c296f8;font-size:7px;overflow-wrap:anywhere}
+.personal-buff-panel summary::-webkit-details-marker{display:none}.personal-buff-panel summary img{width:23px;height:33px;object-fit:contain;flex-shrink:0}.personal-buff-panel summary span{flex:1;min-width:0}.personal-buff-panel summary i{font-style:normal;color:#caa4ff}
+.personal-buff-panel select,.personal-buff-panel input{width:100%;margin-top:5px;font-size:8px;background:#11152a;color:#ffe4ab;padding:4px}.personal-buff-panel p,.personal-buff-panel>span{display:block;font-size:7px;line-height:1.7;margin:5px 0}.personal-buff-panel .lms-action{width:100%;min-height:28px;margin:4px 0}
+.personal-buff-panel.buff-ready{border-color:#ffe780!important;animation:personal-buff-ready 1.4s ease-in-out infinite}.personal-buff-panel.buff-ready summary i{color:#fff09a}.personal-buff-panel.buff-used{opacity:.6}
+@keyframes personal-buff-ready{50%{box-shadow:inset 0 0 15px #f3b85133,0 0 18px #ffd65d99;filter:brightness(1.2)}}
+@media(max-width:767px){
+ .battle-balanced.combat-party .combat-stage{height:clamp(290px,40svh,380px)!important}
+ .battle-balanced.combat-party .combat-fighter{height:92px!important}.battle-balanced.combat-party .combat-avatar{height:92px;transform:scale(.41)!important}
+ .battle-balanced.combat-party .combat-seat{width:28%}.battle-balanced.combat-party .combat-seat-0{left:20%}.battle-balanced.combat-party .combat-seat-1{left:2%}.battle-balanced.combat-party .combat-seat-2{left:50%}.battle-balanced.combat-party .combat-seat-3{left:70%}
+ .battle-balanced.combat-party.party-count-3 .combat-seat-0{left:36%}.battle-balanced.combat-party.party-count-3 .combat-seat-1{left:3%}.battle-balanced.combat-party.party-count-3 .combat-seat-2{left:69%}
+ .combat-party .lms-bottom-layout{grid-template-columns:1fr;gap:3px}.combat-party .lms-bottom-layout .combat-console{grid-template-columns:minmax(0,1.3fr) minmax(120px,1fr);border-width:10px;padding:2px}
+ .combat-party .lms-bottom-layout .combat-dice-dock{width:125px!important;height:70px!important;grid-row:auto}.combat-dice-column{grid-row:1;grid-column:2}.combat-party .combat-command-panel{grid-row:1;grid-column:1}
+ .combat-party .lms-history>div{height:65px}.combat-party .lms-history h3{margin-bottom:2px}.personal-buff-panel{max-width:170px}.personal-buff-panel summary{font-size:6px}.personal-buff-panel summary img{width:20px;height:28px}
+ .battle-balanced.combat-party .lms-initiative-rolls>span{min-width:0;max-width:80px}.battle-balanced.combat-party .lms-initiative small{font-size:5px}
+}
+@media(prefers-reduced-motion:reduce){.personal-buff-panel.buff-ready{animation:none;box-shadow:0 0 10px #ffd65d88}}
+
+.battle-balanced .combat-dice-column>.combat-dice-dock{order:0;grid-row:1;grid-column:1}.combat-dice-column>.personal-buff-panel{order:1;grid-row:2;grid-column:1}
+
+
+.battle-balanced.combat-party .combat-seat-2{bottom:24%}

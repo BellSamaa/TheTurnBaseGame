@@ -20,6 +20,7 @@ function chatFailure(error:ChatError){
  const descriptions:Record<string,string>={
   PGRST202:'Chat function is missing from the Supabase schema cache',
   PGRST203:'Conflicting versions of the Supabase chat function',
+  '21000':'Chat database needs the safe-delete repair: sql/20261105-lobby-chat-safe-delete.sql',
   '42501':'Supabase denied permission to the chat database',
   '42P01':'A required chat database table is missing',
   '42703':'A required chat database column is missing',
