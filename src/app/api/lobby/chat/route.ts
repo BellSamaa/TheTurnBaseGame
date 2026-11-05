@@ -1,5 +1,15 @@
 import {NextResponse} from 'next/server';
-import {onlineDb} from '@/lib/onlineRuntime';
+import {lobbyChatRequest} from '@/lib/lobbyChat';
 import {sessionUser,sameOrigin} from '@/lib/serverAuth';
-export async function GET(){const actor=await sessionUser();if(!actor)return NextResponse.json({error:'Sign in required'},{status:401});const {data,error}=await onlineDb().rpc('game_lobby_chat_session',{p_actor:actor,p_session:null,p_action:'read'});return NextResponse.json(error?{error:'Apply sql/20261105-lobby-empty-chat.sql'}:data,{status:error?503:200,headers:{'Cache-Control':'no-store'}});}
-export async function POST(req:Request){const actor=await sessionUser();if(!actor||!sameOrigin(req))return NextResponse.json({error:'Forbidden'},{status:403});const b=await req.json();const message=typeof b.message==='string'?b.message.trim():'';if(!message||message.length>240)return NextResponse.json({error:'1–240 characters required'},{status:400});const {data,error}=await onlineDb().rpc('game_lobby_chat_session',{p_actor:actor,p_session:null,p_action:'send',p_message:message});return NextResponse.json(error?{error:error.message}:{success:true,...data},{status:error?400:200});}
+export async function GET(){
+ const actor=await sessionUser();if(!actor)return NextResponse.json({error:'Sign in required'},{status:401});
+ const result=await lobbyChatRequest(actor,null,'read');
+ return NextResponse.json(result.error||result.data,{status:result.status,headers:{'Cache-Control':'no-store'}});
+}
+export async function POST(req:Request){
+ const actor=await sessionUser();if(!actor||!sameOrigin(req))return NextResponse.json({error:'Forbidden'},{status:403});
+ const b=await req.json();const message=typeof b.message==='string'?b.message.trim():'';
+ if(!message||message.length>240)return NextResponse.json({error:'1–240 characters required'},{status:400});
+ const result=await lobbyChatRequest(actor,null,'send',message);
+ return NextResponse.json(result.error||{success:true,...result.data},{status:result.status});
+}
