@@ -10,6 +10,7 @@ import { applyOpponentDamage, recordOpponentDamage } from './combatDamage';
 
 export interface LmsState {
   lastEvent?: {id:string;announcementId?:string;cues?:{effect:string;target:string}[];effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
+  rollDeadline?:number;
   initiative?: {id:string;roll:number}[];
   extras?: LmsExtras; remainingTargets?: string[];
   turnFlow?:2; defenderRolls?:number[]; skillDone?:string[];
@@ -24,7 +25,7 @@ export function createLms(participants: RoomParticipant[], duel = false): LmsSta
     weapon:WEAPON_DEFINITIONS[p.weaponId],hp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),maxHp:Math.round((duel?150:200)*CLASS_DEFINITIONS[p.classType].hpModifier),
     skillCharge:0,d12Charge:0,isAttacker:false,petRockHp:0,bullets:6 }));
   const initiative = duel?players.map(p=>({id:p.id,roll:rollD20()})).sort((a,b)=>b.roll-a.roll):[];
-  return {players,initiative,order:duel?initiative.map(p=>p.id):players.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'initiative',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
+  return {players,rollDeadline:duel?undefined:Date.now()+10000,initiative,order:duel?initiative.map(p=>p.id):players.map(p=>p.id),active:0,round:1,turnFlow:2,phase:duel?'attack':'initiative',target:duel?players.find(p=>p.id!==initiative[0].id)!.id:undefined,rolls:[],defenderRolls:[],skillDone:[],revision:0,
     extras:{buffs:Object.fromEntries(players.map(p=>[p.id,{id:Math.floor(Math.random()*20),used:false,revealed:false}])),flags:{},bombs:[],direction:1,suddenRound:8,eliminated:[]},
     log:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · Initiative D20: '+p.roll),
     logVi:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · D20 khởi đầu: '+p.roll)};
@@ -49,7 +50,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     if(s.initiative?.some(r=>r.id===actor))throw Error('Opening D20 already rolled');
     const roll=rollD20();(s.initiative??=[]).push({id:actor,roll});
     add(user.name+' · D20 khởi đầu: '+roll,user.name+' · Opening D20: '+roll);
-    completeInitiative();s.revision++;return s;
+    completeInitiative();armLmsRollTimer(s,now,input);s.revision++;return s;
   }
   const finish=()=>{
     const killer=action==='skill'?user:attacker;
@@ -147,5 +148,26 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       s.turnFlow=2;s.phase=s.players.length===2?'attack':'target';s.rolls=[];s.defenderRolls=[];s.skillDone=[];s.target=s.players.length===2?s.players.find(p=>p.id!==s.order[s.active]&&p.hp>0)?.id:undefined;s.attack=undefined;s.defense=undefined;s.deadline=undefined;finish();
     } else throw Error('Hành động không hợp lệ');
   }
-  s.revision++;return s;
+  armLmsRollTimer(s,now,input);s.revision++;return s;
+}
+
+function rollStageKey(s:LmsState){return JSON.stringify([s.phase,s.active,s.round,s.target,s.rolls.length,s.defenderRolls?.length]);}
+function armLmsRollTimer(s:LmsState,now:number,previous?:LmsState){
+ if(!['initiative','attack','defense','charge','charge_defense'].includes(s.phase)){s.rollDeadline=undefined;return;}
+ if(!previous||rollStageKey(s)!==rollStageKey(previous)||!s.rollDeadline)s.rollDeadline=now+10000;
+}
+/** Server clock controls automatic rolls; any connected client can poll safely. */
+export function tickLms(input:LmsState,now=Date.now()):LmsState{
+ if(input.winner)return input;
+ if(input.phase==='clash'&&now>=(input.deadline??Infinity))return lmsAction(input,input.players.find(p=>p.hp>0)!.id,'resolve',{},now);
+ if(!['initiative','attack','defense','charge','charge_defense'].includes(input.phase))return input;
+ if(!input.rollDeadline){const s=structuredClone(input);armLmsRollTimer(s,now);s.revision++;return s;}
+ if(now<input.rollDeadline)return input;
+ let s=input;
+ if(s.phase==='initiative'){
+  for(const p of input.players.filter(p=>p.hp>0&&!input.initiative?.some(r=>r.id===p.id)))s=lmsAction(s,p.id,'initiative',{},now);
+  return s;
+ }
+ const actor=['defense','charge_defense'].includes(s.phase)?s.target!:s.order[s.active];
+ return lmsAction(s,actor,s.phase==='attack'?'attack':s.phase==='defense'?'defend':'charge',{},now);
 }

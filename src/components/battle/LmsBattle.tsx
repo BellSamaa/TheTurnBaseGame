@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
 import {BuffCard,BuffDraw} from './BuffCard';
-import {LMS_BUFFS,LMS_BUFF_HELP} from '@/lib/lmsBuffs';
+import {LMS_BUFFS,LMS_BUFF_HELP,activateBuff} from '@/lib/lmsBuffs';
 import type { LmsState } from '@/lib/lms';
 import { skillPresentation } from '@/lib/skillPresentation';
 
@@ -50,6 +50,8 @@ export default function LmsBattle(){
   const button=(text:string,move:string,enabled:boolean,args:Record<string,unknown>={})=><button aria-label={text} disabled={busy||!enabled} className={'lms-action '+(enabled?'action-beacon':'')} onClick={e=>{e.currentTarget.closest('details')?.removeAttribute('open');if(move==='target'){setPending({move,args:{}});return;}if(move==='buff'&&[2,8,10,13].includes(myBuff?.id??-1)){setPending({move,args});return;}act(move,args);}}>{['initiative','charge','target','attack','defend','end'].includes(move)?<img className="command-sprite" src={'/assets/sprites/ui/frames/'+(move==='end'?'btn_end_turn':'btn_roll_dice')+'.png'} alt=""/>:text}</button>;
   const choices=s.players.filter(p=>p.id!==me?.id&&p.hp>0);
   const chosen=choices.some(p=>p.id===target)?target:choices[0]?.id;
+  let buffReason='';
+  if(me&&myBuff&&!myBuff.used){try{const candidates=[2,8,10,13].includes(myBuff.id)?choices.map(p=>p.id):[buffChoice==='hp'?trade:chosen];let valid=false,lastError:unknown;for(const candidate of candidates){try{activateBuff(structuredClone(s),me.id,{target:candidate,choice:buffChoice,buffSlot});valid=true;break;}catch(e){lastError=e;}}if(!valid)throw lastError||Error('Chọn đối thủ hợp lệ');}catch(e){buffReason=tx((e as Error).message);}}
   const picking=pending||(!s.winner&&mine&&s.phase==='target'?{move:'target',args:{}}:null);
   const targetIds=picking&&me&&me.hp>0?choices.filter(p=>picking.move!=='buff'||(myBuff?.id!==2||p.id!==attacker.id)&&(myBuff?.id!==8||p.hp<30)).map(p=>p.id):[];
   const pickTarget=(id:string)=>{if(!picking||!targetIds.includes(id))return;setTarget(id);const move=picking;setPending(null);void act(move.move,{...move.args,target:id});};
@@ -62,7 +64,8 @@ export default function LmsBattle(){
         <select aria-label={tx("Chọn lá buff")} value={buffSlot} onChange={e=>setBuffSlot(e.target.value as 'initial'|'bonus')}><option value="initial">{tx("Buff đầu trận")}</option>{s.extras.bonusBuffs?.[me.id]&&<option value="bonus">{tx("Buff vòng 30")}</option>}</select><p>{tx(LMS_BUFF_HELP[myBuff?.id??-1])}</p><p>{en?'Reveal the card, then click a glowing opponent if a target is required.':'Lật thẻ rồi bấm vào đối thủ sáng nếu lá bài cần mục tiêu.'}</p>
         {[12,15].includes(myBuff?.id??-1)&&<select aria-label={tx("Tùy chọn buff")} value={buffChoice} onChange={e=>setBuffChoice(e.target.value)}><option value="attack">{tx("D20 Công / đổi PTS thành HP")}</option><option value="defense">{tx("D20 Thủ")}</option><option value="hp">{tx("Đổi HP thành PTS")}</option></select>}
         {buffChoice==='hp'&&<input type="number" min="1" value={trade} onChange={e=>setTrade(e.target.value)} aria-label={tx("PTS muốn mua")} className="bg-slate-900 p-2"/>}
-        {button(tx("LẬT BUFF"),'buff',!!myBuff&&!myBuff.used&&me.hp>0&&s.phase!=='initiative',{target:buffChoice==='hp'?trade:chosen,choice:buffChoice,buffSlot})}
+        {button(tx("LẬT BUFF"),'buff',!!myBuff&&!myBuff.used&&!buffReason&&me.hp>0&&s.phase!=='initiative',{target:buffChoice==='hp'?trade:chosen,choice:buffChoice,buffSlot})}
+        {buffReason&&<p className="buff-condition">{en?'Condition: ':'Điều kiện: '}{buffReason}</p>}
         <span>{tx("Vòng bo từ vòng") + " "}{s.extras.suddenRound}{" " + tx(". Buff người khác:") + " "}{s.players.filter(p=>p.id!==me.id).map(p=>p.name+': '+(s.extras!.buffs[p.id]?.revealed?tx(LMS_BUFFS[s.extras!.buffs[p.id].id]):tx("ÚP"))).join(' · ')}</span>
       </details>}
       {pending&&<button className="lms-action" onClick={()=>setPending(null)}>{en?'Cancel selection':'Hủy chọn'}</button>}
@@ -71,7 +74,8 @@ export default function LmsBattle(){
       {button(tx('KẾT THÚC LƯỢT'),'end',(mine&&s.phase==='end')||(s.phase==='skills'&&(mine||victim?.id===me?.id)&&!s.skillDone?.includes(me?.id||'')))}
       {me&&<CombatSkills player={me} round={s.round} busy={busy} enabled={s.phase==='skills'&&(mine||victim?.id===me?.id)&&!s.skillDone?.includes(me?.id||'')} onCast={args=>{const art=skillPresentation(me,args.slot as 1|2,args.form as number|undefined);if(art.target==='caster'){void act('skill',{...args,target:chosen});return;}setPending({move:'skill',args});}}/>}
       </div>
-      {s.phase==='clash'&&<div className="clash-controls">{button(tx('+1 CÔNG · 3 PTS'),'clash',(me?.hp??0)>0,{delta:1})}{button(tx('−1 CÔNG · 3 PTS'),'clash',(me?.hp??0)>0,{delta:-1})}{button(tx('TÍNH SÁT THƯƠNG'),'resolve',clock>=(s.deadline??Infinity))}</div>}
+      {s.rollDeadline&&['initiative','attack','defense','charge','charge_defense'].includes(s.phase)&&<div className="auto-roll-countdown">{en?'Auto-roll in ':'Tự tung sau '}{Math.max(0,Math.ceil((s.rollDeadline-clock)/1000))}s</div>}
+      {s.phase==='clash'&&<div className="clash-controls"><p>{en?'Reaction: spend 3 PTS to change the attacker’s D20 by 1.':'Can thiệp: tốn 3 PTS để tăng/giảm 1 điểm D20 Công.'} {Math.max(0,Math.ceil(((s.deadline||0)-clock)/1000))}s</p>{button(en?'Raise ATK +1 · costs 3 PTS':'Tăng Công +1 · tốn 3 PTS','clash',(me?.hp??0)>0&&(me?.d12Charge??0)>=3&&clock<(s.deadline||0)&&s.extras?.silencedRound!==s.round,{delta:1})}{button(en?'Lower ATK −1 · costs 3 PTS':'Giảm Công −1 · tốn 3 PTS','clash',(me?.hp??0)>0,{delta:-1})}{button(tx('TÍNH SÁT THƯƠNG'),'resolve',clock>=(s.deadline??Infinity))}</div>}
       {s.winner&&<button className="lms-action" onClick={async()=>{const r=await fetch('/api/rooms/'+onlineRoomCode,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'return_lobby',userId:me?.id})});if(r.ok)setPage('play');}}>{tx("VỀ PHÒNG")}</button>}
     </footer>
     </CombatArena>

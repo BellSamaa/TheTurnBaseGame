@@ -1,6 +1,6 @@
 import {castPvpSkill,validatePvpSnapshot} from '@/lib/pvpSkills';
 import { finishRank } from '@/lib/onlineRuntime';
-import { createLms, lmsAction } from '@/lib/lms';
+import { createLms, lmsAction, tickLms } from '@/lib/lms';
 import { sessionUser } from '@/lib/serverAuth';
 import { NextResponse } from 'next/server';
 import {
@@ -36,6 +36,7 @@ export async function GET(req: Request, context: RouteContext) {
         { status: 404 }
       );
     }
+    if(room.status==='playing'&&room.battleState?.lms){const next=tickLms(room.battleState.lms);if(next!==room.battleState.lms){room.battleState.lms=next;if(next.winner){room.battleState.winnerId=next.winner;room.status='finished';}try{await updateRoom(room);}catch(e){if((e as Error).message!=='Room changed; retry after synchronization')throw e;const fresh=await getRoomByCodeAsync(code);if(fresh)return NextResponse.json({success:true,room:await roomView(fresh)});}}}
     return NextResponse.json({ success: true, room:await roomView(room) });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Server error';
