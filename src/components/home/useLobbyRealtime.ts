@@ -8,6 +8,8 @@ type Identity={id:string;username:string;avatar:CharacterCustomization};
 /** No HTTP position fallback: movement is sent only on a subscribed WebSocket. */
 export function useLobbyRealtime(identity:Identity|null,position:MutableRefObject<LobbyPose>,onChat:()=>void){
  const [players,setPlayers]=useState<LobbyPeer[]>([]),[error,setError]=useState('');
+ const chatSessionRef=useRef<string|null>(null);
+ const ensureChatSession=async()=>{const session=chatSessionRef.current;if(!session)throw Error('Chat is connecting. Please try again.');const r=await fetch('/api/lobby/chat/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session,action:'join'})});const b=await r.json();if(!r.ok)throw Error(b.error||'Chat connection failed');return session;};
  const channelRef=useRef<RealtimeChannel|null>(null),identityRef=useRef(identity),chatRef=useRef(onChat);
  identityRef.current=identity;chatRef.current=onChat;
  const notifyChat=()=>{const c=channelRef.current;if(c?.state==='joined')void c.send({type:'broadcast',event:'chat_changed',payload:{}});};
@@ -15,6 +17,7 @@ export function useLobbyRealtime(identity:Identity|null,position:MutableRefObjec
   if(!identity?.id)return;let disposed=false,subscribed=false,seq=0,raf=0,previous=performance.now();
   let client:ReturnType<typeof createClient>|undefined,channel:RealtimeChannel|undefined;
   const session=crypto.randomUUID(),targets=new Map<string,LobbyPeer>(),drawn=new Map<string,LobbyPeer>(),lastSeq=new Map<string,number>(),members=new Set<string>();
+  chatSessionRef.current=session;
   let membershipReady=false,lastSent='',lastAt=0;
   const sendPose=(force=false)=>{
    if(!subscribed||channel?.state!=='joined'||!identityRef.current)return;
@@ -42,7 +45,8 @@ export function useLobbyRealtime(identity:Identity|null,position:MutableRefObjec
   const lease=(action:'join'|'touch'|'leave')=>fetch('/api/lobby/chat/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session,action}),keepalive:action==='leave'});
   const leaveLease=()=>{void lease('leave').catch(()=>{});};
   window.addEventListener('pagehide',leaveLease);
-  const leaseTimer=setInterval(()=>{if(subscribed)void lease('touch').catch(()=>{});},20000);
+  void lease('join').then(r=>{if(!r.ok&&!disposed)setError('Chat connection failed. Please retry sending.');}).catch(()=>{});
+  const leaseTimer=setInterval(()=>{void lease('touch').catch(()=>{});},20000);
   const timer=setInterval(()=>sendPose(),100);
   (async()=>{try{
    const r=await fetch('/api/lobby/realtime',{cache:'no-store'}),config=await r.json();if(!r.ok)throw Error(config.error||'Realtime unavailable');if(disposed)return;
@@ -55,12 +59,12 @@ export function useLobbyRealtime(identity:Identity|null,position:MutableRefObjec
     lastSeq.set(payload.session,payload.seq);targets.set(payload.session,{...old,...payload,users:old.users});
    }).on('broadcast',{event:'chat_changed'},()=>chatRef.current()).subscribe(async status=>{
     if(disposed)return;subscribed=status==='SUBSCRIBED';
-    if(subscribed){setError('');try{const r=await lease('join');if(!r.ok)setError('Apply lobby empty-chat SQL');}catch{}if(disposed)return;const id=identityRef.current!;await channel!.track({...position.current,session,user_id:id.id,users:{username:id.username,avatar_config:id.avatar},seq:0});sendPose(true);chatRef.current();}
+    if(subscribed){setError('');if(disposed)return;const id=identityRef.current!;await channel!.track({...position.current,session,user_id:id.id,users:{username:id.username,avatar_config:id.avatar},seq:0});sendPose(true);chatRef.current();}
     else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){setError('Lobby Realtime disconnected · reconnecting…');}
    });
    raf=requestAnimationFrame(animate);
   }catch(e){if(!disposed)setError((e as Error).message);}})();
   return()=>{disposed=true;subscribed=false;clearInterval(timer);clearInterval(leaseTimer);window.removeEventListener('pagehide',leaveLease);leaveLease();cancelAnimationFrame(raf);channelRef.current=null;if(client&&channel)void client.removeChannel(channel);setPlayers([]);};
  },[identity?.id,position]);
- return {players,error,notifyChat};
+ return {players,error,notifyChat,ensureChatSession};
 }
