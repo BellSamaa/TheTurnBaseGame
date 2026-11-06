@@ -2,6 +2,7 @@ import {recordCombatHit,type CombatHit} from './combatHits';
 import {prepareDungeonDefense} from './dungeonProtection';
 import {dungeonFloorAllowed,dungeonPathAllowed} from './dungeonGeometry';
 import {deathNoteMode} from './deathNote';
+import {clashCounterChance} from './duelRules';
 import {weaponBaseDamage} from './weaponStats';
 import {judgementAttack} from './deathNote';
 import type {PlayerState} from '@/types/game';
@@ -23,6 +24,7 @@ import {warriorBonus} from './classMechanics';
 type Position={x:number;y:number};
 type Buff={id:string;remaining:number;active:boolean};
 export interface DungeonState {
+  clash?: {score:number;role:'attack'|'defense';deadline:number;wagers:Record<string,number>;enemyStake:number;target:string};
   hitEvents?:CombatHit[];
   players:PlayerState[];
   requests?:string[];
@@ -31,7 +33,7 @@ export interface DungeonState {
   encounter:number;
   round:number;
   phase:'room'|'entrance'|'loading'|'attack'|'defense'|'charge'|'skills'|'enemy_skills'|'end'|'cleared'|'rest'|'victory'|'defeat';
-  comparison?:{id:string;attack:number;defense:number;difference:number;damage:number;critical:boolean;target:string};
+  comparison?:{id:string;attack:number;defense:number;difference:number;damage:number;critical:boolean;target:string;clashing?:boolean};
   teamHp:number;
   teamMaxHp:number;
   pts:number;
@@ -151,6 +153,15 @@ function finishDice(s:DungeonState,now:number){
   let total=Object.values(s.rolls).flat().reduce((a,b)=>a+b,0);
   // The visible result was rolled and held by tickDungeon; never roll it again here.
   let enemyTotal=s.enemyRolls.reduce((a,b)=>a+b,0),floor=DUNGEON_FLOORS[s.floor-1];
+  const victim=s.enemies.find(p=>p.id===s.target&&p.hp>0)||s.enemies.find(p=>p.hp>0)!;
+  // A party total can exceed 20. Only tied natural-20 rolls retain the no-clash exception.
+  if(total>0&&total===enemyTotal&&!(Object.values(s.rolls).flat().every(v=>v===20)&&s.enemyRolls.every(v=>v===20))&&!victim.weaponUpdate?.judgement&& !s.players.some(p=>p.weaponUpdate?.judgement)){
+    const foes=s.enemies.filter(p=>p.hp>0),points=foes.reduce((n,p)=>n+(p.d12Charge??0),0);
+    const enemyStake=Math.floor(Math.random()*(Math.min(3,points)+1));
+    let left=enemyStake;for(const foe of foes){const used=Math.min(left,foe.d12Charge??0);foe.d12Charge=(foe.d12Charge??0)-used;left-=used;}
+    s.clash={score:total,role:s.phase as 'attack'|'defense',deadline:now+5000,wagers:{},enemyStake,target:victim.id};s.deadline=undefined;
+    add(s,'CLASHING · '+total+' = '+enemyTotal+' · Each teammate may wager 0–3 shared PTS within 5 seconds.');return;
+  }
   if(s.phase==='attack'){
     const victim=s.enemies.find(p=>p.id===s.target&&p.hp>0)||s.enemies.find(p=>p.hp>0)!;
     const judge=s.players.find(p=>p.id===victim.weaponUpdate?.judgement?.owner);
@@ -222,6 +233,21 @@ function finishDice(s:DungeonState,now:number){
   flushWeaponEvents(s);
   s.rolls=s.phase==='attack'&&s.attackActors?Object.fromEntries(s.players.filter(p=>!s.attackActors!.includes(p.id)).map(p=>[p.id,[0]])):{};s.deadline=now+20000;progressEncounter(s);
 }
+function resolveDungeonClash(s:DungeonState,now:number){
+  const clash=s.clash!;
+  const teamStake=Object.values(clash.wagers).reduce((n,v)=>n+v,0),teamAttacks=clash.role==='attack';
+  const counter=Math.random()<clashCounterChance(teamAttacks?teamStake:clash.enemyStake,teamAttacks?clash.enemyStake:teamStake);
+  const teamWins=teamAttacks?!counter:counter;
+  const victim=s.enemies.find(p=>p.id===clash.target&&p.hp>0)||s.enemies.find(p=>p.hp>0)!;
+  const amount=Math.round(clash.score*2/3);
+  const tierBonus=teamWins?s.players.reduce((n,p)=>n+weaponBaseDamage(p.weapon.tier),0):s.enemies.filter(p=>p.hp>0).reduce((n,p)=>n+weaponBaseDamage(p.weapon.tier),0);
+  const damage=teamWins?applyOpponentDamage(victim,amount+tierBonus,s.round):damageTeam(s,amount+tierBonus,undefined,true);
+  recordCombatHit(s,damage,teamWins?'dungeon_team':'dungeon_enemies',teamWins?victim.id:'dungeon_team');
+  s.comparison={id:crypto.randomUUID(),attack:clash.score,defense:clash.score,difference:0,damage,critical:false,clashing:true,target:teamWins?victim.name:'TEAM'};
+  add(s,'Clashing · '+(teamWins?'Team':'Enemies')+' '+(counter?'counter':'attack wins')+' · '+damage+' damage · Team wager '+teamStake+' / Enemy wager '+clash.enemyStake+' PTS');
+  emitDungeon(s,{id:crypto.randomUUID(),effect:'impact_physical',caster:teamWins?s.players[0].id:victim.id,target:teamWins?victim.id:s.players[0].id,name:'Clashing · '+damage+' HP'});
+  delete s.clash;s.rolls={};s.attackActors=undefined;s.phase=teamAttacks?'defense':'charge';s.deadline=now+20000;progressEncounter(s);
+}
 function finishCharge(s:DungeonState,values:number[],now:number){
   for(const [i,enemy] of s.enemies.filter(p=>p.hp>0).entries())Object.assign(enemy,chargeSkillPoints(enemy,[values[i]],s.round));
   s.phase='skills';s.votes=[];s.deadline=now+20000;
@@ -232,6 +258,16 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
   const s=structuredClone(input),p=s.players.find(p=>p.id===actor);
   for(const player of s.players)if(s.round>(player.petRockEnrageUntilRound??Infinity))player.petRockEnraged=false;
   if(!p)throw Error('Not in this Dungeon.');
+  if(s.clash){
+    if(action!=='clash_wager')throw Error('Resolve Clashing before continuing.');
+    const stake=args.stake;
+    if(now>=s.clash.deadline){resolveDungeonClash(s,now);return s;}
+    if(s.clash.wagers[actor]!==undefined)return s;
+    if(typeof stake!=='number'||!Number.isInteger(stake)||stake<0||stake>3||stake>s.pts)throw Error('Choose an affordable wager from 0 to 3 shared PTS.');
+    s.pts-=stake;s.clash.wagers[actor]=stake;add(s,p.name+' · Clashing wager '+stake+' PTS');
+    if(s.players.every(p=>s.clash!.wagers[p.id]!==undefined))resolveDungeonClash(s,now);
+    return s;
+  }
   if(s.botDice&&['roll','timing','target','skill','end'].includes(action))throw Error('Wait for the enemy dice result.');
   const safe=['entrance','rest'].includes(s.phase);
   if(safe&&['ready','shop','equip'].includes(action)&&args.position){
@@ -349,6 +385,7 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
     if(activeBuff(s,'weather')&&cast.caster.weaponUpdate?.weather?.fresh&&cast.caster.weaponUpdate.weather.started!==before.weaponUpdate?.weather?.started){cast.caster.weaponUpdate.weather.remainingTurns!+=2;cast.caster.weaponUpdate.weather.until+=2;activeBuff(s,'weather')!.remaining=0;}
     const art=skillPresentation(p,slot,(args.form as number|undefined)??(p.weapon.id==='death_note'&&slot===2?deathNoteMode(p,s.round):undefined));
     recordCombatHit(s,cast.damage,p.id,target.id);savePooled(s,p,cast.caster);Object.assign(target,cast.opponent);syncWeather([...s.players,...s.enemies]);
+    if(cast.effect==='dn:purge')emitDungeon(s,{id:crypto.randomUUID(),effect:'dn:eye',caster:p.id,target:p.id,name:'Eye of Death'});
     emitDungeon(s,{id:crypto.randomUUID(),effect:cast.effect||art.effect,caster:p.id,target:art.target==='caster'?p.id:target.id,name:art.nameEn});
     add(s,cast.logTextEn);progressEncounter(s);
   }else if(action==='end'){
@@ -380,6 +417,10 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
   return s;
 }
 export function tickDungeon(input:DungeonState,now=Date.now()){
+  if(input.clash){
+    if(now<input.clash.deadline&&!input.players.every(p=>input.clash!.wagers[p.id]!==undefined))return input;
+    const s=structuredClone(input);resolveDungeonClash(s,now);return s;
+  }
   if(input.botDice){
     if(input.botDice.stage==='rolling'){
       if(now<input.botDice.readyAt)return input;
@@ -430,6 +471,7 @@ export function tickDungeon(input:DungeonState,now=Date.now()){
 
         add(s,cast.logTextEn+(actual!==damage?' · Shared defenses: '+actual+' HP lost.':''));
         const art=skillPresentation(enemyCaster,effectiveSlot,form??(enemyCaster.weapon.id==='death_note'&&effectiveSlot===2?deathNoteMode(enemyCaster,s.round):undefined));
+        if(cast.effect==='dn:purge')emitDungeon(s,{id:crypto.randomUUID(),effect:'dn:eye',caster:enemy.id,target:enemy.id,name:'Eye of Death'});
         emitDungeon(s,{id:crypto.randomUUID(),effect:cast.effect||art.effect,caster:enemy.id,target:art.target==='caster'?enemy.id:p.id,name:art.nameEn});
         if(s.floor===7&&s.encounter===5&&slot===1){enemy.d12Charge=(enemy.d12Charge??0)+rollD6()+rollD6();}
         if(s.floor===8&&s.encounter===3)s.pts=Math.max(0,s.pts-2);

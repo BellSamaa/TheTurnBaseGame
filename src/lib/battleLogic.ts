@@ -1,6 +1,6 @@
 import {weaponBaseDamage} from './weaponStats';
 import {judgementAttack} from './deathNote';
-import {critChance, openDuelClash, recordDuelComparison, type DuelNotice} from './duelRules';
+import {clashCounterChance,critChance, openDuelClash, recordDuelComparison, type DuelNotice} from './duelRules';
 import {normalSetup,normalReactions,updateNormalDamage,absorbUpdateDamage} from './weaponUpdateHooks';
 import {warriorBonus} from './classMechanics';
 import { reflectedDamage, absorbWithRock, applyOpponentDamage } from './combatDamage';
@@ -163,7 +163,7 @@ export function calculateDuelCombat(attack: number, defense: number, attacker: P
     attacker.d12Charge = (attacker.d12Charge ?? 0) - attackStake;
     defender.d12Charge = (defender.d12Charge ?? 0) - defenseStake;
   }
-  const counter = tied && Math.random() < (35 + (defenseStake - attackStake) * 10) / 100;
+  const counter = tied && Math.random() < clashCounterChance(attackStake, defenseStake);
   const critical = attack === 20 && Math.random() < critChance(attacker.weapon.tier);
   const clashDamage = Math.round(attack * 2 / 3);
   let counterDamage = 0;

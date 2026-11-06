@@ -797,7 +797,7 @@ export default function BattleScreen() {
       icon: effectFrame(result.effect||presentation.effect,1), casterName: caster.name, auraColor: presentation.color };
     const vfx: VfxEvent = { id: crypto.randomUUID(), effect: result.effect||presentation.effect, target: vfxTarget, size: slot === 2 ? 180 : 130 };
     const vfxSequence: VfxEvent[] = skillEffectPlan(caster, slot, form).map(cue => ({
-      id: crypto.randomUUID(), effect: result.effect||cue.effect, size: slot === 2 ? 180 : 130,
+      id: crypto.randomUUID(), effect: caster.weapon.id==='death_note'&&slot===2&&form===2?cue.effect:result.effect||cue.effect, size: slot === 2 ? 180 : 130,
       target: cue.target === 'caster' || rolledBack ? casterTarget : cue.target === 'center' ? 'center' : opponentTarget,
     }));
     const reaction = (effect: string) => ({ id: crypto.randomUUID(), effect, target: opponentTarget as 'p1' | 'p2', size: 140 });

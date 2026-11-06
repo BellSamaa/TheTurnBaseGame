@@ -19,6 +19,10 @@ export function critChance(tier: WeaponTier) {
   return tier === 'secret' ? 0.75 : tier === 'mythic' ? 0.6 : 0.5;
 }
 
+export function clashCounterChance(attackStake: number, defenseStake: number) {
+  return Math.max(0, Math.min(1, (35 + (defenseStake - attackStake) * 10) / 100));
+}
+
 export function openDuelClash(attack: number, defense: number, defenderId: string, now: number): DuelClash | undefined {
   if (attack === defense && attack > 0 && attack < 20) {
     return { score: attack, defenderId, deadline: now + 5000 };

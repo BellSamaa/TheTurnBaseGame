@@ -22,7 +22,7 @@ export function castPvpSkill(input:BattleState,actor:string,slot:1|2,form?:numbe
   next.player1=isP1?cast.caster:cast.opponent;next.player2=isP1?cast.opponent:cast.caster;syncWeather([next.player1,next.player2]);
   next.activeSkillBanner={id:crypto.randomUUID(),weaponId:user.weapon.id,skillNameEn:art.nameEn+(cast.die?' · D6 '+cast.die:''),skillNameVi:art.nameVi+(cast.die?' · D6 '+cast.die:''),slot,icon:effectFrame(cast.effect||art.effect,1),casterName:user.name,auraColor:art.color};
   const rolledBack=user.weapon.id==='spirit_stone'&&slot===2&&cast.caster.hp<user.hp;
-  next.vfxSequence=skillEffectPlan(user,slot,form).map(cue=>({id:crypto.randomUUID(),effect:cast.effect||cue.effect,size:slot===2?180:130,target:cue.target==='caster'||rolledBack?caster:cue.target==='center'?'center':opponent}));
+  next.vfxSequence=skillEffectPlan(user,slot,form).map(cue=>({id:crypto.randomUUID(),effect:user.weapon.id==='death_note'&&slot===2&&form===2?cue.effect:cast.effect||cue.effect,size:slot===2?180:130,target:cue.target==='caster'||rolledBack?caster:cue.target==='center'?'center':opponent}));
   if(user.weapon.id==='death_note'&&slot===1)next.vfxSequence.unshift({id:crypto.randomUUID(),effect:'wu1:name_write',target:opponent,size:140});
   for(const [show,effect]of [[(foe.petRockHp??0)>(cast.opponent.petRockHp??0),'rock_block'],[foe.immuneDamageNext&&!cast.opponent.immuneDamageNext,'infinity'],[foe.dodgeNextSkill&&!cast.opponent.dodgeNextSkill,'dodge_spell']]as const)if(show)next.vfxSequence.push({id:crypto.randomUUID(),effect,target:opponent,size:140});
   if(cast.purpleSky)next.purpleSky={id:crypto.randomUUID(),startedAt:Date.now()};

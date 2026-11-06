@@ -29,6 +29,7 @@ export function dungeonReward(floor:number) {
 }
 
 export const DUNGEON_RULES_EN = [
+ 'Tied D20 totals trigger Clashing (except tied natural 20s). Each teammate wagers 0–3 shared PTS within 5s. Attack wins 65% / defense counters 35%; each net wager point shifts the chance by 10 percentage points. The winner deals two thirds of the tied score plus weapon damage.',
   '1–4 players share team HP, skill PTS and dungeon coins. Class HP modifiers apply.',
   'Ten floors, five encounters per floor. Mob, three mobs, mini boss, three mixed mobs, boss.',
   'HP scales to 40% / 60% / 80% / 100% for 1 / 2 / 3 / 4 players. Departures take effect next encounter.',
@@ -43,6 +44,7 @@ export const DUNGEON_RULES_EN = [
   'Each cleared floor awards every participating player 20 × floor Gems and 50 × floor EXP. From floor 5, gain floor(floor / 2) Rubies.',
 ];
 export const DUNGEON_RULES_VI = [
+ 'Tổng D20 bằng nhau kích hoạt Va Chạm (trừ khi tất cả tung 20). Mỗi thành viên cược 0–3 PTS chung trong 5 giây. Công thắng 65% / Thủ phản đòn 35%; mỗi PTS chênh lệch thay đổi 10 điểm phần trăm. Bên thắng gây 2/3 điểm xúc xắc cộng sát thương vũ khí.',
  'Chênh lệch Công − Thủ từ 10 kích hoạt Team Crit, gây tổng điểm Công. Focus Dungeon ở tâm có 80% ra 18–20 khi công, 40% khi thủ.',
  '1–4 người dùng chung HP, PTS và tiền Dungeon. Máu cơ bản vẫn áp dụng chỉ số Class.',
  '10 tầng, mỗi tầng 5 trận: 1 quái, 3 quái, Mini Boss, 3 quái phối hợp, Boss.',

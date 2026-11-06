@@ -4,7 +4,7 @@ import {activeWeather,weaponState,type WeatherKind} from './weaponUpdateState';
 import {applyOpponentDamage} from './combatDamage';
 import {UPDATE_IDS} from './weaponUpdateCatalog';
 export function updateSkillCost(p:PlayerState,slot:1|2,round:number,form?:number){
- if(p.weapon.id==='death_note'&&slot===2)return (form??deathNoteMode(p,round))===2?20:(form??deathNoteMode(p,round))===3?5:32;
+ if(p.weapon.id==='death_note'&&slot===2)return (form??deathNoteMode(p,round))===2?20:32;
  if(slot===1&&activeWeather(p,round)){if(p.weapon.id==='thunder_spear'&&form!==1&&activeWeather(p,round)?.kind==='rain')return 5;if(p.weapon.id==='ice_spear'&&activeWeather(p,round)?.kind==='snow')return 5;}return undefined;
 }
 export function updateSkillReason(p:PlayerState,t:PlayerState,slot:1|2,form:number|undefined,round:number){
@@ -12,7 +12,7 @@ export function updateSkillReason(p:PlayerState,t:PlayerState,slot:1|2,form:numb
  if(s.slowChargeRound===round&&s.slowChargeBlocked)return 'D6 is locked this round; End Turn';
  if(p.weapon.id==='shield'&&slot===1)return 'Automatic · D6 = 4';
  if(p.weapon.id==='king_slasher'&&slot===2&&form===2&&(v.markedBy!==p.id||(v.markUntil??0)<round))return 'Target needs your Flame Mark';
- if(p.weapon.id==='death_note'&&slot===2){const mode=form??deathNoteMode(p,round);if(![1,2,3].includes(mode))return 'Invalid Death Note mode';if(mode===2&&(!s.deathHiddenReady||(s.deathEyeUntil??-1)>=round))return 'Eye unavailable';if(mode===3&&((s.deathEyeUntil??-1)<round||t.weaponUpdate?.judgement))return 'Purging Judgement unavailable';if(mode===1&&v.namedBy!==p.id)return 'Write the target name successfully first';}
+ if(p.weapon.id==='death_note'&&slot===2){const mode=form??deathNoteMode(p,round);if(![1,2].includes(mode))return 'Invalid Death Note mode';if(mode===2&&(!s.deathHiddenReady||t.weaponUpdate?.judgement))return 'Purging Judgement unavailable';if(mode===1&&v.namedBy!==p.id)return 'Write the target name successfully first';}
  if(p.weapon.id==='thunder_spear'&&slot===1&&form!==1&&activeWeather(p,round)?.kind!=='rain')return 'Rain required';
  if(p.weapon.id==='elemental_rings'&&slot===1&&(s.summons?.filter(x=>x.hp>0).length??0)>=3)return 'Three living summons already';
  return '';
@@ -37,7 +37,7 @@ export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:numbe
   if(slot===1){if(form===1){hit(1);s.cleaveAttacks=3;effect='white_cross';}else if(form===2){hit(5);s.slashDefenses=3;s.slashMissTriggered=false;effect='white_triple';}else{hit(12);v.markedBy=u.id;v.markUntil=round+3;effect='fire_arrow';}}
   else if(form===2){hit(40);piercing=true;delete v.markUntil;delete v.markedBy;effect='world_slash';}else{hit(28);t.burnTicks=3;t.burnDmgPerTurn=3;v.burnOwner=u.id;effect='giant_fire_arrow';}break;
  case 'substitute_doll':if(slot===1){hit(Math.round((s.lastSuccessfulDamage||0)*2/3));effect='doll_reflect';}else{hit(10);s.nailHits=2;effect='giant_nail';}break;
- case 'death_note':if(slot===1){die=roll();s.lastNameDie=die;s.deathFailureRounds=(s.deathFailureRounds??[]).filter(r=>r>=round-9&&r<=round);if(die<=2&&!s.deathFailureRounds.includes(round))s.deathFailureRounds.push(round);s.deathFailures=s.deathFailureRounds.length;if(s.deathFailures>=2)s.deathHiddenReady=true;effect=die<=2?'name_reject':'name_success';if(die<=2){u.hp=Math.max(0,u.hp-3);hit(5);}else{hit(die<=4?Math.ceil(die*2.5):die*3);v.namedBy=u.id;}}else{const mode=form??deathNoteMode(u,round);if(mode===2){s.deathEyeUntil=round+4;s.deathHiddenReady=false;s.deathFailures=0;s.deathFailureRounds=[];effect='dn:eye';}else if(mode===3){v.judgement={owner:u.id,hits:0,attacksLeft:4};effect='dn:purge';}else{hit(Math.ceil(t.hp*.75));delete v.namedBy;effect='judgement';}}break;
+ case 'death_note':if(slot===1){die=roll();s.lastNameDie=die;s.deathFailureRounds=(s.deathFailureRounds??[]).filter(r=>r>=round-9&&r<=round);if(die<=2&&!s.deathFailureRounds.includes(round))s.deathFailureRounds.push(round);s.deathFailures=s.deathFailureRounds.length;if(s.deathFailures>=2)s.deathHiddenReady=true;effect=die<=2?'name_reject':'name_success';if(die<=2){u.hp=Math.max(0,u.hp-3);hit(5);}else{hit(die<=4?Math.ceil(die*2.5):die*3);v.namedBy=u.id;}}else{const mode=form??deathNoteMode(u,round);if(mode===2){s.deathEyeUntil=round+4;s.deathHiddenReady=false;s.deathFailures=0;s.deathFailureRounds=[];v.judgement={owner:u.id,hits:0,attacksLeft:4};effect='dn:purge';}else{hit(Math.ceil(t.hp*.75));delete v.namedBy;effect='judgement';}}break;
  case 'kagutsuchi':hit(10);if(slot===1){s.dodgeHits=2;effect='red_multi_slash';}else{climate('rain',3);effect='rain_cast';}break;
  case 'bee_shooter':if(slot===1){hit(1);v.poisonStacks=Math.min(2,(v.poisonStacks||0)+1);v.poisonUntil=round+2;effect='worker_bee';}else{hit(3);v.queenDefenseTurns=5;v.swarmUntil=round+5;v.swarmOwner=u.id;effect='queen_bee';}break;
  case 'thunder_spear':if(slot===2){climate('rain',5);effect='weather_rain';}else if(form===3){v.blueUntil=round+3;v.blueOwner=u.id;v.blueTick=0;effect='lightning_blue';}else{hit(form===2?15:10);v.paralysisAttacks=5;v.paralysisChance=form===2?.1:.05;effect=form===2?'lightning_red':'lightning_yellow';}break;

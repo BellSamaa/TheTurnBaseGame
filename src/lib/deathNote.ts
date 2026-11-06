@@ -2,7 +2,6 @@ import type {PlayerState} from '@/types/game';
 import {weaponState,queueWeaponEvent} from './weaponUpdateState';
 export function deathNoteMode(player:PlayerState,round:number){
  const state=player.weaponUpdate;
- if((state?.deathEyeUntil??-1)>=round)return 3;
  return state?.deathHiddenReady?2:1;
 }
 export function judgementAttack(attacker:PlayerState,target:PlayerState,hit:boolean,round:number){

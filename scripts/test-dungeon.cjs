@@ -12,6 +12,7 @@ function settleBot(state){
  assert.throws(()=>A(result,result.host,'roll'),/enemy dice result/);
  const settled=T(result,result.botDice.until);
  assert.equal(settled.botDice,undefined);
+ if(settled.clash){let next=settled;for(const p of settled.players)next=A(next,p.id,'clash_wager',{stake:0},settled.clash.deadline-1);return next;}
  return settled;
 }
 const random=Math.random;Math.random=()=>.6;
