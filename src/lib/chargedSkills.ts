@@ -16,7 +16,7 @@ export function skillCost(player: PlayerState, slot: 1 | 2, form?: number,round=
 }
 
 // Both skills spend the same balance, once, and return immutable player snapshots.
-export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1 | 2, turn: number, form?: number, lockSlot?: 1 | 2,resolutionDie?:number) {
+export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1 | 2, turn: number, form?: number, lockSlot?: 1 | 2,resolutionDie?:number,damageBonus=0) {
   user={...user,petRockEnraged:!!user.petRockEnraged&&turn<=(user.petRockEnrageUntilRound??turn)};
   if(slot===1&&user.weapon.id==='spirit_stone'&&(user.petRockHp??0)>0)return null;
   if (skillIsLocked(user, slot, turn)) return null;
@@ -34,7 +34,7 @@ export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1
   const forms = caster.weapon.skill1.triggerNumber;
   const secondForms=caster.weapon.skill2.triggerNumber;if(slot===2&&Array.isArray(secondForms)&&form!=null&&!secondForms.includes(form))return null;
   if (slot === 1 && Array.isArray(forms) && (form == null || !forms.includes(form))) return null;
-  const custom=castUpdateSkill(caster,opponent,slot,turn,form,resolutionDie);
+  const custom=castUpdateSkill(caster,opponent,slot,turn,form,resolutionDie,damageBonus);
   if(custom){if(target.dodgeNextSkill&&!custom.piercing&&(custom.requested>0||target.hp!==opponent.hp||JSON.stringify(target.weaponUpdate||{})!==JSON.stringify(opponent.weaponUpdate||{})||target.burnTicks!==opponent.burnTicks)){Object.assign(opponent,structuredClone(target),{dodgeNextSkill:false});custom.damage=0;}if(user.weapon.id==='death_note'&&slot===2&&(form??deathNoteMode(user,turn))===1)delete opponent.weaponUpdate?.namedBy;caster.skill1UsedTurn=user.skill1UsedTurn===turn?turn:caster.skill1UsedTurn;caster.skill2UsedTurn=user.skill2UsedTurn===turn?turn:caster.skill2UsedTurn;caster.d12Charge=(user.d12Charge||0)-cost+custom.refund;if(slot===1)caster.skill1UsedTurn=turn;else caster.skill2UsedTurn=turn;return {caster,opponent,damage:custom.damage,cost,purpleSky:false,effect:custom.effect,die:custom.die,logTextEn:custom.logTextEn+' [-'+cost+' PTS]',logTextVi:custom.logTextVi+' [-'+cost+' PTS]'};}
   const result = slot === 1
     ? executeSkill1D6(form ?? rollD6(), caster, opponent, turn)
@@ -57,7 +57,7 @@ export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1
     bonus = rollD6();
     caster.d12Charge += bonus;
   }
-  let damage = outgoingDamage(caster,result.damage,turn);
+  let damage = outgoingDamage(caster,result.damage+(result.damage>0?damageBonus:0),turn);
   if (slot === 2 && user.weapon.id === 'spirit_stone' && caster.hp < user.hp) damage = 0;
   const offensive = damage > 0 || JSON.stringify(opponent) !== JSON.stringify(target);
   const blocked = Boolean(offensive && opponent.dodgeNextSkill);

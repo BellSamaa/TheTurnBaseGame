@@ -1,4 +1,5 @@
 'use client';
+import {dungeonPathAllowed} from '@/lib/dungeonGeometry';
 import {useEffect,useRef,useState} from 'react';
 import {flushProfile} from '@/lib/profileSync';
 import {useGameStore} from '@/stores/gameStore';
@@ -6,6 +7,7 @@ import type {DungeonState} from '@/lib/dungeon';
 import {dungeonArea,dungeonPositionAllowed,dungeonInteractionPoints} from '@/lib/dungeon';
 import {DUNGEON_BUFFS,DUNGEON_RULES_EN,DUNGEON_RULES_VI,dungeonReward} from '@/lib/dungeonCatalog';
 import WeaponsGallery from '@/components/weapons/WeaponsGallery';
+import DungeonDiceDuel from './DungeonDiceDuel';
 import DungeonOutcome from './DungeonOutcome';
 import DungeonRooms from './DungeonRooms';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
@@ -14,14 +16,16 @@ import CharacterRenderer from '@/components/character/CharacterRenderer';
 import {useDungeonMovement} from './useDungeonMovement';
 import WeaponStand from './WeaponStand';
 import {WeaponAura,WeaponStatus,WeaponWeather,WeaponSummons} from './WeaponWorldEffects';
-import {RockCompanion} from './RockCompanion';
+import {RockCompanion,RockHealthBar} from './RockCompanion';
 import CombatSkills from './CombatSkills';
 import DiceTiming from './DiceTiming';
 import DiceRoller3D from './DiceRoller3D';
 import BattleWeaponPreview from './BattleWeaponPreview';
 import VfxAnimationPlayer from './VfxAnimationPlayer';
 import PixelFrame from '@/components/ui/PixelFrame';
-import HealthBar from '@/components/ui/HealthBar';
+import DungeonHealthBar from './DungeonHealthBar';
+import {useMeleeMotion} from './useMeleeMotion';
+import {effectDuration} from '@/lib/skillMotion';
 import {d6Allowance} from '@/lib/classMechanics';
 
 type Room={code:string;state:DungeonState;revision:number};
@@ -31,7 +35,7 @@ export default function Dungeon(){
   const [room,setRoom]=useState<Room>(),[code,setCode]=useState(''),[error,setError]=useState(''),[rules,setRules]=useState(false),[shop,setShop]=useState<string>();
   const busy=useRef(false),[sending,setSending]=useState(false),latest=useRef<Room|undefined>(undefined);
   const [position,setPosition]=useState({x:.5,y:.75}),pos=useRef<{x:number;y:number;moving?:boolean}>(position),keys=useRef(new Set<string>()),[moving,setMoving]=useState(false);
-  const roomCode=room?.code;
+  const roomCode=room?.code;const stageRef=useRef<HTMLDivElement>(null);
   function accept(next:Room){
     if(latest.current?.code===next.code&&latest.current.revision>next.revision)return;
     latest.current=next;setRoom(next);
@@ -78,7 +82,7 @@ export default function Dungeon(){
   const s=room?.state,me=s?.players.find(p=>p.id===currentUser?.id),safe=!!s&&['entrance','rest'].includes(s.phase);
   useEffect(()=>{
     if(!safe||!me)return;
-    const initial=s?.positions[me.id]||{x:.5,y:.75};pos.current=initial;setPosition(initial);
+    const saved=s?.positions[me.id],area=s?dungeonArea(s):0;const initial=saved&&dungeonPositionAllowed(saved.x,saved.y,area)?saved:{x:area?.30+Math.max(0,s?.players.findIndex(p=>p.id===me.id)??0)*.14:.5,y:area?.62:.75};pos.current=initial;setPosition(initial);
   },[safe,s?.phase,me?.id,s?.floor]);
   const area=s?dungeonArea(s):0;
   const points=dungeonInteractionPoints(area);
@@ -110,7 +114,8 @@ export default function Dungeon(){
       if(!shop&&(dx||dy||pos.current.moving)){
         const speed=keys.current.has('Shift')?.27:.17;
         const x=p.x+dx/length*dt*speed,y=p.y+dy/length*dt*speed;
-        const next={x:dungeonPositionAllowed(x,p.y,area)?x:p.x,y:dungeonPositionAllowed(p.x,y,area)?y:p.y};
+        const nextX=dungeonPathAllowed(p,{x,y:p.y},area)?x:p.x;
+        const next={x:nextX,y:dungeonPathAllowed({x:nextX,y:p.y},{x:nextX,y},area)?y:p.y};
         pos.current={...next,moving:dx!==0||dy!==0};setPosition(next);setMoving(dx!==0||dy!==0);
       }
       frame=requestAnimationFrame(tick);
@@ -122,7 +127,10 @@ export default function Dungeon(){
   const [rollNotice,setRollNotice]=useState<DungeonState['lastRoll']>();
   useEffect(()=>{if(!s?.lastRoll||Date.now()-s.lastRoll.at>3500)return;setRollNotice(s.lastRoll);const timer=setTimeout(()=>setRollNotice(undefined),s.lastRoll.id==='dungeon_enemies'?4000:2500);return()=>clearTimeout(timer)},[s?.lastRoll?.at]);
   const [effect,setEffect]=useState<DungeonState['event']>();
-  useEffect(()=>{if(!s?.event)return;setEffect(s.event);playBattleEffect(s.event.effect,true);const timer=setTimeout(()=>setEffect(undefined),2200);return()=>clearTimeout(timer);},[s?.event?.id]);
+  const effectQueue=useRef<NonNullable<DungeonState['event']>[]>([]),seenEffects=useRef(new Set<string>()),effectTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
+  useEffect(()=>{const incoming=s?.events?.length?s.events:s?.event?[s.event]:[];for(const event of incoming)if(Date.now()-(event.at??Date.now())<6000&&!seenEffects.current.has(event.id)){seenEffects.current.add(event.id);effectQueue.current.push(event);}const next=()=>{const event=effectQueue.current.shift();if(!event){effectTimer.current=undefined;setEffect(undefined);return;}setEffect(event);playBattleEffect(event.effect,true);effectTimer.current=setTimeout(next,effectDuration(event.effect));};if(!effectTimer.current)next();},[s?.event?.id]);
+  useEffect(()=>()=>{clearTimeout(effectTimer.current);effectQueue.current=[];},[]);
+  const impactReady=useMeleeMotion(effect,stageRef);
   const button=(action:string,label:string,disabled=false)=><button className="combat-roll" disabled={sending||disabled} onClick={()=>void act(action)}><img src={'/assets/sprites/ui/frames/btn_'+(action==='end'?'end_turn':'roll_dice')+'.png'} alt={label}/></button>;
   const floorPath=ROOT+'Floors/Floor_'+String(s?.floor||1).padStart(2,'0')+'/';
   const shared=me&&s?{...me,hp:s.teamHp,maxHp:s.teamMaxHp,d12Charge:s.pts}:undefined;
@@ -132,19 +140,19 @@ export default function Dungeon(){
     <header><button onClick={()=>room?void act('leave'):setPage('play')}>{en?'Return to Lobby':'Về Lobby'}</button><h1>DUNGEON {room?'· '+room.code:''}</h1><button className="dungeon-rule-button" onClick={()=>setRules(true)}>{en?'Rules':'Luật chơi'}</button></header>
     {error&&<p role="alert">{error}</p>}
     {!currentUser?<button onClick={()=>setAuthModal('login')}>{en?'Sign in':'Đăng nhập'}</button>:!s||s.phase==='room'?<DungeonRooms state={s} code={roomCode} en={en} viewer={currentUser.id} busy={sending} onAction={(action,args)=>void act(action,args)} onClose={()=>room?void act('leave'):setPage('play')}/>:<>
-      {combat&&<><div className="dungeon-team-hud"><div><b>{s.players.map(p=>p.name).join(' · ')}</b><div className="dungeon-health-with-armor"><HealthBar judgement={s.players.find(p=>p.weaponUpdate?.judgement)?.weaponUpdate?.judgement} current={s.teamHp} max={s.teamMaxHp}/><small className="dungeon-armor">+{s.players.reduce((n,p)=>n+(p.weaponUpdate?.armor||0),0)} {en?'ARMOR':'GIÁP'}</small></div><small>{s.pts} PTS · {s.coins} {en?'Dungeon Coins':'Tiền Dungeon'}</small></div><strong>VS</strong><div><b>{s.enemies.filter(p=>p.hp>0).map(p=>p.name).join(' · ')||'DUNGEON'}</b><HealthBar judgement={s.enemies.find(p=>p.weaponUpdate?.judgement)?.weaponUpdate?.judgement} current={s.enemies.reduce((n,p)=>n+p.hp,0)} max={s.enemies.reduce((n,p)=>n+p.maxHp,0)||1}/><small className="dungeon-armor">+{s.enemies.reduce((n,p)=>n+(p.weaponUpdate?.armor||0),0)} {en?'ARMOR':'GIÁP'}</small><small>{s.enemies.reduce((n,p)=>n+(p.d12Charge||0),0)} PTS</small></div></div>
+      {combat&&<><div className="dungeon-team-hud"><div><b>{s.players.map(p=>p.name).join(' · ')}</b><div className="dungeon-health-with-armor"><DungeonHealthBar judgement={s.players.find(p=>p.weaponUpdate?.judgement)?.weaponUpdate?.judgement} current={s.teamHp} max={s.teamMaxHp} armor={s.players.reduce((n,p)=>n+(p.weaponUpdate?.armor||0),0)}/><small className="dungeon-armor">+{s.players.reduce((n,p)=>n+(p.weaponUpdate?.armor||0),0)} {en?'ARMOR':'GIÁP'}</small></div><small>{s.pts} PTS · {s.coins} {en?'Dungeon Coins':'Tiền Dungeon'}</small></div><strong>VS</strong><div><b>{s.enemies.filter(p=>p.hp>0).map(p=>p.name).join(' · ')||'DUNGEON'}</b><DungeonHealthBar judgement={s.enemies.find(p=>p.weaponUpdate?.judgement)?.weaponUpdate?.judgement} current={s.enemies.reduce((n,p)=>n+p.hp,0)} max={s.enemies.reduce((n,p)=>n+p.maxHp,0)||1} armor={s.enemies.reduce((n,p)=>n+(p.weaponUpdate?.armor||0),0)}/><small className="dungeon-armor">+{s.enemies.reduce((n,p)=>n+(p.weaponUpdate?.armor||0),0)} {en?'ARMOR':'GIÁP'}</small><small>{s.enemies.reduce((n,p)=>n+(p.d12Charge||0),0)} PTS</small></div></div>
       <nav className="dungeon-phases">{['attack','defense','charge','skills','enemy_skills','end'].map((phase,i)=><span key={phase} className={s.phase===phase?'active':''}>{i+1} · {(en?['TEAM ATK','TEAM DEF','CHARGE','TEAM SKILLS','ENEMY SKILLS','END']:['CÔNG','THỦ','SẠC','DÙNG CHIÊU','ĐỊCH DÙNG CHIÊU','KẾT THÚC'])[i]}</span>)}</nav></>}
       {safe&&<div className="dungeon-exploration-hud"><b>{s.phase==='rest'?(en?'REST AREA':'SẢNH NGHỈ'):(en?'DUNGEON ENTRANCE':'SẢNH DUNGEON')}</b><span>◈ {s.coins} {en?'COINS':'TIỀN'}</span><span>♥ {s.teamHp}/{s.teamMaxHp}</span><span>✦ {s.pts} PTS</span><small>{s.votes.length}/{s.players.length} {en?'READY':'SẴN SÀNG'}</small></div>}
-      <div className="dungeon-stage" style={{backgroundImage:`url("${safe||s.phase==='loading'?s.phase==='rest'?ROOT+'Rest_Areas/rest_'+String(Math.floor((s.floor-1)/2)).padStart(2,'0')+'.webp':ROOT+'Entrance/Dungeon_Entrance.webp':floorPath+'Background.webp'}")`}}>
-        {combat&&<DungeonOutcome state={s} en={en}/>}
+      <div ref={stageRef} className="dungeon-stage" style={{backgroundImage:`url("${safe||s.phase==='loading'?s.phase==='rest'?ROOT+'Rest_Areas/rest_'+String(Math.floor((s.floor-1)/2)).padStart(2,'0')+'.webp':ROOT+'Entrance/Dungeon_Entrance.webp':floorPath+'Background.webp'}")`}}>
+        {combat&&<><DungeonOutcome state={s} en={en}/><DungeonDiceDuel state={s} en={en}/></>}
         <div className="dungeon-floor-label" hidden={!combat}>{en?'FLOOR':'TẦNG'} {s.floor} · {en?'ENCOUNTER':'TRẬN'} {s.encounter}/5 · ROUND {s.round}</div>
-        {s.players.map((p,i)=><div key={p.id} className={'dungeon-hero '+(safe?'is-exploring':'')} style={safe?{left:(p.id===me?.id?position.x:peers[p.id]?.x??s.positions[p.id]?.x??(.235+i*.175))*100+'%',top:(p.id===me?.id?position.y:peers[p.id]?.y??s.positions[p.id]?.y??.75)*100+'%'}:{left:(14+i%2*16)+'%',top:(77+Math.floor(i/2)*17)+'%'}}>
-          <b>{p.name}</b>{!safe&&<WeaponStand weaponId={p.weapon.id} side="left"/>}{!safe&&<><WeaponAura player={p} round={s.round}/><RockCompanion player={p} side="left"/><WeaponSummons player={p} side="left"/></>}<CharacterRenderer character={p.character} size="md" animation={safe&&(p.id===me?.id?moving:peers[p.id]?.moving)?p.id===me?.id&&keys.current.has('Shift')?'run':'walk':'idle'}/><small hidden={safe} style={{color:'#fff0a3'}}>{en?p.weapon.name:p.weapon.nameVi}</small>{!safe&&<div className="dungeon-foot-status"><WeaponStatus player={p} round={s.round}/>{p.weapon.passiveDesc&&<small title={en?p.weapon.passiveDesc:p.weapon.passiveDescVi}>{en?p.weapon.passiveDesc:p.weapon.passiveDescVi}</small>}</div>}
-          {effect?.target===p.id&&<div className="dungeon-hit-vfx"><VfxAnimationPlayer activeVfx={{id:effect.id,effect:effect.effect,target:'center',size:150}}/></div>}
+        {s.players.map((p,i)=><div key={p.id} data-fighter-id={p.id} data-row={Math.floor(i/2)} className={'dungeon-hero '+(safe?'is-exploring':'')} style={safe?{left:(p.id===me?.id?position.x:peers[p.id]?.x??s.positions[p.id]?.x??(.235+i*.175))*100+'%',top:(p.id===me?.id?position.y:peers[p.id]?.y??s.positions[p.id]?.y??.75)*100+'%'}:{left:(14+i%2*16)+'%',top:(55+Math.floor(i/2)*32)+'%'}}>
+          <b>{p.name}</b>{!safe&&<WeaponStand weaponId={p.weapon.id} side="left"/>}{!safe&&<><WeaponAura player={p} round={s.round}/>{p.immuneDamageNext&&<div className="combat-immunity dungeon-immunity" title="Immune"/>}<RockCompanion player={p} side="left"/><WeaponSummons player={p} side="left"/></>}<CharacterRenderer character={p.character} size="md" animation={safe&&(p.id===me?.id?moving:peers[p.id]?.moving)?p.id===me?.id&&keys.current.has('Shift')?'run':'walk':'idle'}/><small hidden={safe} style={{color:'#fff0a3'}}>{en?p.weapon.name:p.weapon.nameVi}</small>{!safe&&<div className="dungeon-foot-status"><RockHealthBar compact player={p} round={s.round} maxHp={s.buffs.some(b=>b.id==='summoner'&&b.active)?30:25}/><WeaponStatus player={p} round={s.round}/>{p.weapon.passiveDesc&&<small title={en?p.weapon.passiveDesc:p.weapon.passiveDescVi}>{en?p.weapon.passiveDesc:p.weapon.passiveDescVi}</small>}</div>}
+          {impactReady&&effect?.target===p.id&&<div className="dungeon-hit-vfx"><VfxAnimationPlayer activeVfx={{id:effect.id,effect:effect.effect,target:'center',size:150}}/></div>}
         </div>)}
         {!safe&&<WeaponWeather players={[...s.players,...s.enemies]} round={s.round}/>}
         {safe&&[{id:'hand',x:.18,name:'The Hand',file:'The_Hand.webp'},{id:'roger',x:.5,name:'Roger',file:'Roger_The_Captain.webp'},{id:'avocado',x:.8,name:'Avocado',file:'Avocado.webp'}].map(npc=><div className="dungeon-npc" key={npc.id} style={{left:points[npc.id as 'hand'|'roger'|'avocado'].x*100+'%',top:points[npc.id as 'hand'|'roger'|'avocado'].y*100+'%'}}><span>{npc.name}</span><img src={ROOT+'NPC/'+npc.file} alt={npc.name}/></div>)}
-        {!safe&&s.enemies.map((enemy,i)=><button className={'dungeon-enemy '+(s.encounter===5?'is-boss':s.encounter===3?'is-mini':'')} disabled={sending||!!s.botDice||enemy.hp<=0||s.phase!=='attack'} key={enemy.id} onClick={()=>void act('target',{target:enemy.id})} style={{left:(68+i*10)+'%',top:(82-i*5)+'%',opacity:enemy.hp>0?1:.2}}><img src={floorPath+(s.encounter===5?'boss':s.encounter===3?'mini_boss':'mob')+'.webp'} alt={enemy.name}/><small>{enemy.name}{s.target===enemy.id?' ◇':''}</small>{effect?.target===enemy.id&&<div className="dungeon-hit-vfx"><VfxAnimationPlayer activeVfx={{id:effect.id,effect:effect.effect,target:'center',size:180}}/></div>}</button>)}
+        {!safe&&s.enemies.map((enemy,i)=><button className={'dungeon-enemy '+(s.encounter===5?'is-boss':s.encounter===3?'is-mini':'')} disabled={sending||!!s.botDice||enemy.hp<=0||s.phase!=='attack'} key={enemy.id} data-fighter-id={enemy.id} onClick={()=>void act('target',{target:enemy.id})} style={{left:(68+i*10)+'%',top:(82-i*5)+'%',opacity:enemy.hp>0?1:.2}}><img src={floorPath+(s.encounter===5?'boss':s.encounter===3?'mini_boss':'mob')+'.webp'} alt={enemy.name}/><small>{enemy.name}{s.target===enemy.id?' ◇':''}</small><WeaponAura player={enemy} round={s.round}/>{enemy.immuneDamageNext&&<div className="combat-immunity dungeon-immunity" title="Immune"/>}<RockCompanion player={enemy} side="right"/><WeaponSummons player={enemy} side="right"/><div className="dungeon-foot-status"><RockHealthBar compact player={enemy} round={s.round} maxHp={s.floor===5?(s.encounter===3?75:50):25}/><WeaponStatus player={enemy} round={s.round}/></div>{impactReady&&effect?.target===enemy.id&&<div className="dungeon-hit-vfx"><VfxAnimationPlayer activeVfx={{id:effect.id,effect:effect.effect,target:'center',size:180}}/></div>}</button>)}
         {safe&&s.buffs.some(b=>b.remaining>0)&&<aside className="dungeon-rest-loadout"><b>{en?'PARTY BLESSINGS':'BUFF CỦA ĐỘI'}</b>{s.buffs.filter(b=>b.remaining>0).map(b=><button key={b.id} disabled={sending||b.active||b.id==='underdog'} title={DUNGEON_BUFFS.find(x=>x.id===b.id)?.[en?'en':'description']} onClick={()=>void act('buff',{id:b.id})}>{DUNGEON_BUFFS.find(x=>x.id===b.id)?.[en?'name':'vi']||b.id} <span>{b.active?'✓':b.id==='underdog'?(en?'BOSS ONLY':'CẦN BOSS'):(en?'ACTIVATE':'KÍCH HOẠT')}</span></button>)}</aside>}
         {safe&&<div className="dungeon-touch">{[['w',0],['a',270],['s',180],['d',90]].map(([key,angle])=><button key={key} aria-label={String(key)} onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);keys.current.add(String(key));}} onPointerUp={()=>keys.current.delete(String(key))} onPointerCancel={()=>keys.current.delete(String(key))}><svg viewBox="0 0 24 24" style={{transform:'rotate('+angle+'deg)'}}><path d="M10 3h4v2h2v2h2v2h2v2h-6v10h-4V11H4V9h2V7h2V5h2Z" fill="currentColor"/></svg></button>)}</div>}
         {safe&&<div className="dungeon-walk-help">WASD · Shift {en?"RUN":"CHẠY"} · E {en?"INTERACT":"TƯƠNG TÁC"}</div>}

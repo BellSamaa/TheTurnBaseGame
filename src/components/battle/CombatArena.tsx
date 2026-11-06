@@ -14,6 +14,8 @@ import BattleWeaponPreview from './BattleWeaponPreview';
 import {tx,phaseLabel} from '@/lib/uiLocale';
 import {WalletBar} from '@/components/progression/AccountPanel';
 import HealthBar from '@/components/ui/HealthBar';
+import {useMeleeMotion} from './useMeleeMotion';
+import {effectDuration} from '@/lib/skillMotion';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
 import {RockHealthBar,RockCompanion} from './RockCompanion';
 import WeaponStand from './WeaponStand';
@@ -77,14 +79,16 @@ export default function CombatArena({state:s,viewer,busy=false,botRolling=false,
   const timingState=timingPlayer?.diceTiming?.round===s.round&&timingPlayer.diceTiming.role===timingRole?timingPlayer.diceTiming:undefined;
   const personalWeapon=s.players.find(p=>p.id===viewer)?.weapon;
   const active=s.players.find(p=>p.id===s.order[s.active])!,victim=s.players.find(p=>p.id===s.target);
+  const animationQueue=useRef<NonNullable<LmsState['lastEvent']>[]>([]),animationTimer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
   useEffect(()=>{
     const incoming=s.lastEvent;if(!incoming||seen.current===incoming.id)return;seen.current=incoming.id;
     const cues=incoming.cues?.length?incoming.cues:[{effect:incoming.effect,target:incoming.target}];
-    const timers=cues.map((cue,i)=>setTimeout(()=>setEvent({...incoming,...cue,id:incoming.id+':'+i}),i*520));
-    if(!incoming.slot)playBattleEffect(incoming.effect,false);
-    return()=>timers.forEach(clearTimeout);
+    animationQueue.current.push(...cues.map((cue,i)=>({...incoming,...cue,id:incoming.id+':'+i})));
+    const next=()=>{const event=animationQueue.current.shift();if(!event){animationTimer.current=undefined;setEvent(undefined);return;}setEvent(event);if(!event.slot)playBattleEffect(event.effect,false);animationTimer.current=setTimeout(next,effectDuration(event.effect));};
+    if(!animationTimer.current)next();
   },[s.lastEvent?.id]);
-  useEffect(()=>{if(!event)return;const timer=setTimeout(()=>setEvent(undefined),event.effect.startsWith('dn:')?2200:650);return()=>clearTimeout(timer);},[event?.id]);
+  useEffect(()=>()=>{clearTimeout(animationTimer.current);animationQueue.current=[];},[]);
+  const impactReady=useMeleeMotion(event,arenaRef);
   const [notice,setNotice]=useState<string>();
   const logMessage=en?s.log[0]:(s.logVi||s.log)[0];
   useEffect(()=>{if(logMessage)setNotice(logMessage);},[logMessage]);
@@ -121,15 +125,15 @@ export default function CombatArena({state:s,viewer,busy=false,botRolling=false,
     {buffs&&s.initiative&&<div className="lms-initiative" role="status"><div className="lms-initiative-rolls">{s.order.map((id,index)=>{const p=s.players.find(p=>p.id===id)!;return <span key={id} className={s.phase!=='initiative'&&id===active.id?'initiative-active':''}><small>{index+1}. {p.name}</small><b>D20 <strong>{s.turnFlow===3||s.phase==='initiative'?s.initiative!.find(r=>r.id===id)?.roll??'—':id===s.order[s.active]?s.attack??'—':id===s.target?s.defense??'—':'—'}</strong></b></span>;})}</div><p key={active.id+':'+s.round}>✦ {s.phase==='initiative'?(en?'Waiting for all opening rolls · ':'Chờ tất cả tung D20 · '):false?(en?'Highest opening D20 · First attack: ':'D20 khởi đầu cao nhất · Đi trước: '):(en?'Current attacker: ':'Lượt tấn công: ')}<b>{s.phase==='initiative'?s.initiative.length+'/'+s.players.filter(p=>p.hp>0).length:active.name}</b>{s.extras?.direction===-1?(en?' · Reversed order':' · Đã đảo chiều'):''}</p>{s.attack!==undefined&&s.defense!==undefined&&<p className="lms-dice-comparison">{active.name} <strong>{s.attack}</strong> {s.attack>s.defense?' > ':' ≤ '} <strong>{s.defense}</strong> {victim?.name} · {s.attack>s.defense?(en?'Attack wins · damage after skill effects':'Công thắng · sát thương còn áp dụng hiệu ứng'):(en?'Defense wins · blocked':'Thủ thắng · chặn đòn')}</p>}</div>}
     {targetPrompt&&<div className="combat-target-prompt" role="status">{targetPrompt}</div>}
     <div className="combat-stage"><WeaponWeather players={s.players} round={s.round}/><img className="battle-background-2d" src={map.image.replace(/\.png$/,'.webp')} alt=""/>
-      {event?.target==='center'&&<div className="combat-stage-vfx"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?480:240}}/></div>}
+      {impactReady&&event?.target==='center'&&<div className="combat-stage-vfx"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?480:240}}/></div>}
       <div className="combat-vs"><img src="/assets/sprites/ui/frames/battle_vs.png" alt="VS"/><small>{victim?active.name+' → '+victim.name:en?'Choose a target':'Chọn mục tiêu'}</small></div>
-      {displayPlayers.map((p,i)=>{const side=buffs?(i<2?'left':'right'):i===0?'left':'right';return <section key={p.id} className={'combat-seat combat-seat-'+i+(s.phase!=='initiative'&&p.id===active.id?' combat-active':'')+(p.hp<=0?' combat-out':'')+(targetIds.includes(p.id)?' combat-selectable':'')}>
+      {displayPlayers.map((p,i)=>{const side=buffs?(i<2?'left':'right'):i===0?'left':'right';return <section key={p.id} data-fighter-id={p.id} className={'combat-seat combat-seat-'+i+(s.phase!=='initiative'&&p.id===active.id?' combat-active':'')+(p.hp<=0?' combat-out':'')+(targetIds.includes(p.id)?' combat-selectable':'')}>
         {targetIds.includes(p.id)&&<button className="combat-pick-target" disabled={busy||phaseWaiting} aria-label={(en?'Target ':'Chọn ')+p.name} onClick={()=>onPickTarget?.(p.id)}><span>{en?'SELECT TARGET':'CHỌN MỤC TIÊU'}</span></button>}
         {(buffs||p.id!==viewer)&&<div className="opponent-roll-badge">{(buffs?opponentRolls(s):otherRolls).filter(r=>r.playerId===p.id).map(r=><span key={r.key} title={r.name+' · '+r.die+' '+r.role}><small>{r.die}</small><b>{r.values.join('+')}</b></span>)}</div>}
         <div className="combat-name"><b>{p.id==='pve_bot'?tx(p.name):p.name}</b><small>{s.turnFlow===3&&(['skills','buffs'].includes(s.phase)?s.stageDone:s.endVotes)?.includes(p.id)?(en?'DONE':'ĐÃ XONG'):p.id===viewer?(en?'YOU':'BẠN'):p.hp<=0?(en?'ELIMINATED':'ĐÃ BỊ LOẠI'):s.phase!=='initiative'&&p.id===active.id?(en?'ATK':'CÔNG'):p.id===victim?.id?(en?'DEF':'THỦ'):''}</small>{buffs&&<div className="combat-buffs"><BuffCard id={s.extras?.buffs[p.id]?.id??-1} used={s.extras?.buffs[p.id]?.used}/>{s.extras?.bonusBuffs?.[p.id]&&<BuffCard id={s.extras.bonusBuffs[p.id].id} used={s.extras.bonusBuffs[p.id].used}/>}</div>}</div>
         <HealthBar judgement={p.weaponUpdate?.judgement} current={p.hp} max={p.maxHp}/><RockHealthBar player={p}/>
         <div className="combat-fighter"><WeaponStand weaponId={p.weapon.id} side={side}/><div className="combat-avatar"><WeaponAura player={p} round={s.round}/>{p.immuneDamageNext&&<div className="combat-immunity" title="Immune"/>}<CharacterRenderer character={p.character} size={buffs?'md':'lg'} facing={side==='left'?'right':'left'} animation="idle"/></div><RockCompanion player={p} side={side}/><WeaponSummons player={p} side={side}/>
-          {event?.target===p.id&&<div className="combat-hit-overlay"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?320:buffs?120:180,flipX:displayPlayers.findIndex(x=>x.id===event.caster)>i}}/></div>}
+          {impactReady&&event?.target===p.id&&<div className="combat-hit-overlay"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?320:buffs?120:180,flipX:displayPlayers.findIndex(x=>x.id===event.caster)>i}}/></div>}
         </div>
         <div className="combat-fighter-details"><span className="combat-weapon-name" style={{color:getTierConfig(p.weapon.tier).accentColor}}>{en?p.weapon.name:p.weapon.nameVi}</span>
         <WeaponStatus player={p} round={s.round}/>{p.duelLuck?.mode&&<span className={'duel-luck-tag duel-luck-'+p.duelLuck.mode}>{p.duelLuck.mode==='unlucky'?(en?'✦ TOO UNLUCKY · LUCK BOOST':'✦ QUÁ ĐEN · TĂNG MAY MẮN'):(en?'☾ TOO LUCKY · LUCK PENALTY':'☾ QUÁ MAY · GIẢM MAY MẮN')}</span>}<div className="combat-stats"><b>{p.d12Charge??0} PTS</b>{p.weapon.id==='revolver'&&<span>◈ {p.bullets??6}/6</span>}{p.burnTicks? <span title={en?'Burn turns remaining':'Số lượt thiêu đốt còn lại'}>🔥 {p.burnTicks}</span>:null}{p.panicTurns?<span title="Panic −5 ATK">⚠ {p.panicTurns}</span>:null}{p.lockedSkill&&p.skillLockTurn===s.round?<span>🔒 S{p.lockedSkill}</span>:null}</div></div>

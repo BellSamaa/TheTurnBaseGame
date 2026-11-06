@@ -17,7 +17,7 @@ export function updateSkillReason(p:PlayerState,t:PlayerState,slot:1|2,form:numb
  if(p.weapon.id==='elemental_rings'&&slot===1&&(s.summons?.filter(x=>x.hp>0).length??0)>=3)return 'Three living summons already';
  return '';
 }
-export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:number,form?:number,resolutionDie?:number){
+export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:number,form?:number,resolutionDie?:number,damageBonus=0){
  if(u.weapon.id==='chronos_watch'){
   const s=weaponState(u),v=weaponState(t);let damage=0,effect='time_save';
   if(slot===1&&form===2){if(s.anchor&&round<=(s.anchorUntil??0)){const saved=structuredClone(s.anchor);Object.assign(u,saved,{id:u.id,weapon:u.weapon});delete weaponState(u).anchor;delete weaponState(u).anchorUntil;effect='time_erase';}else{const saved=structuredClone(u);delete saved.weaponUpdate?.anchor;s.anchor=saved;s.anchorUntil=round+5;}}
@@ -49,6 +49,7 @@ export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:numbe
   if(slot===1){die=roll();const kind=die<=2?'golem':die<=4?'fire_person':'mermaid',hp=kind==='golem'?10:kind==='fire_person'?5:3;(s.summons??=[]).push({id:crypto.randomUUID(),kind,hp,maxHp:hp,activeUntil:round+5,lastActionRound:round});hit(kind==='fire_person'?10:kind==='mermaid'?5:0);effect=kind;}
   else{s.summons=[{id:crypto.randomUUID(),kind:'niko',hp:25,maxHp:25,activeUntil:round+5}];hit(20);effect='elemental_beam';}break;
  }
+ if(damage>0)damage+=damageBonus;
  if((v.superconductUntil??0)>=round&&['thunder_spear','ice_spear','dual_spears'].includes(u.weapon.id)&&damage>0)damage+=2;
  if((s.weakUntil??0)>=round)damage=Math.max(0,damage-7);
  if(die!=null)s.lastSkillDie=die;

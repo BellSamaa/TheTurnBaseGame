@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useRef,useState,type MutableRefObject} from 'react';
 import {createClient} from '@supabase/supabase-js';
+import {dungeonPathAllowed} from '@/lib/dungeonGeometry';
 import {dungeonPositionAllowed} from '@/lib/dungeon';
 type Pose={x:number;y:number;moving?:boolean};
 /** Exploration uses 10 Hz Broadcast; database writes happen only at interactions. */
@@ -15,7 +16,7 @@ export function useDungeonMovement(code:string|undefined,actor:string|undefined,
   const timer=setInterval(()=>{if(connected&&channel)void channel.send({type:'broadcast',event:'pose',payload:{...position.current,id:actor,seq:++seq}})},100);
   const animate=(now:number)=>{
    const alpha=1-Math.exp(-14*Math.min(.08,(now-previous)/1000));previous=now;
-   for(const [id,p]of targets){const old=drawn.get(id)||p;drawn.set(id,{x:old.x+(p.x-old.x)*alpha,y:old.y+(p.y-old.y)*alpha,moving:p.moving})}
+   for(const [id,p]of targets){const old=drawn.get(id)||p;const next={x:old.x+(p.x-old.x)*alpha,y:old.y+(p.y-old.y)*alpha,moving:p.moving};drawn.set(id,dungeonPathAllowed(old,next,rest)?next:p)}
    if(!closed&&drawn.size&&now-lastDraw>=30){setPeers(Object.fromEntries(drawn));lastDraw=now;}raf=requestAnimationFrame(animate);
   };
   void (async()=>{try{
