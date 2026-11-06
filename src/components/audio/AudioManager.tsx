@@ -91,6 +91,16 @@ export default function AudioManager() {
   return null;
 }
 
+/** Uses the same persisted BGM setting and audio instance as the menu. */
+export function BattleMusicToggle(){
+ const muted=useGameStore(s=>s.settings.musicMuted),en=useGameStore(s=>s.settings.language)==='en',updateSettings=useGameStore(s=>s.updateSettings);
+ const title=en?(muted?'Turn background music on':'Turn background music off'):(muted?'Bật nhạc nền':'Tắt nhạc nền');
+ return <button type="button" className={'battle-music-toggle '+(muted?'is-muted':'')} aria-label={title} title={title} aria-pressed={!muted} onClick={()=>{updateSettings({musicMuted:!muted});if(muted&&globalBgmAudio)void globalBgmAudio.play().catch(()=>{});}}>
+  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 13V4l10-2v10M7 7l10-2" fill="none" stroke="currentColor" strokeWidth="2"/><ellipse cx="4.5" cy="14" rx="3.5" ry="2.5" fill="currentColor"/><ellipse cx="14.5" cy="13" rx="3.5" ry="2.5" fill="currentColor"/>{muted&&<path d="m2 2 16 16" stroke="currentColor" strokeWidth="2.5"/>}</svg>
+  <span>{en?'BGM':'NHẠC'} {muted?(en?'OFF':'TẮT'):(en?'ON':'BẬT')}</span>
+ </button>;
+}
+
 // Reusable toolbar component for audio toggles
 export function AudioToolbarControls() {
   const { settings, updateSettings } = useGameStore();

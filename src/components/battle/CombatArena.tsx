@@ -14,6 +14,7 @@ import BattleWeaponPreview from './BattleWeaponPreview';
 import {tx,phaseLabel} from '@/lib/uiLocale';
 import {WalletBar} from '@/components/progression/AccountPanel';
 import HealthBar from '@/components/ui/HealthBar';
+import {BattleMusicToggle} from '@/components/audio/AudioManager';
 import {useCombatHits} from './useCombatHits';
 import {useMeleeMotion} from './useMeleeMotion';
 import {effectDuration} from '@/lib/skillMotion';
@@ -114,7 +115,7 @@ export default function CombatArena({state:s,viewer,busy=false,botRolling=false,
     {tiePopup&&<div className="lms-tie-notice" role="status"><h3>✦ {en?'TIED D20 · RANDOM ORDER':'D20 BẰNG ĐIỂM · BỐC THĂM'} ✦</h3>{tiePopup.groups.map(g=><p key={g.roll}>D20 <b>{g.roll}</b> · {g.ids.map(id=>s.players.find(p=>p.id===id)?.name).join(' / ')}<strong>{g.ids.map(id=>s.players.find(p=>p.id===id)?.name).join(' → ')}</strong></p>)}</div>}
     <header className="combat-topbar">
       <div className="combat-heading">{onBack&&<button className="combat-back" onClick={onBack}>{en?'← Back':'← Trở lại'}</button>}<div><small>{title}</small><h2>{en?'ROUND':'VÒNG'} {s.round}</h2></div></div>
-      <div className="combat-toolbar"><WalletBar/><button className="combat-surrender" disabled={busy||!!s.winner} onClick={onSurrender}>{en?'Surrender':'Đầu hàng'}</button></div>
+      <div className="combat-toolbar"><WalletBar/><BattleMusicToggle/><button className="combat-surrender" disabled={busy||!!s.winner} onClick={onSurrender}>{en?'Surrender':'Đầu hàng'}</button></div>
     </header>
     <nav className="combat-phase-bar" aria-label={en?'Battle phases':'Giai đoạn chiến đấu'}>{stages.map((phase,i)=>{
       const labels:Record<string,string>=en?{initiative:'OPENING D20',charge:'D6 · ATK',charge_defense:'D6 · DEF',skills:'SKILL USING',target:'TARGET',attack:'D20 · ATK',defense:'D20 · DEF',clash:'REACTION',end:stageSequence?'SKILLS / END':'END TURN'}:{initiative:'D20 KHỞI ĐẦU',charge:'D6 · CÔNG',charge_defense:'D6 · THỦ',skills:'DÙNG KỸ NĂNG',target:'MỤC TIÊU',attack:'D20 · CÔNG',defense:'D20 · THỦ',clash:'CAN THIỆP',end:stageSequence?'CHIÊU / KẾT THÚC':'KẾT THÚC'};
