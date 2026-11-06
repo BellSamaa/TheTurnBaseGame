@@ -1,3 +1,6 @@
+import {deathNoteMode} from './deathNote';
+import {weaponBaseDamage} from './weaponStats';
+import {judgementAttack} from './deathNote';
 import type {PlayerState} from '@/types/game';
 import type {RoomParticipant} from './serverDb';
 import {CLASS_DEFINITIONS,WEAPON_DEFINITIONS} from './constants';
@@ -6,7 +9,7 @@ import {createLms} from './lms';
 import {rollD6,rollD20} from './battleLogic';
 import {castChargedSkill,chargeSkillPoints} from './chargedSkills';
 import {recordAttackRoll,d6Allowance} from './classMechanics';
-import {rollTimedD20,updateDiceTiming} from './diceTiming';
+import {rollDungeonD20,updateDiceTiming} from './diceTiming';
 import {normalSetup,normalReactions,weaponD20,tickWeaponRound} from './weaponUpdateHooks';
 import {drainWeaponEvents,syncWeather,advanceWeather} from './weaponUpdateState';
 import {skillPresentation} from './skillPresentation';
@@ -114,13 +117,10 @@ function damageTeam(s:DungeonState,n:number,recipient?:PlayerState){
   return damage;
 }
 function dice(s:DungeonState,p:PlayerState,role:'attack'|'defense'){
-  const timing=p.diceTiming;
-  const quality=timing?.round===s.round&&timing.role===role?timing.quality??0:0;
-  let value=rollTimedD20(p,s.round,role,rollD20);
-  let chance=.05+.2*quality+(s.lucky[p.id]>0?.1:0);
+  let chance=s.lucky[p.id]>0?.1:0;
   if(activeBuff(s,'underdog'))chance-=.2;
   if(activeBuff(s,'underdog_reward'))chance+=.2;
-  if(chance!==.05)value=Math.random()<Math.max(0,Math.min(1,chance))?20:1+Math.floor(Math.random()*19);
+  let value=rollDungeonD20(p,s.round,role,chance,rollD20);
   if(role==='attack'&&activeBuff(s,'musashi')&&['greatsword','dagger','king_slasher'].includes(p.weapon.id)&&Math.random()<.2)value=Math.max(value,Math.random()<.85?20:rollD20());
   return weaponD20(p,value,role,s.round,s.enemies.find(p=>p.hp>0));
 }
@@ -135,6 +135,8 @@ function finishDice(s:DungeonState,now:number){
   let enemyTotal=s.enemyRolls.reduce((a,b)=>a+b,0),floor=DUNGEON_FLOORS[s.floor-1];
   if(s.phase==='attack'){
     const victim=s.enemies.find(p=>p.id===s.target&&p.hp>0)||s.enemies.find(p=>p.hp>0)!;
+    const judge=s.players.find(p=>p.id===victim.weaponUpdate?.judgement?.owner);
+    if(judge){const verdict=judgementAttack(judge,victim,total>enemyTotal,s.round);if(verdict){victim.hp=Math.max(0,victim.hp-verdict.damage);s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:verdict.damage,critical:false,target:victim.name};add(s,'Purging Judgement · '+verdict.hits+'/2 · '+verdict.attacksLeft+' attacks left');for(const event of drainWeaponEvents(s.players)){s.event={id:crypto.randomUUID(),effect:event.effect,caster:event.caster,target:event.target,name:'Purging Judgement'};}s.rolls={};s.phase='defense';s.deadline=now+20000;progressEncounter(s);return;}}
     let weaponBonus=0;
     for(const player of s.players){
       const owner=pooled(s,player),value=s.rolls[player.id]?.[0]||0;
@@ -149,8 +151,9 @@ function finishDice(s:DungeonState,now:number){
       if((owner.panicTurns??0)>0){total-=owner.panicAttackDebuff??0;owner.panicTurns!--;}
       savePooled(s,player,owner);
     }
-    const critical=total-enemyTotal>=15;
+    const critical=total-enemyTotal>=10;
     const hpBefore=victim.hp;
+    const baseBonus=total>enemyTotal?s.players.reduce((n,p)=>n+weaponBaseDamage(p.weapon.tier),0):0;
     let damage=critical?total:Math.max(0,total-enemyTotal)+weaponBonus;
     if(damage>0){
       const modifier=s.players.reduce((sum,p)=>sum+CLASS_DEFINITIONS[p.classType].damageModifier,0)/s.players.length;
@@ -158,7 +161,7 @@ function finishDice(s:DungeonState,now:number){
       if(!critical&&activeBuff(s,'devil'))damage+=5;
       const slayer=activeBuff(s,'slayer');
       if(!critical&&isBoss(s)&&slayer){damage+=5;slayer.remaining--;}
-      damage=applyOpponentDamage(victim,Math.max(0,damage),s.round);
+      damage=applyOpponentDamage(victim,Math.max(0,damage+baseBonus),s.round);
       for(const player of s.players){const owner=pooled(s,player);normalReactions(owner,victim,damage>0,Math.round(damage/s.players.length),Math.round(enemyTotal/s.players.length),s.round);savePooled(s,player,owner);}
       for(const p of s.players)if(p.weapon.id==='spirit_stone'&&(p.petRockHp??0)>0&&victim.hp>0){
         const follow=applyOpponentDamage(victim,(p.petRockEnraged?5:2)+(activeBuff(s,'summoner')?2:0),s.round);
@@ -177,12 +180,13 @@ function finishDice(s:DungeonState,now:number){
       if(setup.cancel||setup.dodge){enemyTotal-=Math.round(enemyTotal/s.players.length);}
       savePooled(s,player,owner);
     }
-    const critical=enemyTotal-total>=15;
+    const critical=enemyTotal-total>=10;
     const hpBefore=s.teamHp;
     let damage=critical?enemyTotal:Math.max(0,enemyTotal-total);
+    const baseBonus=enemyTotal>total?s.enemies.filter(p=>p.hp>0).reduce((n,p)=>n+weaponBaseDamage(p.weapon.tier),0):0;
     if(!critical&&damage>0&&isBoss(s))damage+=floor.attack[s.encounter===3?0:1];
     const reduction=s.players.reduce((sum,p)=>sum+CLASS_DEFINITIONS[p.classType].damageReduction,0)/s.players.length;
-    damage=damageTeam(s,critical?damage:Math.round(damage*reduction));
+    damage=damageTeam(s,(critical?damage:Math.round(damage*reduction))+baseBonus);
     s.comparison={id:crypto.randomUUID(),attack:enemyTotal,defense:total,difference:enemyTotal-total,damage:hpBefore-s.teamHp,critical,target:'TEAM'};
     add(s,'Enemy ATK '+enemyTotal+' vs DEF '+total+' · Team −'+damage+' HP');
     s.phase='charge';
@@ -321,7 +325,7 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
       for(const pet of cast.caster.weaponUpdate?.summons||[])if(!(before.weaponUpdate?.summons||[]).some(old=>old.id===pet.id)){pet.hp+=5;pet.maxHp+=5;}
     }
     if(activeBuff(s,'weather')&&cast.caster.weaponUpdate?.weather?.fresh){cast.caster.weaponUpdate.weather.remainingTurns!+=2;cast.caster.weaponUpdate.weather.until+=2;activeBuff(s,'weather')!.remaining=0;}
-    const art=skillPresentation(p,slot,args.form as number|undefined);
+    const art=skillPresentation(p,slot,(args.form as number|undefined)??(p.weapon.id==='death_note'&&slot===2?deathNoteMode(p,s.round):undefined));
     savePooled(s,p,cast.caster);Object.assign(target,cast.opponent);syncWeather([...s.players,...s.enemies]);
     s.event={id:crypto.randomUUID(),effect:cast.effect||art.effect,caster:p.id,target:art.target==='caster'?p.id:target.id,name:art.nameEn};
     add(s,cast.logTextEn);progressEncounter(s);
@@ -412,7 +416,7 @@ export function tickDungeon(input:DungeonState,now=Date.now()){
         if(s.floor===8&&s.encounter===5&&slot===1&&damage>0)damageTeam(s,Math.max(0,12-damage),p);
         Object.assign(target,pooled(s,p));
         add(s,cast.logTextEn);
-        const art=skillPresentation(enemy,slot,form);
+        const art=skillPresentation(enemy,slot,form??(enemy.weapon.id==='death_note'&&slot===2?deathNoteMode(enemy,s.round):undefined));
         s.event={id:crypto.randomUUID(),effect:cast.effect||art.effect,caster:enemy.id,target:art.target==='caster'?enemy.id:p.id,name:art.nameEn};
         if(s.floor===7&&s.encounter===5&&slot===1){enemy.d12Charge=(enemy.d12Charge??0)+rollD6()+rollD6();}
         if(s.floor===8&&s.encounter===3)s.pts=Math.max(0,s.pts-2);

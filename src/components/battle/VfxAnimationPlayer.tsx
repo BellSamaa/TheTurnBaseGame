@@ -38,7 +38,7 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
         clearInterval(interval);
         finishRef.current?.(activeVfx.id);
       }
-    }, 130); // 130ms per frame * 4 frames = 520ms punchy, clear animation
+    }, activeVfx.effect.startsWith('dn:')?500:130); // 130ms per frame * 4 frames = 520ms punchy, clear animation
 
     return () => clearInterval(interval);
   }, [activeVfx?.id]);
@@ -47,6 +47,7 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
 
   const size = activeVfx.size || 160;
 
+  if(activeVfx.effect.startsWith('dn:'))return <div className="death-note-vfx"><div className="death-red-flash"/><img src={effectFrame(activeVfx.effect,0)} alt="Purging Judgement" style={{width:size,height:size}}/></div>;
   return (
     <AnimatePresence>
       <motion.div

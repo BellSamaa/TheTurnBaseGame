@@ -2,6 +2,7 @@ import type {PlayerState} from '@/types/game';
 export type WeatherKind='rain'|'snow'|'heat'|'superconduct';
 export interface SummonState {id:string;kind:'golem'|'fire_person'|'mermaid'|'niko';hp:number;maxHp:number;activeUntil:number;lastActionRound?:number;exploded?:boolean}
 export interface WeaponUpdateState {
+ deathFailures?:number;deathHiddenReady?:boolean;deathEyeUntil?:number;judgement?:{owner:string;hits:number;attacksLeft:number;lastAttackRound?:number};
  events?:{effect:string;target:string;text:string;textVi:string}[];burnOwner?:string;armor?:number;shieldDefenses?:number;cleaveAttacks?:number;slashDefenses?:number;slashMissTriggered?:boolean;
  lastSkillDie?:number;markUntil?:number;markedBy?:string;namedBy?:string;lastNameDie?:number;nailHits?:number;lastSuccessfulDamage?:number;
  dodgeHits?:number;paralysisAttacks?:number;paralysisChance?:number;frozenAttacks?:number;freezeDefense?:number;freezeDefenseChance?:number;
@@ -19,7 +20,7 @@ export function activeWeather(p:PlayerState,round:number){const w=p.weaponUpdate
 export function syncWeather(players:PlayerState[]){const latest=players.map(p=>p.weaponUpdate?.weather).filter(w=>!!w).sort((a,b)=>b!.started-a!.started)[0];if(latest)for(const p of players)weaponState(p).weather={...latest};}
 export function takeArmorAndSummons(p:PlayerState,damage:number){const s=weaponState(p);let left=damage;for(const summon of s.summons||[]){const hit=Math.min(summon.hp,left);summon.hp-=hit;left-=hit;if(left<=0)break;}s.summons=s.summons?.filter(x=>x.hp>0);const shield=Math.min(s.armor||0,left);s.armor=(s.armor||0)-shield;return left-shield;}
 
-export function queueWeaponEvent(p:PlayerState,target:PlayerState,effect:string,damage:number){(weaponState(p).events??=[]).push({effect:'wu1:'+effect,target:target.id,text:p.name+' · '+effect+': '+damage+' damage.',textVi:p.name+' · '+effect+': '+damage+' sát thương.'});}
+export function queueWeaponEvent(p:PlayerState,target:PlayerState,effect:string,damage:number){(weaponState(p).events??=[]).push({effect:effect.startsWith('dn:')?effect:'wu1:'+effect,target:target.id,text:p.name+' · '+effect+': '+damage+' damage.',textVi:p.name+' · '+effect+': '+damage+' sát thương.'});}
 export function drainWeaponEvents(players:PlayerState[]){return players.flatMap(p=>{const events=(p.weaponUpdate?.events||[]).map(e=>({...e,caster:p.id}));if(p.weaponUpdate)p.weaponUpdate.events=[];return events;});}
 
 export function advanceWeather(players:PlayerState[],round:number) {

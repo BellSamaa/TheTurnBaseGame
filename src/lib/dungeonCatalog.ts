@@ -33,6 +33,7 @@ export const DUNGEON_RULES_EN = [
   'Ten floors, five encounters per floor. Mob, three mobs, mini boss, three mixed mobs, boss.',
   'HP scales to 40% / 60% / 80% / 100% for 1 / 2 / 3 / 4 players. Departures take effect next encounter.',
   '1. All players roll D20 ATK. Enemies roll the same number of DEF dice. Damage is the difference of totals.',
+  'A lead of 10 or more triggers Team Crit: deal the full ATK total. Dungeon Focus at the center gives a 80% chance of rolling 18–20 on attack, 40% on defense.',
   '2. Players roll D20 DEF against the enemy attack total.',
   '3. All players charge D6 into the shared PTS pool. Enemies charge once.',
   '4. Players use skills from shared PTS, then all confirm End Turn.',
@@ -42,6 +43,7 @@ export const DUNGEON_RULES_EN = [
   'Each cleared floor awards every participating player 20 × floor Gems and 50 × floor EXP. From floor 5, gain floor(floor / 2) Rubies.',
 ];
 export const DUNGEON_RULES_VI = [
+ 'Chênh lệch Công − Thủ từ 10 kích hoạt Team Crit, gây tổng điểm Công. Focus Dungeon ở tâm có 80% ra 18–20 khi công, 40% khi thủ.',
  '1–4 người dùng chung HP, PTS và tiền Dungeon. Máu cơ bản vẫn áp dụng chỉ số Class.',
  '10 tầng, mỗi tầng 5 trận: 1 quái, 3 quái, Mini Boss, 3 quái phối hợp, Boss.',
  'Máu địch bằng 40% / 60% / 80% / 100% khi có 1 / 2 / 3 / 4 người. Người rời đội được tính lại ở trận kế tiếp.',

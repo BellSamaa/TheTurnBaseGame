@@ -5,6 +5,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface HealthBarProps {
+  judgement?:{hits:number;attacksLeft:number};
   current: number;
   max: number;
   playerName?: string;
@@ -15,6 +16,7 @@ interface HealthBarProps {
 
 export default function HealthBar({
   current,
+  judgement,
   max,
   playerName = '',
   className = '',
@@ -47,6 +49,7 @@ export default function HealthBar({
     return 'from-rose-600 via-red-600 to-rose-700';
   }, [currentPct]);
 
+  if(judgement)return <div className="death-judgement-frame"><img src="/assets/death-note/frame.png" alt="Purging Judgement"/>{judgement.hits>0&&<span className="death-mark-used"/>}<small>{judgement.hits}/2 · {judgement.attacksLeft} ATK</small></div>;
   return (
     <div className={`relative flex flex-col items-center w-full max-w-[280px] sm:max-w-[320px] mx-auto select-none ${className}`}>
       {/* Player Header (Optional) */}

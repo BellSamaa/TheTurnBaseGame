@@ -1,3 +1,4 @@
+import {deathNoteMode} from './deathNote';
 import {clashCanResolve,openDuelClash,rollLuckyAttack,submitClashWager,type DuelClash,type DuelNotice} from './duelRules';
 import {rollTimedD20,timeLmsRoll} from './diceTiming';
 import {weaponD20,tickWeaponRound,nextWeaponAttacker,prepareWeaponCharge,outgoingDamage} from './weaponUpdateHooks';
@@ -144,7 +145,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       if(s.extras?.silencedRound===s.round)throw Error('Vòng này cấm kỹ năng');
       const cast=castChargedSkill(user,victim,args.slot,s.round,args.form,args.lockSlot);if(!cast)throw Error('Chưa đủ điều kiện dùng skill');
       if((user.weapon.id==='greatsword'&&args.slot===2)||(user.weapon.id==='staff'&&args.slot===1)){for(const other of s.players.filter(p=>p.id!==user.id&&p.id!==victim.id&&p.hp>0)){const extra=castChargedSkill(user,other,args.slot,s.round,args.form,args.lockSlot);if(extra)Object.assign(other,extra.opponent);}}
-      const art=skillPresentation(user,args.slot,args.form);s.lastEvent={id:crypto.randomUUID(),effect:art.effect,caster:user.id,target:art.target==='caster'?user.id:art.target==='center'?'center':victim.id,cues:skillEffectPlan(user,args.slot,args.form).map(c=>({effect:c.effect,target:c.target==='caster'?user.id:c.target==='center'?'center':victim.id})),nameEn:art.nameEn+(cast.die?' · D6 '+cast.die:''),nameVi:art.nameVi+(cast.die?' · D6 '+cast.die:''),slot:args.slot};
+      const art=skillPresentation(user,args.slot,args.form??(user.weapon.id==='death_note'&&args.slot===2?deathNoteMode(user,s.round):undefined));s.lastEvent={id:crypto.randomUUID(),effect:art.effect,caster:user.id,target:art.target==='caster'?user.id:art.target==='center'?'center':victim.id,cues:skillEffectPlan(user,args.slot,args.form).map(c=>({effect:c.effect,target:c.target==='caster'?user.id:c.target==='center'?'center':victim.id})),nameEn:art.nameEn+(cast.die?' · D6 '+cast.die:''),nameVi:art.nameVi+(cast.die?' · D6 '+cast.die:''),slot:args.slot};
       Object.assign(user,cast.caster);Object.assign(victim,cast.opponent);syncWeather(s.players);if(cast.effect){s.lastEvent.effect=cast.effect;s.lastEvent.cues=[...(user.weapon.id==='death_note'&&args.slot===1?[{effect:'wu1:name_write',target:victim.id}]:[]),{effect:cast.effect,target:['wu1:golem','wu1:fire_person','wu1:mermaid','wu1:niko'].includes(cast.effect)?user.id:s.lastEvent.target}];}add(cast.logTextVi,cast.logTextEn);if(victim.hp<=0&&s.target===victim.id){if(s.turnFlow===2)s.phase='end';else{s.target=undefined;s.phase='target';}}finish();
     } else if(action==='attack') {
       if(s.phase!=='attack')throw Error('Chọn mục tiêu trước');

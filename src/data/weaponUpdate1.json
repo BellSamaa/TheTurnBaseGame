@@ -40,12 +40,12 @@
         "cost_pts": 20,
         "resource": "D6 PTS",
         "details": [
-          "Tạo 15 giáp cho người chơi."
+          "Tạo 7 giáp cho người chơi."
         ],
         "effects": [
           "shield_armor"
         ],
-        "armor": 15,
+        "armor": 7,
         "nameEn": "Aegis Armor",
         "nameVi": "Tạo giáp"
       }
@@ -322,7 +322,7 @@
         "id": "death_note.s2",
         "slot": 2,
         "name": "Phán quyết",
-        "cost_pts": 50,
+        "cost_pts": 32,
         "resource": "D6 PTS",
         "details": [
           "Nhắm mục tiêu đã bị ghi tên.",

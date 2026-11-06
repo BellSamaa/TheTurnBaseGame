@@ -1,3 +1,5 @@
+import {weaponBaseDamage} from './weaponStats';
+import {judgementAttack} from './deathNote';
 import {critChance, openDuelClash, recordDuelComparison, type DuelNotice} from './duelRules';
 import {normalSetup,normalReactions,updateNormalDamage,absorbUpdateDamage} from './weaponUpdateHooks';
 import {warriorBonus} from './classMechanics';
@@ -50,6 +52,7 @@ export function calculateD20Combat(
   logTextVi: string;
   logTextEn: string;
 } {
+  if(attackerState&&defenderState){const verdict=judgementAttack(attackerState,defenderState,attackerD20>defenderD20&&!attackerState.isStunned&&!attackerState.timeLockActive,round);if(verdict){attackerState.isStunned=false;attackerState.timeLockActive=false;return {damage:verdict.damage,rawDiff:attackerD20-defenderD20,isHit:verdict.resolved&&verdict.damage>0,logTextEn:'Purging Judgement · '+verdict.hits+'/2 marks · '+verdict.attacksLeft+' attacks left · '+verdict.damage+' damage',logTextVi:'Phán quyết thanh trừng · '+verdict.hits+'/2 dấu · còn '+verdict.attacksLeft+' lượt công · '+verdict.damage+' sát thương'};}}
   const setup=attackerState&&defenderState?normalSetup(attackerState,defenderState,attackerD20,defenderD20,round):undefined;
   if(setup){attackerD20=setup.atk;defenderD20=setup.def;if(setup.cancel)attackerState!.isStunned=true;}
   if(setup?.dodge)return {damage:0,rawDiff:attackerD20-defenderD20,isHit:false,isDodged:true,logTextEn:'Crimson aura evades the attack.',logTextVi:'Aura đỏ né đòn.'};
@@ -109,7 +112,7 @@ export function calculateD20Combat(
   }
 
   // Hit! Add base damage before class modifiers and absorption.
-  let modifiedDamage = (rawDiff+warriorBonus(attackerState)) * attackerClass.damageModifier * defenderClass.damageReduction;
+  let modifiedDamage = (rawDiff+weaponBaseDamage(attackerState?.weapon.tier)+warriorBonus(attackerState)) * attackerClass.damageModifier * defenderClass.damageReduction;
 
   // Bleed bonus (+5 damage from Bow Skill 1)
   if (defenderState?.isBleeding) {
@@ -127,7 +130,7 @@ export function calculateD20Combat(
   modifiedDamage = Math.max(0, Math.round(modifiedDamage));
 
   if(attackerState)modifiedDamage=updateNormalDamage(attackerState,modifiedDamage,!!setup?.cleave,round);
-  if(fixedDamage !== undefined) modifiedDamage = fixedDamage;
+  if(fixedDamage !== undefined) modifiedDamage = fixedDamage + weaponBaseDamage(attackerState?.weapon.tier);
   const absorbedByRock = defenderState ? absorbWithRock(defenderState, modifiedDamage) : 0;
   modifiedDamage -= absorbedByRock;
   if(defenderState)modifiedDamage=absorbUpdateDamage(defenderState,modifiedDamage);
@@ -146,13 +149,14 @@ export function calculateD20Combat(
     rawDiff,
     isHit: true,
     absorbedByRock,
-    logTextVi: `Đòn đánh trúng! (Công ${effectiveAtk} - Thủ ${defenderD20} = ${rawDiff})${modNotes} · ${rawDiff} xúc xắc + ${warriorBonus(attackerState)} cuồng nộ, sau hiệu ứng -> Gây ${modifiedDamage} sát thương!`,
-    logTextEn: `Direct Hit! (Atk ${effectiveAtk} - Def ${defenderD20} = ${rawDiff})${modNotes} · ${rawDiff} dice + ${warriorBonus(attackerState)} rage, after effects -> Deals ${modifiedDamage} damage!`,
+    logTextVi: `Đòn đánh trúng! (Công ${effectiveAtk} - Thủ ${defenderD20} = ${rawDiff})${modNotes} · ${rawDiff} xúc xắc + ${weaponBaseDamage(attackerState?.weapon.tier)} vũ khí + ${warriorBonus(attackerState)} cuồng nộ, sau hiệu ứng -> Gây ${modifiedDamage} sát thương!`,
+    logTextEn: `Direct Hit! (Atk ${effectiveAtk} - Def ${defenderD20} = ${rawDiff})${modNotes} · ${rawDiff} dice + ${weaponBaseDamage(attackerState?.weapon.tier)} weapon + ${warriorBonus(attackerState)} rage, after effects -> Deals ${modifiedDamage} damage!`,
   };
 }
 
 /** Duel rules use the displayed dice, before equipment changes to ATK/DEF. */
 export function calculateDuelCombat(attack: number, defense: number, attacker: PlayerState, defender: PlayerState, round: number, attackStake = 0, defenseStake = 0) {
+  if(defender.weaponUpdate?.judgement?.owner===attacker.id)return {...calculateD20Combat(attack,defense,CLASS_DEFINITIONS[attacker.classType],CLASS_DEFINITIONS[defender.classType],attacker,defender,round),critical:false,counter:false,counterDamage:0,notice:undefined};
   const reward = recordDuelComparison(attacker, defender, attack, defense);
   const tied = !!openDuelClash(attack, defense, defender.id, 0);
   if (tied) {
@@ -168,7 +172,7 @@ export function calculateDuelCombat(attack: number, defense: number, attacker: P
     normalSetup(attacker, defender, attack, defense, round);
     attacker.isStunned = false;
     attacker.timeLockActive = false;
-    counterDamage = applyOpponentDamage(attacker, clashDamage, round, true, defender);
+    counterDamage = applyOpponentDamage(attacker, clashDamage + weaponBaseDamage(defender.weapon.tier), round, true, defender);
     result = {damage:0, rawDiff:0, isHit:false, logTextEn:'Clashing · '+defender.name+' counters for '+counterDamage+' HP.', logTextVi:'Va chạm · '+defender.name+' phản '+counterDamage+' HP.'};
   } else {
     result = calculateD20Combat(attack, defense, CLASS_DEFINITIONS[attacker.classType], CLASS_DEFINITIONS[defender.classType], attacker, defender, round, critical ? 20 : tied ? clashDamage : undefined);

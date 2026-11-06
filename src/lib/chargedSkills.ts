@@ -1,3 +1,4 @@
+import {deathNoteMode} from './deathNote';
 import {castUpdateSkill,updateSkillCost,updateSkillReason} from './weaponUpdateCast';
 import {weaponState} from './weaponUpdateState';
 import {chargeWeaponRoll,shieldCharge,outgoingDamage} from './weaponUpdateHooks';
@@ -34,7 +35,7 @@ export function castChargedSkill(user: PlayerState, target: PlayerState, slot: 1
   const secondForms=caster.weapon.skill2.triggerNumber;if(slot===2&&Array.isArray(secondForms)&&form!=null&&!secondForms.includes(form))return null;
   if (slot === 1 && Array.isArray(forms) && (form == null || !forms.includes(form))) return null;
   const custom=castUpdateSkill(caster,opponent,slot,turn,form,resolutionDie);
-  if(custom){if(target.dodgeNextSkill&&!custom.piercing&&(custom.requested>0||target.hp!==opponent.hp||JSON.stringify(target.weaponUpdate||{})!==JSON.stringify(opponent.weaponUpdate||{})||target.burnTicks!==opponent.burnTicks)){Object.assign(opponent,structuredClone(target),{dodgeNextSkill:false});custom.damage=0;}if(user.weapon.id==='death_note'&&slot===2)delete opponent.weaponUpdate?.namedBy;caster.skill1UsedTurn=user.skill1UsedTurn===turn?turn:caster.skill1UsedTurn;caster.skill2UsedTurn=user.skill2UsedTurn===turn?turn:caster.skill2UsedTurn;caster.d12Charge=(user.d12Charge||0)-cost+custom.refund;if(slot===1)caster.skill1UsedTurn=turn;else caster.skill2UsedTurn=turn;return {caster,opponent,damage:custom.damage,cost,purpleSky:false,effect:custom.effect,die:custom.die,logTextEn:custom.logTextEn+' [-'+cost+' PTS]',logTextVi:custom.logTextVi+' [-'+cost+' PTS]'};}
+  if(custom){if(target.dodgeNextSkill&&!custom.piercing&&(custom.requested>0||target.hp!==opponent.hp||JSON.stringify(target.weaponUpdate||{})!==JSON.stringify(opponent.weaponUpdate||{})||target.burnTicks!==opponent.burnTicks)){Object.assign(opponent,structuredClone(target),{dodgeNextSkill:false});custom.damage=0;}if(user.weapon.id==='death_note'&&slot===2&&(form??deathNoteMode(user,turn))===1)delete opponent.weaponUpdate?.namedBy;caster.skill1UsedTurn=user.skill1UsedTurn===turn?turn:caster.skill1UsedTurn;caster.skill2UsedTurn=user.skill2UsedTurn===turn?turn:caster.skill2UsedTurn;caster.d12Charge=(user.d12Charge||0)-cost+custom.refund;if(slot===1)caster.skill1UsedTurn=turn;else caster.skill2UsedTurn=turn;return {caster,opponent,damage:custom.damage,cost,purpleSky:false,effect:custom.effect,die:custom.die,logTextEn:custom.logTextEn+' [-'+cost+' PTS]',logTextVi:custom.logTextVi+' [-'+cost+' PTS]'};}
   const result = slot === 1
     ? executeSkill1D6(form ?? rollD6(), caster, opponent, turn)
     : executeSkill2D12(user.weapon.id === "fire_headband" ? cost : 0, caster, opponent, caster.isAttacker);

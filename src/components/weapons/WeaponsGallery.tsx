@@ -1,5 +1,6 @@
 'use client';
 
+import {weaponBaseDamage} from '@/lib/weaponStats';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -182,7 +183,7 @@ export default function WeaponsGallery({onClose,equippedWeaponId,onEquip,busy=fa
                 </span>
               </div>
               <p className="text-[8.5px] font-pixel text-slate-300 leading-relaxed">
-                {isEn ? selectedWeapon.description : selectedWeapon.descriptionVi}
+                {isEn ? selectedWeapon.description : selectedWeapon.descriptionVi}<br/><strong>{isEn?'Base D20 damage':'Sát thương gốc D20'}: +{weaponBaseDamage(selectedWeapon.tier)}</strong>
               </p>
             </div>
 

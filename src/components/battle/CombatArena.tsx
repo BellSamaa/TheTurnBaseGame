@@ -84,7 +84,7 @@ export default function CombatArena({state:s,viewer,busy=false,botRolling=false,
     if(!incoming.slot)playBattleEffect(incoming.effect,false);
     return()=>timers.forEach(clearTimeout);
   },[s.lastEvent?.id]);
-  useEffect(()=>{if(!event)return;const timer=setTimeout(()=>setEvent(undefined),650);return()=>clearTimeout(timer);},[event?.id]);
+  useEffect(()=>{if(!event)return;const timer=setTimeout(()=>setEvent(undefined),event.effect.startsWith('dn:')?2200:650);return()=>clearTimeout(timer);},[event?.id]);
   const [notice,setNotice]=useState<string>();
   const logMessage=en?s.log[0]:(s.logVi||s.log)[0];
   useEffect(()=>{if(logMessage)setNotice(logMessage);},[logMessage]);
@@ -127,7 +127,7 @@ export default function CombatArena({state:s,viewer,busy=false,botRolling=false,
         {targetIds.includes(p.id)&&<button className="combat-pick-target" disabled={busy||phaseWaiting} aria-label={(en?'Target ':'Chọn ')+p.name} onClick={()=>onPickTarget?.(p.id)}><span>{en?'SELECT TARGET':'CHỌN MỤC TIÊU'}</span></button>}
         {(buffs||p.id!==viewer)&&<div className="opponent-roll-badge">{(buffs?opponentRolls(s):otherRolls).filter(r=>r.playerId===p.id).map(r=><span key={r.key} title={r.name+' · '+r.die+' '+r.role}><small>{r.die}</small><b>{r.values.join('+')}</b></span>)}</div>}
         <div className="combat-name"><b>{p.id==='pve_bot'?tx(p.name):p.name}</b><small>{s.turnFlow===3&&(['skills','buffs'].includes(s.phase)?s.stageDone:s.endVotes)?.includes(p.id)?(en?'DONE':'ĐÃ XONG'):p.id===viewer?(en?'YOU':'BẠN'):p.hp<=0?(en?'ELIMINATED':'ĐÃ BỊ LOẠI'):s.phase!=='initiative'&&p.id===active.id?(en?'ATK':'CÔNG'):p.id===victim?.id?(en?'DEF':'THỦ'):''}</small>{buffs&&<div className="combat-buffs"><BuffCard id={s.extras?.buffs[p.id]?.id??-1} used={s.extras?.buffs[p.id]?.used}/>{s.extras?.bonusBuffs?.[p.id]&&<BuffCard id={s.extras.bonusBuffs[p.id].id} used={s.extras.bonusBuffs[p.id].used}/>}</div>}</div>
-        <HealthBar current={p.hp} max={p.maxHp}/><RockHealthBar player={p}/>
+        <HealthBar judgement={p.weaponUpdate?.judgement} current={p.hp} max={p.maxHp}/><RockHealthBar player={p}/>
         <div className="combat-fighter"><WeaponStand weaponId={p.weapon.id} side={side}/><div className="combat-avatar"><WeaponAura player={p} round={s.round}/>{p.immuneDamageNext&&<div className="combat-immunity" title="Immune"/>}<CharacterRenderer character={p.character} size={buffs?'md':'lg'} facing={side==='left'?'right':'left'} animation="idle"/></div><RockCompanion player={p} side={side}/><WeaponSummons player={p} side={side}/>
           {event?.target===p.id&&<div className="combat-hit-overlay"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?320:buffs?120:180,flipX:displayPlayers.findIndex(x=>x.id===event.caster)>i}}/></div>}
         </div>

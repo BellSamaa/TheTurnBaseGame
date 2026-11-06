@@ -1,3 +1,4 @@
+import {weaponBaseDamage} from '@/lib/weaponStats';
 import type { WeaponInfo, WeaponTier } from '@/types/game';
 import { getTierConfig } from '@/lib/tierStyles';
 
@@ -15,7 +16,7 @@ export default function BattleWeaponPreview({ weapon, en }: { weapon: WeaponInfo
   const tier = getTierConfig(weapon.tier);
   const art = slices[weapon.tier] ?? slices.common;
   return (
-    <div className="battle-weapon-preview">
+    <div className="battle-weapon-preview" title={(en?'Base D20 damage +':'Sát thương gốc D20 +')+weaponBaseDamage(weapon.tier)}>
       <div className="battle-weapon-frame">
         <svg viewBox={art.frame} aria-hidden="true">
           <image href={ATLAS} width="1024" height="1536" />
