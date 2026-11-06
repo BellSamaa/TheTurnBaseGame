@@ -2,7 +2,7 @@ import type {PlayerState} from '@/types/game';
 export type WeatherKind='rain'|'snow'|'heat'|'superconduct';
 export interface SummonState {id:string;kind:'golem'|'fire_person'|'mermaid'|'niko';hp:number;maxHp:number;activeUntil:number;lastActionRound?:number;exploded?:boolean}
 export interface WeaponUpdateState {
- deathFailures?:number;deathHiddenReady?:boolean;deathEyeUntil?:number;judgement?:{owner:string;hits:number;attacksLeft:number;lastAttackRound?:number};
+ deathFailures?:number;deathFailureRounds?:number[];deathHiddenReady?:boolean;deathEyeUntil?:number;judgement?:{owner:string;hits:number;attacksLeft:number;lastAttackRound?:number};
  events?:{effect:string;target:string;text:string;textVi:string}[];burnOwner?:string;armor?:number;shieldDefenses?:number;cleaveAttacks?:number;slashDefenses?:number;slashMissTriggered?:boolean;
  lastSkillDie?:number;markUntil?:number;markedBy?:string;namedBy?:string;lastNameDie?:number;nailHits?:number;lastSuccessfulDamage?:number;
  dodgeHits?:number;paralysisAttacks?:number;paralysisChance?:number;frozenAttacks?:number;freezeDefense?:number;freezeDefenseChance?:number;
