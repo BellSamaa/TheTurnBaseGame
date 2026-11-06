@@ -23,6 +23,7 @@ export interface DungeonState {
   encounter:number;
   round:number;
   phase:'room'|'entrance'|'loading'|'attack'|'defense'|'charge'|'skills'|'enemy_skills'|'end'|'cleared'|'rest'|'victory'|'defeat';
+  comparison?:{id:string;attack:number;defense:number;difference:number;damage:number;critical:boolean;target:string};
   teamHp:number;
   teamMaxHp:number;
   pts:number;
@@ -93,12 +94,22 @@ function progressEncounter(s:DungeonState){
   s.phase=s.floor===10&&s.encounter===5?'victory':'cleared';
   s.votes=[];s.deadline=undefined;add(s,s.phase==='victory'?'Dungeon complete!':'Encounter cleared!');
 }
+function absorbTeamArmor(s:DungeonState,amount:number,recipientId:string){
+  let remaining=amount;
+  for(const member of s.players){
+    if(member.id===recipientId||!member.weaponUpdate)continue;
+    const absorbed=Math.min(member.weaponUpdate.armor??0,remaining);
+    member.weaponUpdate.armor=(member.weaponUpdate.armor??0)-absorbed;
+    remaining-=absorbed;
+  }
+  return remaining;
+}
 function damageTeam(s:DungeonState,n:number,recipient?:PlayerState){
   if(n<=0)return 0;
   const guardian=activeBuff(s,'guardian');
   if(guardian){guardian.remaining=0;add(s,'Guardian blocks '+n+' damage.');return 0;}
   const p=recipient||s.players[0],pooledPlayer=pooled(s,p);
-  const damage=applyOpponentDamage(pooledPlayer,n,s.round);
+  const damage=applyOpponentDamage(pooledPlayer,pooledPlayer.immuneDamageNext?n:absorbTeamArmor(s,n,p.id),s.round);
   savePooled(s,p,pooledPlayer);
   return damage;
 }
@@ -106,7 +117,7 @@ function dice(s:DungeonState,p:PlayerState,role:'attack'|'defense'){
   const timing=p.diceTiming;
   const quality=timing?.round===s.round&&timing.role===role?timing.quality??0:0;
   let value=rollTimedD20(p,s.round,role,rollD20);
-  let chance=.05+.1*quality+(s.lucky[p.id]>0?.1:0);
+  let chance=.05+.2*quality+(s.lucky[p.id]>0?.1:0);
   if(activeBuff(s,'underdog'))chance-=.2;
   if(activeBuff(s,'underdog_reward'))chance+=.2;
   if(chance!==.05)value=Math.random()<Math.max(0,Math.min(1,chance))?20:1+Math.floor(Math.random()*19);
@@ -138,13 +149,15 @@ function finishDice(s:DungeonState,now:number){
       if((owner.panicTurns??0)>0){total-=owner.panicAttackDebuff??0;owner.panicTurns!--;}
       savePooled(s,player,owner);
     }
-    let damage=Math.max(0,total-enemyTotal)+weaponBonus;
+    const critical=total-enemyTotal>=15;
+    const hpBefore=victim.hp;
+    let damage=critical?total:Math.max(0,total-enemyTotal)+weaponBonus;
     if(damage>0){
       const modifier=s.players.reduce((sum,p)=>sum+CLASS_DEFINITIONS[p.classType].damageModifier,0)/s.players.length;
-      damage=Math.round(damage*modifier)+s.players.reduce((sum,p)=>sum+warriorBonus({...p,hp:s.teamHp,maxHp:s.teamMaxHp}),0);
-      if(activeBuff(s,'devil'))damage+=5;
+      damage=critical?total:Math.round(damage*modifier)+s.players.reduce((sum,p)=>sum+warriorBonus({...p,hp:s.teamHp,maxHp:s.teamMaxHp}),0);
+      if(!critical&&activeBuff(s,'devil'))damage+=5;
       const slayer=activeBuff(s,'slayer');
-      if(isBoss(s)&&slayer){damage+=5;slayer.remaining--;}
+      if(!critical&&isBoss(s)&&slayer){damage+=5;slayer.remaining--;}
       damage=applyOpponentDamage(victim,Math.max(0,damage),s.round);
       for(const player of s.players){const owner=pooled(s,player);normalReactions(owner,victim,damage>0,Math.round(damage/s.players.length),Math.round(enemyTotal/s.players.length),s.round);savePooled(s,player,owner);}
       for(const p of s.players)if(p.weapon.id==='spirit_stone'&&(p.petRockHp??0)>0&&victim.hp>0){
@@ -152,6 +165,7 @@ function finishDice(s:DungeonState,now:number){
         add(s,p.name+' · Pet Rock follow-up '+follow+' damage');
       }
     }
+    s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:hpBefore-victim.hp,critical,target:victim.name};
     add(s,'Team ATK '+total+' vs DEF '+enemyTotal+' · '+victim.name+' −'+damage+' HP');
     s.phase='defense';
   }else{
@@ -163,10 +177,13 @@ function finishDice(s:DungeonState,now:number){
       if(setup.cancel||setup.dodge){enemyTotal-=Math.round(enemyTotal/s.players.length);}
       savePooled(s,player,owner);
     }
-    let damage=Math.max(0,enemyTotal-total);
-    if(damage>0&&isBoss(s))damage+=floor.attack[s.encounter===3?0:1];
+    const critical=enemyTotal-total>=15;
+    const hpBefore=s.teamHp;
+    let damage=critical?enemyTotal:Math.max(0,enemyTotal-total);
+    if(!critical&&damage>0&&isBoss(s))damage+=floor.attack[s.encounter===3?0:1];
     const reduction=s.players.reduce((sum,p)=>sum+CLASS_DEFINITIONS[p.classType].damageReduction,0)/s.players.length;
-    damage=damageTeam(s,Math.round(damage*reduction));
+    damage=damageTeam(s,critical?damage:Math.round(damage*reduction));
+    s.comparison={id:crypto.randomUUID(),attack:enemyTotal,defense:total,difference:enemyTotal-total,damage:hpBefore-s.teamHp,critical,target:'TEAM'};
     add(s,'Enemy ATK '+enemyTotal+' vs DEF '+total+' · Team −'+damage+' HP');
     s.phase='charge';
   }
@@ -335,7 +352,7 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
       if(s.encounter===5){
         const completed=s.floor++;
         s.encounter=1;
-        if(completed%2===0){s.coins+=[300,450,600,800][completed/2-1];s.phase='rest';s.votes=[];s.positions=Object.fromEntries(s.players.map((p,i)=>[p.id,{x:.235+i*.175,y:.61}]));}
+        if(completed%2===0){s.coins+=[300,450,600,800][completed/2-1];s.phase='rest';s.teamHp=s.teamMaxHp;add(s,'Rest Area · Team fully healed');s.votes=[];s.positions=Object.fromEntries(s.players.map((p,i)=>[p.id,{x:.235+i*.175,y:.61}]));}
         else encounterEnemies(s);
       }else{s.encounter++;encounterEnemies(s);}
     }
@@ -384,8 +401,9 @@ export function tickDungeon(input:DungeonState,now=Date.now()){
           const guardian=activeBuff(s,'guardian');
           if(guardian)guardian.remaining=0;
           else{
+            const remaining=absorbTeamArmor(s,damage+(isBoss(s)?floor.skill[s.encounter===3?0:1]:0),p.id);
+            cast.opponent.hp=Math.max(0,target.hp-remaining);
             savePooled(s,p,cast.opponent);
-            s.teamHp=Math.max(0,s.teamHp-(isBoss(s)?floor.skill[s.encounter===3?0:1]:0));
           }
         }else savePooled(s,p,cast.opponent);
         if(s.floor===6&&isBoss(s)&&slot===(s.encounter===3?1:2)){

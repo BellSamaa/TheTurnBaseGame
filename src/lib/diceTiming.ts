@@ -28,7 +28,7 @@ export function updateDiceTiming(player: PlayerState, round: number, role: 'atta
 export function rollTimedD20(player: PlayerState, round: number, role: 'attack' | 'defense', roll: () => number) {
   const timing = player.diceTiming;
   if (timing?.round !== round || timing.role !== role || timing.quality === undefined) return roll();
-  const bonus = .1 * timing.quality;
+  const bonus = .2 * timing.quality;
   delete player.diceTiming;
   return Math.random() < .05 + bonus ? 20 : 1 + Math.floor(Math.random() * 19);
 }

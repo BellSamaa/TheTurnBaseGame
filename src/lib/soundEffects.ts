@@ -90,7 +90,7 @@ export function playDiceRollSound() {
 }
 
 // 3. Combat Direct Hit Sound (Heavy low crunch + noise impact)
-export function playHitSound() {
+export function playHitSound(strength = 1) {
   const { canPlay, volume } = canPlaySound();
   if (!canPlay) return;
 
@@ -105,7 +105,7 @@ export function playHitSound() {
   osc.frequency.setValueAtTime(180, ctx.currentTime);
   osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.18);
 
-  gain.gain.setValueAtTime(volume * 0.45, ctx.currentTime);
+  gain.gain.setValueAtTime(Math.min(.9, volume * 0.45 * strength), ctx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
 
   osc.connect(gain);
