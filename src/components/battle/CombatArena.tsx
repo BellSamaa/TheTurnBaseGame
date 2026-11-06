@@ -1,4 +1,5 @@
 'use client';
+import {PVE_BOT_RESULT_MS} from '@/lib/botPacing';
 import DiceTiming from './DiceTiming';
 import {DuelClashPanel,DuelResultNotice} from './DuelNotices';
 import {WeaponWeather,WeaponSummons,WeaponStatus,WeaponAura} from './WeaponWorldEffects';
@@ -22,7 +23,7 @@ import VfxAnimationPlayer from './VfxAnimationPlayer';
 import {playDiceRollSound,playBattleCue,playBattleEffect} from '@/lib/soundEffects';
 
 /** Presentation only: all values and dice results come from the battle server. */
-export default function CombatArena({state:s,viewer,busy=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,onDuelWager,onTiming,children}:{state:LmsState;viewer?:string;busy?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;onDuelWager?:(stake:number)=>void;onTiming?:(elapsedMs?:number)=>void;children:React.ReactNode}){
+export default function CombatArena({state:s,viewer,busy=false,botRolling=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,onDuelWager,onTiming,children}:{state:LmsState;viewer?:string;busy?:boolean;botRolling?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;onDuelWager?:(stake:number)=>void;onTiming?:(elapsedMs?:number)=>void;children:React.ReactNode}){
   const weaponKey=s.players.map(p=>p.weapon.id).join(',');
   useEffect(()=>{preloadWeaponEffects(weaponKey.split(','));},[weaponKey]);
   const mapId=useGameStore(st=>st.battleState?.mapId)||'castle';
@@ -38,7 +39,6 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
   const seen=useRef<string|undefined>(undefined),lastRoll=useRef('');
   const nextShownPhase=s.turnFlow===3?(['defense','clash','attack'].includes(s.phase)?'target':s.phase):s.phase==='target'?'attack':s.phase==='clash'?'defense':s.phase==='end'?'skills':s.phase;
   const [shownPhase,setShownPhase]=useState(nextShownPhase),[phaseWaiting,setPhaseWaiting]=useState(false);
-  useEffect(()=>{if(nextShownPhase===shownPhase)return;setPhaseWaiting(true);const t=setTimeout(()=>{setShownPhase(nextShownPhase);setPhaseWaiting(false);},2200);return()=>clearTimeout(t);},[nextShownPhase,shownPhase]);
   const personalRolls=s.turnFlow===3?s.roundCharges?.[viewer||'']||[]:viewer===s.order[s.active]?s.rolls:viewer===s.target?s.defenderRolls||[]:[];
   const partialBoxer=s.players.find(p=>p.id===viewer);
   const boxerPartial=partialBoxer?.boxerAttackRound===s.round?partialBoxer.boxerAttackRolls?.at(-1):undefined;
@@ -60,7 +60,15 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
     if(seenOtherRolls.current.size>200)seenOtherRolls.current=new Set(otherRolls.map(r=>r.key));
     setRollAlerts(fresh);playBattleCue('result');
   },[otherRollKey]);
-  useEffect(()=>{if(!rollAlerts.length)return;const timer=setTimeout(()=>setRollAlerts([]),2200);return()=>clearTimeout(timer);},[rollAlerts]);
+  const pveBot=s.players.some(p=>p.id==='pve_bot');
+  useEffect(()=>{if(!rollAlerts.length)return;const timer=setTimeout(()=>setRollAlerts([]),pveBot?PVE_BOT_RESULT_MS:2200);return()=>clearTimeout(timer);},[rollAlerts,pveBot]);
+  useEffect(()=>{
+    if(nextShownPhase===shownPhase){setPhaseWaiting(false);return;}
+    setPhaseWaiting(true);
+    if(pveBot&&rollAlerts.length&&s.phase!=='clash')return;
+    const timer=setTimeout(()=>{setShownPhase(nextShownPhase);setPhaseWaiting(false);},pveBot?0:2200);
+    return()=>clearTimeout(timer);
+  },[nextShownPhase,shownPhase,pveBot,rollAlerts.length,s.phase]);
   const viewerIndex=Math.max(0,s.players.findIndex(p=>p.id===viewer));
   const displayPlayers=[...s.players.slice(viewerIndex),...s.players.slice(0,viewerIndex)];
   const timingPlayer=s.players.find(p=>p.id===viewer);
@@ -131,7 +139,7 @@ export default function CombatArena({state:s,viewer,busy=false,title,onSurrender
     </div>
     {s.duelClash&&!s.winner&&<DuelClashPanel clash={s.duelClash} attackerId={active.id} viewer={viewer} points={s.players.find(p=>p.id===viewer)?.d12Charge??0} en={en} busy={busy} onWager={onDuelWager}/>}
     <DuelResultNotice notice={s.duelNotice} en={en}/>
-    <div className="combat-result-strip" role="status" aria-live="polite">{rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong><em>{en?'Rolled!':'Đã tung!'}</em></div>)}</div>:<div className="combat-roll-notice" hidden={!notice} title={notice}>{notice}</div>}</div>
+    <div className="combat-result-strip" role="status" aria-live="polite">{botRolling?<div className="combat-roll-notice">{en?'ENEMY IS ROLLING…':'ĐỐI THỦ ĐANG TUNG…'}</div>:rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong><em>{en?'Rolled!':'Đã tung!'}</em></div>)}</div>:<div className="combat-roll-notice" hidden={!notice} title={notice}>{notice}</div>}</div>
     {banner?.nameEn&&<div key={banner.id} className="combat-skill-flash"><img src={effectFrame(banner.effect,1)} alt=""/><div><small>{s.players.find(p=>p.id===banner.caster)?.name} · {en?'SKILL':'KỸ NĂNG'} {banner.slot}</small><strong>{en?banner.nameEn:banner.nameVi}</strong></div><span className="skill-sweep-spark" aria-hidden="true">✦</span></div>}
     {boxerDice.length>0&&<div className="boxer-roll-progress" role="status">{boxerDice.length===1?(en?'BOXER · D20 1/2 · Roll again':'BOXER · D20 1/2 · Tung lần nữa'):(en?'BOXER · D20 2/2 · Highest: ':'BOXER · D20 2/2 · Số cao nhất: ')+Math.max(...boxerDice)}</div>}
     <div className="lms-bottom-layout"><div className="combat-console"><DiceTiming key={s.round+":"+timingRole} state={timingState} enabled={timingReady&&!phaseWaiting&&!rolling} busy={busy} en={en} onPress={onTiming}/><div className="combat-dice-column"><div className="combat-dice-dock">

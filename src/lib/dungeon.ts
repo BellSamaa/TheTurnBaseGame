@@ -31,6 +31,7 @@ export interface DungeonState {
   votes:string[];
   rolls:Record<string,number[]>;
   enemyRolls:number[];
+  botDice?: { stage: 'rolling' | 'result'; role: 'attack' | 'defense' | 'charge'; readyAt: number; until?: number; values: number[] };
   lastD20?:Record<string,number>;
   lastRoll?:{id:string;values:number[];die:string;at:number};
   positions:Record<string,Position>;
@@ -112,12 +113,14 @@ function dice(s:DungeonState,p:PlayerState,role:'attack'|'defense'){
   if(role==='attack'&&activeBuff(s,'musashi')&&['greatsword','dagger','king_slasher'].includes(p.weapon.id)&&Math.random()<.2)value=Math.max(value,Math.random()<.85?20:rollD20());
   return weaponD20(p,value,role,s.round,s.enemies.find(p=>p.hp>0));
 }
-function finishDice(s:DungeonState){
+function beginBotDice(s:DungeonState,role:'attack'|'defense'|'charge',now:number){
+  s.botDice={stage:'rolling',role,readyAt:now+1400,values:[]};
+  s.deadline=undefined;
+}
+function finishDice(s:DungeonState,now:number){
   if(!s.enemies.some(p=>p.hp>0)){progressEncounter(s);return;}
   let total=Object.values(s.rolls).flat().reduce((a,b)=>a+b,0);
-  const bonus=[0,0,.1,.1,.2,.2,.3,.3,.5,.5][s.floor-1];
-  s.enemyRolls=s.players.map(()=>Math.random()<.05+bonus?20:rollD20());
-  add(s,'Enemies · D20 '+s.enemyRolls.join(' + '));
+  // The visible result was rolled and held by tickDungeon; never roll it again here.
   let enemyTotal=s.enemyRolls.reduce((a,b)=>a+b,0),floor=DUNGEON_FLOORS[s.floor-1];
   if(s.phase==='attack'){
     const victim=s.enemies.find(p=>p.id===s.target&&p.hp>0)||s.enemies.find(p=>p.hp>0)!;
@@ -168,12 +171,26 @@ function finishDice(s:DungeonState){
     s.phase='charge';
   }
   for(const event of drainWeaponEvents([...s.players,...s.enemies]))add(s,event.text);
-  s.rolls={};s.deadline=Date.now()+20000;progressEncounter(s);
+  s.rolls={};s.deadline=now+20000;progressEncounter(s);
+}
+function finishCharge(s:DungeonState,values:number[],now:number){
+  for(const [i,enemy] of s.enemies.filter(p=>p.hp>0).entries())Object.assign(enemy,chargeSkillPoints(enemy,[values[i]],s.round));
+  s.phase='skills';s.votes=[];s.deadline=now+20000;
+  for(const player of s.players){
+    const owner=pooled(s,player);
+    for(const event of tickWeaponRound([owner,...s.enemies],s.round,'summons')){
+      add(s,event.text);
+      if(activeBuff(s,'summoner')&&event.target!==owner.id){const foe=s.enemies.find(e=>e.id===event.target);if(foe)applyOpponentDamage(foe,2,s.round);}
+    }
+    savePooled(s,player,owner);
+  }
+  progressEncounter(s);
 }
 export function dungeonAction(input:DungeonState,actor:string,action:string,args:Record<string,unknown>={},now=Date.now()){
   const s=structuredClone(input),p=s.players.find(p=>p.id===actor);
   for(const player of s.players)if(s.round>(player.petRockEnrageUntilRound??Infinity))player.petRockEnraged=false;
   if(!p)throw Error('Not in this Dungeon.');
+  if(s.botDice&&['roll','timing','target','skill','end'].includes(action))throw Error('Wait for the enemy dice result.');
   const safe=['entrance','rest'].includes(s.phase);
   if(safe&&['ready','shop','equip'].includes(action)&&args.position){
     const pose=args.position as Position;
@@ -244,17 +261,7 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
       s.lastRoll={id:actor,values:s.rolls[actor],die:'D6',at:now};
       add(s,p.name+' · D6 '+s.rolls[actor].join(' + ')+' → '+s.pts+' team PTS');
       if(s.players.every(p=>(s.rolls[p.id]?.length||0)>=d6Allowance(p,s.round))){
-        for(const enemy of s.enemies.filter(p=>p.hp>0))Object.assign(enemy,chargeSkillPoints(enemy,[rollD6()],s.round));
-        s.phase='skills';s.votes=[];s.deadline=now+20000;
-        for(const player of s.players){
-          const owner=pooled(s,player);
-          for(const event of tickWeaponRound([owner,...s.enemies],s.round,'summons')){
-            add(s,event.text);
-            if(activeBuff(s,'summoner')&&event.target!==owner.id){const foe=s.enemies.find(e=>e.id===event.target);if(foe)applyOpponentDamage(foe,2,s.round);}
-          }
-          savePooled(s,player,owner);
-        }
-        progressEncounter(s);
+        beginBotDice(s,'charge',now);
       }
     }else{
       if(existing.length)throw Error('Already rolled.');
@@ -269,7 +276,7 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
         if(!result.done)return s;
         s.rolls[actor]=[result.value];
       }else{s.rolls[actor]=[value];add(s,p.name+' · DEF '+value);}
-      if(s.players.every(p=>s.rolls[p.id]?.length))finishDice(s);
+      if(s.players.every(p=>s.rolls[p.id]?.length))beginBotDice(s,s.phase==='attack'?'defense':'attack',now);
     }
   }else if(action==='skill'){
     if(s.phase!=='skills'||s.votes.includes(actor))throw Error('Not your skill phase.');
@@ -336,6 +343,22 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
   return s;
 }
 export function tickDungeon(input:DungeonState,now=Date.now()){
+  if(input.botDice){
+    if(input.botDice.stage==='rolling'){
+      if(now<input.botDice.readyAt)return input;
+      const s=structuredClone(input),pending=s.botDice!;
+      const bonus=[0,0,.1,.1,.2,.2,.3,.3,.5,.5][s.floor-1];
+      pending.values=pending.role==='charge'?s.enemies.filter(p=>p.hp>0).map(()=>rollD6()):s.players.map(()=>Math.random()<.05+bonus?20:rollD20());
+      pending.stage='result';pending.until=now+3500;
+      if(pending.role!=='charge')s.enemyRolls=[...pending.values];
+      s.lastRoll={id:'dungeon_enemies',values:[...pending.values],die:pending.role==='charge'?'D6':'D20',at:now};
+      add(s,'Enemies · '+s.lastRoll.die+' '+pending.values.join(' + '));return s;
+    }
+    if(now<(input.botDice.until??Infinity))return input;
+    const s=structuredClone(input),pending=s.botDice!;delete s.botDice;
+    if(pending.role==='charge')finishCharge(s,pending.values,now);else finishDice(s,now);
+    return s;
+  }
   if(input.phase==='loading'&&now>=(input.startedAt??now)+3000){const s=structuredClone(input);encounterEnemies(s);return s;}
   if(input.phase==='enemy_skills'&&now>=(input.deadline??Infinity)){
     const s=structuredClone(input);
