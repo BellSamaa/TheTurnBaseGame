@@ -1,4 +1,5 @@
 import {clashCanResolve,openDuelClash,rollLuckyAttack,submitClashWager,type DuelClash,type DuelNotice} from './duelRules';
+import {rollTimedD20,timeLmsRoll} from './diceTiming';
 import {weaponD20,tickWeaponRound,nextWeaponAttacker,prepareWeaponCharge,outgoingDamage} from './weaponUpdateHooks';
 import {syncWeather,weaponState,drainWeaponEvents,advanceWeather} from './weaponUpdateState';
 import {d6Allowance,attackDice,recordAttackRoll} from './classMechanics';
@@ -45,6 +46,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
   if(!user || (user.hp<=0 && !(action==='end'&&actor===s.order[s.active])) || s.phase==='finished') throw Error('Không thể hành động');
   const attacker=s.players.find(p=>p.id===s.order[s.active])!;
   const target=s.players.find(p=>p.id===s.target);
+  if(action==='timing'){timeLmsRoll(s,actor,now);s.revision++;return s;}
   s.players.forEach(p=>{p.isAttacker=s.phase!=='initiative'&&p.id===attacker.id;});
   const add=(text:string,en?:string)=>{s.logVi??=[...s.log];s.log.unshift(en||translateText(text,'en'));s.logVi.unshift(text);};
   const completeInitiative=()=>{
@@ -58,7 +60,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
   if(s.phase==='initiative'&&action!=='surrender'){
     if(action!=='initiative')throw Error('Wait for every player to roll opening D20');
     if(s.initiative?.some(r=>r.id===actor))throw Error('Opening D20 already rolled');
-    let rolled=rollD20();
+    let rolled=rollTimedD20(user,s.round,'attack',rollD20);
     const chrono=user.weaponUpdate;
     if(s.players.length>2&&user.boxerAttackRound!==s.round&&chrono&&(chrono.extraAttacks??0)>0){
       rolled=Math.max(rolled,rollD20());
@@ -119,7 +121,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     user.d12Charge!-=3;s.attack=Math.max(1,Math.min(20,s.attack!+args.delta!));add(user.name+' can thiệp Công '+(args.delta!>0?'+1':'−1'));
   } else if(action==='defend') {
     if(s.phase!=='defense'||target?.id!==actor)throw Error('Chưa đến lượt phòng thủ');
-    s.defense=weaponD20(user,rollD20(),'defense',s.round,attacker);s.phase='clash';s.duelClash=s.players.length===2?openDuelClash(s.attack!,s.defense,user.id,now):undefined;s.deadline=s.duelClash?.deadline??(s.players.length===2?now:now+5000);add(user.name+' Thủ '+s.defense);
+    s.defense=weaponD20(user,rollTimedD20(user,s.round,'defense',rollD20),'defense',s.round,attacker);s.phase='clash';s.duelClash=s.players.length===2?openDuelClash(s.attack!,s.defense,user.id,now):undefined;s.deadline=s.duelClash?.deadline??(s.players.length===2?now:now+5000);add(user.name+' Thủ '+s.defense);
   } else if(action==='charge'&&s.phase==='charge_defense') {
     if(target?.id!==actor)throw Error('Chưa đến lượt D6 phòng thủ');
     const raw=rollD6();Object.assign(user,chargeSkillPoints(user,[raw],s.round));const roll=user.weaponUpdate?.lastChargeValue??raw;if(roll>0)(s.defenderRolls??=[]).push(roll);add(user.name+' D6 '+roll+' → '+user.d12Charge+' PTS');
@@ -146,7 +148,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       Object.assign(user,cast.caster);Object.assign(victim,cast.opponent);syncWeather(s.players);if(cast.effect){s.lastEvent.effect=cast.effect;s.lastEvent.cues=[...(user.weapon.id==='death_note'&&args.slot===1?[{effect:'wu1:name_write',target:victim.id}]:[]),{effect:cast.effect,target:['wu1:golem','wu1:fire_person','wu1:mermaid','wu1:niko'].includes(cast.effect)?user.id:s.lastEvent.target}];}add(cast.logTextVi,cast.logTextEn);if(victim.hp<=0&&s.target===victim.id){if(s.turnFlow===2)s.phase='end';else{s.target=undefined;s.phase='target';}}finish();
     } else if(action==='attack') {
       if(s.phase!=='attack')throw Error('Chọn mục tiêu trước');
-      const rolled=s.players.length===2?rollLuckyAttack(user,rollD20):rollD20();
+      const rolled=s.players.length===2?rollLuckyAttack(user,()=>rollTimedD20(user,s.round,'attack',rollD20)):rollTimedD20(user,s.round,'attack',rollD20);
       const result=recordAttackRoll(user,s.round,weaponD20(user,rolled,'attack',s.round,target));Object.assign(user,result.player);s.attack=result.value;
       if(!result.done){add(user.name+' · Boxer D20 1/2: '+s.attack);armLmsRollTimer(s,now);s.revision++;return s;}
       if(user.weapon.id==='revolver'){if((user.bullets??0)<=0)s.attack=0;else user.bullets!--;}

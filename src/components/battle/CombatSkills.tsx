@@ -9,7 +9,7 @@ import {WEAPON_DEFINITIONS} from '@/lib/constants';
 import {activeWeather} from '@/lib/weaponUpdateState';
 import {skillPresentation} from '@/lib/skillPresentation';
 
-export default function CombatSkills({player,round,enabled,busy,onCast,players}:{player:PlayerState;round:number;enabled:boolean;busy:boolean;players?:PlayerState[];onCast:(args:Record<string,unknown>)=>void}){
+export default function CombatSkills({player,round,enabled,busy,onCast,players,freeSlots=[]}:{player:PlayerState;round:number;enabled:boolean;busy:boolean;players?:PlayerState[];freeSlots?:number[];onCast:(args:Record<string,unknown>)=>void}){
   const [openSlot,setOpenSlot]=useState<1|2|null>(null);
   const p={...player,weapon:WEAPON_DEFINITIONS[player.weapon.id]||player.weapon};
   const en=useGameStore(s=>s.settings.language)==='en',[form,setForm]=useState<number>(),[second,setSecond]=useState(1),[lock,setLock]=useState(1);
@@ -20,7 +20,7 @@ export default function CombatSkills({player,round,enabled,busy,onCast,players}:
   const forms=p.weapon.id==='thunder_spear'&&activeWeather(p,round)?.kind!=='rain'?[1]:rawForms,first=Array.isArray(forms)?forms.includes(form??-1)?form:forms[0]:undefined;
   const f2=Array.isArray(p.weapon.skill2.triggerNumber)?p.weapon.id==='king_slasher'&&!marked?1:second:p.weapon.id==='fire_headband'?(second===30?30:20):p.weapon.id==='infinity_ring'?second:undefined;
   return <div className="combat-skills">{([1,2]as const).map(slot=>{
-    const skill=slot===1?p.weapon.skill1:p.weapon.skill2,chosen=slot===1?first:f2,art=skillPresentation(p,slot,chosen),cost=skillCost(p,slot,chosen,round);
+    const skill=slot===1?p.weapon.skill1:p.weapon.skill2,chosen=slot===1?first:f2,art=skillPresentation(p,slot,chosen),cost=freeSlots.includes(slot)?0:skillCost(p,slot,chosen,round);
     const used=(slot===1?p.skill1UsedTurn:p.skill2UsedTurn)===round,locked=skillIsLocked(p,slot,round),leaf=slot===1&&p.weapon.id==='fire_headband'&&p.leafSkillReadyTurn!==round,rock=slot===2&&p.weapon.id==='spirit_stone'&&((p.petRockHp??0)<=0||p.petRockEnraged),empty=slot===2&&p.weapon.id==='revolver'&&(p.bullets??6)<=0;
     const statusLocked=p.weaponUpdate?.slowChargeRound===round&&p.weaponUpdate.slowChargeBlocked;
     const targetGate=slot===2&&p.weapon.id==='death_note'&&!named;

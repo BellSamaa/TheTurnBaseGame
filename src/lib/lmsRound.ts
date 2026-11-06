@@ -1,4 +1,5 @@
 import {syncWeather,drainWeaponEvents} from './weaponUpdateState';
+import {rollTimedD20,timeLmsRoll} from './diceTiming';
 import {tickWeaponRound,weaponD20,prepareWeaponCharge} from './weaponUpdateHooks';
 import {d6Allowance} from './classMechanics';
 import {activateBuff,LMS_BUFFS} from './lmsBuffs';
@@ -19,6 +20,7 @@ function nextRound(s:LmsState,now:number){
 export function roundLmsAction(input:LmsState,actor:string,action:string,args:Parameters<typeof lmsAction>[3]={},now=Date.now()):LmsState{
  let s=structuredClone(input);s.players.forEach(p=>{if(s.round>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;});const user=s.players.find(p=>p.id===actor);if(!user||user.hp<=0||s.winner)throw Error('Không thể hành động');
  if(action==='clash')throw Error('LMS attack uses the winning D20 roll.');
+ if(action==='timing'){timeLmsRoll(s,actor,now);s.revision++;return s;}
  if(action==='ready_opening'){
   if(s.round!==1||s.phase!=='initiative')return s;
   if(!s.openingReady?.includes(actor))(s.openingReady??=[]).push(actor);
@@ -35,7 +37,7 @@ export function roundLmsAction(input:LmsState,actor:string,action:string,args:Pa
   if(s.phase==='defense')s.rollDeadline=now+20000;
   if(!s.winner&&input.phase==='buffs'){completeStageActor(s,actor,now);}s.revision++;return s;
  }
- if(action==='defend'){if(s.phase!=='defense'||s.extras!.flags['buffDefense']!==actor)throw Error('LMS chỉ có Defense khi dùng buff Ảo Ảnh Kép');s.defense=weaponD20(user,Math.max(rollD20(),rollD20()),'defense',s.round,s.players.find(p=>p.id===s.order[s.active]));delete s.extras!.flags['buffDefense'];s.phase='clash';s.deadline=now+5000;s.rollDeadline=undefined;s.log.unshift(user.name+' Defense buff D20: '+s.defense);s.revision++;return s;}
+ if(action==='defend'){if(s.phase!=='defense'||s.extras!.flags['buffDefense']!==actor)throw Error('LMS chỉ có Defense khi dùng buff Ảo Ảnh Kép');s.defense=weaponD20(user,Math.max(rollTimedD20(user,s.round,'defense',rollD20),rollD20()),'defense',s.round,s.players.find(p=>p.id===s.order[s.active]));delete s.extras!.flags['buffDefense'];s.phase='clash';s.deadline=now+5000;s.rollDeadline=undefined;s.log.unshift(user.name+' Defense buff D20: '+s.defense);s.revision++;return s;}
  if(action==='clash')throw Error('Can thiệp PTS đã được bỏ');
  if(['skills','buffs'].includes(s.phase)&&s.stageDone?.includes(actor)&&['skill','buff','charge','end','next_stage'].includes(action))throw Error('Bạn đã xong giai đoạn này');
  if((action==='end'||action==='next_stage')&&['skills','buffs'].includes(s.phase)){

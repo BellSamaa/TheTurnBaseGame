@@ -1,4 +1,5 @@
 import type {WeaponUpdateState} from '@/lib/weaponUpdateState';
+import type {DiceTimingState} from '@/lib/diceTiming';
 // ============================================================
 // Game types for Dice Maniac RPG Turn-Base Game
 // ============================================================
@@ -75,6 +76,7 @@ export interface UserAccount {
 }
 
 export interface PlayerState {
+  diceTiming?: DiceTimingState;
   duelLuck?: { hits: number; misses: number; mode?: "lucky" | "unlucky" };
   weaponUpdate?:WeaponUpdateState;
   id: string;
@@ -222,6 +224,7 @@ export interface RoomState {
 }
 
 export type GamePage =
+  | 'dungeon'
   | 'pve'
   | 'home'
   | 'play'

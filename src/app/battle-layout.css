@@ -448,3 +448,71 @@
   .battle-balanced .battle-weapon-preview { width: min(100%, 128px); gap: 4px; }
   .battle-balanced .combat-fighter-details { gap: 2px 4px; }
 }
+.battle-balanced .lms-bottom-layout .combat-console { grid-template-columns:minmax(0,1.2fr) 48px minmax(0,.8fr); }
+.battle-balanced .combat-command-panel { grid-column:1; grid-row:1; }
+.battle-balanced .combat-dice-column { grid-column:3; grid-row:1; }
+.dice-timing { grid-column:2; grid-row:1; display:flex; flex-direction:column; align-items:center; gap:3px; align-self:center; }
+.dice-timing-track { position:relative; height:130px; width:25px; }
+.dice-timing-track svg { display:block; width:100%; height:100%; }
+.dice-timing-pointer { position:absolute; left:-4px; right:-4px; height:3px; background:#fff2a0; box-shadow:0 0 9px #fff27c; transform:translateY(-50%); }
+.dice-timing button { padding:5px 2px; color:#fff0a3; font-size:6px; border:1px solid #ffcd53; background:linear-gradient(#41315d,#172c50); box-shadow:0 0 8px #ffdf7044; }
+.dice-timing button:disabled { opacity:.4; }
+.dice-timing small { font-size:4px; color:#95ecff; }
+@media(max-width:767px){.battle-balanced .lms-bottom-layout .combat-console{grid-template-columns:minmax(0,1.15fr) 32px minmax(0,.85fr)}.dice-timing-track{height:95px;width:18px}.dice-timing button{font-size:5px}.battle-balanced .combat-dice-column{grid-column:3}}
+.dungeon-screen{max-width:1400px;margin:auto;padding:12px;color:#fff0b5;font-size:11px;min-height:100svh;background:#0b1122}
+.dungeon-screen>header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px}
+.dungeon-screen button{cursor:pointer}
+.dungeon-screen>header button,.dungeon-room-actions button,.dungeon-shop button,.dungeon-stage-message button,.dungeon-modal>div>button{padding:9px 12px;border:1px solid #cfa644;background:linear-gradient(#342c40,#121b32);color:#ffe99c}
+.dungeon-rule-button{box-shadow:0 0 12px #f6c64a77;animation:dungeon-rule-glow 2s infinite alternate}
+.dungeon-room-actions{display:flex;gap:12px;padding:24px;flex-wrap:wrap}
+.dungeon-room-actions input{background:#101b32;padding:10px;width:160px;border:1px solid #ae853f}
+.dungeon-team-hud{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:12px;background:linear-gradient(100deg,#101831,#080a17,#231533);border:1px solid #d6b960;box-shadow:0 0 15px #d6b93022}
+.dungeon-team-hud>div{display:grid;justify-items:center;gap:4px;min-width:0}.dungeon-team-hud b{font-size:9px;text-align:center}.dungeon-team-hud small{font-size:8px}
+.dungeon-phases{display:flex;justify-content:center;margin:7px 0;padding:5px;border:1px solid #d6b960;background:#0c1224;gap:4px}
+.dungeon-phases span{flex:1;text-align:center;font-size:8px;padding:8px 3px;color:#8da1be}.dungeon-phases .active{color:#fff0b7;background:linear-gradient(#936423,#c49235);box-shadow:0 0 10px #ffc64b66}
+.dungeon-stage{position:relative;width:100%;aspect-ratio:1672/941;background-position:center;background-size:100% 100%;overflow:hidden}
+.dungeon-floor-label{position:absolute;top:2%;left:2%;background:#0b1426d9;padding:5px;font-size:8px}
+.dungeon-hero,.dungeon-npc{position:absolute;transform:translate(-50%,-100%);display:flex;align-items:center;flex-direction:column}
+.dungeon-hero b,.dungeon-hero small,.dungeon-npc span{background:#0b1224dd;padding:2px 4px;font-size:7px;white-space:nowrap}
+.dungeon-hero .character-motion{width:80px!important;height:120px!important}.dungeon-hero canvas{width:80px!important;height:120px!important}
+.dungeon-npc{pointer-events:none}.dungeon-npc img{height:130px;width:90px;object-fit:contain;animation:dungeon-idle 2.5s ease-in-out infinite}
+.dungeon-enemy{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;width:100px;background:none;border:0}
+.dungeon-enemy img{width:100%;height:140px;object-fit:contain;transform:scaleX(-1);animation:dungeon-enemy-idle 2.2s ease-in-out infinite}
+.dungeon-enemy.is-mini{width:140px}.dungeon-enemy.is-mini img{height:190px}.dungeon-enemy.is-boss{width:210px}.dungeon-enemy.is-boss img{height:270px}
+.dungeon-enemy small{font-size:7px;background:#0b1425d9}
+.dungeon-interact{position:absolute;bottom:3%;left:50%;transform:translateX(-50%);padding:8px 14px;border:1px solid #f3d66a;background:#201532;box-shadow:0 0 20px #e5c45a55}
+.dungeon-stage-message,.dungeon-loading{position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;background:#080b20b8;text-align:center}
+.dungeon-loading{font-size:clamp(15px,2.5vw,30px);color:#fff0a3;text-shadow:0 0 20px #e0a846;animation:dungeon-rule-glow 1s infinite alternate}
+.dungeon-bottom{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-top:8px}.dungeon-commands{display:grid;grid-template-columns:minmax(0,1fr) 45px minmax(0,.7fr);gap:8px;align-items:center}
+.dungeon-commands .four-commands{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}.dungeon-commands .combat-skills{display:contents}
+.dungeon-commands .four-commands>button:first-child{grid-area:1/1}.dungeon-commands .four-commands>button:nth-child(2){grid-area:2/1}.dungeon-commands .combat-skill:first-child{grid-area:1/2}.dungeon-commands .combat-skill:nth-child(2){grid-area:2/2}
+.dungeon-commands .combat-roll img,.dungeon-commands .combat-skill-cast>img:first-child{width:100%;height:38px;object-fit:contain}
+.dungeon-commands .combat-skill{position:relative;min-width:0}.dungeon-commands .weapon-skill-art{width:18px;height:18px;position:absolute;right:0;bottom:4px}
+.dungeon-commands .combat-skill-cost{display:block;font-size:7px;text-align:center}.dungeon-commands .dice-timing{grid-column:2;grid-row:1}.dungeon-dice{display:grid;grid-template-columns:1fr 1fr;min-width:0}
+.dungeon-dice .battle-weapon-preview{grid-column:1/-1;display:flex;align-items:center;gap:5px;width:160px;max-width:100%;margin:auto}
+.dungeon-dice>div:not(.battle-weapon-preview){min-width:0;max-width:100%;overflow:hidden}
+.dungeon-history{height:165px;overflow:auto;line-height:1.8;font-size:9px}.dungeon-history p{padding:4px;border-bottom:1px solid #52607d44;color:#ffd58a}
+.dungeon-owned-buffs{display:flex;flex-wrap:wrap;gap:4px}.dungeon-owned-buffs button{padding:5px;border:1px solid #8d63bd;font-size:7px}
+.dungeon-modal{position:fixed;inset:0;z-index:180;background:#05091ce8;display:grid;place-items:center;padding:20px}.dungeon-modal>div{max-width:850px;max-height:90svh;overflow:auto;width:100%}
+.dungeon-rules{padding:15px;line-height:1.9;font:15px system-ui,sans-serif}.dungeon-shop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:10px}.dungeon-shop img{width:40px;height:40px;object-fit:contain}.dungeon-shop small{display:block;line-height:1.7;color:#a9d9ed;font:12px system-ui,sans-serif}
+@keyframes dungeon-idle{50%{translate:0 -3px}}@keyframes dungeon-enemy-idle{50%{translate:0 -4px}}@keyframes dungeon-rule-glow{to{filter:brightness(1.3)}}
+@media(max-width:767px){.dungeon-screen{padding:6px}.dungeon-bottom{grid-template-columns:1fr}.dungeon-hero .character-motion{width:38px!important;height:57px!important}.dungeon-hero canvas{width:38px!important;height:57px!important}.dungeon-npc img{width:40px;height:60px}.dungeon-enemy{width:45px}.dungeon-enemy img{height:65px}.dungeon-enemy.is-mini{width:65px}.dungeon-enemy.is-mini img{height:85px}.dungeon-enemy.is-boss{width:95px}.dungeon-enemy.is-boss img{height:125px}.dungeon-team-hud{gap:5px;padding:5px}.dungeon-team-hud b,.dungeon-team-hud small{font-size:6px}.dungeon-phases span{font-size:5px}.dungeon-commands{gap:4px;grid-template-columns:1fr 32px .65fr}.dungeon-history{height:100px}.dungeon-hero b,.dungeon-hero small{font-size:4px}}
+@media(prefers-reduced-motion:reduce){.dungeon-npc img,.dungeon-enemy img,.dungeon-loading,.dungeon-rule-button{animation:none}}
+
+.dungeon-dice-pair .personal-d20>div>div:first-child,.dungeon-dice-pair .personal-d6>div>div:first-child{width:90px;height:76px}.dungeon-dice-pair .personal-d20>div>div:last-child>span,.dungeon-dice-pair .personal-d6>div>div:last-child>span{font-size:7px}.dungeon-dice-pair .personal-d20>div>div:last-child>div,.dungeon-dice-pair .personal-d6>div>div:last-child>div{font-size:10px;line-height:1.4;padding:2px 6px}.battle-balanced .combat-formula{display:none}
+.dungeon-dice-pair .personal-d20,.dungeon-dice-pair .personal-d6{position:absolute;top:14%;height:72%;width:30%;display:block}
+.dungeon-dice-pair .personal-d20{left:14%}
+.dungeon-dice-pair .personal-d6{left:56%}
+.dungeon-dice-pair .personal-d20>div,.dungeon-dice-pair .personal-d6>div{position:relative;width:100%;height:100%;display:block}
+.dungeon-dice-pair .personal-d20>div>div:first-child,.dungeon-dice-pair .personal-d6>div>div:first-child{position:absolute;width:100%;height:75%;top:0;left:0}
+.dungeon-dice-pair .personal-d20>div>div:last-child,.dungeon-dice-pair .personal-d6>div>div:last-child{position:absolute;top:88%;left:0;width:100%;height:12%;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:4px;margin:0;white-space:nowrap}
+.dungeon-dice{display:block}.dungeon-dice-pair{position:relative;width:100%;aspect-ratio:2/1;container-type:inline-size;background:url('/assets/sprites/ui/frames/dice-dual-original.png') center/100% 100% no-repeat}.dungeon-commands .combat-skill-cast{background:none!important;min-height:0!important;padding:0!important;width:100%}.dungeon-commands .combat-roll{height:38px;min-height:0;padding:0}.dungeon-commands .skill-touch-info{position:absolute;left:0;bottom:0}.dungeon-commands .weapon-stand{pointer-events:none}.dungeon-stage{aspect-ratio:auto;height:clamp(280px,calc(100svh - 380px),600px)}.dungeon-team-hud{padding:5px}.dungeon-team-hud>div>div{max-width:220px}.dungeon-bottom>div{min-width:0}.dungeon-bottom .pixel-frame{padding:10px}.dungeon-commands .dice-timing-track{height:115px}.dungeon-hero{isolation:isolate}.dungeon-hero .weapon-stand{width:140px;height:130px}.dungeon-history{height:140px}.dungeon-commands{min-height:160px}.dungeon-hero .weapon-status-tags span{font-size:6px}.dungeon-owned-buffs:empty{display:none}
+@media(max-width:767px){.dungeon-stage{height:300px}.dungeon-team-hud>div>div{max-width:140px}.dungeon-commands{min-height:140px}.dungeon-hero .weapon-stand{width:70px;height:65px}.dungeon-commands .combat-roll,.dungeon-commands .combat-roll img,.dungeon-commands .combat-skill-cast>img:first-child{height:26px}.dungeon-commands .dice-timing-track{height:96px}.dungeon-screen>header{font-size:7px}.dungeon-screen>header button{padding:6px}.dungeon-commands .combat-skill-cost{font-size:5px}.dungeon-dice .battle-weapon-preview{width:110px}}
+.dungeon-action-banner{height:24px;text-align:center;line-height:24px;color:#ffe9ae;font-size:9px;text-shadow:0 0 10px #ffc44d}.dungeon-action-banner:has(strong){background:linear-gradient(90deg,transparent,#563d1d99,transparent)}.dungeon-action-banner strong{font-size:17px;color:#ffdf45;margin-left:10px;animation:dungeon-rule-glow .7s infinite alternate}
+.dungeon-touch{position:absolute;left:2%;bottom:3%;display:grid;grid-template-columns:repeat(2,32px);gap:3px}.dungeon-touch button{width:32px;height:32px;border:1px solid #e6bc5c;background:#141a2bd9;color:#ffe4a0;display:grid;place-items:center;touch-action:none}.dungeon-touch svg{width:15px;height:15px}
+/* Keep combat and its controls visible together at common laptop/phone heights. */
+.dungeon-stage{height:clamp(280px,calc(100svh - 480px),560px)}
+.dungeon-hero .character-motion,.dungeon-hero canvas{width:54px!important;height:81px!important}
+.dungeon-hero .weapon-stand{width:100px;height:92px}
+.dungeon-bottom .pixel-panel{padding:12px}.dungeon-bottom .pixel-panel-heading{padding-bottom:12px;margin-bottom:8px}
+@media(max-width:767px){.dungeon-stage{height:250px}.dungeon-hero .character-motion,.dungeon-hero canvas{width:28px!important;height:42px!important}.dungeon-hero .weapon-stand{width:55px;height:50px}.dungeon-history{height:65px}.dungeon-history p{font-size:7px}.dungeon-commands{min-height:132px}.dungeon-bottom .pixel-panel{padding:8px}.dungeon-hero b,.dungeon-hero small{font-size:5px}.dungeon-bottom .pixel-panel-heading h3{font-size:9px}.dungeon-enemy.is-boss img{height:100px}.dungeon-enemy.is-mini img{height:76px}}

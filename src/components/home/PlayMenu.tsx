@@ -1,6 +1,7 @@
 'use client';
 
 import WorldLobby from './WorldLobby';
+import WeaponsGallery from '@/components/weapons/WeaponsGallery';
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,7 +21,7 @@ export default function PlayMenu() {
   const isEn = lang === 'en';
 
   const [activeModal, setActiveModal] = useState<
-    'none' | 'mode_selector' | 'rooms'
+    'none' | 'mode_selector' | 'rooms' | 'weapons'
   > (onlineRoomCode ? 'rooms' : 'none');
 
   return (
@@ -55,6 +56,7 @@ export default function PlayMenu() {
       </header>
 
       <WorldLobby blocked={activeModal!=='none'} onDoor={setActiveModal}/>
+      {activeModal==='weapons'&&<div className="fixed inset-0 z-50 overflow-auto"><WeaponsGallery onClose={()=>setActiveModal('none')}/></div>}
       {/* Modal: Game Mode Selector */}
       <AnimatePresence>
         {activeModal === 'mode_selector' && (

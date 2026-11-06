@@ -13,7 +13,7 @@ import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { playClickSound } from '@/lib/soundEffects';
 
-export default function WeaponsGallery() {
+export default function WeaponsGallery({onClose}: {onClose?:()=>void} = {}) {
   const { profile, setPlayerWeapon, setPage, settings } = useGameStore();
   const lang = settings.language;
   const isEn = lang === 'en';
@@ -52,7 +52,7 @@ export default function WeaponsGallery() {
         <PixelSpriteButton
           sprite="back"
           onClick={() => {
-            setPage('home');
+            if(onClose)onClose();else setPage('home');
           }}
           className="w-28 sm:w-32"
         />

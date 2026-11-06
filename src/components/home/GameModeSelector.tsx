@@ -56,6 +56,13 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
   // 4. Party (4 Players)
   const modes: ModeCard[] = [
     {
+      id: 'dungeon', nameEn: 'DUNGEON', nameVi: 'HẦM NGỤC',
+      badgeText: 'CO-OP', playersText: '1–4 PLAYERS',
+      descriptionEn: 'Ten floors, shared HP and PTS, rest areas and bosses.',
+      descriptionVi: 'Mười tầng, HP và PTS chung, sảnh nghỉ và Boss.',
+      spriteImage: '/assets/sprites/ui/modes/mode_dungeon.png', isAvailable: true,
+    },
+    {
       id: 'pve',
       nameVi: 'CHIẾN ĐẤU VỚI MÁY (PVE AI)',
       nameEn: 'PVE BATTLE (VS AI)',
@@ -101,6 +108,27 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
       lockReasonVi: 'Chưa khả dụng - Chế độ Party 4 người đang hoàn thiện',
       lockReasonEn: 'Coming Soon - 4-Player Party Mode in active development',
     },
+    {
+      id: 'custom_match', nameEn: 'CUSTOM MATCH', nameVi: 'TRẬN TÙY CHỈNH',
+      badgeText: 'COMING SOON', playersText: 'CUSTOM',
+      descriptionEn: 'Set up your own battle rules.', descriptionVi: 'Tạo trận đấu theo luật tùy chọn.',
+      spriteImage: '/assets/sprites/ui/modes/mode_custom.png', isAvailable: false,
+      lockReasonEn: 'Coming Soon', lockReasonVi: 'Sắp ra mắt',
+    },
+    {
+      id: 'infinity_pts', nameEn: 'INFINITY PTS', nameVi: 'PTS VÔ HẠN',
+      badgeText: 'COMING SOON', playersText: '∞ PTS',
+      descriptionEn: 'A future mode built around unlimited skill points.', descriptionVi: 'Chế độ tương lai với điểm kỹ năng vô hạn.',
+      spriteImage: '/assets/sprites/ui/modes/mode_infinity.png', isAvailable: false,
+      lockReasonEn: 'Coming Soon', lockReasonVi: 'Sắp ra mắt',
+    },
+    {
+      id: 'story', nameEn: 'STORY', nameVi: 'CỐT TRUYỆN',
+      badgeText: 'COMING SOON', playersText: 'ADVENTURE',
+      descriptionEn: 'Begin a new adventure in Dice Maniac.', descriptionVi: 'Khám phá hành trình trong thế giới Dice Maniac.',
+      spriteImage: '/assets/sprites/ui/modes/mode_story.png', isAvailable: false,
+      lockReasonEn: 'Coming Soon', lockReasonVi: 'Sắp ra mắt',
+    },
   ];
 
   const handleSelectMode = (mode: ModeCard) => {
@@ -120,6 +148,11 @@ export default function GameModeSelector({ matchType = 'casual', onClose }: Game
 
     if (selectedModeId !== 'pve' && !currentUser) {
       setAuthModal('signup');
+      return;
+    }
+    if(selectedModeId==='dungeon'){
+      useGameStore.getState().setPage('dungeon');
+      onClose();
       return;
     }
 

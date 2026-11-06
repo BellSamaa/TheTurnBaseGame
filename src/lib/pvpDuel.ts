@@ -1,4 +1,5 @@
 import type { BattleState, BattleLogEntry } from '@/types/game';
+import {rollTimedD20,updateDiceTiming} from './diceTiming';
 import { calculateDuelCombat, rollD20 } from './battleLogic';
 import { clashCanResolve, openDuelClash, submitClashWager } from './duelRules';
 import { applyOpponentDamage, recordOpponentDamage } from './combatDamage';
@@ -71,7 +72,7 @@ export function rollDuelDefense(input: BattleState, actor: string, now = Date.no
   if (actor !== defender.id) throw Error('Only the defender can roll defense.');
   const attack = firstAttacks ? state.p1D20 : state.p2D20;
   if (attack == null) throw Error('The attack roll is missing.');
-  const defense = weaponD20(defender, rollD20(), 'defense', state.currentTurn, attacker);
+  const defense = weaponD20(defender, rollTimedD20(defender,state.currentTurn,'defense',rollD20), 'defense', state.currentTurn, attacker);
   if (firstAttacks) state.p2D20 = defense;
   else state.p1D20 = defense;
   state.battleLog.unshift({ turn:state.currentTurn, type:'defend', timestamp:now, message:`${defender.name} rolls D20 DEF: ${defense}`, messageVi:`${defender.name} tung D20 Thủ: ${defense}` });
@@ -87,6 +88,17 @@ export function rollDuelDefense(input: BattleState, actor: string, now = Date.no
     return state;
   }
   return settleDefense(state, now);
+}
+
+export function timeDuelRoll(input: BattleState, actor: string, now = Date.now()) {
+  const next = structuredClone(input);
+  const player = [next.player1,next.player2].find(p=>p.id===actor);
+  const attack = input.turnStep==='d20_atk' && actor===input.attackerId;
+  const defense = input.turnStep==='d20_def' && actor!==input.attackerId;
+  if(!player||input.winnerId||(!attack&&!defense)||(attack&&player.boxerAttackRound===input.currentTurn&&(player.boxerAttackRolls?.length??0)>0))throw Error('Use timing before rolling D20.');
+  updateDiceTiming(player,input.currentTurn,attack?'attack':'defense',now);
+  next.revision=(input.revision??0)+1;
+  return next;
 }
 
 export function resolveDuelClash(input: BattleState, now = Date.now(), submission?: {actor: string; stake: unknown}) {

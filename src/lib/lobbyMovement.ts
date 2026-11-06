@@ -19,3 +19,7 @@ export const LOBBY_SEATS=[
  {id:'bench-left',x:-5.8,z:4.6,exitX:-5.8,exitZ:3.7},{id:'bench-right',x:5.8,z:4.6,exitX:5.8,exitZ:3.7},
 ];
 export function nearbyLobbySeat(x:number,z:number){return LOBBY_SEATS.filter(s=>Math.hypot(s.exitX-x,s.exitZ-z)<1.15).sort((a,b)=>Math.hypot(a.exitX-x,a.exitZ-z)-Math.hypot(b.exitX-x,b.exitZ-z))[0];}
+
+export function nearLobbyChest(x: number, z: number) {
+  return Math.hypot(x - 7.65, z + 3.65) < 1.05;
+}
