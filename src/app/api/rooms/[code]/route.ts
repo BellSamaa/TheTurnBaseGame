@@ -14,7 +14,7 @@ import {
   calculateTier,
   type RoomParticipant,
 } from '@/lib/serverDb';
-import { CLASS_DEFINITIONS, WEAPON_DEFINITIONS } from '@/lib/constants';
+import { PVP_BASE_HP, CLASS_DEFINITIONS, WEAPON_DEFINITIONS } from '@/lib/constants';
 import type { BattleState, PlayerState } from '@/types/game';
 
 interface RouteContext {
@@ -220,8 +220,8 @@ export async function POST(req: Request, context: RouteContext) {
         character: room.host.character,
         classType: room.host.classType,
         weapon: p1Weapon,
-        hp: p1Class.baseHp,
-        maxHp: p1Class.baseHp,
+        hp: Math.round(PVP_BASE_HP * p1Class.hpModifier),
+        maxHp: Math.round(PVP_BASE_HP * p1Class.hpModifier),
         skillCharge: 0,
         isAttacker: p1IsAttacker,
         bullets: p1Weapon.id === 'revolver' ? 6 : undefined,
@@ -237,8 +237,8 @@ export async function POST(req: Request, context: RouteContext) {
         character: room.guest.character,
         classType: room.guest.classType,
         weapon: p2Weapon,
-        hp: p2Class.baseHp,
-        maxHp: p2Class.baseHp,
+        hp: Math.round(PVP_BASE_HP * p2Class.hpModifier),
+        maxHp: Math.round(PVP_BASE_HP * p2Class.hpModifier),
         skillCharge: 0,
         isAttacker: !p1IsAttacker,
         bullets: p2Weapon.id === 'revolver' ? 6 : undefined,

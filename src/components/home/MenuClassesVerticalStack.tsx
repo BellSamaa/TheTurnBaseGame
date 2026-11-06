@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CLASS_DEFINITIONS } from '@/lib/constants';
+import { PVP_BASE_HP, CLASS_DEFINITIONS } from '@/lib/constants';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { playClickSound } from '@/lib/soundEffects';
 
@@ -69,7 +69,7 @@ export default function MenuClassesVerticalStack({ isEn }: MenuClassesVerticalSt
                 {isEn ? prevClass.name : prevClass.nameVi}
               </div>
               <div className="text-[7.5px] text-slate-500 font-pixel mt-0.5">
-                HP: {prevClass.baseHp} • {isEn ? 'CLICK TO EXPAND' : 'BẤM ĐỂ MỞ'}
+                PvP HP: {Math.round(PVP_BASE_HP * prevClass.hpModifier)} • {isEn ? 'CLICK TO EXPAND' : 'BẤM ĐỂ MỞ'}
               </div>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function MenuClassesVerticalStack({ isEn }: MenuClassesVerticalSt
             <div className="flex flex-wrap gap-2 mb-3">
               <span className="bg-red-950/90 border border-red-500 text-red-300 px-2.5 py-1 text-[8.5px] font-pixel flex items-center gap-1 shadow">
                 <PixelIcon name="heart" size={11} color="#f87171" />
-                <span>HP: {currentClass.baseHp}</span>
+                <span>PvP HP: {Math.round(PVP_BASE_HP * currentClass.hpModifier)}</span>
               </span>
 
               {currentClass.damageModifier !== 1 && (
@@ -169,7 +169,7 @@ export default function MenuClassesVerticalStack({ isEn }: MenuClassesVerticalSt
                 {isEn ? nextClass.name : nextClass.nameVi}
               </div>
               <div className="text-[7.5px] text-slate-500 font-pixel mt-0.5">
-                HP: {nextClass.baseHp} • {isEn ? 'CLICK TO EXPAND' : 'BẤM ĐỂ MỞ'}
+                PvP HP: {Math.round(PVP_BASE_HP * nextClass.hpModifier)} • {isEn ? 'CLICK TO EXPAND' : 'BẤM ĐỂ MỞ'}
               </div>
             </div>
           </div>

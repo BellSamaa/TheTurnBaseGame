@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import type { CharacterCustomization, ClassType, BattleState, PlayerState } from '@/types/game';
-import { CLASS_DEFINITIONS, WEAPON_DEFINITIONS, MAP_DEFINITIONS } from './constants';
+import { PVP_BASE_HP, CLASS_DEFINITIONS, WEAPON_DEFINITIONS, MAP_DEFINITIONS } from './constants';
 
 export function calculateTier(rankPoints: number): number {
   if (rankPoints >= 2100) return 7; // Grandmaster
@@ -505,8 +505,8 @@ export function createRankedBattleState(
     character: host.character,
     classType: host.classType,
     weapon: p1Weapon,
-    hp: p1Class.baseHp,
-    maxHp: p1Class.baseHp,
+    hp: Math.round(PVP_BASE_HP * p1Class.hpModifier),
+    maxHp: Math.round(PVP_BASE_HP * p1Class.hpModifier),
     skillCharge: 0,
     isAttacker: p1IsAttacker,
     bullets: p1Weapon.id === 'revolver' ? 6 : undefined,
@@ -522,8 +522,8 @@ export function createRankedBattleState(
     character: guest.character,
     classType: guest.classType,
     weapon: p2Weapon,
-    hp: p2Class.baseHp,
-    maxHp: p2Class.baseHp,
+    hp: Math.round(PVP_BASE_HP * p2Class.hpModifier),
+    maxHp: Math.round(PVP_BASE_HP * p2Class.hpModifier),
     skillCharge: 0,
     isAttacker: !p1IsAttacker,
     bullets: p2Weapon.id === 'revolver' ? 6 : undefined,

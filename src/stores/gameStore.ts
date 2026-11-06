@@ -17,7 +17,7 @@ import type {
   UserAccount,
 } from '@/types/game';
 import {
-  CLASS_DEFINITIONS,
+  PVP_BASE_HP, CLASS_DEFINITIONS,
   WEAPON_DEFINITIONS,
   DEFAULT_CUSTOMIZATION,
   MAP_DEFINITIONS,
@@ -318,8 +318,8 @@ export const useGameStore = create<GameStore>()(
           player1: {
             id: profile.id,
             name: profile.name,
-            hp: p1Class.baseHp,
-            maxHp: p1Class.baseHp,
+            hp: isPve ? p1Class.baseHp : Math.round(PVP_BASE_HP * p1Class.hpModifier),
+            maxHp: isPve ? p1Class.baseHp : Math.round(PVP_BASE_HP * p1Class.hpModifier),
             classType: profile.classType,
             weapon: p1Weapon,
             skillCharge: 0,
@@ -333,8 +333,8 @@ export const useGameStore = create<GameStore>()(
           player2: {
             id: isPve ? 'ai_opponent' : 'player_2',
             name: options.opponentName || (isPve ? 'Shadow Knight (AI)' : 'Player 2'),
-            hp: p2Class.baseHp,
-            maxHp: p2Class.baseHp,
+            hp: isPve ? p2Class.baseHp : Math.round(PVP_BASE_HP * p2Class.hpModifier),
+            maxHp: isPve ? p2Class.baseHp : Math.round(PVP_BASE_HP * p2Class.hpModifier),
             classType: oppClassType,
             weapon: p2Weapon,
             skillCharge: 0,

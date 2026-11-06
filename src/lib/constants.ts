@@ -43,13 +43,15 @@ export const SPRITE_HELPERS = {
 // ============================================================
 // Class Definitions (Uses individual sliced class banners)
 // ============================================================
+export const PVP_BASE_HP = 200;
+
 export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
   assassin: {
     id: 'assassin',
     name: 'Assassin',
     nameVi: 'Sát Thủ',
-    description: '+50% damage dealt, -25% Max HP (75 HP; 113 HP in LMS). High lethality glass cannon.',
-    descriptionVi: 'Tăng 50% sát thương gây ra, giảm 1/4 HP tối đa (75 HP; trong LMS là 113 HP).',
+    description: '+50% damage dealt, -25% Max HP (150 HP in PvP/Rank; 75 in PvE; 113 in LMS). High lethality glass cannon.',
+    descriptionVi: 'Tăng 50% sát thương gây ra, giảm 1/4 HP tối đa (150 HP trong PvP/Rank; PvE 75; LMS 113).',
     image: `${ASSET_PATHS.sprites.classes}/class_assassin.png`,
     hpModifier: 0.75,
     damageModifier: 1.5,
@@ -76,8 +78,8 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     id: 'juggernaut',
     name: 'Juggernaut',
     nameVi: 'Khổng Lồ',
-    description: '+50% Max HP (150 HP; 225 HP in LMS), -25% damage dealt. Unstoppable titan.',
-    descriptionVi: 'Tăng 50% HP tối đa (150 HP; trong LMS là 225 HP), giảm 1/4 sát thương gây ra (còn 75%).',
+    description: '+50% Max HP (300 HP in PvP/Rank; 150 in PvE; 225 in LMS), -25% damage dealt. Unstoppable titan.',
+    descriptionVi: 'Tăng 50% HP tối đa (300 HP trong PvP/Rank; PvE 150; LMS 225), giảm 1/4 sát thương gây ra (còn 75%).',
     image: `${ASSET_PATHS.sprites.classes}/class_juggernaut.png`,
     hpModifier: 1.5,
     damageModifier: 0.75,
@@ -118,8 +120,8 @@ export const CLASS_DEFINITIONS: Record<string, ClassInfo> = {
     id: 'warrior',
     name: 'Warrior',
     nameVi: 'Chiến Binh',
-    description: '100 base HP (150 in LMS). Below 30% HP: +3 attack damage, plus +1 per further 5% HP lost.',
-    descriptionVi: 'Máu gốc 100 HP (150 trong LMS). Dưới 30% HP: +3 sát thương đòn đánh, thêm +1 mỗi 5% HP mất tiếp.',
+    description: '200 base HP in PvP/Rank; 100 in PvE; 150 in LMS. Below 30% HP: +3 attack damage, plus +1 per further 5% HP lost.',
+    descriptionVi: 'Máu gốc 200 HP trong PvP/Rank; PvE 100; LMS 150. Dưới 30% HP: +3 sát thương đòn đánh, thêm +1 mỗi 5% HP mất tiếp.',
     image: `${ASSET_PATHS.sprites.classes}/class_warrior.png`,
     hpModifier: 1.0,
     damageModifier: 1.0,
