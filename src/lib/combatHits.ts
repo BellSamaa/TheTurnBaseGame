@@ -1,10 +1,10 @@
 export const HIT_SOUND_FILES = [
- '8 Hit Sound.m4a','bamboo-hit-sound-effect.mp3','bat_hit.mp3','bongo-hit.mp3','combat-sword-swing-hit.mp3',
+ 'bamboo-hit-sound-effect.mp3','bat_hit.mp3','bongo-hit.mp3','combat-sword-swing-hit.mp3',
  'critical-hit-sounds-effect.mp3','hit1.mp3','hitsound_2.mp3','knock-out-hit-sound.mp3',
  'minecraft-mob-villager-hit-2-gaming-sound-effect-minecraft-hd-sound-effects.mp3','orchestra-hit-or-combo-sound-1.mp3',
  'sfx_taunt.mp3','slap-sound-effect-funny-memes.mp3','smash-bros-hit.mp3','tf2-critical-hit-recieved.mp3',
 ] as const;
-/** Every shuffle uses all 15 clips; the last two also stay excluded across shuffle boundaries. */
+/** Every shuffle uses all available clips; the last two also stay excluded across shuffle boundaries. */
 export function createHitSoundPicker(random=()=>Math.random()){
  let remaining:number[]=[],recent:number[]=[];
  return ()=>{

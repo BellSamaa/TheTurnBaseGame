@@ -90,7 +90,7 @@ export function playDiceRollSound() {
   }
 }
 
-// Confirmed HP damage uses the supplied 15-file set, never the generic VFX dispatcher.
+// Confirmed HP damage uses the supplied hit sound set, never the generic VFX dispatcher.
 const nextHitSound=createHitSoundPicker();
 const hitAudio=new Set<HTMLAudioElement>();
 let hitPreload:HTMLAudioElement[]=[];

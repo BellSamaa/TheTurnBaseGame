@@ -1,7 +1,7 @@
 require('./test-dice-timing.cjs');
 const assert=require('node:assert/strict'),fs=require('fs');const {HIT_SOUND_FILES,createHitSoundPicker,recordCombatHit}=require('../src/lib/combatHits.ts');const {createLms,lmsAction}=require('../src/lib/lms.ts');const {rollDuelDefense}=require('../src/lib/pvpDuel.ts');const {castPvpSkill}=require('../src/lib/pvpSkills.ts');const {createDungeon,makePlayer,dungeonAction:A,tickDungeon:T}=require('../src/lib/dungeon.ts');const {DEFAULT_CUSTOMIZATION,WEAPON_DEFINITIONS:W}=require('../src/lib/constants.ts');
-assert.equal(HIT_SOUND_FILES.length,15);assert.equal(new Set(HIT_SOUND_FILES).size,15);for(const file of HIT_SOUND_FILES)assert.deepEqual(fs.readFileSync('Hit Effect/'+file),fs.readFileSync('public/assets/sounds/hits/'+file));
-for(const rng of [()=>0,()=>.999,Math.random]){const pick=createHitSoundPicker(rng),heard=[];for(let i=0;i<1500;i++){const sound=pick();assert.ok(!heard.slice(-2).includes(sound));heard.push(sound);if((i+1)%15===0)assert.equal(new Set(heard.slice(-15)).size,15);}}
+assert.equal(HIT_SOUND_FILES.length,14);assert.equal(new Set(HIT_SOUND_FILES).size,14);for(const file of HIT_SOUND_FILES)assert.deepEqual(fs.readFileSync('Hit Effect/'+file),fs.readFileSync('public/assets/sounds/hits/'+file));
+for(const rng of [()=>0,()=>.999,Math.random]){const pick=createHitSoundPicker(rng),heard=[];for(let i=0;i<1500;i++){const sound=pick();assert.ok(!heard.slice(-2).includes(sound));heard.push(sound);if((i+1)%HIT_SOUND_FILES.length===0)assert.equal(new Set(heard.slice(-HIT_SOUND_FILES.length)).size,HIT_SOUND_FILES.length);}}
 const member=(id,weaponId='greatsword')=>({id,name:id,weaponId,classType:'warrior',character:DEFAULT_CUSTOMIZATION,isReady:true});const random=Math.random;Math.random=()=>.99;
 try{
  let s={};recordCombatHit(s,0,'a','b');recordCombatHit(s,5,'a','a');recordCombatHit(s,NaN,'a','b');assert.equal(s.hitEvents,undefined);
@@ -22,5 +22,5 @@ try{
  s=dungeon();s.phase='enemy_skills';s.deadline=0;s.enemies[0].d12Charge=6;s=T(s,1);assert.equal(s.hitEvents.length,1);
  s=dungeon();s.players[0].weapon=W.spirit_stone;s.players[0].petRockHp=25;s.phase='enemy_skills';s.deadline=0;s.enemies[0].d12Charge=6;s=T(s,1);assert.equal(s.hitEvents,undefined);
  s=dungeon();s.phase='end';s.players[0].burnTicks=2;s.players[0].burnDmgPerTurn=2;s=A(s,'a','end');assert.ok(s.teamHp<100);assert.equal(s.hitEvents,undefined);
- console.log('PASS: all 15 exact audio assets; 4,500 picks no repeats within 3 consecutive hits, all 15 per shuffle; PvE/LMS/PvP/Dungeon direct hit/skill metadata; no hit for block/Immune/support/summon/self-damage/burn');
+ console.log('PASS: all 14 exact audio assets; 4,500 picks no repeats within 3 consecutive hits, all 14 per shuffle; PvE/LMS/PvP/Dungeon direct hit/skill metadata; no hit for block/Immune/support/summon/self-damage/burn');
 }finally{Math.random=random;}
