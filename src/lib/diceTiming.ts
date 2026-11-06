@@ -9,7 +9,7 @@ export type DiceTimingState = {
 };
 
 export function timingPosition(elapsed: number) {
-  const progress = Math.max(0, elapsed) / 450 % 2;
+  const progress = Math.max(0, elapsed) / 550 % 2;
   return progress <= 1 ? progress : 2 - progress;
 }
 
