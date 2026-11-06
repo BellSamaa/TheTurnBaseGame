@@ -20,7 +20,7 @@ function nextRound(s:LmsState,now:number){
 export function roundLmsAction(input:LmsState,actor:string,action:string,args:Parameters<typeof lmsAction>[3]={},now=Date.now()):LmsState{
  let s=structuredClone(input);s.players.forEach(p=>{if(s.round>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;});const user=s.players.find(p=>p.id===actor);if(!user||user.hp<=0||s.winner)throw Error('Không thể hành động');
  if(action==='clash')throw Error('LMS attack uses the winning D20 roll.');
- if(action==='timing'){timeLmsRoll(s,actor,now);s.revision++;return s;}
+ if(action==='timing'){timeLmsRoll(s,actor,now,args.elapsedMs);s.revision++;return s;}
  if(action==='ready_opening'){
   if(s.round!==1||s.phase!=='initiative')return s;
   if(!s.openingReady?.includes(actor))(s.openingReady??=[]).push(actor);

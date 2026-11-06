@@ -13,21 +13,22 @@ import PixelFrame from '@/components/ui/PixelFrame';
 import PixelIcon from '@/components/ui/PixelIcon';
 import { playClickSound } from '@/lib/soundEffects';
 
-export default function WeaponsGallery({onClose}: {onClose?:()=>void} = {}) {
+export default function WeaponsGallery({onClose,equippedWeaponId,onEquip,busy=false}: {onClose?:()=>void;equippedWeaponId?:string;onEquip?:(id:string)=>Promise<boolean|void>;busy?:boolean} = {}) {
   const { profile, setPlayerWeapon, setPage, settings } = useGameStore();
   const lang = settings.language;
   const isEn = lang === 'en';
 
-  const [selectedWeaponId, setSelectedWeaponId] = useState<string>(profile.weaponId || 'greatsword');
+  const equipped=equippedWeaponId??profile.weaponId;
+  const [selectedWeaponId, setSelectedWeaponId] = useState<string>(equipped || 'greatsword');
   const [equipSuccess, setEquipSuccess] = useState(false);
 
   const selectedWeapon = WEAPON_DEFINITIONS[selectedWeaponId] || WEAPON_DEFINITIONS.greatsword;
-  const isCurrentlyEquipped = profile.weaponId === selectedWeaponId;
+  const isCurrentlyEquipped = equipped === selectedWeaponId;
   const currentTier = getTierConfig(selectedWeapon.tier);
 
-  const handleEquip = (id: string) => {
+  const handleEquip = async (id: string) => {
     playClickSound();
-    setPlayerWeapon(id);
+    if(onEquip){if(await onEquip(id)===false)return;}else setPlayerWeapon(id);
     setSelectedWeaponId(id);
     setEquipSuccess(true);
     setTimeout(() => setEquipSuccess(false), 2000);
@@ -59,7 +60,7 @@ export default function WeaponsGallery({onClose}: {onClose?:()=>void} = {}) {
 
         <h2 className="text-xs sm:text-base text-yellow-400 font-pixel drop-shadow flex items-center gap-2">
           <PixelIcon name="dagger" size={16} color="#facc15" />
-          <span>{isEn ? 'ARMORY VAULT (9 LEGENDARY WEAPONS)' : 'KHO BÁU BẢO KHÍ (9 VŨ KHÍ HUYỀN THOẠI)'}</span>
+          <span>{isEn ? 'ARMORY VAULT ('+WEAPONS_BY_TIER.length+' WEAPONS)' : 'KHO VŨ KHÍ ('+WEAPONS_BY_TIER.length+' VŨ KHÍ)'}</span>
         </h2>
 
         <div className="w-28 sm:w-32" />
@@ -73,7 +74,7 @@ export default function WeaponsGallery({onClose}: {onClose?:()=>void} = {}) {
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3 max-h-[460px] overflow-y-auto pr-1">
               {WEAPONS_BY_TIER.map((w) => {
                 const isSelected = selectedWeaponId === w.id;
-                const isEquipped = profile.weaponId === w.id;
+                const isEquipped = equipped === w.id;
                 const itemTier = getTierConfig(w.tier);
 
                 return (
@@ -230,7 +231,7 @@ export default function WeaponsGallery({onClose}: {onClose?:()=>void} = {}) {
             <div className="flex justify-center mt-3">
               <PixelSpriteButton
                 sprite={isCurrentlyEquipped ? 'confirm' : 'weapons'}
-                disabled={isCurrentlyEquipped}
+                disabled={busy||isCurrentlyEquipped}
                 onClick={() => handleEquip(selectedWeapon.id)}
                 className="w-44 sm:w-52"
                 title={

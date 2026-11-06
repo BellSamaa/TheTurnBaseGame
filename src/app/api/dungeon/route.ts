@@ -12,6 +12,11 @@ async function run(req:Request){
   try{
     const body=req.method==='POST'?await req.json():Object.fromEntries(new URL(req.url).searchParams);
     const db=onlineDb();
+    if(req.method==='GET'&&body.action==='browse'){
+      const {data,error}=await db.from('game_dungeons').select('code,state,updated_at').eq('state->>phase','room').gte('updated_at',new Date(Date.now()-6*3600000).toISOString()).order('updated_at',{ascending:false}).limit(50);
+      if(error)throw Error(error.message);
+      return NextResponse.json({rooms:(data||[]).filter(r=>r.state.players.length<4).map(r=>({code:r.code,host:r.state.players.find((p:{id:string})=>p.id===r.state.host)?.name||'Host',count:r.state.players.length}))});
+    }
     if(body.action==='create'||body.action==='join'){
       const user=await getUserByIdAsync(actor);
       if(!user)throw Error('Account not found.');

@@ -231,7 +231,7 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
     s.target=String(args.target);
   }else if(action==='timing'){
     if(!['attack','defense'].includes(s.phase)||s.rolls[actor]?.length||(s.phase==='attack'&&p.boxerAttackRound===s.round&&(p.boxerAttackRolls?.length??0)>0))throw Error('Use timing before D20.');
-    updateDiceTiming(p,s.round,s.phase as 'attack'|'defense',now);
+    updateDiceTiming(p,s.round,s.phase as 'attack'|'defense',now,typeof args.elapsedMs==='number'?args.elapsedMs:undefined);
   }else if(action==='roll'){
     if(!['attack','defense','charge'].includes(s.phase))throw Error('Not a dice phase.');
     const existing=s.rolls[actor]||[];

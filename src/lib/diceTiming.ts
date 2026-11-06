@@ -9,16 +9,17 @@ export type DiceTimingState = {
 };
 
 export function timingPosition(elapsed: number) {
-  const progress = Math.max(0, elapsed) / 1200 % 2;
+  const progress = Math.max(0, elapsed) / 900 % 2;
   return progress <= 1 ? progress : 2 - progress;
 }
 
-export function updateDiceTiming(player: PlayerState, round: number, role: 'attack' | 'defense', now: number) {
+export function updateDiceTiming(player: PlayerState, round: number, role: 'attack' | 'defense', now: number, elapsedMs?:number) {
   const current = player.diceTiming;
   if (current?.round === round && current.role === role) {
     if (current.quality !== undefined) return;
-    current.position = timingPosition(now - current.startedAt);
-    current.quality = Math.max(0, 1 - Math.abs(timingPosition(now - current.startedAt) * 2 - 1));
+    const elapsed=Number.isFinite(elapsedMs)?Math.max(0,Math.min(elapsedMs!,now-current.startedAt+250)):now-current.startedAt;
+    current.position = timingPosition(elapsed);
+    current.quality = Math.max(0, 1 - Math.abs(timingPosition(elapsed) * 2 - 1));
     return;
   }
   player.diceTiming = { round, role, startedAt: now };
@@ -32,7 +33,7 @@ export function rollTimedD20(player: PlayerState, round: number, role: 'attack' 
   return Math.random() < .05 + bonus ? 20 : 1 + Math.floor(Math.random() * 19);
 }
 
-export function timeLmsRoll(state: import('./lms').LmsState, actor: string, now: number) {
+export function timeLmsRoll(state: import('./lms').LmsState, actor: string, now: number, elapsedMs?:number) {
   const player = state.players.find(p => p.id === actor && p.hp > 0);
   if (!player || state.winner) throw Error('Timing is unavailable.');
   const attack = state.phase === 'initiative'
@@ -42,5 +43,5 @@ export function timeLmsRoll(state: import('./lms').LmsState, actor: string, now:
   if ((!attack && !defense) || (attack && player.boxerAttackRound === state.round && (player.boxerAttackRolls?.length ?? 0) > 0)) {
     throw Error('Use timing before rolling D20.');
   }
-  updateDiceTiming(player, state.round, attack ? 'attack' : 'defense', now);
+  updateDiceTiming(player, state.round, attack ? 'attack' : 'defense', now, elapsedMs);
 }

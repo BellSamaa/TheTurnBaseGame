@@ -40,13 +40,13 @@ export function createLms(participants: RoomParticipant[], duel = false): LmsSta
     log:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · Initiative D20: '+p.roll),
     logVi:initiative.map(p=>players.find(x=>x.id===p.id)!.name+' · D20 khởi đầu: '+p.roll)};
 }
-export function lmsAction(input:LmsState, actor:string, action:string, args:{target?:string;slot?:1|2;form?:number;lockSlot?:1|2;delta?:number;choice?:string;buffSlot?:'initial'|'bonus';stake?:number}={}, now=Date.now()):LmsState {
+export function lmsAction(input:LmsState, actor:string, action:string, args:{target?:string;slot?:1|2;form?:number;lockSlot?:1|2;delta?:number;choice?:string;buffSlot?:'initial'|'bonus';stake?:number;elapsedMs?:number}={}, now=Date.now()):LmsState {
   if(input.turnFlow===3)return roundLmsAction(input,actor,action,args,now);
   const s=structuredClone(input);s.players.forEach(p=>{if(s.round>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;});const user=s.players.find(p=>p.id===actor);
   if(!user || (user.hp<=0 && !(action==='end'&&actor===s.order[s.active])) || s.phase==='finished') throw Error('Không thể hành động');
   const attacker=s.players.find(p=>p.id===s.order[s.active])!;
   const target=s.players.find(p=>p.id===s.target);
-  if(action==='timing'){timeLmsRoll(s,actor,now);s.revision++;return s;}
+  if(action==='timing'){timeLmsRoll(s,actor,now,args.elapsedMs);s.revision++;return s;}
   s.players.forEach(p=>{p.isAttacker=s.phase!=='initiative'&&p.id===attacker.id;});
   const add=(text:string,en?:string)=>{s.logVi??=[...s.log];s.log.unshift(en||translateText(text,'en'));s.logVi.unshift(text);};
   const completeInitiative=()=>{

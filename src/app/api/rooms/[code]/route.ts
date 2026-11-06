@@ -284,7 +284,7 @@ export async function POST(req: Request, context: RouteContext) {
       const actor=await sessionUser(), battle=room.battleState;
       if(!actor||!battle||battle.lms||room.status!=='playing'||![battle.player1.id,battle.player2.id].includes(actor))return NextResponse.json({error:'No active duel'},{status:403});
       if(body.expectedRevision!==(battle.revision??0))return NextResponse.json({room:await roomView(room),error:'State updated; please try again'},{status:409});
-      room.battleState=action==='duel_timing'?timeDuelRoll(battle,actor):action==='duel_defend'?rollDuelDefense(battle,actor):resolveDuelClash(battle,Date.now(),{actor,stake:body.stake});
+      room.battleState=action==='duel_timing'?timeDuelRoll(battle,actor,Date.now(),body.elapsedMs):action==='duel_defend'?rollDuelDefense(battle,actor):resolveDuelClash(battle,Date.now(),{actor,stake:body.stake});
       if(room.battleState===battle)return NextResponse.json({success:true,room:await roomView(room)});
       if(room.battleState.winnerId)room.status='finished';
       try{await updateRoom(room);}catch(e){

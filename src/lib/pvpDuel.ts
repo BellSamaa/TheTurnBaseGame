@@ -90,13 +90,13 @@ export function rollDuelDefense(input: BattleState, actor: string, now = Date.no
   return settleDefense(state, now);
 }
 
-export function timeDuelRoll(input: BattleState, actor: string, now = Date.now()) {
+export function timeDuelRoll(input: BattleState, actor: string, now = Date.now(), elapsedMs?:number) {
   const next = structuredClone(input);
   const player = [next.player1,next.player2].find(p=>p.id===actor);
   const attack = input.turnStep==='d20_atk' && actor===input.attackerId;
   const defense = input.turnStep==='d20_def' && actor!==input.attackerId;
   if(!player||input.winnerId||(!attack&&!defense)||(attack&&player.boxerAttackRound===input.currentTurn&&(player.boxerAttackRolls?.length??0)>0))throw Error('Use timing before rolling D20.');
-  updateDiceTiming(player,input.currentTurn,attack?'attack':'defense',now);
+  updateDiceTiming(player,input.currentTurn,attack?'attack':'defense',now,elapsedMs);
   next.revision=(input.revision??0)+1;
   return next;
 }

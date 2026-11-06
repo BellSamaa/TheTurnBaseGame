@@ -9,19 +9,21 @@ let globalBgmAudio: HTMLAudioElement | null = null;
 // Headless Audio Controller (manages BGM tracks and playback)
 export default function AudioManager() {
   const { currentPage, settings, battleState } = useGameStore();
+  const [dungeonCombat,setDungeonCombat]=useState(false);
+  useEffect(()=>{const listener=(event:Event)=>setDungeonCombat(!!(event as CustomEvent<boolean>).detail);window.addEventListener('dice-dungeon-scene',listener);return()=>window.removeEventListener('dice-dungeon-scene',listener)},[]);
   const [currentTrack, setCurrentTrack] = useState<string>(LOBBY_BGM);
 
   // Pick track based on currentPage (battle vs menu)
   useEffect(() => {
     if (currentPage === 'battle' && battleState?.lms) {setCurrentTrack(LMS_BGM);}
-    else if (currentPage === 'battle'||currentPage==='pve') {
+    else if (currentPage === 'battle'||currentPage==='pve'||currentPage==='dungeon'&&dungeonCombat) {
       const randomBattleTrack =
         BATTLE_TRACKS[Math.floor(Math.random() * BATTLE_TRACKS.length)];
       setCurrentTrack(randomBattleTrack);
     } else {
       setCurrentTrack(LOBBY_BGM);
     }
-  }, [currentPage, Boolean(battleState?.lms)]);
+  }, [currentPage, Boolean(battleState?.lms),dungeonCombat]);
 
   // Audio setup & resilient playback
   useEffect(() => {
