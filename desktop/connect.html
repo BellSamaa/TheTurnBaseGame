@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'">
+  <title>Dice Maniac</title>
+  <style>
+    body { min-height: 95vh; display: grid; place-items: center; background: #0d1325; color: #f0f4ff; font: 16px system-ui, sans-serif; }
+    main { width: min(440px, 85vw); padding: 32px; border: 1px solid #39476a; border-radius: 12px; background: #151e35; }
+    h1 { margin: 0 0 16px; color: #f5c46b; }
+    label, input { display: block; }
+    input { box-sizing: border-box; width: 100%; margin: 8px 0 16px; padding: 12px; font: inherit; }
+    button { padding: 10px 18px; border: 0; border-radius: 6px; background: #f5c46b; color: #171020; font: inherit; font-weight: 600; }
+    #status { min-height: 1.5em; color: #ffd6ca; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Dice Maniac</h1>
+    <p>Nhập địa chỉ máy chủ bạn dùng để chơi online.</p>
+    <form>
+      <label for="address">Máy chủ game</label>
+      <input id="address" type="url" required placeholder="https://game.example.com" autofocus>
+      <button type="submit">Kết nối</button>
+    </form>
+    <p id="status" role="status"></p>
+  </main>
+  <script src="connect.cjs"></script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+[
+  {
+    "file": "Entrance/Dungeon_Entrance.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_01/Background.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_01/boss.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_01/mini_boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_01/mob.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_02/Background.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_02/boss.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_02/mini_boss.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_02/mob.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_03/Background.png",
+    "width": 1672,
+    "height": 940,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_03/boss.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_03/mini_boss.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_03/mob.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_04/Background.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_04/boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_04/mini_boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_04/mob.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_05/Background.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_05/boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_05/mini_boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_05/mob.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_06/Background.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_06/boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_06/mini_boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_06/mob.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_07/Background.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_07/boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_07/mini_boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_07/mob.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_08/Background.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_08/boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_08/mini_boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_08/mob.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_09/Background.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_09/boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_09/mini_boss.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_09/mob.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "Floors/Floor_10/Background.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Floors/Floor_10/boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_10/mini_boss.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Floors/Floor_10/mob.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "NPC/Avocado.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "NPC/Roger_The_Captain.png",
+    "width": 1024,
+    "height": 1536,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      254
+    ]
+  },
+  {
+    "file": "NPC/The_Hand.png",
+    "width": 1062,
+    "height": 1481,
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "Rest_Areas/rest_01.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Rest_Areas/rest_02.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Rest_Areas/rest_03.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "file": "Rest_Areas/rest_04.png",
+    "width": 1672,
+    "height": 941,
+    "mode": "RGB",
+    "alpha_range": null
+  }
+]
