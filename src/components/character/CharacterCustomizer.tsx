@@ -14,19 +14,13 @@ import PixelIcon from '@/components/ui/PixelIcon';
 import CharacterRenderer from './CharacterRenderer';
 import { playClickSound, playSaveSound } from '@/lib/soundEffects';
 import {
-  BODIES_V2,
-  HAIR_V2,
-  FACES_V2,
-  SHIRTS_V2,
-  PANTS_V2,
-  ACCESSORIES_V2,
-} from '@/lib/characterKitV2';
-
-const PALETTES = {
-  skin: ['#f8d5b8', '#e8b88b', '#d29a68', '#b57a4a', '#845432', '#f3c4a2', '#fadfc9', '#ffece0'],
-  hair: ['#87562e', '#2d1802', '#ffe066', '#ff4d4d', '#4d94ff', '#1a202c', '#e2e8f0', '#9f7aea', '#38b2ac', '#ed8936'],
-  clothes: ['#38b4ad', '#4d94ff', '#ff4d4d', '#805ad5', '#38a169', '#dd6b20', '#2d3748', '#e2e8f0', '#1a202c', '#d69e2e'],
-};
+  BODIES_V3,
+  HAIR_V3,
+  FACES_V3,
+  SHIRTS_V3,
+  PANTS_V3,
+  ACCESSORIES_V3,
+} from '@/lib/characterKitV3';
 
 export default function CharacterCustomizer() {
   const { profile, settings, updateProfile, updateCharacter, setPage } = useGameStore();
@@ -51,14 +45,10 @@ export default function CharacterCustomizer() {
       selectedClass !== profile.classType ||
       custom.baseIndex !== profile.character.baseIndex ||
       custom.hairIndex !== profile.character.hairIndex ||
-      custom.hairColor !== profile.character.hairColor ||
       custom.faceIndex !== profile.character.faceIndex ||
       custom.shirtIndex !== profile.character.shirtIndex ||
-      custom.shirtColor !== profile.character.shirtColor ||
       custom.pantsIndex !== profile.character.pantsIndex ||
-      custom.pantsColor !== profile.character.pantsColor ||
-      custom.accessoryIndex !== profile.character.accessoryIndex ||
-      custom.skinColor !== profile.character.skinColor
+      custom.accessoryIndex !== profile.character.accessoryIndex
     );
   }, [heroName, selectedClass, custom, profile]);
 
@@ -84,14 +74,11 @@ export default function CharacterCustomizer() {
   const handleRandomize = () => {
     playClickSound();
     setCustom({
+      ...custom,
       baseIndex: Math.floor(Math.random() * 8),
       hairIndex: Math.floor(Math.random() * 20),
-      hairColor: PALETTES.hair[Math.floor(Math.random() * PALETTES.hair.length)],
-      skinColor: PALETTES.skin[Math.floor(Math.random() * PALETTES.skin.length)],
       shirtIndex: Math.floor(Math.random() * 20),
-      shirtColor: PALETTES.clothes[Math.floor(Math.random() * PALETTES.clothes.length)],
       pantsIndex: Math.floor(Math.random() * 20),
-      pantsColor: PALETTES.clothes[Math.floor(Math.random() * PALETTES.clothes.length)],
       accessoryIndex: Math.random() > 0.25 ? Math.floor(Math.random() * 20) : -1,
       faceIndex: Math.floor(Math.random() * 10),
     });
@@ -140,7 +127,7 @@ export default function CharacterCustomizer() {
         />
 
         <h2 className="text-sm sm:text-base text-yellow-400 font-pixel drop-shadow">
-          {t('customizeHero', lang)} (KIT V2)
+          {t('customizeHero', lang)} (KIT V3)
         </h2>
 
         <div className="flex items-center gap-2">
@@ -262,15 +249,15 @@ export default function CharacterCustomizer() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[8.5px] font-pixel font-bold text-yellow-300">
-                      {isEn ? 'SELECT BODY (8 ARCHETYPES):' : 'CHỌN THÂN (8 VÓC DÁNG):'}
+                      {isEn ? 'SELECT BODY (8 SKIN TONES):' : 'CHỌN THÂN (8 TÔNG DA):'}
                     </span>
                     <span className="text-[8px] font-pixel text-cyan-300">
-                      {isEn ? BODIES_V2[custom.baseIndex % 8].nameEn : BODIES_V2[custom.baseIndex % 8].nameVi}
+                      {isEn ? BODIES_V3[custom.baseIndex % 8].nameEn : BODIES_V3[custom.baseIndex % 8].nameVi}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {BODIES_V2.map((b, idx) => (
+                    {BODIES_V3.map((b, idx) => (
                       <button
                         key={b.id}
                         onClick={() => {
@@ -292,38 +279,6 @@ export default function CharacterCustomizer() {
                       </button>
                     ))}
                   </div>
-
-                  {/* Skin Color Palette */}
-                  <div className="pt-3 border-t border-slate-800">
-                    <span className="text-[8px] font-pixel font-bold text-yellow-300 block mb-1.5">
-                      {isEn ? 'SKIN COLOR PALETTE:' : 'BẢNG MÀU DA:'}
-                    </span>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {PALETTES.skin.map((col) => (
-                        <button
-                          key={col}
-                          onClick={() => {
-                            playClickSound();
-                            setCustom({ ...custom, skinColor: col });
-                          }}
-                          className={`w-6 h-6 border-2 transition cursor-pointer ${
-                            custom.skinColor === col
-                              ? 'border-yellow-400 scale-110 shadow-[0_0_8px_#facc15]'
-                              : 'border-slate-700 hover:scale-105'
-                          }`}
-                          style={{ backgroundColor: col }}
-                          title={col}
-                        />
-                      ))}
-                      <input
-                        type="color"
-                        value={custom.skinColor || '#e8b88b'}
-                        onChange={(e) => setCustom({ ...custom, skinColor: e.target.value })}
-                        className="w-7 h-7 p-0 border border-slate-600 bg-transparent cursor-pointer"
-                        title="Custom Color"
-                      />
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -335,12 +290,12 @@ export default function CharacterCustomizer() {
                       {isEn ? 'SELECT HAIR STYLE (20 STYLES):' : 'CHỌN KIỂU TÓC (20 KIỂU):'}
                     </span>
                     <span className="text-[8px] font-pixel text-cyan-300">
-                      {isEn ? HAIR_V2[custom.hairIndex % 20].nameEn : HAIR_V2[custom.hairIndex % 20].nameVi}
+                      {isEn ? HAIR_V3[custom.hairIndex % 20].nameEn : HAIR_V3[custom.hairIndex % 20].nameVi}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
-                    {HAIR_V2.map((h, idx) => (
+                    {HAIR_V3.map((h, idx) => (
                       <button
                         key={h.id}
                         onClick={() => {
@@ -362,38 +317,6 @@ export default function CharacterCustomizer() {
                       </button>
                     ))}
                   </div>
-
-                  {/* Hair Color Palette */}
-                  <div className="pt-2 border-t border-slate-800">
-                    <span className="text-[8px] font-pixel font-bold text-yellow-300 block mb-1.5">
-                      {isEn ? 'HAIR COLOR PALETTE:' : 'BẢNG MÀU TÓC:'}
-                    </span>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {PALETTES.hair.map((col) => (
-                        <button
-                          key={col}
-                          onClick={() => {
-                            playClickSound();
-                            setCustom({ ...custom, hairColor: col });
-                          }}
-                          className={`w-6 h-6 border-2 transition cursor-pointer ${
-                            custom.hairColor === col
-                              ? 'border-yellow-400 scale-110 shadow-[0_0_8px_#facc15]'
-                              : 'border-slate-700 hover:scale-105'
-                          }`}
-                          style={{ backgroundColor: col }}
-                          title={col}
-                        />
-                      ))}
-                      <input
-                        type="color"
-                        value={custom.hairColor || '#87562e'}
-                        onChange={(e) => setCustom({ ...custom, hairColor: e.target.value })}
-                        className="w-7 h-7 p-0 border border-slate-600 bg-transparent cursor-pointer"
-                        title="Custom Color"
-                      />
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -405,12 +328,12 @@ export default function CharacterCustomizer() {
                       {isEn ? 'FACIAL EXPRESSION (10 EXPRESSIONS):' : 'BIỂU CẢM KHUÔN MẶT (10 MẪU):'}
                     </span>
                     <span className="text-[8px] font-pixel text-cyan-300">
-                      {isEn ? FACES_V2[custom.faceIndex % 10].nameEn : FACES_V2[custom.faceIndex % 10].nameVi}
+                      {isEn ? FACES_V3[custom.faceIndex % 10].nameEn : FACES_V3[custom.faceIndex % 10].nameVi}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                    {FACES_V2.map((f, idx) => (
+                    {FACES_V3.map((f, idx) => (
                       <button
                         key={f.id}
                         onClick={() => {
@@ -441,12 +364,12 @@ export default function CharacterCustomizer() {
                       {isEn ? 'SHIRT STYLE (20 STYLES):' : 'KIỂU ÁO (20 KIỂU):'}
                     </span>
                     <span className="text-[8px] font-pixel text-cyan-300">
-                      {isEn ? SHIRTS_V2[custom.shirtIndex % 20].nameEn : SHIRTS_V2[custom.shirtIndex % 20].nameVi}
+                      {isEn ? SHIRTS_V3[custom.shirtIndex % 20].nameEn : SHIRTS_V3[custom.shirtIndex % 20].nameVi}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
-                    {SHIRTS_V2.map((s, idx) => (
+                    {SHIRTS_V3.map((s, idx) => (
                       <button
                         key={s.id}
                         onClick={() => {
@@ -468,38 +391,6 @@ export default function CharacterCustomizer() {
                       </button>
                     ))}
                   </div>
-
-                  {/* Shirt Color Palette */}
-                  <div className="pt-2 border-t border-slate-800">
-                    <span className="text-[8px] font-pixel font-bold text-yellow-300 block mb-1.5">
-                      {isEn ? 'SHIRT COLOR PALETTE:' : 'BẢNG MÀU ÁO:'}
-                    </span>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {PALETTES.clothes.map((col) => (
-                        <button
-                          key={col}
-                          onClick={() => {
-                            playClickSound();
-                            setCustom({ ...custom, shirtColor: col });
-                          }}
-                          className={`w-6 h-6 border-2 transition cursor-pointer ${
-                            custom.shirtColor === col
-                              ? 'border-yellow-400 scale-110 shadow-[0_0_8px_#facc15]'
-                              : 'border-slate-700 hover:scale-105'
-                          }`}
-                          style={{ backgroundColor: col }}
-                          title={col}
-                        />
-                      ))}
-                      <input
-                        type="color"
-                        value={custom.shirtColor || '#38b4ad'}
-                        onChange={(e) => setCustom({ ...custom, shirtColor: e.target.value })}
-                        className="w-7 h-7 p-0 border border-slate-600 bg-transparent cursor-pointer"
-                        title="Custom Color"
-                      />
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -511,12 +402,12 @@ export default function CharacterCustomizer() {
                       {isEn ? 'PANTS STYLE (20 STYLES):' : 'KIỂU QUẦN (20 KIỂU):'}
                     </span>
                     <span className="text-[8px] font-pixel text-cyan-300">
-                      {isEn ? PANTS_V2[custom.pantsIndex % 20].nameEn : PANTS_V2[custom.pantsIndex % 20].nameVi}
+                      {isEn ? PANTS_V3[custom.pantsIndex % 20].nameEn : PANTS_V3[custom.pantsIndex % 20].nameVi}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-[220px] overflow-y-auto pr-1">
-                    {PANTS_V2.map((p, idx) => (
+                    {PANTS_V3.map((p, idx) => (
                       <button
                         key={p.id}
                         onClick={() => {
@@ -538,38 +429,6 @@ export default function CharacterCustomizer() {
                       </button>
                     ))}
                   </div>
-
-                  {/* Pants Color Palette */}
-                  <div className="pt-2 border-t border-slate-800">
-                    <span className="text-[8px] font-pixel font-bold text-yellow-300 block mb-1.5">
-                      {isEn ? 'PANTS COLOR PALETTE:' : 'BẢNG MÀU QUẦN:'}
-                    </span>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {PALETTES.clothes.map((col) => (
-                        <button
-                          key={col}
-                          onClick={() => {
-                            playClickSound();
-                            setCustom({ ...custom, pantsColor: col });
-                          }}
-                          className={`w-6 h-6 border-2 transition cursor-pointer ${
-                            custom.pantsColor === col
-                              ? 'border-yellow-400 scale-110 shadow-[0_0_8px_#facc15]'
-                              : 'border-slate-700 hover:scale-105'
-                          }`}
-                          style={{ backgroundColor: col }}
-                          title={col}
-                        />
-                      ))}
-                      <input
-                        type="color"
-                        value={custom.pantsColor || '#526785'}
-                        onChange={(e) => setCustom({ ...custom, pantsColor: e.target.value })}
-                        className="w-7 h-7 p-0 border border-slate-600 bg-transparent cursor-pointer"
-                        title="Custom Color"
-                      />
-                    </div>
-                  </div>
                 </div>
               )}
 
@@ -586,8 +445,8 @@ export default function CharacterCustomizer() {
                           ? 'NONE'
                           : 'KHÔNG DÙNG'
                         : isEn
-                        ? ACCESSORIES_V2[custom.accessoryIndex % 20]?.nameEn
-                        : ACCESSORIES_V2[custom.accessoryIndex % 20]?.nameVi}
+                        ? ACCESSORIES_V3[custom.accessoryIndex % 20]?.nameEn
+                        : ACCESSORIES_V3[custom.accessoryIndex % 20]?.nameVi}
                     </span>
                   </div>
 
@@ -612,7 +471,7 @@ export default function CharacterCustomizer() {
                       </span>
                     </button>
 
-                    {ACCESSORIES_V2.map((a, idx) => (
+                    {ACCESSORIES_V3.map((a, idx) => (
                       <button
                         key={a.id}
                         onClick={() => {

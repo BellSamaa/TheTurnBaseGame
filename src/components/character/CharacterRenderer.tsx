@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { CharacterCustomization, WeaponInfo } from '@/types/game';
 import { drawCharacterPose, type CharacterMotion } from '@/lib/characterMotion';
-import { getCharacterV2Layers } from '@/lib/characterKitV2';
+import { getCharacterV3Layers } from '@/lib/characterKitV3';
 
 export interface CharacterRendererProps {
   character: CharacterCustomization;
@@ -45,52 +45,6 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/**
- * Exact luminosity color-multiplying algorithm from DiceManiac Character Kit v2 (preview.html)
- * Preserves alpha transparency and dark pixel outlines.
- */
-function drawLayer(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  color?: string
-) {
-  if (!color) {
-    ctx.drawImage(img, 0, 0);
-    return;
-  }
-  const tmp = document.createElement('canvas');
-  tmp.width = 64;
-  tmp.height = 96;
-  const t = tmp.getContext('2d');
-  if (!t) return;
-
-  t.drawImage(img, 0, 0);
-  const data = t.getImageData(0, 0, 64, 96);
-  const d = data.data;
-
-  // Parse hex color into RGB
-  const hex = color.replace('#', '');
-  const rgb = [
-    parseInt(hex.slice(0, 2), 16) || 0,
-    parseInt(hex.slice(2, 4), 16) || 0,
-    parseInt(hex.slice(4, 6), 16) || 0,
-  ];
-
-  for (let i = 0; i < d.length; i += 4) {
-    if (d[i + 3] === 0) continue; // transparent pixel
-    const lum = Math.max(d[i], d[i + 1], d[i + 2]);
-    // Keep dark outlines (lum < 55) untouched; tint highlight/body areas (lum >= 55)
-    if (lum >= 55) {
-      d[i] = Math.round((rgb[0] * lum) / 244);
-      d[i + 1] = Math.round((rgb[1] * lum) / 244);
-      d[i + 2] = Math.round((rgb[2] * lum) / 244);
-    }
-  }
-
-  t.putImageData(data, 0, 0);
-  ctx.drawImage(tmp, 0, 0);
-}
-
 export default function CharacterRenderer({
   character,
   weapon,
@@ -119,20 +73,17 @@ export default function CharacterRenderer({
     const ctx = composed.getContext('2d');
     if (!ctx) return;
 
-    const layers = getCharacterV2Layers(character);
+    const layers = getCharacterV3Layers(character);
 
     // Preload all layers concurrently
-    Promise.all(layers.map((l) => loadImage(l.path))).then((loadedImages) => {
+    Promise.all(layers.map(loadImage)).then((loadedImages) => {
       if (!active) return;
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, 64, 96);
 
-      layers.forEach((layer, idx) => {
-        const img = loadedImages[idx];
-        if (img) {
-          drawLayer(ctx, img, layer.color);
-        }
-      });
+      for (const image of loadedImages) {
+        if (image) ctx.drawImage(image, 0, 0);
+      }
 
       spriteRef.current = composed;
       const output = canvas.getContext('2d');
@@ -146,12 +97,8 @@ export default function CharacterRenderer({
   }, [
     character?.baseIndex,
     character?.hairIndex,
-    character?.hairColor,
-    character?.skinColor,
     character?.shirtIndex,
-    character?.shirtColor,
     character?.pantsIndex,
-    character?.pantsColor,
     character?.accessoryIndex,
     character?.faceIndex,
   ]);
@@ -181,7 +128,7 @@ export default function CharacterRenderer({
       data-character-motion={animation}
       className={`character-motion character-motion-${animation} relative inline-flex items-center justify-center select-none ${className}`}
       style={{
-        width: dim.width + dim.weaponSize * 0.45,
+        width: dim.width + (weapon ? dim.weaponSize * 0.45 : 0),
         height: dim.height,
       }}
     >
@@ -192,7 +139,7 @@ export default function CharacterRenderer({
           style={{
             width: dim.width * 0.8,
             height: dim.height * 0.12,
-            left: dim.weaponSize * 0.2,
+            left: (dim.width - dim.width * 0.8) / 2 + (weapon ? dim.weaponSize * 0.225 : 0),
           }}
         />
       )}

@@ -1,0 +1,385 @@
+{
+  "version": 3,
+  "canvas": [
+    64,
+    96
+  ],
+  "origin": [
+    0,
+    0
+  ],
+  "anchors": {
+    "head": [
+      33,
+      31
+    ],
+    "eyes": [
+      38,
+      35
+    ],
+    "neck": [
+      36,
+      49
+    ],
+    "waist": [
+      33,
+      67
+    ],
+    "feet": [
+      32,
+      90
+    ]
+  },
+  "layerOrder": [
+    "accessory_back",
+    "hair_back",
+    "body",
+    "pants",
+    "shirt",
+    "face",
+    "hair_front",
+    "accessory_front"
+  ],
+  "hair": [
+    {
+      "id": "crop",
+      "back": "hair/00_back.png",
+      "front": "hair/00_front.png"
+    },
+    {
+      "id": "side_part",
+      "back": "hair/01_back.png",
+      "front": "hair/01_front.png"
+    },
+    {
+      "id": "spiky",
+      "back": "hair/02_back.png",
+      "front": "hair/02_front.png"
+    },
+    {
+      "id": "messy",
+      "back": "hair/03_back.png",
+      "front": "hair/03_front.png"
+    },
+    {
+      "id": "curtain",
+      "back": "hair/04_back.png",
+      "front": "hair/04_front.png"
+    },
+    {
+      "id": "quiff",
+      "back": "hair/05_back.png",
+      "front": "hair/05_front.png"
+    },
+    {
+      "id": "bob",
+      "back": "hair/06_back.png",
+      "front": "hair/06_front.png"
+    },
+    {
+      "id": "pixie",
+      "back": "hair/07_back.png",
+      "front": "hair/07_front.png"
+    },
+    {
+      "id": "long_straight",
+      "back": "hair/08_back.png",
+      "front": "hair/08_front.png"
+    },
+    {
+      "id": "long_wavy",
+      "back": "hair/09_back.png",
+      "front": "hair/09_front.png"
+    },
+    {
+      "id": "ponytail",
+      "back": "hair/10_back.png",
+      "front": "hair/10_front.png"
+    },
+    {
+      "id": "twin_tails",
+      "back": "hair/11_back.png",
+      "front": "hair/11_front.png"
+    },
+    {
+      "id": "double_buns",
+      "back": "hair/12_back.png",
+      "front": "hair/12_front.png"
+    },
+    {
+      "id": "braid",
+      "back": "hair/13_back.png",
+      "front": "hair/13_front.png"
+    },
+    {
+      "id": "side_braid",
+      "back": "hair/14_back.png",
+      "front": "hair/14_front.png"
+    },
+    {
+      "id": "afro",
+      "back": "hair/15_back.png",
+      "front": "hair/15_front.png"
+    },
+    {
+      "id": "mohawk",
+      "back": "hair/16_back.png",
+      "front": "hair/16_front.png"
+    },
+    {
+      "id": "shag",
+      "back": "hair/17_back.png",
+      "front": "hair/17_front.png"
+    },
+    {
+      "id": "undercut",
+      "back": "hair/18_back.png",
+      "front": "hair/18_front.png"
+    },
+    {
+      "id": "swept",
+      "back": "hair/19_back.png",
+      "front": "hair/19_front.png"
+    }
+  ],
+  "faces": [
+    "faces/00.png",
+    "faces/01.png",
+    "faces/02.png",
+    "faces/03.png",
+    "faces/04.png",
+    "faces/05.png",
+    "faces/06.png",
+    "faces/07.png",
+    "faces/08.png",
+    "faces/09.png"
+  ],
+  "bodies": [
+    {
+      "id": "male_1",
+      "path": "bodies/male_1.png",
+      "shoulderHalfWidth": 14,
+      "rig": "chibi_shared_64x96",
+      "exposedSkinColor": "#e5a080"
+    },
+    {
+      "id": "male_2",
+      "path": "bodies/male_2.png",
+      "shoulderHalfWidth": 14,
+      "rig": "chibi_shared_64x96",
+      "exposedSkinColor": "#f1b394"
+    },
+    {
+      "id": "male_3",
+      "path": "bodies/male_3.png",
+      "shoulderHalfWidth": 14,
+      "rig": "chibi_shared_64x96",
+      "exposedSkinColor": "#c98162"
+    },
+    {
+      "id": "male_4",
+      "path": "bodies/male_4.png",
+      "shoulderHalfWidth": 14,
+      "rig": "chibi_shared_64x96",
+      "exposedSkinColor": "#a56854"
+    },
+    {
+      "id": "female_1",
+      "path": "bodies/female_1.png",
+      "shoulderHalfWidth": 14,
+      "rig": "chibi_shared_64x96",
+      "exposedSkinColor": "#efa98e"
+    },
+    {
+      "id": "female_2",
+      "path": "bodies/female_2.png",
+      "shoulderHalfWidth": 14,
+      "rig": "chibi_shared_64x96",
+      "exposedSkinColor": "#e8b498"
+    },
+    {
+      "id": "female_3",
+      "path": "bodies/female_3.png",
+      "shoulderHalfWidth": 14,
+      "rig": "chibi_shared_64x96",
+      "exposedSkinColor": "#c7846b"
+    },
+    {
+      "id": "female_4",
+      "path": "bodies/female_4.png",
+      "shoulderHalfWidth": 14,
+      "rig": "chibi_shared_64x96",
+      "exposedSkinColor": "#ab6a60"
+    }
+  ],
+  "shirts": [
+    "crew_tee",
+    "vneck",
+    "polo",
+    "long_sleeve",
+    "tank",
+    "hoodie",
+    "zip_hoodie",
+    "sweatshirt",
+    "cardigan",
+    "denim_jacket",
+    "bomber",
+    "leather_jacket",
+    "formal",
+    "vest",
+    "turtleneck",
+    "striped",
+    "baseball",
+    "tunic",
+    "light_armor",
+    "raincoat"
+  ],
+  "pants": [
+    "straight",
+    "slim",
+    "baggy",
+    "cargo",
+    "joggers",
+    "formal",
+    "chinos",
+    "cropped",
+    "sport_shorts",
+    "denim_shorts",
+    "cargo_shorts",
+    "knee_shorts",
+    "overalls",
+    "tactical",
+    "greaves",
+    "martial",
+    "bellbottom",
+    "patched",
+    "checked",
+    "harem"
+  ],
+  "accessories": [
+    "round_glasses",
+    "square_glasses",
+    "sunglasses",
+    "monocle",
+    "hoops",
+    "studs",
+    "scarf",
+    "neckerchief",
+    "beanie",
+    "cap",
+    "headphones",
+    "crown",
+    "headband",
+    "eyepatch",
+    "mask",
+    "necklace",
+    "bowtie",
+    "backpack",
+    "wristbands",
+    "belt_pouch"
+  ],
+  "pose": "three_quarter_right_idle",
+  "bodyRig": "chibi_shared_64x96",
+  "displayNames": {
+    "hair": [
+      "Tóc tém",
+      "Rẽ ngôi",
+      "Tóc dựng",
+      "Tóc rối",
+      "Mái rèm",
+      "Mái vuốt",
+      "Bob",
+      "Pixie",
+      "Dài thẳng",
+      "Dài gợn sóng",
+      "Đuôi ngựa",
+      "Hai đuôi",
+      "Hai búi",
+      "Tóc tết",
+      "Bím lệch",
+      "Tóc xoăn",
+      "Undercut",
+      "Tóc búi",
+      "Mái dài",
+      "Tóc chiến binh"
+    ],
+    "shirt": [
+      "Áo lữ khách",
+      "Cổ chữ V",
+      "Áo cổ gập",
+      "Áo tay dài",
+      "Áo sát nách",
+      "Áo trùm đầu",
+      "Áo khóa kéo",
+      "Áo nỉ",
+      "Áo khoác len",
+      "Áo denim",
+      "Áo phi công",
+      "Áo da",
+      "Lễ phục",
+      "Áo gile",
+      "Áo cổ cao",
+      "Áo sọc",
+      "Áo thể thao",
+      "Áo tunic",
+      "Giáp nhẹ",
+      "Áo đi mưa"
+    ],
+    "pants": [
+      "Quần ống đứng",
+      "Quần ôm",
+      "Quần rộng",
+      "Quần túi hộp",
+      "Quần bo gấu",
+      "Quần lễ phục",
+      "Quần chinos",
+      "Quần lửng",
+      "Quần thể thao",
+      "Quần denim ngắn",
+      "Quần túi hộp ngắn",
+      "Quần ngang gối",
+      "Yếm dưới",
+      "Quần chiến thuật",
+      "Ống giáp",
+      "Quần võ",
+      "Quần ống loe",
+      "Quần vá",
+      "Váy lễ hội",
+      "Váy pháp sư"
+    ],
+    "accessory": [
+      "Kính tròn",
+      "Kính vuông",
+      "Kính râm",
+      "Kính một mắt",
+      "Khuyên vòng",
+      "Khuyên đá",
+      "Khăn choàng",
+      "Khăn cổ",
+      "Mũ len",
+      "Mũ lưỡi trai",
+      "Tai nghe",
+      "Vương miện",
+      "Băng đô",
+      "Bịt mắt",
+      "Khẩu trang",
+      "Dây chuyền",
+      "Nơ cổ",
+      "Ba lô",
+      "Vòng tay",
+      "Túi đeo hông"
+    ],
+    "face": [
+      "Bình tĩnh",
+      "Mỉm cười",
+      "Quyết tâm",
+      "Lạnh lùng",
+      "Ngạc nhiên",
+      "Tinh nghịch",
+      "Mắt xanh",
+      "Mắt tím",
+      "Má hồng",
+      "Sẹo nhỏ"
+    ]
+  }
+}
