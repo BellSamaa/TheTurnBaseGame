@@ -1,4 +1,5 @@
 'use client';
+import {recordCombatHit} from '@/lib/combatHits';
 import {rollTimedD20} from '@/lib/diceTiming';
 import {rollDuelDefense,resolveDuelClash,timeDuelRoll} from '@/lib/pvpDuel';
 import {rollLuckyAttack} from '@/lib/duelRules';
@@ -49,7 +50,6 @@ import CinematicSkillBanner, { SkillActivationEvent } from './CinematicSkillBann
 import VfxAnimationPlayer, { VfxEvent } from './VfxAnimationPlayer';
 import { getTierConfig } from '@/lib/tierStyles';
 import {
-  playHitSound,
   playBlockSound,
   playSkillSound,
   playTurnSound,
@@ -82,7 +82,7 @@ function playWeaponSound(weaponId: string) {
       playSlashSound();
       break;
     default:
-      playHitSound();
+      playMagicCastSound();
       break;
   }
 }
@@ -335,7 +335,6 @@ export default function BattleScreen() {
                 // If my HP dropped, show hit reaction & damage popup
                 if (currentUser?.id === remote.player1.id && remote.player1.hp < current.player1.hp) {
                   const lost = current.player1.hp - remote.player1.hp;
-                  playHitSound();
                   setP1IsHit(true);
                   setTimeout(() => setP1IsHit(false), 400);
                   setDamagePopup({
@@ -346,7 +345,6 @@ export default function BattleScreen() {
                   });
                 } else if (currentUser?.id === remote.player2.id && remote.player2.hp < current.player2.hp) {
                   const lost = current.player2.hp - remote.player2.hp;
-                  playHitSound();
                   setP2IsHit(true);
                   setTimeout(() => setP2IsHit(false), 400);
                   setDamagePopup({
@@ -820,6 +818,7 @@ export default function BattleScreen() {
         purpleSky: result.purpleSky ? { id: crypto.randomUUID(), startedAt: Date.now() } : prev.purpleSky,
         battleLog: [{ turn: currentTurn, type: 'skill', message: result.logTextEn, messageVi: result.logTextVi, timestamp: Date.now() }, ...prev.battleLog],
       };
+      recordCombatHit(next,result.damage,caster.id,opponent.id);
       syncOnlineBattle(next);
       return next;
     });
@@ -1017,7 +1016,7 @@ export default function BattleScreen() {
 
   // Skill 1 trigger glow & vibrate detection (Auto-triggers on matching D6 roll!)
 
-  const arenaState:LmsState={duelClash:battleState.duelClash,duelNotice:battleState.duelNotice,players:[player1,player2],order:[player1.id,player2.id],active:p1IsAttacker?0:1,round:currentTurn,phase:phase==='game_over'?'finished':turnStep==='d12'?'skills':turnStep==='d6_def'?'charge_defense':turnStep==='d6_atk'?'charge':turnStep==='clash'?'clash':turnStep==='d20_def'?'defense':'attack',target:p1IsAttacker?player2.id:player1.id,attack:(p1IsAttacker?battleState.p1D20:battleState.p2D20)??undefined,defense:(p1IsAttacker?battleState.p2D20:battleState.p1D20)??undefined,rolls:(p1IsAttacker?battleState.d6Results?.player1:battleState.d6Results?.player2)||[],defenderRolls:(p1IsAttacker?battleState.d6Results?.player2:battleState.d6Results?.player1)||[],log:battleLog.map(l=>isEn?l.message:l.messageVi||l.message),winner:winnerId||undefined,revision:battleState.revision??0};
+  const arenaState:LmsState={hitEvents:battleState.hitEvents,duelClash:battleState.duelClash,duelNotice:battleState.duelNotice,players:[player1,player2],order:[player1.id,player2.id],active:p1IsAttacker?0:1,round:currentTurn,phase:phase==='game_over'?'finished':turnStep==='d12'?'skills':turnStep==='d6_def'?'charge_defense':turnStep==='d6_atk'?'charge':turnStep==='clash'?'clash':turnStep==='d20_def'?'defense':'attack',target:p1IsAttacker?player2.id:player1.id,attack:(p1IsAttacker?battleState.p1D20:battleState.p2D20)??undefined,defense:(p1IsAttacker?battleState.p2D20:battleState.p1D20)??undefined,rolls:(p1IsAttacker?battleState.d6Results?.player1:battleState.d6Results?.player2)||[],defenderRolls:(p1IsAttacker?battleState.d6Results?.player2:battleState.d6Results?.player1)||[],log:battleLog.map(l=>isEn?l.message:l.messageVi||l.message),winner:winnerId||undefined,revision:battleState.revision??0};
   const sharedEffects=battleState.vfxSequence?.length?battleState.vfxSequence:battleState.activeVfx?[battleState.activeVfx]:[];
   const sharedBanner=battleState.activeSkillBanner;
   if(sharedEffects.length||sharedBanner){const v=sharedEffects[0];const targetId=(target:string)=>target==='p1'?player1.id:target==='p2'?player2.id:'center';arenaState.lastEvent={id:sharedBanner?.id||v.id,announcementId:sharedBanner?.id,effect:v?.effect||'impact_physical',caster:[player1,player2].find(p=>p.name===sharedBanner?.casterName)?.id||myPlayer.id,target:v?targetId(v.target):'center',cues:sharedEffects.map(c=>({effect:c.effect,target:targetId(c.target)})),nameEn:sharedBanner?.skillNameEn,nameVi:sharedBanner?.skillNameVi,slot:sharedBanner?.slot};}

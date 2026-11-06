@@ -1,3 +1,4 @@
+import {recordCombatHit} from './combatHits';
 import {syncWeather,drainWeaponEvents} from './weaponUpdateState';
 import {rollTimedD20,timeLmsRoll} from './diceTiming';
 import {tickWeaponRound,weaponD20,prepareWeaponCharge} from './weaponUpdateHooks';
@@ -65,11 +66,11 @@ export function roundLmsAction(input:LmsState,actor:string,action:string,args:Pa
  let next=lmsAction(legacy,actor,action,args,now);next.turnFlow=3;
  if(action==='skill'){
   next.target=s.target;syncWeather(next.players);
-  if(args.slot===2){for(const original of s.players.filter(p=>p.id!==actor&&p.id!==args.target))Object.assign(next.players.find(p=>p.id===original.id)!,original);syncWeather(next.players);}
+  if(args.slot===2){next.hitEvents=next.hitEvents?.filter(e=>s.hitEvents?.some(old=>old.id===e.id)||e.target===args.target);for(const original of s.players.filter(p=>p.id!==actor&&p.id!==args.target))Object.assign(next.players.find(p=>p.id===original.id)!,original);syncWeather(next.players);}
   if(args.slot===1){
    const first=s.players.find(p=>p.id===args.target)!;const already=next.players.find(p=>p.id===args.target);const sample=first&&already?{damage:Math.max(0,first.hp-already.hp),opponent:already}:undefined;
    if(sample&&(sample.damage>0||(sample.opponent.burnTicks||0)>(first.burnTicks||0))){
-    for(const foe of s.players.filter(p=>p.hp>0&&p.id!==actor&&p.id!==args.target)){const resolvedDie=next.players.find(p=>p.id===actor)?.weaponUpdate?.lastSkillDie;const cast=castChargedSkill(user,foe,1,s.round,args.form,args.lockSlot,resolvedDie);if(cast){Object.assign(next.players.find(p=>p.id===foe.id)!,cast.opponent);if(next.lastEvent)next.lastEvent.cues!.push({effect:next.lastEvent.effect,target:foe.id});}}
+    for(const foe of s.players.filter(p=>p.hp>0&&p.id!==actor&&p.id!==args.target)){const resolvedDie=next.players.find(p=>p.id===actor)?.weaponUpdate?.lastSkillDie;const cast=castChargedSkill(user,foe,1,s.round,args.form,args.lockSlot,resolvedDie);if(cast){if(!next.hitEvents?.some(e=>!s.hitEvents?.some(old=>old.id===e.id)&&e.target===foe.id))recordCombatHit(next,cast.damage,actor,foe.id);Object.assign(next.players.find(p=>p.id===foe.id)!,cast.opponent);if(next.lastEvent)next.lastEvent.cues!.push({effect:next.lastEvent.effect,target:foe.id});}}
    }
   }
   for(const dead of next.players.filter(p=>p.hp<=0&&!next.extras!.eliminated.includes(p.id))){next.extras!.eliminated.push(dead.id);const killer=next.players.find(p=>p.id===actor)!;if(killer.hp>0&&dead.id!==actor){killer.hp=Math.min(killer.maxHp,killer.hp+30);killer.d12Charge=(killer.d12Charge||0)+5;}}

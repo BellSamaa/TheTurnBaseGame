@@ -1,3 +1,4 @@
+import {recordCombatHit} from './combatHits';
 import {deathNoteMode} from './deathNote';
 import {effectFrame} from './weaponUpdateAssets';
 import {syncWeather} from './weaponUpdateState';
@@ -17,6 +18,7 @@ export function castPvpSkill(input:BattleState,actor:string,slot:1|2,form?:numbe
   const cast=castChargedSkill(user,foe,slot,input.currentTurn,form,lockSlot);
   if(!cast)throw Error('Skill already used, locked, or insufficient PTS.');
   const next=structuredClone(input),art=skillPresentation(user,slot,form),caster=isP1?'p1':'p2',opponent=isP1?'p2':'p1';
+  recordCombatHit(next,cast.damage,user.id,foe.id);
   next.player1=isP1?cast.caster:cast.opponent;next.player2=isP1?cast.opponent:cast.caster;syncWeather([next.player1,next.player2]);
   next.activeSkillBanner={id:crypto.randomUUID(),weaponId:user.weapon.id,skillNameEn:art.nameEn+(cast.die?' · D6 '+cast.die:''),skillNameVi:art.nameVi+(cast.die?' · D6 '+cast.die:''),slot,icon:effectFrame(cast.effect||art.effect,1),casterName:user.name,auraColor:art.color};
   const rolledBack=user.weapon.id==='spirit_stone'&&slot===2&&cast.caster.hp<user.hp;

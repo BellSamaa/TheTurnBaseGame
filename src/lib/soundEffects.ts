@@ -1,6 +1,7 @@
+import {createHitSoundPicker,HIT_SOUND_FILES} from './combatHits';
 // ============================================================
 // Retro 8-bit Sound Synthesizers via Web Audio API
-// No external assets required; fully controllable volume & mute
+// UI/cast synthesis plus supplied impact recordings; volume and mute apply to both.
 // ============================================================
 
 import { useGameStore } from '@/stores/gameStore';
@@ -89,30 +90,19 @@ export function playDiceRollSound() {
   }
 }
 
-// 3. Combat Direct Hit Sound (Heavy low crunch + noise impact)
-export function playHitSound(strength = 1) {
-  const { canPlay, volume } = canPlaySound();
-  if (!canPlay) return;
-
-  const ctx = getAudioContext();
-  if (!ctx) return;
-
-  // Punch bass tone
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-
-  osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(180, ctx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.18);
-
-  gain.gain.setValueAtTime(Math.min(.9, volume * 0.45 * strength), ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-
-  osc.start();
-  osc.stop(ctx.currentTime + 0.18);
+// Confirmed HP damage uses the supplied 15-file set, never the generic VFX dispatcher.
+const nextHitSound=createHitSoundPicker();
+const hitAudio=new Set<HTMLAudioElement>();
+let hitPreload:HTMLAudioElement[]=[];
+export function preloadHitSounds(){
+ if(typeof Audio==='undefined'||hitPreload.length)return;
+ hitPreload=HIT_SOUND_FILES.map(file=>{const clip=new Audio('/assets/sounds/hits/'+encodeURIComponent(file));clip.preload='auto';clip.load();return clip;});
+}
+export function playHitSound(strength=1){
+ const {canPlay,volume}=canPlaySound();if(!canPlay||volume<=0||typeof Audio==='undefined')return;
+ const clip=new Audio(nextHitSound());clip.volume=Math.min(1,volume*Math.min(1.2,Math.max(.5,strength)));clip.preload='auto';
+ while(hitAudio.size>=4){const oldest=hitAudio.values().next().value!;oldest.pause();hitAudio.delete(oldest);}
+ hitAudio.add(clip);const done=()=>hitAudio.delete(clip);clip.addEventListener('ended',done,{once:true});clip.addEventListener('error',done,{once:true});void clip.play().catch(done);
 }
 
 // 4. Defend / Shield Block Sound (Sharp metallic clink)
@@ -404,5 +394,5 @@ export function playBattleEffect(effect:string,skill:boolean){
   if(/bullet|gun|revolver/.test(effect)){playGunshotSound();return;}
   if(/slash|arrow|sword/.test(effect)){playSlashSound();return;}
   if(skill){playMagicCastSound();return;}
-  playHitSound();
+  playSlashSound();
 }

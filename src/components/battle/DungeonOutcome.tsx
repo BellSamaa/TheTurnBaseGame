@@ -1,7 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import type {DungeonState} from '@/lib/dungeon';
-import {playHitSound} from '@/lib/soundEffects';
 export default function DungeonOutcome({state,en}:{state:DungeonState;en:boolean}){
  const [comparison,setComparison]=useState<DungeonState['comparison']>();
  const [change,setChange]=useState<{team:number;enemy:number;reason:string}>();
@@ -14,7 +13,6 @@ export default function DungeonOutcome({state,en}:{state:DungeonState;en:boolean
   if(old.floor!==state.floor||old.encounter!==state.encounter){setComparison(undefined);setChange(undefined);return;}
   if(!teamChange&&!enemyChange)return;
   if(old.comparison===state.comparison?.id)setComparison(undefined);
-  if(teamChange<0||enemyChange<0)playHitSound(1.8);
   setChange({team:teamChange,enemy:enemyChange,reason:state.log.slice(0,Math.max(1,state.log.indexOf(old.log[0]))).filter(line=>!['Encounter cleared!','Dungeon complete!'].includes(line)).slice(0,3).join(' · ')});
   const timer=setTimeout(()=>setChange(undefined),5000);return()=>clearTimeout(timer);
  },[state.teamHp,state.enemies.reduce((n,p)=>n+p.hp,0)]);

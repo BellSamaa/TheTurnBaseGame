@@ -1,3 +1,4 @@
+import {recordCombatHit,type CombatHit} from './combatHits';
 import {prepareDungeonDefense} from './dungeonProtection';
 import {dungeonFloorAllowed,dungeonPathAllowed} from './dungeonGeometry';
 import {deathNoteMode} from './deathNote';
@@ -22,6 +23,7 @@ import {warriorBonus} from './classMechanics';
 type Position={x:number;y:number};
 type Buff={id:string;remaining:number;active:boolean};
 export interface DungeonState {
+  hitEvents?:CombatHit[];
   players:PlayerState[];
   requests?:string[];
   host:string;
@@ -152,7 +154,7 @@ function finishDice(s:DungeonState,now:number){
   if(s.phase==='attack'){
     const victim=s.enemies.find(p=>p.id===s.target&&p.hp>0)||s.enemies.find(p=>p.hp>0)!;
     const judge=s.players.find(p=>p.id===victim.weaponUpdate?.judgement?.owner);
-    if(judge){const verdict=judgementAttack(judge,victim,total>enemyTotal,s.round);if(verdict){victim.hp=Math.max(0,victim.hp-verdict.damage);s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:verdict.damage,critical:false,target:victim.name};add(s,'Purging Judgement · '+verdict.hits+'/2 · '+verdict.attacksLeft+' attacks left');for(const event of drainWeaponEvents(s.players)){emitDungeon(s,{id:crypto.randomUUID(),effect:event.effect,caster:event.caster,target:event.target,name:'Purging Judgement'});}s.rolls={};s.phase='defense';s.deadline=now+20000;progressEncounter(s);return;}}
+    if(judge){const verdict=judgementAttack(judge,victim,total>enemyTotal,s.round);if(verdict){recordCombatHit(s,verdict.damage,judge.id,victim.id);victim.hp=Math.max(0,victim.hp-verdict.damage);s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:verdict.damage,critical:false,target:victim.name};add(s,'Purging Judgement · '+verdict.hits+'/2 · '+verdict.attacksLeft+' attacks left');for(const event of drainWeaponEvents(s.players)){emitDungeon(s,{id:crypto.randomUUID(),effect:event.effect,caster:event.caster,target:event.target,name:'Purging Judgement'});}s.rolls={};s.phase='defense';s.deadline=now+20000;progressEncounter(s);return;}}
     const attackers=s.players.filter(p=>!s.attackActors||s.attackActors.includes(p.id));
     let weaponBonus=0;
     for(const player of attackers){
@@ -181,10 +183,10 @@ function finishDice(s:DungeonState,now:number){
       if(isBoss(s)&&slayer){damage+=5;slayer.remaining--;}
       if(victim.isBleeding){damage+=5;victim.isBleeding=false;}
       if(victim.dodgeNextAttack){victim.dodgeNextAttack=false;damage=0;emitDungeon(s,{id:crypto.randomUUID(),effect:'dodge_attack',caster:victim.id,target:victim.id,name:victim.name+' · Evasion'});}
-      damage=applyOpponentDamage(victim,Math.max(0,damage+(damage>0?baseBonus:0)),s.round);
+      damage=applyOpponentDamage(victim,Math.max(0,damage+(damage>0?baseBonus:0)),s.round);recordCombatHit(s,damage,'dungeon_team',victim.id);
       for(const p of s.players)if(damage>0&&(!s.attackActors||s.attackActors.includes(p.id))&&p.weapon.id==='spirit_stone'&&(p.petRockHp??0)>0&&victim.hp>0){
         const follow=applyOpponentDamage(victim,(p.petRockEnraged?5:2)+(activeBuff(s,'summoner')?2:0),s.round);
-        add(s,p.name+' · Pet Rock follow-up '+follow+' damage');
+        recordCombatHit(s,follow,p.id,victim.id);add(s,p.name+' · Pet Rock follow-up '+follow+' damage');
       }
     }
     for(const player of attackers){const owner=pooled(s,player);normalReactions(owner,victim,damage>0,Math.round(damage/attackers.length),Math.round(enemyTotal/attackers.length),s.round);savePooled(s,player,owner);}
@@ -209,10 +211,10 @@ function finishDice(s:DungeonState,now:number){
     const baseBonus=enemyTotal>total?s.enemies.filter(p=>p.hp>0).reduce((n,p)=>n+weaponBaseDamage(p.weapon.tier),0):0;
     if(!critical&&damage>0&&isBoss(s))damage+=floor.attack[s.encounter===3?0:1];
     const reduction=s.players.reduce((sum,p)=>sum+CLASS_DEFINITIONS[p.classType].damageReduction,0)/s.players.length;
-    damage=damageTeam(s,(critical?damage:Math.round(damage*reduction))+baseBonus,undefined,true);
+    damage=damageTeam(s,(critical?damage:Math.round(damage*reduction))+baseBonus,undefined,true);recordCombatHit(s,damage,'dungeon_enemies','dungeon_team');
     const source=s.enemies.find(p=>p.hp>0)!;
     for(const member of s.players){const owner=pooled(s,member);normalReactions(source,owner,damage>0,Math.round(damage/s.players.length),s.rolls[member.id]?.[0]??0,s.round);savePooled(s,member,owner);}
-    if(damage>0)for(const enemy of s.enemies.filter(p=>p.hp>0&&p.weapon.id==='spirit_stone'&&(p.petRockHp??0)>0))damageTeam(s,enemy.petRockEnraged?5:2);
+    if(damage>0)for(const enemy of s.enemies.filter(p=>p.hp>0&&p.weapon.id==='spirit_stone'&&(p.petRockHp??0)>0)){const follow=damageTeam(s,enemy.petRockEnraged?5:2);recordCombatHit(s,follow,enemy.id,'dungeon_team');}
     s.comparison={id:crypto.randomUUID(),attack:enemyTotal,defense:total,difference:enemyTotal-total,damage:hpBefore-s.teamHp,critical,target:'TEAM'};
     add(s,'Enemy ATK '+enemyTotal+' vs DEF '+total+' · Team −'+damage+' HP');
     s.phase='charge';
@@ -346,7 +348,7 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
     }
     if(activeBuff(s,'weather')&&cast.caster.weaponUpdate?.weather?.fresh&&cast.caster.weaponUpdate.weather.started!==before.weaponUpdate?.weather?.started){cast.caster.weaponUpdate.weather.remainingTurns!+=2;cast.caster.weaponUpdate.weather.until+=2;activeBuff(s,'weather')!.remaining=0;}
     const art=skillPresentation(p,slot,(args.form as number|undefined)??(p.weapon.id==='death_note'&&slot===2?deathNoteMode(p,s.round):undefined));
-    savePooled(s,p,cast.caster);Object.assign(target,cast.opponent);syncWeather([...s.players,...s.enemies]);
+    recordCombatHit(s,cast.damage,p.id,target.id);savePooled(s,p,cast.caster);Object.assign(target,cast.opponent);syncWeather([...s.players,...s.enemies]);
     emitDungeon(s,{id:crypto.randomUUID(),effect:cast.effect||art.effect,caster:p.id,target:art.target==='caster'?p.id:target.id,name:art.nameEn});
     add(s,cast.logTextEn);progressEncounter(s);
   }else if(action==='end'){
@@ -418,7 +420,7 @@ export function tickDungeon(input:DungeonState,now=Date.now()){
         Object.assign(enemy,cast.caster);
         const defended=defense.commit(cast.opponent);
         savePooled(s,p,defended.updated);syncWeather([...s.players,...s.enemies]);
-        const actual=Math.max(0,target.hp-defended.updated.hp);
+        const actual=Math.max(0,target.hp-defended.updated.hp);if(cast.damage>0)recordCombatHit(s,actual,enemy.id,p.id);
         for(const member of s.players)if(member.id!==p.id)recordOpponentDamage(member,actual,s.round);
         if(defended.blocked){add(s,'Guardian blocks enemy skill.');emitDungeon(s,{id:crypto.randomUUID(),effect:'wu1:shield_guard',caster:p.id,target:p.id,name:'Guardian'});}
         if(s.floor===6&&isBoss(s)&&slot===(s.encounter===3?1:2)){

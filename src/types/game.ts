@@ -1,3 +1,4 @@
+import type {CombatHit} from '@/lib/combatHits';
 import type {WeaponUpdateState} from '@/lib/weaponUpdateState';
 import type {DiceTimingState} from '@/lib/diceTiming';
 // ============================================================
@@ -147,6 +148,7 @@ export type BattlePhase =
   | 'game_over';
 
 export interface BattleState {
+  hitEvents?:CombatHit[];
   duelClash?: import("@/lib/duelRules").DuelClash;
   duelNotice?: import("@/lib/duelRules").DuelNotice;
   lms?: import('@/lib/lms').LmsState;

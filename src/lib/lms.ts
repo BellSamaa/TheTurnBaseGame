@@ -1,3 +1,4 @@
+import {recordCombatHit,type CombatHit} from './combatHits';
 import {deathNoteMode} from './deathNote';
 import {clashCanResolve,openDuelClash,rollLuckyAttack,submitClashWager,type DuelClash,type DuelNotice} from './duelRules';
 import {rollTimedD20,timeLmsRoll} from './diceTiming';
@@ -17,6 +18,7 @@ import { castChargedSkill, chargeSkillPoints } from './chargedSkills';
 import { applyOpponentDamage, recordOpponentDamage } from './combatDamage';
 
 export interface LmsState {
+  hitEvents?:CombatHit[];
   duelClash?: DuelClash;
   duelNotice?: DuelNotice;
   lastEvent?: {id:string;announcementId?:string;cues?:{effect:string;target:string}[];effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
@@ -105,9 +107,9 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     if(flags['shield:'+target.id]){attacker.hp=Math.max(0,attacker.hp-Math.floor(damage/2));damage=0;delete flags['shield:'+target.id];}
     if(flags['insurance:'+target.id]){damage=Math.min(15,damage);target.d12Charge=(target.d12Charge??0)+3;delete flags['insurance:'+target.id];}
     if(flags['phoenix:'+target.id]&&damage>=target.hp){damage=Math.max(0,target.hp-1);target.d12Charge=(target.d12Charge??0)+20;delete flags['phoenix:'+target.id];}
-    const lost=Math.min(target.hp,damage);target.hp=Math.max(0,target.hp-damage);recordOpponentDamage(target,lost,s.round);
+    const lost=Math.min(target.hp,damage);recordCombatHit(s,lost,attacker.id,target.id);target.hp=Math.max(0,target.hp-damage);recordOpponentDamage(target,lost,s.round);
     for(const p of s.players)if(flags['watch:'+p.id]){p.d12Charge=(p.d12Charge??0)+Math.floor(lost/5);delete flags['watch:'+p.id];}
-    if(result.isHit&&(attacker.petRockHp??0)>0&&target.hp>0){const rockDamage=applyOpponentDamage(target,attacker.petRockEnraged?5:2,s.round);add('Lượt Pet Rock: tấn công sau chủ nhân, gây '+rockDamage+' sát thương.','Pet Rock follows its owner: '+rockDamage+' damage.');}
+    if(result.isHit&&(attacker.petRockHp??0)>0&&target.hp>0){const rockDamage=applyOpponentDamage(target,attacker.petRockEnraged?5:2,s.round);recordCombatHit(s,rockDamage,attacker.id,target.id);add('Lượt Pet Rock: tấn công sau chủ nhân, gây '+rockDamage+' sát thương.','Pet Rock follows its owner: '+rockDamage+' damage.');}
     if((attacker.panicTurns??0)>0)attacker.panicTurns!--;
     const counter='counter' in result && result.counter;
     s.lastEvent={id:crypto.randomUUID(),effect:counter?normalAttackEffect(target.weapon.id):result.isImmune?'infinity':result.isDodged?'dodge_attack':result.absorbedByRock?'rock_block':result.isHit?normalAttackEffect(attacker.weapon.id):'guard',caster:counter?target.id:attacker.id,target:counter?attacker.id:target.id};
@@ -143,10 +145,11 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
       if(s.players.length===2&&actor!==attacker.id&&!attackerHasActed(attacker,s.round,!!s.skillDone?.includes(attacker.id)))throw Error('Chờ bên Công dùng skill hoặc End Turn');
       const victim=s.players.find(p=>p.id===args.target&&p.hp>0&&p.id!==actor);if(!victim)throw Error('Chọn mục tiêu skill');
       if(s.extras?.silencedRound===s.round)throw Error('Vòng này cấm kỹ năng');
+      const skillTargets=new Map(s.players.filter(p=>p.id!==user.id).map(p=>[p.id,p.hp]));
       const cast=castChargedSkill(user,victim,args.slot,s.round,args.form,args.lockSlot);if(!cast)throw Error('Chưa đủ điều kiện dùng skill');
       if((user.weapon.id==='greatsword'&&args.slot===2)||(user.weapon.id==='staff'&&args.slot===1)){for(const other of s.players.filter(p=>p.id!==user.id&&p.id!==victim.id&&p.hp>0)){const extra=castChargedSkill(user,other,args.slot,s.round,args.form,args.lockSlot);if(extra)Object.assign(other,extra.opponent);}}
       const art=skillPresentation(user,args.slot,args.form??(user.weapon.id==='death_note'&&args.slot===2?deathNoteMode(user,s.round):undefined));s.lastEvent={id:crypto.randomUUID(),effect:art.effect,caster:user.id,target:art.target==='caster'?user.id:art.target==='center'?'center':victim.id,cues:skillEffectPlan(user,args.slot,args.form).map(c=>({effect:c.effect,target:c.target==='caster'?user.id:c.target==='center'?'center':victim.id})),nameEn:art.nameEn+(cast.die?' · D6 '+cast.die:''),nameVi:art.nameVi+(cast.die?' · D6 '+cast.die:''),slot:args.slot};
-      Object.assign(user,cast.caster);Object.assign(victim,cast.opponent);syncWeather(s.players);if(cast.effect){s.lastEvent.effect=cast.effect;s.lastEvent.cues=[...(user.weapon.id==='death_note'&&args.slot===1?[{effect:'wu1:name_write',target:victim.id}]:[]),{effect:cast.effect,target:['wu1:golem','wu1:fire_person','wu1:mermaid','wu1:niko'].includes(cast.effect)?user.id:s.lastEvent.target}];}add(cast.logTextVi,cast.logTextEn);if(victim.hp<=0&&s.target===victim.id){if(s.turnFlow===2)s.phase='end';else{s.target=undefined;s.phase='target';}}finish();
+      Object.assign(user,cast.caster);Object.assign(victim,cast.opponent);syncWeather(s.players);if(cast.effect){s.lastEvent.effect=cast.effect;s.lastEvent.cues=[...(user.weapon.id==='death_note'&&args.slot===1?[{effect:'wu1:name_write',target:victim.id}]:[]),{effect:cast.effect,target:['wu1:golem','wu1:fire_person','wu1:mermaid','wu1:niko'].includes(cast.effect)?user.id:s.lastEvent.target}];}if(cast.damage>0)for(const foe of s.players.filter(p=>p.id!==user.id))recordCombatHit(s,(skillTargets.get(foe.id)??foe.hp)-foe.hp,user.id,foe.id);add(cast.logTextVi,cast.logTextEn);if(victim.hp<=0&&s.target===victim.id){if(s.turnFlow===2)s.phase='end';else{s.target=undefined;s.phase='target';}}finish();
     } else if(action==='attack') {
       if(s.phase!=='attack')throw Error('Chọn mục tiêu trước');
       const rolled=s.players.length===2?rollLuckyAttack(user,()=>rollTimedD20(user,s.round,'attack',rollD20)):rollTimedD20(user,s.round,'attack',rollD20);

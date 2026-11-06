@@ -14,6 +14,7 @@ import BattleWeaponPreview from './BattleWeaponPreview';
 import {tx,phaseLabel} from '@/lib/uiLocale';
 import {WalletBar} from '@/components/progression/AccountPanel';
 import HealthBar from '@/components/ui/HealthBar';
+import {useCombatHits} from './useCombatHits';
 import {useMeleeMotion} from './useMeleeMotion';
 import {effectDuration} from '@/lib/skillMotion';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
@@ -26,6 +27,7 @@ import {playDiceRollSound,playBattleCue,playBattleEffect} from '@/lib/soundEffec
 
 /** Presentation only: all values and dice results come from the battle server. */
 export default function CombatArena({state:s,viewer,busy=false,botRolling=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,onDuelWager,onTiming,children}:{state:LmsState;viewer?:string;busy?:boolean;botRolling?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;onDuelWager?:(stake:number)=>void;onTiming?:(elapsedMs?:number)=>void;children:React.ReactNode}){
+  useCombatHits(s.hitEvents);
   const weaponKey=s.players.map(p=>p.weapon.id).join(',');
   useEffect(()=>{preloadWeaponEffects(weaponKey.split(','));},[weaponKey]);
   const mapId=useGameStore(st=>st.battleState?.mapId)||'castle';

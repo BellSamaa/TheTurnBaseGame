@@ -24,6 +24,7 @@ import BattleWeaponPreview from './BattleWeaponPreview';
 import VfxAnimationPlayer from './VfxAnimationPlayer';
 import PixelFrame from '@/components/ui/PixelFrame';
 import DungeonHealthBar from './DungeonHealthBar';
+import {useCombatHits} from './useCombatHits';
 import {useMeleeMotion} from './useMeleeMotion';
 import {effectDuration} from '@/lib/skillMotion';
 import {d6Allowance} from '@/lib/classMechanics';
@@ -134,6 +135,7 @@ export default function Dungeon(){
   const button=(action:string,label:string,disabled=false)=><button className="combat-roll" disabled={sending||disabled} onClick={()=>void act(action)}><img src={'/assets/sprites/ui/frames/btn_'+(action==='end'?'end_turn':'roll_dice')+'.png'} alt={label}/></button>;
   const floorPath=ROOT+'Floors/Floor_'+String(s?.floor||1).padStart(2,'0')+'/';
   const shared=me&&s?{...me,hp:s.teamHp,maxHp:s.teamMaxHp,d12Charge:s.pts}:undefined;
+  useCombatHits(s?.hitEvents);
   const combat=!!s&&!safe&&!['room','loading'].includes(s.phase);
   useEffect(()=>{window.dispatchEvent(new CustomEvent('dice-dungeon-scene',{detail:combat}));if(combat)playTurnSound();return()=>{window.dispatchEvent(new CustomEvent('dice-dungeon-scene',{detail:false}))}},[combat]);
   return <div className={'dungeon-screen '+(safe?'dungeon-exploring':!s||s.phase==='room'?'dungeon-browsing':'dungeon-fighting')} onClickCapture={e=>{const button=(e.target as HTMLElement).closest('button:not(:disabled)');if(button&&!button.classList.contains('border-0')&&!button.closest('.dungeon-armory,.dungeon-room-tabs,.dice-timing'))playClickSound()}}>

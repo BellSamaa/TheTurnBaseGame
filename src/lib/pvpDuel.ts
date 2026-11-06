@@ -1,3 +1,4 @@
+import {recordCombatHit} from './combatHits';
 import type { BattleState, BattleLogEntry } from '@/types/game';
 import {rollTimedD20,updateDiceTiming} from './diceTiming';
 import { calculateDuelCombat, rollD20 } from './battleLogic';
@@ -15,6 +16,7 @@ function settleDefense(state: BattleState, now: number) {
   const defense = (firstAttacks ? state.p2D20 : state.p1D20) ?? 0;
   const round = state.currentTurn;
   const result = calculateDuelCombat(attack, defense, attacker, defender, round, state.duelClash?.attackStake, state.duelClash?.defenseStake);
+  recordCombatHit(state,result.damage,attacker.id,defender.id);
   recordOpponentDamage(defender, Math.min(defender.hp, result.damage), round);
   defender.hp = Math.max(0, defender.hp - result.damage);
   const attackSide = firstAttacks ? 'p1' : 'p2';
@@ -41,7 +43,7 @@ function settleDefense(state: BattleState, now: number) {
     const petBefore = defender.petRockHp ?? 0;
     const wasImmune = defender.immuneDamageNext;
     const raging = attacker.petRockEnraged && round <= (attacker.petRockEnrageUntilRound ?? 0);
-    const rockDamage = applyOpponentDamage(defender, raging ? 5 : 2, round);
+    const rockDamage = applyOpponentDamage(defender, raging ? 5 : 2, round);recordCombatHit(state,rockDamage,attacker.id,defender.id);
     state.vfxSequence.push({ id: crypto.randomUUID(), effect: 'rock_roll', target: defenseSide });
     if ((defender.petRockHp ?? 0) < petBefore) state.vfxSequence.push({ id: crypto.randomUUID(), effect: 'rock_block', target: defenseSide });
     else if (wasImmune && !defender.immuneDamageNext) state.vfxSequence.push({ id: crypto.randomUUID(), effect: 'infinity', target: defenseSide });
