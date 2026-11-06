@@ -356,3 +356,18 @@ button:focus-visible,select:focus-visible,a:focus-visible { outline:2px solid #6
 @media(max-width:700px){.combat-topbar .combat-turn{display:flex;font-size:7px}.combat-phase-bar{gap:4px;padding:6px 0}.combat-phase-bar>span{font-size:5px;padding:5px 4px;gap:3px}.combat-phase-bar i{display:none}.combat-console,.combat-party .combat-console{grid-template-columns:minmax(0,1fr) minmax(155px,44%);gap:6px;padding:6px 0}.combat-command-panel{padding:12px 12px 15px;min-height:150px}.combat-dice-dock,.combat-party .combat-dice-dock{width:100%;padding:12% 12% 12% 14%;background-size:100% 100%}.combat-dice-dock .personal-d20>div>div:first-child,.combat-dice-dock .personal-d6>div>div:first-child{width:52px;height:47px}.combat-dice-dock .personal-d20>div>div:last-child>span,.combat-dice-dock .personal-d6>div>div:last-child>span{font-size:4px}.combat-dice-dock .personal-d20>div>div:last-child>div,.combat-dice-dock .personal-d6>div>div:last-child>div{font-size:6px;padding:1px 3px;margin:1px}.combat-roll,.combat-console .four-commands>.lms-action{height:35px}.combat-skill-cast{min-height:55px;padding:7px 5px 9px}.combat-skill-cast img{height:18px}.combat-skill-cast span{font-size:5px;padding:3px 0 0}.combat-console .four-commands{gap:5px}.combat-skill-info summary{font-size:5px}.combat-status{font-size:6px}.pve-reward-preview{font-size:5px}.combat-roll-notice{font-size:9px;max-width:60%}.rank-gifts,.rank-gifts *{font-size:8px}.rank-gifts button{font-size:6px}.rank-gifts>div{align-items:center}.lang-vi .combat-phase-bar>span{font-size:8px}.lang-vi .combat-skill-cast span{font-size:8px}.lang-vi .rank-gifts,.lang-vi .rank-gifts *{font-size:12px}.lobby-door-label{font-size:5px}}
 
 .combat-command-panel{border:14px solid transparent;border-image:url('/assets/sprites/ui/frames/player-panel-original.png') 30% 14% stretch;background:none;padding:10px 18px 14px}.combat-skill-cast{background:none!important;min-height:60px;padding:4px 8px}.combat-skill-cast img{height:34px;max-width:180px}.combat-skill-cast:disabled{opacity:.65}.combat-duel .combat-seat-1{top:5%}.combat-roll-notice{top:42%;left:32%;width:36%;max-width:36%;background:#0a1725bc}.combat-dice-dock{align-self:center}.combat-status{position:relative}.combat-skill-info summary{color:#d8cdac}@media(max-width:700px){.combat-command-panel{border-width:9px;padding:6px 4px 9px;min-height:130px}.combat-skill-cast{min-height:42px;padding:2px}.combat-skill-cast img{height:23px}.combat-roll-notice{top:38%;left:25%;width:50%;max-width:50%;font-size:8px}.combat-topbar .combat-turn{display:none}.combat-console .combat-log{right:85px;max-width:40%}}
+.avatar-portrait .avatar-character {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 160% !important;
+  height: auto !important;
+  aspect-ratio: 2 / 3;
+  /* V3 face center is near (35, 33) on the 64 × 96 sprite. */
+  transform: translate(-54.6875%, -34.375%);
+}
+.avatar-portrait .avatar-character > div { width: 100%; }
+.avatar-portrait .avatar-character canvas {
+  width: 100% !important;
+  height: auto !important;
+}
