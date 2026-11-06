@@ -9,6 +9,7 @@ export function reflectedDamage(player: PlayerState, turn: number) {
   return player.opponentDamageTurn != null && player.opponentDamageTurn >= turn - 1 ? player.opponentDamageAmount ?? 0 : 0;
 }
 export function skillIsLocked(player: PlayerState, slot: 1 | 2, turn: number) {
+  if(player.weaponUpdate?.sealActiveRound===turn)return true;
   return player.lockedSkill === slot && player.skillLockTurn === turn;
 }
 // Damage from an opponent (including a companion and burn) consumes immunity once.

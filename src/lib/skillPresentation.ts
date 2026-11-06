@@ -1,12 +1,15 @@
+import {weapon2Presentation,weapon2Cues} from './weaponUpdate2Effects';
 import abilities from '@/data/weaponUpdate1Abilities.json';
 import type { PlayerState } from '@/types/game';
 
-export function normalAttackEffect(weaponId: string) {
-  return ({ king_slasher:'wu1:white_slash',greatsword: 'slash_light', dagger: 'slash_light', bow: 'arrow', staff: 'magic_orb', revolver: 'bullet' } as Record<string, string>)[weaponId] ?? 'impact_physical';
+export function normalAttackEffect(weaponId: string,player?:PlayerState) {
+  if(weaponId==='musashi')return player?.weaponUpdate?.musashiRed?'mu:D20_Red':'mu:D20_Blue';
+  return ({ vine_staff:'magic_orb',wind_wand:'nw:wind_impact',astghik_staff:'nw:water_impact',king_slasher:'wu1:white_slash',greatsword: 'slash_light', dagger: 'slash_light', bow: 'arrow', staff: 'magic_orb', revolver: 'bullet' } as Record<string, string>)[weaponId] ?? 'impact_physical';
 }
 
 // Visuals describe the action that was actually cast, including its chosen form.
 export function skillPresentation(player: PlayerState, slot: 1 | 2, form?: number) {
+  const added=weapon2Presentation(player,slot,form);if(added)return added;
   const skill = slot === 1 ? player.weapon.skill1 : player.weapon.skill2;
   let effect = 'impact_physical';
   let target: 'caster' | 'opponent' | 'center' = 'opponent';
@@ -61,6 +64,7 @@ export function skillPresentation(player: PlayerState, slot: 1 | 2, form?: numbe
 }
 
 export function skillEffectPlan(player: PlayerState, slot: 1 | 2, form?: number) {
+  const added=weapon2Cues(player,slot,form);if(added)return added;
   const main = skillPresentation(player, slot, form);
   type Cue = { effect: string; target: 'caster' | 'opponent' | 'center' };
   const cue = (effect: string, target: Cue['target'] = 'opponent'): Cue => ({ effect, target });

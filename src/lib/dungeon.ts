@@ -1,3 +1,5 @@
+import {effectDuration} from './skillMotion';
+import {prepareWeapon2Attack} from './weaponUpdate2Logic';
 import {recordCombatHit,type CombatHit} from './combatHits';
 import {prepareDungeonDefense} from './dungeonProtection';
 import {dungeonFloorAllowed,dungeonPathAllowed} from './dungeonGeometry';
@@ -16,7 +18,7 @@ import {recordAttackRoll,d6Allowance} from './classMechanics';
 import {rollDungeonD20,updateDiceTiming} from './diceTiming';
 import {normalSetup,normalReactions,weaponD20,tickWeaponRound} from './weaponUpdateHooks';
 import {drainWeaponEvents,syncWeather,advanceWeather} from './weaponUpdateState';
-import {skillPresentation} from './skillPresentation';
+import {normalAttackEffect,skillPresentation,skillEffectPlan} from './skillPresentation';
 import {applyOpponentDamage,absorbWithRock,recordOpponentDamage} from './combatDamage';
 import {takeArmorAndSummons} from './weaponUpdateState';
 import {warriorBonus} from './classMechanics';
@@ -24,6 +26,7 @@ import {warriorBonus} from './classMechanics';
 type Position={x:number;y:number};
 type Buff={id:string;remaining:number;active:boolean};
 export interface DungeonState {
+  animationUntil?:number;
   clash?: {score:number;role:'attack'|'defense';deadline:number;wagers:Record<string,number>;enemyStake:number;target:string};
   hitEvents?:CombatHit[];
   players:PlayerState[];
@@ -55,7 +58,7 @@ export interface DungeonState {
   startedAt?:number;
   deadline?:number;
   target?:string;
-  event?:{id:string;effect:string;caster:string;target:string;name:string;at?:number};
+  event?:{id:string;damage?:number;effect:string;caster:string;target:string;name:string;at?:number};
   events?:NonNullable<DungeonState['event']>[];
   instinctReuse?:Record<string,{round:number;slot:1|2}>;
 }
@@ -67,12 +70,12 @@ export function createDungeon(p:RoomParticipant):DungeonState{
 export function makePlayer(p:RoomParticipant):PlayerState {
   return createLms([p,{...p,id:'placeholder'}],true).players[0];
 }
-function emitDungeon(s:DungeonState,event:NonNullable<DungeonState['event']>){event.at=Date.now();s.event=event;s.events=[...(s.events||[]),event].slice(-32);}
-function flushWeaponEvents(s:DungeonState){for(const event of drainWeaponEvents([...s.players,...s.enemies])){add(s,event.text);emitDungeon(s,{id:crypto.randomUUID(),effect:event.effect,caster:event.caster,target:event.target,name:event.text});}}
+function emitDungeon(s:DungeonState,event:NonNullable<DungeonState['event']>){event.at=Date.now();s.animationUntil=Math.max(Date.now(),s.animationUntil||0)+effectDuration(event.effect);s.event=event;s.events=[...(s.events||[]),event].slice(-32);}
+function flushWeaponEvents(s:DungeonState){for(const event of drainWeaponEvents([...s.players,...s.enemies])){if(event.damage)recordCombatHit(s,event.damage,event.caster,event.target);add(s,event.text);emitDungeon(s,{id:crypto.randomUUID(),damage:event.damage,effect:event.effect,caster:event.caster,target:event.target,name:event.text});}}
 function tickDungeonWeapons(s:DungeonState,scope:'round'|'summons'){
  const hp=s.teamHp,pts=s.pts,owners=s.players.map(p=>pooled(s,p));
  const team=new Set(s.players.map(p=>p.id));
- for(const event of tickWeaponRound([...owners,...s.enemies],s.round,scope,(a,b)=>team.has(a.id)!==team.has(b.id),p=>team.has(p.id)&&activeBuff(s,'helena')?1.2:1)){add(s,event.text);emitDungeon(s,{id:crypto.randomUUID(),effect:event.effect,caster:event.caster,target:event.target,name:event.text});if(scope==='summons'&&activeBuff(s,'summoner')&&!team.has(event.target)){const foe=s.enemies.find(e=>e.id===event.target);if(foe)applyOpponentDamage(foe,2,s.round);}}
+ for(const event of tickWeaponRound([...owners,...s.enemies],s.round,scope,(a,b)=>team.has(a.id)!==team.has(b.id),p=>team.has(p.id)&&activeBuff(s,'helena')?1.2:1)){if(event.damage)recordCombatHit(s,event.damage,event.caster,event.target);add(s,event.text);emitDungeon(s,{id:crypto.randomUUID(),effect:event.effect,caster:event.caster,target:event.target,name:event.text});if(scope==='summons'&&activeBuff(s,'summoner')&&!team.has(event.target)){const foe=s.enemies.find(e=>e.id===event.target);if(foe)applyOpponentDamage(foe,2,s.round);}}
  if(scope==='round')for(const p of [...owners,...s.enemies])if((p.burnTicks??0)>0){applyOpponentDamage(p,p.burnDmgPerTurn??1,s.round,false);p.burnTicks!--;}
  s.teamHp=Math.max(0,Math.min(s.teamMaxHp,hp+owners.reduce((n,p)=>n+p.hp-hp,0)));s.pts=Math.max(0,pts+owners.reduce((n,p)=>n+(p.d12Charge??pts)-pts,0));
  owners.forEach((p,i)=>Object.assign(s.players[i],p,{hp:s.players[i].maxHp,maxHp:s.players[i].maxHp}));
@@ -119,6 +122,7 @@ function progressEncounter(s:DungeonState){
 }
 function damageTeam(s:DungeonState,n:number,recipient?:PlayerState,attack=false){
   if(n<=0)return 0;
+  if(attack){if(s.players.some(p=>p.weaponUpdate?.waterWallActiveRound===s.round))n=Math.ceil(n*2/3);if(s.players.some(p=>(p.weaponUpdate?.regenUntil??-1)>=s.round)&&Math.random()<.2)n-=Math.floor(n/2);}
   const guardian=activeBuff(s,'guardian');
   if(guardian){guardian.remaining=0;add(s,'Guardian blocks '+n+' damage.');return 0;}
   const p=s.players.find(p=>p.immuneDamageNext)||(attack?s.players.find(p=>p.dodgeNextAttack):undefined)||recipient||s.players[0],pooledPlayer=pooled(s,p);
@@ -202,16 +206,18 @@ function finishDice(s:DungeonState,now:number){
     }
     for(const player of attackers){const owner=pooled(s,player);normalReactions(owner,victim,damage>0,Math.round(damage/attackers.length),Math.round(enemyTotal/attackers.length),s.round);savePooled(s,player,owner);}
     s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:hpBefore-victim.hp,critical,target:victim.name};
+    if(hpBefore>victim.hp)for(const hero of attackers)emitDungeon(s,{id:crypto.randomUUID(),damage:hpBefore-victim.hp,effect:normalAttackEffect(hero.weapon.id,hero),caster:hero.id,target:victim.id,name:hero.name+' · D20'});
     add(s,'Team ATK '+total+' vs DEF '+enemyTotal+' · '+victim.name+' −'+damage+' HP');
     const extra=s.players.filter(p=>(p.weaponUpdate?.extraAttacks??0)>0);
     if(extra.length){s.attackActors=extra.map(p=>p.id);for(const p of extra){p.weaponUpdate!.extraAttacks!--;p.weaponUpdate!.lastD20Round=undefined;p.boxerAttackRound=undefined;p.boxerAttackRolls=[];p.diceTiming=undefined;}s.phase='attack';add(s,'Time Changer · '+extra.map(p=>p.name).join(', ')+' attacks again');}
-    else{s.attackActors=undefined;s.phase='defense';}
+    else{s.attackActors=undefined;s.phase='defense';const protectedMember=s.players.find(p=>(p.weaponUpdate?.cycloneAttacks??0)>0)||s.players[0],recipient=pooled(s,protectedMember);for(const foe of s.enemies.filter(p=>p.hp>0))prepareWeapon2Attack(foe,s.round,recipient);savePooled(s,protectedMember,recipient);if(s.enemies.filter(p=>p.hp>0).every(p=>p.weaponUpdate?.blockedAttackRound===s.round)){s.phase='charge';add(s,'Enemy D20 locked · defense skipped');}}
   }else{
     for(const player of s.players){
       const owner=pooled(s,player),enemy=s.enemies.find(p=>p.hp>0)!;
       const ownDef=s.rolls[player.id]?.[0]||0;
       const setup=normalSetup(enemy,owner,enemyTotal/s.players.length,ownDef,s.round);
       total+=setup.def-ownDef;
+      if(setup.dodge)enemyTotal=0;
       if(setup.cancel||setup.dodge||enemy.isStunned||enemy.timeLockActive){enemyTotal-=Math.round(enemyTotal/s.players.length);enemy.isStunned=false;enemy.timeLockActive=false;}
       if(enemy.fateSealActive){enemyTotal=Math.min(enemyTotal,rollD20()*s.players.length);enemy.fateSealActive=false;}
       savePooled(s,player,owner);
@@ -227,6 +233,7 @@ function finishDice(s:DungeonState,now:number){
     for(const member of s.players){const owner=pooled(s,member);normalReactions(source,owner,damage>0,Math.round(damage/s.players.length),s.rolls[member.id]?.[0]??0,s.round);savePooled(s,member,owner);}
     if(damage>0)for(const enemy of s.enemies.filter(p=>p.hp>0&&p.weapon.id==='spirit_stone'&&(p.petRockHp??0)>0)){const follow=damageTeam(s,enemy.petRockEnraged?5:2);recordCombatHit(s,follow,enemy.id,'dungeon_team');}
     s.comparison={id:crypto.randomUUID(),attack:enemyTotal,defense:total,difference:enemyTotal-total,damage:hpBefore-s.teamHp,critical,target:'TEAM'};
+    if(hpBefore>s.teamHp)emitDungeon(s,{id:crypto.randomUUID(),damage:hpBefore-s.teamHp,effect:normalAttackEffect(source.weapon.id,source),caster:source.id,target:s.players[0].id,name:'Enemy D20'});
     add(s,'Enemy ATK '+enemyTotal+' vs DEF '+total+' · Team −'+damage+' HP');
     s.phase='charge';
   }
@@ -383,10 +390,12 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
       for(const pet of cast.caster.weaponUpdate?.summons||[])if(!(before.weaponUpdate?.summons||[]).some(old=>old.id===pet.id)){pet.hp+=5;pet.maxHp+=5;}
     }
     if(activeBuff(s,'weather')&&cast.caster.weaponUpdate?.weather?.fresh&&cast.caster.weaponUpdate.weather.started!==before.weaponUpdate?.weather?.started){cast.caster.weaponUpdate.weather.remainingTurns!+=2;cast.caster.weaponUpdate.weather.until+=2;activeBuff(s,'weather')!.remaining=0;}
+    const effectiveForm=(args.form as number|undefined);
+    if(p.weapon.id==='vine_staff')for(const foe of s.enemies.filter(x=>x.hp>0&&x.id!==target.id)){const extra=castChargedSkill(before,foe,slot,s.round,effectiveForm);if(extra){Object.assign(foe,extra.opponent);recordCombatHit(s,extra.damage,p.id,foe.id);emitDungeon(s,{id:crypto.randomUUID(),damage:extra.damage,effect:extra.effect||'nw:vine_bind',caster:p.id,target:foe.id,name:p.weapon.name});}}
     const art=skillPresentation(p,slot,(args.form as number|undefined)??(p.weapon.id==='death_note'&&slot===2?deathNoteMode(p,s.round):undefined));
     recordCombatHit(s,cast.damage,p.id,target.id);savePooled(s,p,cast.caster);Object.assign(target,cast.opponent);syncWeather([...s.players,...s.enemies]);
     if(cast.effect==='dn:purge')emitDungeon(s,{id:crypto.randomUUID(),effect:'dn:eye',caster:p.id,target:p.id,name:'Eye of Death'});
-    emitDungeon(s,{id:crypto.randomUUID(),effect:cast.effect||art.effect,caster:p.id,target:art.target==='caster'?p.id:target.id,name:art.nameEn});
+    const cues=/^(nw|mu):/.test(cast.effect||'')?skillEffectPlan(before,slot,effectiveForm):[{effect:cast.effect||art.effect,target:art.target}];for(const cue of cues)emitDungeon(s,{id:crypto.randomUUID(),damage:cue.target==='opponent'?cast.damage:0,effect:cue.effect,caster:p.id,target:cue.target==='caster'?p.id:target.id,name:art.nameEn});
     add(s,cast.logTextEn);progressEncounter(s);
   }else if(action==='end'){
     if(!['skills','end'].includes(s.phase))throw Error('Cannot end this phase.');
@@ -417,6 +426,7 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
   return s;
 }
 export function tickDungeon(input:DungeonState,now=Date.now()){
+  if(input.phase==='attack'&&!input.botDice&&input.players.some(p=>!input.rolls[p.id]?.length&&p.weaponUpdate?.attackStartRound!==input.round&&((p.weaponUpdate?.windAttacks??0)>0||p.weaponUpdate?.windSkipNext))){const s=structuredClone(input);for(const player of s.players){const owner=pooled(s,player);if(!s.rolls[player.id]?.length&&prepareWeapon2Attack(owner,s.round,s.enemies.find(p=>p.hp>0))){s.rolls[player.id]=[0];add(s,player.name+' · D20 locked · −5 HP');}savePooled(s,player,owner);}if(s.players.every(p=>s.rolls[p.id]?.length)){if(s.players.every(p=>p.weaponUpdate?.blockedAttackRound===s.round)){s.phase='defense';s.rolls={};s.deadline=now+20000;}else beginBotDice(s,'defense',now);}progressEncounter(s);return s;}
   if(input.clash){
     if(now<input.clash.deadline&&!input.players.every(p=>input.clash!.wagers[p.id]!==undefined))return input;
     const s=structuredClone(input);resolveDungeonClash(s,now);return s;
@@ -426,7 +436,7 @@ export function tickDungeon(input:DungeonState,now=Date.now()){
       if(now<input.botDice.readyAt)return input;
       const s=structuredClone(input),pending=s.botDice!;
       const bonus=[0,0,.1,.1,.2,.2,.3,.3,.5,.5][s.floor-1];
-      pending.values=pending.role==='charge'?s.enemies.filter(p=>p.hp>0).map(()=>rollD6()):s.players.filter(p=>s.phase!=='attack'||!s.attackActors||s.attackActors.includes(p.id)).map((_,i)=>{const foes=s.enemies.filter(e=>e.hp>0),value=Math.random()<.05+bonus?20:rollD20();return foes.length?weaponD20(foes[i%foes.length],value,pending.role as 'attack'|'defense',s.round):value;});
+      pending.values=pending.role==='charge'?s.enemies.filter(p=>p.hp>0).map(()=>rollD6()):s.players.filter(p=>s.phase!=='attack'||!s.attackActors||s.attackActors.includes(p.id)).map((_,i)=>{const foes=s.enemies.filter(e=>e.hp>0),value=Math.random()<.05+bonus?20:rollD20();return foes.length?weaponD20(foes[i%foes.length],value,pending.role as 'attack'|'defense',s.round,s.players.find(p=>p.weaponUpdate?.cycloneActiveRound===s.round)||s.players[0]):value;});
       pending.stage='result';pending.until=now+3500;
       if(pending.role!=='charge')s.enemyRolls=[...pending.values];
       s.lastRoll={id:'dungeon_enemies',values:[...pending.values],die:pending.role==='charge'?'D6':'D20',at:now};
@@ -472,7 +482,7 @@ export function tickDungeon(input:DungeonState,now=Date.now()){
         add(s,cast.logTextEn+(actual!==damage?' · Shared defenses: '+actual+' HP lost.':''));
         const art=skillPresentation(enemyCaster,effectiveSlot,form??(enemyCaster.weapon.id==='death_note'&&effectiveSlot===2?deathNoteMode(enemyCaster,s.round):undefined));
         if(cast.effect==='dn:purge')emitDungeon(s,{id:crypto.randomUUID(),effect:'dn:eye',caster:enemy.id,target:enemy.id,name:'Eye of Death'});
-        emitDungeon(s,{id:crypto.randomUUID(),effect:cast.effect||art.effect,caster:enemy.id,target:art.target==='caster'?enemy.id:p.id,name:art.nameEn});
+        emitDungeon(s,{id:crypto.randomUUID(),damage:actual,effect:cast.effect||art.effect,caster:enemy.id,target:art.target==='caster'?enemy.id:p.id,name:art.nameEn});
         if(s.floor===7&&s.encounter===5&&slot===1){enemy.d12Charge=(enemy.d12Charge??0)+rollD6()+rollD6();}
         if(s.floor===8&&s.encounter===3)s.pts=Math.max(0,s.pts-2);
       }

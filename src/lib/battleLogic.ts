@@ -1,3 +1,4 @@
+import {weapon2Reactions} from './weaponUpdate2Logic';
 import {weaponBaseDamage} from './weaponStats';
 import {judgementAttack} from './deathNote';
 import {clashCounterChance,critChance, openDuelClash, recordDuelComparison, type DuelNotice} from './duelRules';
@@ -131,6 +132,7 @@ export function calculateD20Combat(
 
   if(attackerState)modifiedDamage=updateNormalDamage(attackerState,modifiedDamage,!!setup?.cleave,round);
   if(fixedDamage !== undefined) modifiedDamage = fixedDamage + weaponBaseDamage(attackerState?.weapon.tier);
+  if(defenderState){const v=defenderState.weaponUpdate;if(v?.waterWallActiveRound===round)modifiedDamage=Math.ceil(modifiedDamage*2/3);if((v?.regenUntil??-1)>=round&&Math.random()<.2)modifiedDamage-=Math.floor(modifiedDamage/2);}
   const absorbedByRock = defenderState ? absorbWithRock(defenderState, modifiedDamage) : 0;
   modifiedDamage -= absorbedByRock;
   if(defenderState)modifiedDamage=absorbUpdateDamage(defenderState,modifiedDamage);
@@ -177,6 +179,7 @@ export function calculateDuelCombat(attack: number, defense: number, attacker: P
   } else {
     result = calculateD20Combat(attack, defense, CLASS_DEFINITIONS[attacker.classType], CLASS_DEFINITIONS[defender.classType], attacker, defender, round, critical ? 20 : tied ? clashDamage : undefined);
   }
+  weapon2Reactions(attacker,defender,round);
   let notice: DuelNotice | undefined = reward;
   if (critical && result.isHit) {
     notice = { id:crypto.randomUUID(), kind:'crit', en:'Critical Hit · '+result.damage+' HP', vi:'Chí mạng · '+result.damage+' HP' };

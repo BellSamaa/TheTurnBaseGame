@@ -26,11 +26,11 @@ export function updateDiceTiming(player: PlayerState, round: number, role: 'atta
 }
 
 export function rollTimedD20(player: PlayerState, round: number, role: 'attack' | 'defense', roll: () => number) {
-  const timing = player.diceTiming;
-  if (timing?.round !== round || timing.role !== role || timing.quality === undefined) return roll();
+  const timing = player.diceTiming,boost=role==='attack'?(player.weaponUpdate?.critBonusPending??0)+(player.weaponUpdate?.critBonusRound===round?player.weaponUpdate?.critBonus??0:0):0;
+  if (timing?.round !== round || timing.role !== role || timing.quality === undefined) return boost>0?(Math.random()<Math.min(1,.05+boost)?20:1+Math.floor(Math.random()*19)):roll();
   const bonus = (role==='defense'?.2:.45) * timing.quality;
   delete player.diceTiming;
-  return Math.random() < .05 + bonus ? 20 : 1 + Math.floor(Math.random() * 19);
+  return Math.random() < Math.min(1,.05 + bonus + boost) ? 20 : 1 + Math.floor(Math.random() * 19);
 }
 
 export function timeLmsRoll(state: import('./lms').LmsState, actor: string, now: number, elapsedMs?:number) {
@@ -49,6 +49,7 @@ export function timeLmsRoll(state: import('./lms').LmsState, actor: string, now:
 /** Dungeon alone: a perfect Focus gives a 80% total chance of rolling 18–20. */
 export function rollDungeonD20(player:PlayerState,round:number,role:'attack'|'defense',bonusChance=0,roll=()=>1+Math.floor(Math.random()*20)){
  const timing=player.diceTiming;
+ if(role==='attack')bonusChance+=(player.weaponUpdate?.critBonusPending??0)+(player.weaponUpdate?.critBonusRound===round?player.weaponUpdate?.critBonus??0:0);
  const focused=timing?.round===round&&timing.role===role&&timing.quality!==undefined;
  if(focused){delete player.diceTiming;const chance=Math.max(0,Math.min(1,.15+(role==='defense'?.25:.65)*timing.quality!+bonusChance));return Math.random()<chance?18+Math.floor(Math.random()*3):1+Math.floor(Math.random()*17);}
  if(!bonusChance)return roll();

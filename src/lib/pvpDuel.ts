@@ -1,3 +1,4 @@
+import {effectDuration} from './skillMotion';
 import {recordCombatHit} from './combatHits';
 import type { BattleState, BattleLogEntry } from '@/types/game';
 import {rollTimedD20,updateDiceTiming} from './diceTiming';
@@ -23,9 +24,9 @@ function settleDefense(state: BattleState, now: number) {
   const defenseSide = firstAttacks ? 'p2' : 'p1';
   const hitSide = result.counter ? attackSide : defenseSide;
   const damage = result.counter ? result.counterDamage : result.damage;
-  const effect = result.counter ? normalAttackEffect(defender.weapon.id) :
+  const effect = result.counter ? normalAttackEffect(defender.weapon.id,defender) :
     result.isImmune ? 'infinity' : result.isDodged ? 'dodge_attack' :
-    result.absorbedByRock ? 'rock_block' : result.damage > 0 ? normalAttackEffect(attacker.weapon.id) : 'guard';
+    result.absorbedByRock ? 'rock_block' : result.damage > 0 ? normalAttackEffect(attacker.weapon.id,attacker) : 'guard';
   const log = (message: string, messageVi: string, type: BattleLogEntry['type'] = 'system') => {
     state.battleLog.unshift({ turn: round, type, timestamp: now, message, messageVi });
   };
@@ -33,7 +34,7 @@ function settleDefense(state: BattleState, now: number) {
   if (result.notice && result.notice.kind !== 'clash') log(result.notice.en, result.notice.vi);
   state.activeSkillBanner = null;
   state.activeVfx = null;
-  state.vfxSequence = [{ id: crypto.randomUUID(), effect, target: hitSide, size: 160 }];
+  state.vfxSequence = [{ damage, id: crypto.randomUUID(), effect, target: hitSide, size: 160 }];
   state.damagePopup = {
     id: crypto.randomUUID(), target: hitSide,
     type: result.critical ? 'crit' : damage > 0 ? 'damage' : 'block',
@@ -50,13 +51,15 @@ function settleDefense(state: BattleState, now: number) {
     log(`Pet Rock follows its owner: ${rockDamage} damage.`, `Pet Rock đánh phụ ${rockDamage} sát thương.`, 'damage');
   }
   for (const event of drainWeaponEvents([attacker, defender])) {
-    state.vfxSequence.push({ id: crypto.randomUUID(), effect: event.effect, target: event.target === state.player1.id ? 'p1' : 'p2' });
+    if(event.damage)recordCombatHit(state,event.damage,event.caster,event.target);
+    state.vfxSequence.push({ id: crypto.randomUUID(), damage:event.damage,effect: event.effect, target: event.target === state.player1.id ? 'p1' : 'p2' });
     log(event.text, event.textVi);
   }
   prepareWeaponCharge(attacker, round);
   prepareWeaponCharge(defender, round);
   state.duelNotice = result.notice;
   state.duelClash = undefined;
+  state.animationUntil=now+(state.vfxSequence||[]).reduce((n,e)=>n+effectDuration(e.effect),0);
   state.turnStep = 'd6_atk';
   if (attacker.hp <= 0 || defender.hp <= 0) {
     state.phase = 'game_over';

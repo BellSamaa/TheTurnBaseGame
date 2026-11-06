@@ -25,6 +25,7 @@ export async function POST(req:Request){
    if(!cleared?.length&&!clear)return NextResponse.json({error:'State updated; please try again.'},{status:409});
    if(clear)throw Error(clear.message);return NextResponse.json({run:null,abandoned:true});
   }
+  if(Date.now()<(run.state.combat.animationUntil??0))return NextResponse.json({run,error:'Animation is playing; wait for it to finish.'},{status:409});
   const frames:import('@/lib/pve').PveState[]=[];
   let next;if(body.move==='next'){if(run.state.combat.winner!==actor)throw Error('Cần thắng tầng này');next=createPve(hero,run.state.stage+1);}else next=advancePve(run.state,actor,body.move,body.args,frame=>{if(frames.at(-1)?.combat.revision!==frame.combat.revision)frames.push(frame);});
   const {data,error:save}=await db.rpc('game_save_pve',{p_actor:actor,p_run:run.id,p_revision:run.revision,p_state:next});if(save)throw Error(save.message);return NextResponse.json({run:data,frames});

@@ -43,7 +43,7 @@ export async function GET(req: Request, context: RouteContext) {
         { status: 404 }
       );
     }
-    if(room.status==='playing'&&room.battleState?.lms){const next=tickLms(room.battleState.lms);if(next!==room.battleState.lms){room.battleState.lms=next;if(next.winner){room.battleState.winnerId=next.winner;room.status='finished';}try{await updateRoom(room);}catch(e){if((e as Error).message!=='Room changed; retry after synchronization')throw e;const fresh=await getRoomByCodeAsync(code);if(fresh)return NextResponse.json({success:true,room:await roomView(fresh)});}}}
+    if(room.status==='playing'&&room.battleState?.lms&&Date.now()>=(room.battleState.lms.animationUntil??0)){const next=tickLms(room.battleState.lms);if(next!==room.battleState.lms){room.battleState.lms=next;if(next.winner){room.battleState.winnerId=next.winner;room.status='finished';}try{await updateRoom(room);}catch(e){if((e as Error).message!=='Room changed; retry after synchronization')throw e;const fresh=await getRoomByCodeAsync(code);if(fresh)return NextResponse.json({success:true,room:await roomView(fresh)});}}}
     const duel=room.battleState;
     if(room.status==='playing'&&duel?.duelClash&&Date.now()>=duel.duelClash.deadline){
       room.battleState=resolveDuelClash(duel);
@@ -75,6 +75,7 @@ export async function POST(req: Request, context: RouteContext) {
 
     const body = await req.json();
     const { action } = body;
+    if(['lms_action','cast_skill','duel_defend','duel_timing','duel_wager','battle_update'].includes(action)&&body.move!=='surrender'&&body.battleState?.phase!=='game_over'&&Date.now()<(room.battleState?.lms?.animationUntil??room.battleState?.animationUntil??0))return NextResponse.json({room,error:'Animation is playing; wait for it to finish.'},{status:409});
     if(room.gameMode==='last_man_standing'&&action!=='lms_action'){const actor=await sessionUser();if(!actor||((body.userId||body.guest?.id)&&actor!==(body.userId||body.guest?.id)))return NextResponse.json({error:'Sign in required'},{status:401});}
 
     if(action==='refresh_leave'){

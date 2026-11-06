@@ -59,10 +59,12 @@ async function run(req:Request){
         state=next;
       }else if(req.method==='POST'){
         if(body.revision!==room.revision)return NextResponse.json({room,error:'State updated; retry.'},{status:409});
+        if(Date.now()<(state.animationUntil??0)&&!['move','shop','equip','ready'].includes(body.action))return NextResponse.json({room,error:'Animation is playing; wait for it to finish.'},{status:409});
         state=dungeonAction(state,actor,String(body.action),body.args||{});
       }
-      state=tickDungeon(state);
+      if(Date.now()>=(state.animationUntil??0))state=tickDungeon(state);
     }
+    if(state!==room.state&&Date.now()<(state.animationUntil??0)&&['attack','defense','charge','skills','end'].includes(state.phase))state.deadline=Math.max(state.deadline||0,state.animationUntil!+20000);
     if(state===room.state)return NextResponse.json({room});
     if(requestKey){state.requests=[...(state.requests||[]),requestKey].slice(-128);}
     const {data,error:save}=await db.rpc('game_save_dungeon',{p_code:code,p_revision:room.revision,p_state:state});

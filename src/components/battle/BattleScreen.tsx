@@ -615,7 +615,7 @@ export default function BattleScreen() {
     const emptyRevolver = attackingPlayer.weapon.id === 'revolver' && (attackingPlayer.bullets ?? 6) <= 0;
     const attackRoll=recordAttackRoll(attackingPlayer,currentTurn,emptyRevolver?0:weaponD20(attackingPlayer,rollLuckyAttack(attackingPlayer,()=>rollTimedD20(attackingPlayer,currentTurn,'attack',rollD20)),'attack',currentTurn,defendingPlayer));
     const finalD20=attackRoll.value;
-    const nextAttackStep=attackRoll.done?'d20_def':'d20_atk';
+    const nextAttackStep=attackingPlayer.weaponUpdate?.blockedAttackRound===currentTurn?'d6_atk':attackRoll.done?'d20_def':'d20_atk';
 
     addTimer(
       setTimeout(() => {
@@ -634,6 +634,7 @@ export default function BattleScreen() {
           timestamp: Date.now(),
         };
 
+        if(attackingPlayer.weaponUpdate?.blockedAttackRound===currentTurn){newLogEntry.message=atkName+' · D20 locked · −5 HP · Defense skipped';newLogEntry.messageVi=atkName+' · Khóa D20 · −5 HP · Bỏ qua Thủ';}
         setBattleState((prev) => {
           if (!prev) return null;
           const updated: BattleState = {
@@ -797,7 +798,7 @@ export default function BattleScreen() {
       icon: effectFrame(result.effect||presentation.effect,1), casterName: caster.name, auraColor: presentation.color };
     const vfx: VfxEvent = { id: crypto.randomUUID(), effect: result.effect||presentation.effect, target: vfxTarget, size: slot === 2 ? 180 : 130 };
     const vfxSequence: VfxEvent[] = skillEffectPlan(caster, slot, form).map(cue => ({
-      id: crypto.randomUUID(), effect: caster.weapon.id==='death_note'&&slot===2&&form===2?cue.effect:result.effect||cue.effect, size: slot === 2 ? 180 : 130,
+      damage:cue.target==='opponent'?result.damage:0,id: crypto.randomUUID(), effect: (/^(nw|mu):/.test(result.effect||'')||caster.weapon.id==='death_note'&&slot===2&&form===2)?cue.effect:result.effect||cue.effect, size: slot === 2 ? 180 : 130,
       target: cue.target === 'caster' || rolledBack ? casterTarget : cue.target === 'center' ? 'center' : opponentTarget,
     }));
     const reaction = (effect: string) => ({ id: crypto.randomUUID(), effect, target: opponentTarget as 'p1' | 'p2', size: 140 });
@@ -904,6 +905,7 @@ export default function BattleScreen() {
       if(keepAttack){const owner=p1IsAttacker?burnedP1:burnedP2;if(owner.weaponUpdate)owner.weaponUpdate.extraAttacks=Math.max(0,(owner.weaponUpdate.extraAttacks||0)-1);}
       advanceWeather([burnedP1,burnedP2],currentTurn);
       const weaponEvents=tickWeaponRound([burnedP1,burnedP2],currentTurn+1);
+      for(const e of weaponEvents)if(e.damage&&e.caster!==e.target)recordCombatHit(prev,e.damage,e.caster,e.target);
       for(const p of [burnedP1,burnedP2])if(currentTurn+1>(p.petRockEnrageUntilRound??Infinity))p.petRockEnraged=false;
       applyOpponentDamage(burnedP1,burnedP1.weaponUpdate?.burnOwner===burnedP2.id?outgoingDamage(burnedP2,p1BurnDmg,currentTurn):p1BurnDmg,currentTurn,false,burnedP2);
       applyOpponentDamage(burnedP2,burnedP2.weaponUpdate?.burnOwner===burnedP1.id?outgoingDamage(burnedP1,p2BurnDmg,currentTurn):p2BurnDmg,currentTurn,false,burnedP1);
@@ -1019,7 +1021,7 @@ export default function BattleScreen() {
   const arenaState:LmsState={hitEvents:battleState.hitEvents,duelClash:battleState.duelClash,duelNotice:battleState.duelNotice,players:[player1,player2],order:[player1.id,player2.id],active:p1IsAttacker?0:1,round:currentTurn,phase:phase==='game_over'?'finished':turnStep==='d12'?'skills':turnStep==='d6_def'?'charge_defense':turnStep==='d6_atk'?'charge':turnStep==='clash'?'clash':turnStep==='d20_def'?'defense':'attack',target:p1IsAttacker?player2.id:player1.id,attack:(p1IsAttacker?battleState.p1D20:battleState.p2D20)??undefined,defense:(p1IsAttacker?battleState.p2D20:battleState.p1D20)??undefined,rolls:(p1IsAttacker?battleState.d6Results?.player1:battleState.d6Results?.player2)||[],defenderRolls:(p1IsAttacker?battleState.d6Results?.player2:battleState.d6Results?.player1)||[],log:battleLog.map(l=>isEn?l.message:l.messageVi||l.message),winner:winnerId||undefined,revision:battleState.revision??0};
   const sharedEffects=battleState.vfxSequence?.length?battleState.vfxSequence:battleState.activeVfx?[battleState.activeVfx]:[];
   const sharedBanner=battleState.activeSkillBanner;
-  if(sharedEffects.length||sharedBanner){const v=sharedEffects[0];const targetId=(target:string)=>target==='p1'?player1.id:target==='p2'?player2.id:'center';arenaState.lastEvent={id:sharedBanner?.id||v.id,announcementId:sharedBanner?.id,effect:v?.effect||'impact_physical',caster:[player1,player2].find(p=>p.name===sharedBanner?.casterName)?.id||myPlayer.id,target:v?targetId(v.target):'center',cues:sharedEffects.map(c=>({effect:c.effect,target:targetId(c.target)})),nameEn:sharedBanner?.skillNameEn,nameVi:sharedBanner?.skillNameVi,slot:sharedBanner?.slot};}
+  if(sharedEffects.length||sharedBanner){const v=sharedEffects[0];const targetId=(target:string)=>target==='p1'?player1.id:target==='p2'?player2.id:'center';arenaState.lastEvent={id:sharedBanner?.id||v.id,announcementId:sharedBanner?.id,effect:v?.effect||'impact_physical',caster:[player1,player2].find(p=>p.name===sharedBanner?.casterName)?.id||battleState.hitEvents?.slice().reverse().find(h=>h.target===(v?targetId(v.target):''))?.caster||battleState.attackerId||myPlayer.id,target:v?targetId(v.target):'center',cues:sharedEffects.map(c=>({damage:c.damage,effect:c.effect,target:targetId(c.target)})),nameEn:sharedBanner?.skillNameEn,nameVi:sharedBanner?.skillNameVi,slot:sharedBanner?.slot};}
 
   return <div className="battle-screen revised-battle">{battleState.purpleSky&&<PurpleSkyEffect key={battleState.purpleSky.id} startedAt={battleState.purpleSky.startedAt}/>} <RankResult battleId={battleState.id} winner={winnerId} mode={mode}/><CombatArena stageSequence={['attack','defense','charge','charge_defense','skills']} state={arenaState} viewer={myPlayer.id} onTiming={elapsed=>void duelAction('duel_timing',0,myPlayer.id,elapsed)} onDuelWager={stake=>void duelAction('duel_wager',stake)} title={isEn?mapData.name:mapData.nameVi} onSurrender={()=>{if(window.confirm(isEn?'Surrender?':'Đầu hàng?'))handleConfirmForfeit();}}>
     <div className="combat-status">{turnStep==='d12'&&!canUsePvpSkill(battleState,myPlayer.id)?(isEn?'Waiting for attacker’s skill or End Turn':'Chờ bên Công dùng skill hoặc End Turn'):turnBannerText||rollButtonTitle}</div>

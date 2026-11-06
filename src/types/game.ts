@@ -22,7 +22,7 @@ export interface ClassInfo {
   baseHp: number;
 }
 
-export type WeaponTier = 'common' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'secret';
+export type WeaponTier = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic' | 'secret';
 
 export interface WeaponSkill {
   name: string;
@@ -148,6 +148,7 @@ export type BattlePhase =
   | 'game_over';
 
 export interface BattleState {
+  animationUntil?:number;
   hitEvents?:CombatHit[];
   duelClash?: import("@/lib/duelRules").DuelClash;
   duelNotice?: import("@/lib/duelRules").DuelNotice;
@@ -178,6 +179,7 @@ export interface BattleState {
   p1EndedTurn?: boolean;
   p2EndedTurn?: boolean;
   activeVfx?: {
+    damage?:number;
     id: string;
     effect: string;
     target: 'p1' | 'p2' | 'center';

@@ -1,10 +1,12 @@
 'use client';
 
+import {animationSpec} from '@/lib/weaponUpdate2Effects';
 import {effectFrame} from '@/lib/weaponUpdateAssets';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface VfxEvent {
+  damage?:number;
   id: string;
   effect: string; // folder name in /assets/vfx/frames/
   target: 'p1' | 'p2' | 'center';
@@ -32,13 +34,13 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
     let currentFrame = 0;
     const interval = setInterval(() => {
       currentFrame += 1;
-      if (currentFrame <= 3) {
+      if (currentFrame < animationSpec(activeVfx.effect).frames) {
         setFrame(currentFrame);
       } else {
         clearInterval(interval);
         finishRef.current?.(activeVfx.id);
       }
-    }, activeVfx.effect.startsWith('dn:')?500:130); // 130ms per frame * 4 frames = 520ms punchy, clear animation
+    }, animationSpec(activeVfx.effect).ms/animationSpec(activeVfx.effect).frames); // 130ms per frame * 4 frames = 520ms punchy, clear animation
 
     return () => clearInterval(interval);
   }, [activeVfx?.id]);
@@ -49,7 +51,7 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
 
   if(activeVfx.effect.startsWith('dn:'))return <div className="death-note-vfx"><div className="death-red-flash"/><img src={effectFrame(activeVfx.effect,0)} alt="Purging Judgement" style={{width:size,height:size}}/></div>;
   return (
-    <AnimatePresence>
+    <AnimatePresence>{activeVfx.effect==='mu:S2_A_Void_Flash'&&<div className="musashi-screen-flash"/>}
       <motion.div
         key={activeVfx.id}
         data-vfx-effect={activeVfx.effect}
@@ -64,7 +66,7 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
         }}
       >
         {/* Render all 4 frames to ensure immediate browser caching without blank delay */}
-        {[0, 1, 2, 3].map((f) => (
+        {Array.from({length:animationSpec(activeVfx.effect).frames},(_,i)=>i).map((f) => (
           <img
             key={f}
             src={effectFrame(activeVfx.effect,f)}

@@ -1,3 +1,4 @@
+import {UPDATE2_WEAPONS} from './weaponUpdate2Catalog';
 import type {WeaponInfo,WeaponTier} from '@/types/game';
 import catalog from '@/data/weaponUpdate1.json';
 const descriptions:Record<string,[string,string]>={
@@ -19,4 +20,5 @@ export const UPDATE_WEAPONS:Record<string,WeaponInfo>=Object.fromEntries(catalog
  const text=descriptions[w.id];const skill=(slot:1|2)=>{const rows=w.skills.filter(x=>x.slot===slot),first=rows[0];return {name:first.nameEn,nameVi:slot===1?first.nameVi:rows[0].nameVi,description:text[0],descriptionVi:text[1],diceType:'d6' as const,chargeRequired:first.cost_pts??10,triggerNumber:forms[w.id]?.[slot-1],effect:'wu1:'+w.id};};
  return [w.id,{id:w.id,name:w.name,nameVi:w.nameVi,tier:w.tier as WeaponTier,image:w.image,description:text[0],descriptionVi:text[1],skill1:skill(1),skill2:skill(2)}];
 }));
+Object.assign(UPDATE_WEAPONS,UPDATE2_WEAPONS);
 export const UPDATE_IDS=new Set(Object.keys(UPDATE_WEAPONS));

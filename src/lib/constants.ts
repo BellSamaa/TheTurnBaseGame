@@ -392,6 +392,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponInfo> = {
 // Weapon display order
 // ============================================================
 const WEAPON_TIER_RANK: Record<WeaponTier, number> = {
+  uncommon: .5,
   common: 0,
   rare: 1,
   epic: 2,

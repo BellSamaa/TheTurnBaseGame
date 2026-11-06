@@ -1,3 +1,4 @@
+import {effectDuration} from './skillMotion';
 import {recordCombatHit} from './combatHits';
 import {deathNoteMode} from './deathNote';
 import {effectFrame} from './weaponUpdateAssets';
@@ -22,12 +23,13 @@ export function castPvpSkill(input:BattleState,actor:string,slot:1|2,form?:numbe
   next.player1=isP1?cast.caster:cast.opponent;next.player2=isP1?cast.opponent:cast.caster;syncWeather([next.player1,next.player2]);
   next.activeSkillBanner={id:crypto.randomUUID(),weaponId:user.weapon.id,skillNameEn:art.nameEn+(cast.die?' · D6 '+cast.die:''),skillNameVi:art.nameVi+(cast.die?' · D6 '+cast.die:''),slot,icon:effectFrame(cast.effect||art.effect,1),casterName:user.name,auraColor:art.color};
   const rolledBack=user.weapon.id==='spirit_stone'&&slot===2&&cast.caster.hp<user.hp;
-  next.vfxSequence=skillEffectPlan(user,slot,form).map(cue=>({id:crypto.randomUUID(),effect:user.weapon.id==='death_note'&&slot===2&&form===2?cue.effect:cast.effect||cue.effect,size:slot===2?180:130,target:cue.target==='caster'||rolledBack?caster:cue.target==='center'?'center':opponent}));
+  next.vfxSequence=skillEffectPlan(user,slot,form).map(cue=>({damage:cue.target==='opponent'?cast.damage:0,id:crypto.randomUUID(),effect:(/^(nw|mu):/.test(cast.effect||'')||user.weapon.id==='death_note'&&slot===2&&form===2)?cue.effect:cast.effect||cue.effect,size:slot===2?180:130,target:cue.target==='caster'||rolledBack?caster:cue.target==='center'?'center':opponent}));
   if(user.weapon.id==='death_note'&&slot===1)next.vfxSequence.unshift({id:crypto.randomUUID(),effect:'wu1:name_write',target:opponent,size:140});
   for(const [show,effect]of [[(foe.petRockHp??0)>(cast.opponent.petRockHp??0),'rock_block'],[foe.immuneDamageNext&&!cast.opponent.immuneDamageNext,'infinity'],[foe.dodgeNextSkill&&!cast.opponent.dodgeNextSkill,'dodge_spell']]as const)if(show)next.vfxSequence.push({id:crypto.randomUUID(),effect,target:opponent,size:140});
   if(cast.purpleSky)next.purpleSky={id:crypto.randomUUID(),startedAt:Date.now()};
   next.battleLog.unshift({turn:input.currentTurn,type:'skill',message:cast.logTextEn,messageVi:cast.logTextVi,timestamp:Date.now()});
   if(next.player1.hp<=0||next.player2.hp<=0){next.winnerId=next.player1.hp<=0?next.player2.id:next.player1.id;next.phase='game_over';}
+  next.animationUntil=Date.now()+next.vfxSequence!.reduce((n,e)=>n+effectDuration(e.effect),0);
   next.revision=(input.revision??0)+1;return next;
 }
 

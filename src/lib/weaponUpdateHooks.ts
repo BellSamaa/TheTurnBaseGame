@@ -1,13 +1,14 @@
+import {prepareWeapon2Attack,weapon2Defense,weapon2Reactions,tickWeapon2} from './weaponUpdate2Logic';
 import type {PlayerState} from '@/types/game';
-import {activeWeather,weaponState,takeArmorAndSummons,queueWeaponEvent} from './weaponUpdateState';
+import {activeWeather,weaponState,takeArmorAndSummons,queueWeaponEvent,drainWeaponEvents} from './weaponUpdateState';
 import {applyOpponentDamage} from './combatDamage';
 const rnd=()=>Math.random();const die=(n:number)=>1+Math.floor(rnd()*n);
 export function outgoingDamage(p:PlayerState,amount:number,round:number){return Math.max(0,amount-((p.weaponUpdate?.weakUntil??0)>=round?7:0));}
 export function prepareWeaponCharge(p:PlayerState,round:number){const s=weaponState(p);if(s.slowChargeRound!==round){s.slowChargeRound=round;s.slowChargeBlocked=((s.slowUntil??0)>=round&&rnd()<.05)||((s.chargeBlockUntil??0)>=round&&rnd()<(s.chargeBlockChance??.1));}return !!s.slowChargeBlocked;}
-export function chargeWeaponRoll(p:PlayerState,value:number,round:number){const s=weaponState(p);if(prepareWeaponCharge(p,round))return 0;if((s.luckUntil??0)>=round&&rnd()<.8)return Math.min(value,die(2));return value;}
+export function chargeWeaponRoll(p:PlayerState,value:number,round:number){const s=weaponState(p);if(prepareWeaponCharge(p,round))return 0;if((s.vineUntil??-1)>=round){if(s.vineRollRound!==round){s.vineRollRound=round;s.vineRestricted=rnd()<.3}if(s.vineRestricted)value=1+Math.floor(rnd()*3)}if(s.d6OneRound===round&&rnd()<.8)return 1;if((s.luckUntil??0)>=round&&rnd()<.8)return Math.min(value,die(2));return value;}
 export function shieldCharge(p:PlayerState,value:number){if(p.weapon.id==='shield'&&value===4&&(p.d12Charge??0)>=2){p.d12Charge!-=2;weaponState(p).shieldDefenses=2;(weaponState(p).events??=[]).push({effect:'wu1:shield_proc',target:p.id,text:p.name+' · Fortify: +2 DEF for 2 defenses. [-2 PTS]',textVi:p.name+' · Gia Cố: +2 Thủ trong 2 lượt thủ. [-2 PTS]'});}}
 export function weaponD20(p:PlayerState,value:number,role:'attack'|'defense',round:number,foe?:PlayerState){
- const s=weaponState(p),weather=activeWeather(p,round);if(s.lastD20Round===round&&s.lastD20Role===role)return value;s.lastD20Round=round;s.lastD20Role=role;
+ const s=weaponState(p),weather=activeWeather(p,round);if(role==='attack'&&prepareWeapon2Attack(p,round,foe))return 0;if(role==='attack'&&p.weapon.id==='musashi'&&s.musashiNormalRound!==round){s.musashiNormalRound=round;s.musashiRed=!s.musashiRed;}if(role==='attack'&&value===20&&foe?.weaponUpdate?.cycloneActiveRound===round&&rnd()<.3)value=die(19);if(s.lastD20Round===round&&s.lastD20Role===role)return value;s.lastD20Round=round;s.lastD20Role=role;
 
  const thunder=['thunder_spear','dual_spears'].includes(p.weapon.id),fire=p.weapon.id==='kagutsuchi';
  if((weather?.kind==='rain'||weather?.kind==='superconduct')&&(thunder||fire)&&rnd()<(thunder?.1:.05))value=Math.max(value,die(20));
@@ -17,7 +18,7 @@ export function weaponD20(p:PlayerState,value:number,role:'attack'|'defense',rou
  return value;
 }
 export function normalSetup(a:PlayerState,d:PlayerState,atk:number,def:number,round:number){
- const s=weaponState(a),v=weaponState(d);let cancel=false,dodge=false;
+ const s=weaponState(a),v=weaponState(d);let cancel=s.blockedAttackRound===round,dodge=false;if(atk>0)weapon2Defense(d,atk>def,round);if(d.weapon.id==='musashi'&&activeWeather(d,round)?.kind==='mist'&&(atk>def||atk===20)&&rnd()<.3){dodge=true;queueWeaponEvent(d,d,'mu:Passive_Mist_Dodge',0)}
  if((s.frozenAttacks??0)>0){s.frozenAttacks!--;cancel=true;}
  if((s.paralysisAttacks??0)>0){s.paralysisAttacks!--;if(rnd()<(s.paralysisChance??.05))cancel=true;}
  if((v.shieldDefenses??0)>0){def+=2;v.shieldDefenses!--;}
@@ -29,6 +30,7 @@ export function normalSetup(a:PlayerState,d:PlayerState,atk:number,def:number,ro
 }
 export function normalReactions(a:PlayerState,d:PlayerState,hit:boolean,damage:number,defDie:number,round:number){
  const s=weaponState(a),v=weaponState(d),weather=activeWeather(a,round);
+ weapon2Reactions(a,d,round);
  if(hit)v.lastSuccessfulDamage=damage;
  if((v.slashDefenses??0)>0){v.slashDefenses!--;if(hit){const n=applyOpponentDamage(a,outgoingDamage(d,3,round),round);queueWeaponEvent(d,a,'white_triple',n);}else if(!v.slashMissTriggered){const n=applyOpponentDamage(a,outgoingDamage(d,7,round),round);queueWeaponEvent(d,a,'white_flurry',n);v.slashMissTriggered=true;}}
  if(hit&&(v.nailHits??0)>0){v.nailHits!--;const n=applyOpponentDamage(a,outgoingDamage(d,3,round),round);queueWeaponEvent(d,a,'doll_counter',n);}
@@ -38,7 +40,8 @@ export function normalReactions(a:PlayerState,d:PlayerState,hit:boolean,damage:n
  if(d.weapon.id==='kagutsuchi'&&activeWeather(d,round)?.kind==='rain'&&rnd()<.1){const n=applyOpponentDamage(a,outgoingDamage(d,defDie>15?Math.ceil(defDie/2):defDie,round),round);queueWeaponEvent(d,a,'rain_counter',n);}
 }
 export function tickWeaponRound(players:PlayerState[],round:number,scope:'round'|'summons'='round',canTarget?:(owner:PlayerState,target:PlayerState)=>boolean,healingScale?:(owner:PlayerState)=>number){
- const events:{caster:string;target:string;effect:string;text:string;textVi:string}[]=[];
+ const events:{caster:string;target:string;effect:string;text:string;textVi:string;damage?:number}[]=[];
+ if(scope==='round'){tickWeapon2(players.filter(p=>p.hp>0&&p.weaponUpdate?.lastRoundTick!==round),round,canTarget);events.push(...drainWeaponEvents(players));}
  for(const p of players){const s=weaponState(p);s.summons=s.summons?.filter(x=>x.hp>0&&x.activeUntil>=round);if(p.hp<=0){s.summons=[];continue;}if(scope==='round'){if(s.lastRoundTick===round)continue;s.lastRoundTick=round;if((s.anchorUntil??Infinity)<round){delete s.anchor;delete s.anchorUntil;}}
  const emit=(target:PlayerState,effect:string,n:number)=>events.push({caster:p.id,target:target.id,effect:'wu1:'+effect,text:p.name+' · '+effect+': '+n+' damage.',textVi:p.name+' · '+effect+': '+n+' sát thương.'});
  if(scope==='round'){

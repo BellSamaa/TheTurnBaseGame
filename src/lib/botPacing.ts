@@ -1,3 +1,4 @@
+import {presentationDuration} from './skillMotion';
 import type { PveState } from './pve';
 import { opponentRolls } from './opponentRolls';
 
@@ -7,6 +8,7 @@ export function pveFrameHold(previous: PveState | undefined, next: PveState) {
   if (!previous) return 0;
   const state = next.combat;
   const before = previous.combat;
+  if(state.lastEvent&&state.lastEvent.id!==before.lastEvent?.id)return Math.max(state.lastEvent.caster==='pve_bot'?3400:1100,presentationDuration(state.lastEvent));
   const oldRolls = new Set(opponentRolls(before).map(roll => roll.key));
   if (opponentRolls(state).some(roll => roll.playerId === 'pve_bot' && !oldRolls.has(roll.key))) {
     return PVE_BOT_RESULT_MS;

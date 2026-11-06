@@ -1,6 +1,7 @@
 'use client';
 
 const STANDS: Record<string, { src: string; name: string }> = {
+  musashi:{src:'/assets/weapon-update-2/musashi-stand.webp',name:'Miyamoto Musashi'},
   king_slasher:{src:'/assets/weapon-update-1/sukuna.png',name:'Sukuna'},
   death_note:{src:'/assets/weapon-update-1/light.png',name:'Light'},
   infinity_ring: { src: '/assets/sprites/stands/gojo.png', name: 'Gojo' },

@@ -28,6 +28,7 @@ export const TIER_CONFIGS: Record<WeaponTier, TierConfig> = {
     badgeClass: 'bg-emerald-950/80 text-emerald-300 border-emerald-500/80',
     boxShadow: '0 0 12px rgba(34, 197, 94, 0.45)',
   },
+  uncommon: {tier:'uncommon',labelEn:'UNCOMMON',labelVi:'KHÔNG PHỔ BIẾN',borderColor:'#84cc16',glowColor:'rgba(132,204,22,.55)',bgGradient:'from-lime-950/80 via-black to-black',textColor:'text-lime-400',accentColor:'#a3e635',gemColor:'#84cc16',badgeClass:'bg-lime-950/80 text-lime-300 border-lime-500/80',boxShadow:'0 0 14px #84cc1666'},
   rare: {
     tier: 'rare',
     labelEn: 'RARE',

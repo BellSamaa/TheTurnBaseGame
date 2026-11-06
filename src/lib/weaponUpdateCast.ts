@@ -1,3 +1,4 @@
+import {castWeapon2,musashiHidden} from './weaponUpdate2Logic';
 import {deathNoteMode} from './deathNote';
 import type {PlayerState} from '@/types/game';
 import {activeWeather,weaponState,type WeatherKind} from './weaponUpdateState';
@@ -9,6 +10,7 @@ export function updateSkillCost(p:PlayerState,slot:1|2,round:number,form?:number
 }
 export function updateSkillReason(p:PlayerState,t:PlayerState,slot:1|2,form:number|undefined,round:number){
  const s=p.weaponUpdate||{},v=t.weaponUpdate||{};
+ if(p.weapon.id==='musashi'&&slot===2&&form===2&&!musashiHidden(p,t,round))return 'A bleeding mark and mist are required';
  if(s.slowChargeRound===round&&s.slowChargeBlocked)return 'D6 is locked this round; End Turn';
  if(p.weapon.id==='shield'&&slot===1)return 'Automatic · D6 = 4';
  if(p.weapon.id==='king_slasher'&&slot===2&&form===2&&(v.markedBy!==p.id||(v.markUntil??0)<round))return 'Target needs your Flame Mark';
@@ -18,6 +20,7 @@ export function updateSkillReason(p:PlayerState,t:PlayerState,slot:1|2,form:numb
  return '';
 }
 export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:number,form?:number,resolutionDie?:number,damageBonus=0){
+ const added=castWeapon2(u,t,slot,round,form,damageBonus);if(added)return added;
  if(u.weapon.id==='chronos_watch'){
   const s=weaponState(u),v=weaponState(t);let damage=0,effect='time_save';
   if(slot===1&&form===2){if(s.anchor&&round<=(s.anchorUntil??0)){const saved=structuredClone(s.anchor);Object.assign(u,saved,{id:u.id,weapon:u.weapon});delete weaponState(u).anchor;delete weaponState(u).anchorUntil;effect='time_erase';}else{const saved=structuredClone(u);delete saved.weaponUpdate?.anchor;s.anchor=saved;s.anchorUntil=round+5;}}
