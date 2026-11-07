@@ -10,3 +10,6 @@ export function projectileColor(effect:string):string|undefined{
 }
 export function effectDuration(effect:string){const clip=animationSpec(effect).ms;return clip+(isSupersonicEffect(effect)?500:/^mu:D20_/.test(effect)?600:isMeleeEffect(effect)?900:projectileColor(effect)?750:effect.startsWith('dn:')?200:350);}
 export function presentationDuration(event:{effect:string;cues?:{effect:string}[]}|undefined){return event?(event.cues?.length?event.cues:[event]).reduce((n,c)=>n+effectDuration(c.effect),0):0;}
+
+/** Musashi normal-cut art curves left by default; mirror it for a left-side caster. */
+export function musashiNormalFlipX(effect:string,casterOnRight:boolean){return /^mu:D20_(Red|Blue)$/.test(effect)?!casterOnRight:undefined;}

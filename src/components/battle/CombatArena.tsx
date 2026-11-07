@@ -16,6 +16,7 @@ import {WalletBar} from '@/components/progression/AccountPanel';
 import HealthBar from '@/components/ui/HealthBar';
 import {BattleMusicToggle} from '@/components/audio/AudioManager';
 import {useCombatHits} from './useCombatHits';
+import {musashiNormalFlipX} from '@/lib/skillMotion';
 import {useMeleeMotion} from './useMeleeMotion';
 import {effectDuration} from '@/lib/skillMotion';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
@@ -137,7 +138,7 @@ export default function CombatArena({state:s,viewer,busy=false,botRolling=false,
         <div className="combat-name"><b>{p.id==='pve_bot'?tx(p.name):p.name}</b><small>{s.turnFlow===3&&(['skills','buffs'].includes(s.phase)?s.stageDone:s.endVotes)?.includes(p.id)?(en?'DONE':'ĐÃ XONG'):p.id===viewer?(en?'YOU':'BẠN'):p.hp<=0?(en?'ELIMINATED':'ĐÃ BỊ LOẠI'):s.phase!=='initiative'&&p.id===active.id?(en?'ATK':'CÔNG'):p.id===victim?.id?(en?'DEF':'THỦ'):''}</small>{buffs&&<div className="combat-buffs"><BuffCard id={s.extras?.buffs[p.id]?.id??-1} used={s.extras?.buffs[p.id]?.used}/>{s.extras?.bonusBuffs?.[p.id]&&<BuffCard id={s.extras.bonusBuffs[p.id].id} used={s.extras.bonusBuffs[p.id].used}/>}</div>}</div>
         <HealthBar judgement={p.weaponUpdate?.judgement} current={p.hp} max={p.maxHp}/><RockHealthBar player={p}/>
         <div className="combat-fighter"><WeaponStand weaponId={p.weapon.id} side={side}/><div className="combat-avatar"><WeaponAura player={p} round={s.round}/>{p.immuneDamageNext&&<div className="combat-immunity" title="Immune"/>}<CharacterRenderer character={p.character} size={buffs?'md':'lg'} facing={side==='left'?'right':'left'} animation="idle"/></div><RockCompanion player={p} side={side}/><WeaponSummons player={p} side={side}/>
-          {impactReady&&event?.target===p.id&&<div className="combat-hit-overlay"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?320:buffs?120:180,flipX:displayPlayers.findIndex(x=>x.id===event.caster)>i}}/></div>}
+          {impactReady&&event?.target===p.id&&<div className="combat-hit-overlay"><VfxAnimationPlayer activeVfx={{id:event.id,effect:event.effect,target:'center',size:event.effect==='wu1:world_slash'?320:buffs?120:180,flipX:musashiNormalFlipX(event.effect,buffs?displayPlayers.findIndex(x=>x.id===event.caster)>=2:displayPlayers.findIndex(x=>x.id===event.caster)===1)??(displayPlayers.findIndex(x=>x.id===event.caster)>i)}}/></div>}
         </div>
         <div className="combat-fighter-details"><span className="combat-weapon-name" style={{color:getTierConfig(p.weapon.tier).accentColor}}>{en?p.weapon.name:p.weapon.nameVi}</span>
         <WeaponStatus player={p} round={s.round}/>{p.duelLuck?.mode&&<span className={'duel-luck-tag duel-luck-'+p.duelLuck.mode}>{p.duelLuck.mode==='unlucky'?(en?'✦ TOO UNLUCKY · LUCK BOOST':'✦ QUÁ ĐEN · TĂNG MAY MẮN'):(en?'☾ TOO LUCKY · LUCK PENALTY':'☾ QUÁ MAY · GIẢM MAY MẮN')}</span>}<div className="combat-stats"><b>{p.d12Charge??0} PTS</b>{p.weapon.id==='revolver'&&<span>◈ {p.bullets??6}/6</span>}{p.burnTicks? <span title={en?'Burn turns remaining':'Số lượt thiêu đốt còn lại'}>🔥 {p.burnTicks}</span>:null}{p.panicTurns?<span title="Panic −5 ATK">⚠ {p.panicTurns}</span>:null}{p.lockedSkill&&p.skillLockTurn===s.round?<span>🔒 S{p.lockedSkill}</span>:null}</div></div>

@@ -42,3 +42,5 @@ let random=Math.random;try{
 }finally{Math.random=random}
 
 assert.match(require('../src/lib/weaponUpdateAssets.ts').skillIconFrame('mu:S2_A_Void_Flash'),/S2_A_Void_Flash\/8.webp$/);
+
+for(const effect of ['mu:D20_Red','mu:D20_Blue']){assert.equal(require('../src/lib/skillMotion.ts').musashiNormalFlipX(effect,false),true);assert.equal(require('../src/lib/skillMotion.ts').musashiNormalFlipX(effect,true),false)}assert.equal(require('../src/lib/skillMotion.ts').musashiNormalFlipX('mu:S1_B_Dash_Cut',false),undefined);
