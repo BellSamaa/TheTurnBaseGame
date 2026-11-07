@@ -52,6 +52,11 @@ export function rollLuckyAttack(player: PlayerState, roll: () => number, random 
   return luck === 'unlucky' ? Math.max(first, second) : Math.min(first, second);
 }
 
+export function niceComparisonKind(attack: number, defense: number): 'attack' | 'defense' | undefined {
+  if (attack - defense > 15) return 'attack';
+  if (defense - attack >= 15) return 'defense';
+}
+
 export function recordDuelComparison(attacker: PlayerState, defender: PlayerState, attack: number, defense: number): DuelNotice | undefined {
   const difference = attack - defense;
   const luck = attacker.duelLuck ??= { hits: 0, misses: 0 };
@@ -65,8 +70,9 @@ export function recordDuelComparison(attacker: PlayerState, defender: PlayerStat
     if (luck.hits >= 3) luck.mode = 'lucky';
     if (luck.misses >= 3) luck.mode = 'unlucky';
   }
-  if (difference <= 15 && difference > -15) return;
-  const attacking = difference > 15;
+  const kind = niceComparisonKind(attack, defense);
+  if (!kind) return;
+  const attacking = kind==='attack';
   const winner = attacking ? attacker : defender;
   winner.d12Charge = (winner.d12Charge ?? 0) + 10;
   return {

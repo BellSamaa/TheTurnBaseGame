@@ -30,6 +30,7 @@ export function dungeonReward(floor:number) {
 
 export const DUNGEON_RULES_EN = [
  'Tied D20 totals trigger Clashing (except tied natural 20s). Each teammate wagers 0–3 shared PTS within 5s. Attack wins 65% / defense counters 35%; each net wager point shifts the chance by 10 percentage points. The winner deals two thirds of the tied score plus weapon damage.',
+  'Nice Attack: ATK leads DEF by more than 15. Nice Defense: DEF leads ATK by at least 15. Winning side gains 10 PTS once per comparison; player rewards go to the shared pool.',
   '1–4 players share team HP, skill PTS and dungeon coins. Class HP modifiers apply.',
   'Ten floors, five encounters per floor. Mob, three mobs, mini boss, three mixed mobs, boss.',
   'HP scales to 40% / 60% / 80% / 100% for 1 / 2 / 3 / 4 players. Departures take effect next encounter.',
@@ -49,6 +50,7 @@ export const DUNGEON_RULES_VI = [
  '1–4 người dùng chung HP, PTS và tiền Dungeon. Máu cơ bản vẫn áp dụng chỉ số Class.',
  '10 tầng, mỗi tầng 5 trận: 1 quái, 3 quái, Mini Boss, 3 quái phối hợp, Boss.',
  'Máu địch bằng 40% / 60% / 80% / 100% khi có 1 / 2 / 3 / 4 người. Người rời đội được tính lại ở trận kế tiếp.',
+ 'Nice Attack: Công hơn Thủ trên 15. Nice Defense: Thủ hơn Công ít nhất 15. Bên thắng nhận 10 PTS một lần mỗi so sánh; phần thưởng của đội vào quỹ chung.',
  '1. Cả đội tung D20 Công. Địch tung số viên Thủ bằng số thành viên. Sát thương bằng chênh lệch tổng Công và Thủ.',
  '2. Cả đội tung D20 Thủ để chống tổng Công của địch.',
  '3. Mọi người tung D6 vào quỹ PTS chung, sau đó địch sạc D6.',

@@ -1,3 +1,4 @@
+import {niceComparisonKind,type DuelNotice} from './duelRules';
 import {scaledHealingAmount} from './combatHealing';
 import {isBladeWeapon} from './weaponTraits';
 import {effectDuration,projectileColor,isTravelingEffect} from './skillMotion';
@@ -29,6 +30,7 @@ type Position={x:number;y:number};
 type Buff={id:string;remaining:number;active:boolean};
 export interface DungeonState {
   animationUntil?:number;
+  duelNotice?:DuelNotice;
   clash?: {score:number;role:'attack'|'defense';deadline:number;wagers:Record<string,number>;enemyStake:number;target:string};
   hitEvents?:CombatHit[];
   players:PlayerState[];
@@ -103,7 +105,7 @@ function encounterEnemies(s:DungeonState){
     if(s.floor===4&&s.encounter===5)p.weaponUpdate={armor:20};
     return p;
   });
-  s.event=undefined;s.events=[];s.round++;s.rolls={};s.lastD20={};s.enemyRolls=[];s.votes=[];s.target=s.enemies[0].id;
+  s.duelNotice=undefined;s.event=undefined;s.events=[];s.round++;s.rolls={};s.lastD20={};s.enemyRolls=[];s.votes=[];s.target=s.enemies[0].id;
   s.phase='attack';s.attackActors=undefined;s.deadline=Date.now()+20000;
   for(const p of s.players){p.skill1UsedTurn=undefined;p.skill2UsedTurn=undefined;p.boxerAttackRound=undefined;p.boxerAttackRolls=[];p.diceTiming=undefined;}
   add(s,'Floor '+s.floor+' · Encounter '+s.encounter+' · '+s.enemies.map(p=>p.name).join(', '));
@@ -154,7 +156,26 @@ function beginBotDice(s:DungeonState,role:'attack'|'defense'|'charge',now:number
   s.botDice={stage:'rolling',role,readyAt:now+1400,values:[]};
   s.deadline=undefined;
 }
+function awardNiceComparison(s: DungeonState, attack: number, defense: number, teamAttacks: boolean) {
+  const kind = niceComparisonKind(attack, defense);
+  if (!kind) return;
+
+  const teamWins = (kind === 'attack') === teamAttacks;
+  if (teamWins) {
+    s.pts += 10;
+  } else {
+    const recipient = s.enemies.find(enemy => enemy.hp > 0);
+    if (!recipient) return;
+    recipient.d12Charge = (recipient.d12Charge ?? 0) + 10;
+  }
+
+  const en = (kind === 'attack' ? 'Nice Attack' : 'Nice Defense') + ' · ' + (teamWins ? 'Your team' : 'Enemies') + ' +10 PTS';
+  const vi = (kind === 'attack' ? 'Tấn công xuất sắc' : 'Phòng thủ xuất sắc') + ' · ' + (teamWins ? 'Đội của bạn' : 'Địch') + ' +10 PTS';
+  s.duelNotice = { id: crypto.randomUUID(), kind, en, vi };
+  add(s, en);
+}
 function finishDice(s:DungeonState,now:number){
+  s.duelNotice = undefined;
   if(!s.enemies.some(p=>p.hp>0)){progressEncounter(s);return;}
   let total=Object.values(s.rolls).flat().reduce((a,b)=>a+b,0);
   // The visible result was rolled and held by tickDungeon; never roll it again here.
@@ -171,7 +192,7 @@ function finishDice(s:DungeonState,now:number){
   if(s.phase==='attack'){
     const victim=s.enemies.find(p=>p.id===s.target&&p.hp>0)||s.enemies.find(p=>p.hp>0)!;
     const judge=s.players.find(p=>p.id===victim.weaponUpdate?.judgement?.owner);
-    if(judge){const verdict=judgementAttack(judge,victim,total>enemyTotal,s.round);if(verdict){recordCombatHit(s,verdict.damage,judge.id,victim.id);victim.hp=Math.max(0,victim.hp-verdict.damage);s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:verdict.damage,critical:false,target:victim.name};add(s,'Purging Judgement · '+verdict.hits+'/2 · '+verdict.attacksLeft+' attacks left');for(const event of drainWeaponEvents(s.players)){emitDungeon(s,{id:crypto.randomUUID(),effect:event.effect,caster:event.caster,target:event.target,name:'Purging Judgement'});}s.rolls={};s.phase='defense';s.deadline=now+20000;progressEncounter(s);return;}}
+    if(judge){const verdict=judgementAttack(judge,victim,total>enemyTotal,s.round);if(verdict){awardNiceComparison(s,total,enemyTotal,true);recordCombatHit(s,verdict.damage,judge.id,victim.id);victim.hp=Math.max(0,victim.hp-verdict.damage);s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:verdict.damage,critical:false,target:victim.name};add(s,'Purging Judgement · '+verdict.hits+'/2 · '+verdict.attacksLeft+' attacks left');for(const event of drainWeaponEvents(s.players)){emitDungeon(s,{id:crypto.randomUUID(),effect:event.effect,caster:event.caster,target:event.target,name:'Purging Judgement'});}s.rolls={};s.phase='defense';s.deadline=now+20000;progressEncounter(s);return;}}
     s.target=victim.id;
     const attackers=s.players.filter(p=>!s.attackActors||s.attackActors.includes(p.id));
     let weaponBonus=0;
@@ -210,6 +231,7 @@ function finishDice(s:DungeonState,now:number){
     for(const player of attackers){const owner=pooled(s,player);normalReactions(owner,victim,damage>0,Math.round(damage/attackers.length),Math.round(enemyTotal/attackers.length),s.round);savePooled(s,player,owner);}
     s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:hpBefore-victim.hp,critical,target:victim.name};
     if(total>enemyTotal)for(const hero of attackers){const effect=normalAttackEffect(hero.weapon.id,hero);emitDungeon(s,{id:crypto.randomUUID(),approach:!projectileColor(effect)&&!isTravelingEffect(effect),damage:hpBefore-victim.hp,effect,caster:hero.id,target:victim.id,name:hero.name+' · D20'});}
+    awardNiceComparison(s,total,enemyTotal,true);
     add(s,'Team ATK '+total+' vs DEF '+enemyTotal+' · '+victim.name+' −'+damage+' HP');
     const extra=s.players.filter(p=>(p.weaponUpdate?.extraAttacks??0)>0);
     if(extra.length){s.attackActors=extra.map(p=>p.id);for(const p of extra){p.weaponUpdate!.extraAttacks!--;p.weaponUpdate!.lastD20Round=undefined;p.boxerAttackRound=undefined;p.boxerAttackRolls=[];p.diceTiming=undefined;}s.phase='attack';add(s,'Time Changer · '+extra.map(p=>p.name).join(', ')+' attacks again');}
@@ -237,6 +259,7 @@ function finishDice(s:DungeonState,now:number){
     if(damage>0)for(const enemy of s.enemies.filter(p=>p.hp>0&&p.weapon.id==='spirit_stone'&&(p.petRockHp??0)>0)){const follow=damageTeam(s,enemy.petRockEnraged?5:2);recordCombatHit(s,follow,enemy.id,'dungeon_team');}
     s.comparison={id:crypto.randomUUID(),attack:enemyTotal,defense:total,difference:enemyTotal-total,damage:hpBefore-s.teamHp,critical,target:'TEAM'};
     if(hpBefore>s.teamHp)emitDungeon(s,{id:crypto.randomUUID(),damage:hpBefore-s.teamHp,effect:normalAttackEffect(source.weapon.id,source),caster:source.id,target:s.players[0].id,name:'Enemy D20'});
+    awardNiceComparison(s,enemyTotal,total,false);
     add(s,'Enemy ATK '+enemyTotal+' vs DEF '+total+' · Team −'+damage+' HP');
     s.phase='charge';
   }
