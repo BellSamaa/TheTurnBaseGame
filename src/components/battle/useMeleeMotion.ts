@@ -1,9 +1,9 @@
 'use client';
 import {useEffect,useState,type RefObject} from 'react';
-import {isMeleeEffect,isTravelingEffect,isSupersonicEffect,projectileColor} from '@/lib/skillMotion';
+import {isMeleeEffect,isTravelingEffect,isSupersonicEffect,projectileColor,musashiNormalFlipX} from '@/lib/skillMotion';
 import {effectFrame} from '@/lib/weaponUpdateAssets';
 import {animationSpec,animationFrameAt} from '@/lib/weaponUpdate2Effects';
-type Event={id:string;effect:string;caster:string;target:string;damage?:number};
+type Event={id:string;effect:string;caster:string;target:string;damage?:number;approach?:boolean};
 function addSpeedTrail(sprite:HTMLElement,from:DOMRect,dx:number,dy:number,nodes:HTMLElement[],animations:Animation[]){
  const angle=Math.atan2(dy,dx)+'rad',length=Math.hypot(dx,dy);
  for(let i=0;i<4;i++){
@@ -16,15 +16,16 @@ function addSpeedTrail(sprite:HTMLElement,from:DOMRect,dx:number,dy:number,nodes
 }
 /** Visual children move; authoritative fighter anchors never move. */
 export function useMeleeMotion(event:Event|undefined,root:RefObject<HTMLDivElement|null>){
- const [impact,setImpact]=useState<string>();
+ const [impact,setImpact]=useState<string>(),[flipX,setFlipX]=useState<boolean>();
  useEffect(()=>{
   if(!event){setImpact(undefined);return}
-  const scope=root.current,melee=isMeleeEffect(event.effect),flying=isTravelingEffect(event.effect),color=projectileColor(event.effect);
+  const scope=root.current,melee=event.approach||isMeleeEffect(event.effect),flying=isTravelingEffect(event.effect),color=projectileColor(event.effect);
   const find=(id:string)=>scope?.querySelector<HTMLElement>('[data-fighter-id="'+CSS.escape(id)+'"]');
   const caster=find(event.caster),target=find(event.target),sprite=caster?.querySelector<HTMLElement>('.character-motion')||caster?.querySelector<HTMLElement>(':scope > img'),victim=target?.querySelector<HTMLElement>('.character-motion')||target?.querySelector<HTMLElement>(':scope > img')||target;
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!sprite||!victim||event.caster===event.target||event.target==='center'){setImpact(event.id);return}
+  if(!sprite||!victim||event.caster===event.target||event.target==='center'){setFlipX(undefined);setImpact(event.id);return}
   const from=sprite.getBoundingClientRect(),to=victim.getBoundingClientRect(),direction=to.x+to.width/2>=from.x+from.width/2?1:-1;
+  setFlipX(musashiNormalFlipX(event.effect,direction<0)??direction<0);
   const travelMs=reduced?0:melee?(isSupersonicEffect(event.effect)?90:event.effect.startsWith('mu:D20_')?140:250):color?360:0,clip=animationSpec(event.effect).ms;
   const nodes:HTMLElement[]=[],animations:Animation[]=[],timers:ReturnType<typeof setTimeout>[]=[];
   const old={position:sprite.style.position,zIndex:caster!.style.zIndex};
@@ -37,9 +38,9 @@ export function useMeleeMotion(event:Event|undefined,root:RefObject<HTMLDivEleme
    animations.push(sprite.animate([{translate:'0px 0px',offset:0},{translate:travel,offset:travelMs/duration},{translate:travel,offset:(clip+travelMs)/duration},{translate:'0px 0px',offset:1}],{duration,easing:event.effect.startsWith('mu:')?'linear':'ease-in-out'}));
    if(isSupersonicEffect(event.effect))addSpeedTrail(sprite,from,dx,dy,nodes,animations);
   }else if(flying&&!reduced){
-   const wave=document.createElement('div'),art=document.createElement('img'),size=Math.min(innerWidth<600?110:320,Math.max(90,Math.min(190,from.height*1.3))*(event.effect==='wu1:world_slash'||['mu:S2_A_Void_Flash','mu:Musashi_Skill2_Normal_NoFlash'].includes(event.effect)?1.5:1));wave.className='combat-skill-projectile';wave.dataset.waveEffect=event.effect;wave.style.width=size+'px';wave.style.height=(event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?size*.4:size)+'px';wave.style.left=(from.x+from.width/2-size/2)+'px';wave.style.top=(from.y+from.height*.5-(event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?size*.2:size/2))+'px';art.src=effectFrame(event.effect,0);art.alt='';art.style.transform=direction<0?'scaleX(-1)':'';wave.append(art);document.body.append(wave);nodes.push(wave);if(['mu:S2_A_Void_Flash','mu:Musashi_Skill2_Normal_NoFlash'].includes(event.effect)){const flash=document.createElement('div');flash.className='musashi-screen-flash';document.body.append(flash);nodes.push(flash);}
+   const wave=document.createElement('div'),art=document.createElement('img'),size=Math.min(innerWidth<600?110:320,Math.max(90,Math.min(190,from.height*1.3))*(event.effect==='wu1:world_slash'||['mu:S2_A_Void_Flash','mu:Musashi_Skill2_Normal_NoFlash'].includes(event.effect)?1.5:1))*(event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?2:1);wave.className='combat-skill-projectile';wave.dataset.waveEffect=event.effect;wave.style.width=size+'px';wave.style.height=(event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?size*.4:size)+'px';wave.style.left=(from.x+from.width/2-size/2)+'px';wave.style.top=(from.y+from.height*.5-(event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?size*.2:size/2))+'px';art.src=effectFrame(event.effect,0);art.alt='';art.style.transform=direction<0?'scaleX(-1)':'';wave.append(art);document.body.append(wave);nodes.push(wave);if(['mu:S2_A_Void_Flash','mu:Musashi_Skill2_Normal_NoFlash'].includes(event.effect)){const flash=document.createElement('div');flash.className='musashi-screen-flash';document.body.append(flash);nodes.push(flash);}
    const dx=to.x+to.width/2-(from.x+from.width/2),dy=to.y+to.height*.5-(from.y+from.height*.5);
-   animations.push(wave.animate([{transform:'translate(0px,0px)',offset:0},{transform:'translate('+dx+'px,'+dy+'px)',offset:.65},{transform:'translate('+dx+'px,'+dy+'px)',offset:1}],{duration:clip,easing:event.effect.startsWith('mu:')?'cubic-bezier(0.1,0.6,0.9,0.4)':'ease-out',fill:'forwards'}));
+   animations.push(wave.animate([{transform:'translate(0px,0px)',offset:0},{transform:'translate('+dx+'px,'+dy+'px)',offset:event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?.55:.65},{transform:'translate('+dx+'px,'+dy+'px)',offset:1}],{duration:clip,easing:event.effect.startsWith('mu:')?'cubic-bezier(0.1,0.6,0.9,0.4)':'ease-out',fill:'forwards'}));
    const started=performance.now();let frame=-1;const interval=setInterval(()=>{const elapsed=performance.now()-started;if(elapsed>=clip){clearInterval(interval);return}const next=animationFrameAt(event.effect,elapsed);if(next!==frame){frame=next;art.src=effectFrame(event.effect,frame)}},16);timers.push(interval);
   }else if(color&&!reduced){
    const ray=document.createElement('div');ray.className='combat-projectile';ray.style.background=color;ray.style.boxShadow='0 0 8px #fff,0 0 22px '+color;ray.style.left=(from.x+from.width/2-48)+'px';ray.style.top=(from.y+from.height*.5)+'px';document.body.append(ray);nodes.push(ray);
@@ -54,5 +55,5 @@ export function useMeleeMotion(event:Event|undefined,root:RefObject<HTMLDivEleme
   },travelMs+clip));
   return()=>{timers.forEach(clearTimeout);animations.forEach(a=>a.cancel());nodes.forEach(n=>n.remove());sprite.style.position=old.position;caster!.style.zIndex=old.zIndex};
  },[event?.id,root]);
- return !event||impact===event.id;
+ return {impactReady:!event||impact===event.id,flipX};
 }

@@ -8,7 +8,7 @@ export function projectileColor(effect:string):string|undefined{
  if(/^nw:(tornado|gale_beam|wind_impact|water_impact|halo_rays|wall_collapse)$/.test(effect))return '#83e5ff';
  if(/^wu1:(fire_arrow|giant_fire_arrow|ice_spear|ice_spears_three|giant_ice_spear|lightning_yellow|lightning_red|lightning_blue|superconduct_orb|superconduct_beam|elemental_beam|water_orb|fire_bomb|worker_bee|queen_bee)$/.test(effect))return /ice|water|blue/.test(effect)?'#7adfff':/fire|red/.test(effect)?'#ff755b':/superconduct|elemental/.test(effect)?'#c58aff':'#ffdc5d';
 }
-export function effectDuration(effect:string){const clip=animationSpec(effect).ms;return clip+(isSupersonicEffect(effect)?500:/^mu:D20_/.test(effect)?600:isMeleeEffect(effect)?900:projectileColor(effect)?750:effect.startsWith('dn:')?200:350);}
+export function effectDuration(effect:string,approach=false){const clip=animationSpec(effect).ms;return clip+(isSupersonicEffect(effect)?500:/^mu:D20_/.test(effect)?600:(isMeleeEffect(effect)||approach)?900:projectileColor(effect)?750:effect.startsWith('dn:')?200:350);}
 export function presentationDuration(event:{effect:string;cues?:{effect:string}[]}|undefined){return event?(event.cues?.length?event.cues:[event]).reduce((n,c)=>n+effectDuration(c.effect),0):0;}
 
 /** Musashi normal-cut art curves left by default; mirror it for a left-side caster. */
