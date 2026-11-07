@@ -588,3 +588,5 @@
 
 /* Entrance/rest NPCs stay behind every party member; source portraits face right. */
 .dungeon-exploring .dungeon-npc{z-index:2}.dungeon-exploring .dungeon-hero.is-exploring{z-index:5}.dungeon-exploring .dungeon-npc[data-facing=right]>img{transform:none;scale:1 1}.dungeon-exploring .dungeon-walk-help,.dungeon-exploring .dungeon-touch{z-index:10}
+
+.dungeon-exploring .dungeon-npc[data-facing=left]>img{transform:none;scale:-1 1}
