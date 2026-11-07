@@ -60,7 +60,7 @@ export interface DungeonState {
   startedAt?:number;
   deadline?:number;
   target?:string;
-  event?:{id:string;approach?:boolean;visualOnly?:boolean;damage?:number;effect:string;caster:string;target:string;name:string;at?:number};
+  event?:{id:string;approach?:boolean;damage?:number;effect:string;caster:string;target:string;name:string;at?:number};
   events?:NonNullable<DungeonState['event']>[];
   instinctReuse?:Record<string,{round:number;slot:1|2}>;
 }
@@ -172,7 +172,7 @@ function finishDice(s:DungeonState,now:number){
     const victim=s.enemies.find(p=>p.id===s.target&&p.hp>0)||s.enemies.find(p=>p.hp>0)!;
     const judge=s.players.find(p=>p.id===victim.weaponUpdate?.judgement?.owner);
     if(judge){const verdict=judgementAttack(judge,victim,total>enemyTotal,s.round);if(verdict){recordCombatHit(s,verdict.damage,judge.id,victim.id);victim.hp=Math.max(0,victim.hp-verdict.damage);s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:verdict.damage,critical:false,target:victim.name};add(s,'Purging Judgement · '+verdict.hits+'/2 · '+verdict.attacksLeft+' attacks left');for(const event of drainWeaponEvents(s.players)){emitDungeon(s,{id:crypto.randomUUID(),effect:event.effect,caster:event.caster,target:event.target,name:'Purging Judgement'});}s.rolls={};s.phase='defense';s.deadline=now+20000;progressEncounter(s);return;}}
-    const visualTargets=s.enemies.filter(p=>p.hp>0);
+    s.target=victim.id;
     const attackers=s.players.filter(p=>!s.attackActors||s.attackActors.includes(p.id));
     let weaponBonus=0;
     for(const player of attackers){
@@ -209,7 +209,7 @@ function finishDice(s:DungeonState,now:number){
     }
     for(const player of attackers){const owner=pooled(s,player);normalReactions(owner,victim,damage>0,Math.round(damage/attackers.length),Math.round(enemyTotal/attackers.length),s.round);savePooled(s,player,owner);}
     s.comparison={id:crypto.randomUUID(),attack:total,defense:enemyTotal,difference:total-enemyTotal,damage:hpBefore-victim.hp,critical,target:victim.name};
-    if(total>enemyTotal)for(const hero of attackers){const effect=normalAttackEffect(hero.weapon.id,hero);for(const foe of visualTargets)emitDungeon(s,{id:crypto.randomUUID(),approach:!projectileColor(effect)&&!isTravelingEffect(effect),visualOnly:foe.id!==victim.id,damage:foe.id===victim.id?hpBefore-victim.hp:0,effect,caster:hero.id,target:foe.id,name:hero.name+' · D20'});}
+    if(total>enemyTotal)for(const hero of attackers){const effect=normalAttackEffect(hero.weapon.id,hero);emitDungeon(s,{id:crypto.randomUUID(),approach:!projectileColor(effect)&&!isTravelingEffect(effect),damage:hpBefore-victim.hp,effect,caster:hero.id,target:victim.id,name:hero.name+' · D20'});}
     add(s,'Team ATK '+total+' vs DEF '+enemyTotal+' · '+victim.name+' −'+damage+' HP');
     const extra=s.players.filter(p=>(p.weaponUpdate?.extraAttacks??0)>0);
     if(extra.length){s.attackActors=extra.map(p=>p.id);for(const p of extra){p.weaponUpdate!.extraAttacks!--;p.weaponUpdate!.lastD20Round=undefined;p.boxerAttackRound=undefined;p.boxerAttackRolls=[];p.diceTiming=undefined;}s.phase='attack';add(s,'Time Changer · '+extra.map(p=>p.name).join(', ')+' attacks again');}
