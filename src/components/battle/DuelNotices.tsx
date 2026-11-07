@@ -1,6 +1,21 @@
 'use client';
 import { useEffect, useState } from 'react';
 import type { DuelClash, DuelNotice } from '@/lib/duelRules';
+import type {LmsState} from '@/lib/lms';
+
+export function InitiativeClashPanel({clash,players,viewer,en,busy,onWager}:{clash:NonNullable<LmsState['initiativeClash']>;players:LmsState['players'];viewer?:string;en:boolean;busy:boolean;onWager?:(stake:number)=>void}){
+  const [now,setNow]=useState(Date.now);
+  useEffect(()=>{const t=setInterval(()=>setNow(Date.now()),80);return()=>clearInterval(t);},[clash.deadline]);
+  const remaining=Math.max(0,clash.deadline-now),mine=viewer&&clash.ids.includes(viewer),submitted=viewer?clash.wagers[viewer]:undefined;
+  const points=players.find(p=>p.id===viewer)?.d12Charge??0;
+  return <aside className="duel-clash-panel initiative-clash-panel" aria-label={en?'Clashing for attack priority':'Va chạm tranh quyền Công'}>
+    <h3>✦ {en?'CLASHING · ATTACK PRIORITY':'VA CHẠM · TRANH QUYỀN CÔNG'} ✦</h3>
+    <div className="initiative-clash-leaders">{clash.ids.map(id=><span key={id}>{players.find(p=>p.id===id)?.name}<strong>D20 {clash.score}</strong></span>)}</div>
+    <p>{en?'Equal wagers = equal chances. Each PTS adds one draw weight. Winner chooses the target.':'Cược bằng nhau: cơ hội ngang nhau. Mỗi PTS thêm một phần cơ hội. Người thắng chọn mục tiêu.'}</p>
+    <progress max={5000} value={remaining}/><span className="duel-clash-clock">{Math.ceil(remaining/1000)}s</span>
+    {mine&&submitted!==undefined?<p>{en?'Wager locked':'Đã chốt cược'} · {submitted} PTS</p>:mine&&<div className="duel-wager-options">{[0,1,2,3].map(stake=><button type="button" key={stake} disabled={busy||!remaining||stake>points} onClick={()=>onWager?.(stake)}>{stake} PTS</button>)}</div>}
+  </aside>;
+}
 
 export function DuelClashPanel({clash, attackerId, viewer, points, en, busy, onWager}: {
   clash: DuelClash;

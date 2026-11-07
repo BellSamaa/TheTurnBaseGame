@@ -24,7 +24,7 @@ export function clashCounterChance(attackStake: number, defenseStake: number) {
 }
 
 export function openDuelClash(attack: number, defense: number, defenderId: string, now: number): DuelClash | undefined {
-  if (attack === defense && attack > 0 && attack < 20) {
+  if (attack === defense && attack > 0) {
     return { score: attack, defenderId, deadline: now + 5000 };
   }
 }

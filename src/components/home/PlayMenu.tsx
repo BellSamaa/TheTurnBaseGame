@@ -1,4 +1,5 @@
 'use client';
+import GameSettingsButton from '@/components/ui/GameSettingsButton';
 
 import WorldLobby from './WorldLobby';
 import WeaponsGallery from '@/components/weapons/WeaponsGallery';
@@ -52,7 +53,7 @@ export default function PlayMenu() {
           {t('play', lang)}
         </h2>
 
-        <div className="w-28 sm:w-36" />
+        <div className="play-settings-actions"><GameSettingsButton/></div>
       </header>
 
       <WorldLobby blocked={activeModal!=='none'} onDoor={setActiveModal}/>

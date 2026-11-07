@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useGameStore } from '@/stores/gameStore';
+import HudButton from '@/components/ui/HudButton';
 import { BATTLE_TRACKS, LOBBY_BGM, LMS_BGM } from '@/lib/constants';
 
 let globalBgmAudio: HTMLAudioElement | null = null;
@@ -95,49 +96,11 @@ export default function AudioManager() {
 export function BattleMusicToggle(){
  const muted=useGameStore(s=>s.settings.musicMuted),en=useGameStore(s=>s.settings.language)==='en',updateSettings=useGameStore(s=>s.updateSettings);
  const title=en?(muted?'Turn background music on':'Turn background music off'):(muted?'Bật nhạc nền':'Tắt nhạc nền');
- return <button type="button" className={'battle-music-toggle '+(muted?'is-muted':'')} aria-label={title} title={title} aria-pressed={!muted} onClick={()=>{updateSettings({musicMuted:!muted});if(muted&&globalBgmAudio)void globalBgmAudio.play().catch(()=>{});}}>
-  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 13V4l10-2v10M7 7l10-2" fill="none" stroke="currentColor" strokeWidth="2"/><ellipse cx="4.5" cy="14" rx="3.5" ry="2.5" fill="currentColor"/><ellipse cx="14.5" cy="13" rx="3.5" ry="2.5" fill="currentColor"/>{muted&&<path d="m2 2 16 16" stroke="currentColor" strokeWidth="2.5"/>}</svg>
-  <span>{en?'BGM':'NHẠC'} {muted?(en?'OFF':'TẮT'):(en?'ON':'BẬT')}</span>
- </button>;
+ return <HudButton art="bgm" label={title} className="battle-music-toggle" muted={muted} title={title} aria-pressed={!muted} onClick={()=>{updateSettings({musicMuted:!muted});if(muted&&globalBgmAudio)void globalBgmAudio.play().catch(()=>{});}}/>;
 }
 
 // Reusable toolbar component for audio toggles
-export function AudioToolbarControls() {
-  const { settings, updateSettings } = useGameStore();
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <button
-        onClick={() => {
-          const nextMuted = !settings.musicMuted;
-          updateSettings({ musicMuted: nextMuted });
-          if (!nextMuted && globalBgmAudio) {
-            globalBgmAudio.play().catch(() => {});
-          }
-        }}
-        className={`px-2 py-1 text-[8.5px] font-pixel border transition cursor-pointer select-none flex items-center gap-1 ${
-          settings.musicMuted
-            ? 'bg-red-950/70 border-red-500/60 text-red-300'
-            : 'bg-yellow-950/70 border-yellow-500/70 text-yellow-300 hover:bg-yellow-900/60'
-        }`}
-        title="Toggle Music"
-      >
-        <span>{settings.musicMuted ? '🔇' : '🎵'}</span>
-        <span className="hidden md:inline">{settings.musicMuted ? 'OFF' : 'BGM'}</span>
-      </button>
-
-      <button
-        onClick={() => updateSettings({ sfxMuted: !settings.sfxMuted })}
-        className={`px-2 py-1 text-[8.5px] font-pixel border transition cursor-pointer select-none flex items-center gap-1 ${
-          settings.sfxMuted
-            ? 'bg-red-950/70 border-red-500/60 text-red-300'
-            : 'bg-cyan-950/70 border-cyan-500/70 text-cyan-300 hover:bg-cyan-900/60'
-        }`}
-        title="Toggle SFX"
-      >
-        <span>{settings.sfxMuted ? '🔕' : '🔊'}</span>
-        <span className="hidden md:inline">{settings.sfxMuted ? 'OFF' : 'SFX'}</span>
-      </button>
-    </div>
-  );
+export function AudioToolbarControls(){
+ const muted=useGameStore(s=>s.settings.sfxMuted),en=useGameStore(s=>s.settings.language)==='en',updateSettings=useGameStore(s=>s.updateSettings);
+ return <div className="hud-audio-controls"><BattleMusicToggle/><HudButton art="sfx" label={en?'Sound effects':'Hiệu ứng âm thanh'} muted={muted} aria-pressed={!muted} onClick={()=>updateSettings({sfxMuted:!muted})}/></div>;
 }

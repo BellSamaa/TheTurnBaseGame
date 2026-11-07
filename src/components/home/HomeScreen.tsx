@@ -1,9 +1,7 @@
 'use client';
 import {tx} from '@/lib/uiLocale';
 
-import PlayerAvatar from '@/components/ui/PlayerAvatar';
-import {rankProgress} from '@/lib/progression';
-import {WalletBar,useProgress} from '@/components/progression/AccountPanel';
+import GameNavbar from './GameNavbar';
 import React,{useState,useEffect} from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -12,7 +10,6 @@ import { t } from '@/lib/translations';
 import PixelSpriteButton from '@/components/ui/PixelSpriteButton';
 import ParticleEffect from '@/components/ui/ParticleEffect';
 import PixelIcon from '@/components/ui/PixelIcon';
-import { AudioToolbarControls } from '@/components/audio/AudioManager';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
 import MenuWeaponsViewer from '@/components/home/MenuWeaponsViewer';
 import MenuArenasSlideshow from '@/components/home/MenuArenasSlideshow';
@@ -24,15 +21,10 @@ export default function HomeScreen() {
   const {
     setPage,
     settings,
-    updateSettings,
-    currentUser,
-    setAuthModal,
-    logoutUser,
   } = useGameStore();
 
   const [entering,setEntering]=useState(false);
   useEffect(()=>{if(!entering)return;const t=setTimeout(()=>setPage('play'),3000);return()=>clearTimeout(t);},[entering,setPage]);
-  const accountProgress=useProgress();
   const lang = settings.language;
   const isEn = lang === 'en';
 
@@ -66,107 +58,7 @@ export default function HomeScreen() {
         <ParticleEffect density={24} />
 
         {/* Top Header / Transparent Navigation Toolbar */}
-        <header className="home-toolbar relative z-30 w-full px-4 sm:px-8 py-3 flex items-center justify-end gap-3">
-          <WalletBar />
-          {/* Right Toolbar: Audio + Lang + Auth Profile */}
-          <div className="home-toolbar-actions flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            {/* Audio Controls with enchant glow */}
-            <div className="flex items-center gap-1.5 animate-enchant-glow">
-              <AudioToolbarControls />
-            </div>
-
-            {/* Language Switcher with enchant glow */}
-            <div className="home-language flex border-2 border-yellow-400/70 bg-black/60 p-0.5 shadow-[0_0_12px_rgba(250,204,21,0.3)] animate-enchant-glow">
-              <button
-                onClick={() => {
-                  playClickSound();
-                  updateSettings({ language: 'en' });
-                }}
-                className={`text-[10px] sm:text-xs font-pixel px-3 py-1.5 transition-all cursor-pointer ${
-                  isEn ? 'bg-yellow-500 text-black font-bold shadow-[0_0_8px_rgba(250,204,21,0.6)]' : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                EN
-              </button>
-              <button
-                onClick={() => {
-                  playClickSound();
-                  updateSettings({ language: 'vi' });
-                }}
-                className={`text-[10px] sm:text-xs font-pixel px-3 py-1.5 transition-all cursor-pointer ${
-                  !isEn ? 'bg-yellow-500 text-black font-bold shadow-[0_0_8px_rgba(250,204,21,0.6)]' : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                VI
-              </button>
-            </div>
-
-            {/* Global Directory Button */}
-            <button
-              onClick={() => {
-                playClickSound();
-                setAuthModal('global');
-              }}
-              title={isEn ? 'View all registered community accounts' : 'Xem danh sách tất cả tài khoản đã đăng ký'}
-              className="flex items-center gap-1.5 text-[10px] sm:text-xs text-yellow-300 font-pixel bg-gradient-to-r from-yellow-950/90 to-amber-900/90 hover:from-yellow-900 hover:to-amber-800 border-2 border-yellow-400 px-3 py-1.5 transition-all cursor-pointer shadow-[0_0_12px_rgba(250,204,21,0.4)] animate-enchant-glow hover:scale-105"
-            >
-              <span>🌐</span>
-              <span className="font-bold tracking-wide">GLOBAL</span>
-            </button>
-
-            {/* Real User Auth Profile Badge */}
-            {currentUser ? (
-              <div className="flex items-center gap-2 animate-enchant-glow">
-                <button
-                  onClick={() => {
-                    playClickSound();
-                    setAuthModal('profile');
-                  }}
-                  className="flex items-center gap-2 bg-yellow-950/80 hover:bg-yellow-900/90 border-2 border-yellow-400/70 px-3 py-1.5 transition-all group cursor-pointer shadow-[0_0_12px_rgba(250,204,21,0.3)]"
-                >
-                  <PlayerAvatar character={currentUser.avatarConfig} frame={accountProgress.equipped_frame} size={40}/>
-                  <div className="text-left">
-                    <div className="text-[10px] sm:text-xs text-yellow-300 font-pixel leading-tight group-hover:text-yellow-100">
-                      {currentUser.username}
-                    </div>
-                    <div className="text-[8px] text-slate-400 font-pixel">{tx(rankProgress(accountProgress.rankPoints).name)}</div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => {
-                    playClickSound();
-                    logoutUser();
-                  }}
-                  title="Logout"
-                  className="text-[10px] sm:text-xs text-red-400 font-pixel bg-red-950/60 hover:bg-red-900 border-2 border-red-500/50 px-2.5 py-1.5 transition-all cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 animate-enchant-glow">
-                <button
-                  onClick={() => {
-                    playClickSound();
-                    setAuthModal('login');
-                  }}
-                  className="text-[10px] sm:text-xs text-slate-100 font-pixel bg-slate-800/80 hover:bg-slate-700 border-2 border-slate-500/70 px-4 py-2 transition-all cursor-pointer shadow-[0_0_10px_rgba(148,163,184,0.2)]"
-                >
-                  {isEn ? 'LOGIN' : 'ĐĂNG NHẬP'}
-                </button>
-                <button
-                  onClick={() => {
-                    playClickSound();
-                    setAuthModal('signup');
-                  }}
-                  className="text-[10px] sm:text-xs text-black font-pixel bg-yellow-400 hover:bg-yellow-300 border-2 border-yellow-200 px-4 py-2 font-bold transition-all cursor-pointer shadow-[0_0_14px_rgba(250,204,21,0.5)]"
-                >
-                  {isEn ? 'SIGN UP' : 'ĐĂNG KÝ'}
-                </button>
-              </div>
-            )}
-          </div>
-        </header>
+        <GameNavbar />
 
         {/* Center: Logo and Menu Buttons */}
         <div className="relative z-20 flex flex-col items-center justify-center my-auto w-full max-w-xl px-4 pt-6">

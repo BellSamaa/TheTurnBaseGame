@@ -52,8 +52,9 @@ function playIntro(stand: (typeof STANDS)[string], signal: AbortSignal) {
 }
 
 /** A single opening queue per battle, independent of room polling and dice timers. */
-export default function SecretStandIntro({battleKey, opening, root}: {
+export default function SecretStandIntro({battleKey, opening, root, onlySide}: {
   battleKey: string;
+  onlySide?: 'left'|'right';
   opening: boolean;
   root: RefObject<HTMLDivElement | null>;
 }) {
@@ -68,7 +69,7 @@ export default function SecretStandIntro({battleKey, opening, root}: {
     const storageKey = `dice-secret-intro:${battleKey}`;
     try { if (sessionStorage.getItem(storageKey)) return; } catch {}
 
-    const queue = Array.from(stage.querySelectorAll<HTMLElement>('[data-stand][data-stand-side]'));
+    const queue = Array.from(stage.querySelectorAll<HTMLElement>(onlySide?`[data-stand][data-stand-side="${onlySide}"]`:'[data-stand][data-stand-side]'));
     if (!queue.length) return;
     queue.sort((a, b) => Number(a.dataset.stand === 'musashi') - Number(b.dataset.stand === 'musashi')
       || Number(a.dataset.standSide === 'right') - Number(b.dataset.standSide === 'right')
@@ -140,7 +141,7 @@ export default function SecretStandIntro({battleKey, opening, root}: {
       controller.abort();
       restore();
     };
-  }, [battleKey, root]);
+  }, [battleKey, root, onlySide]);
 
   return null;
 }

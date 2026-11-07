@@ -182,8 +182,8 @@ function finishDice(s:DungeonState,now:number){
   // The visible result was rolled and held by tickDungeon; never roll it again here.
   let enemyTotal=s.enemyRolls.reduce((a,b)=>a+b,0),floor=DUNGEON_FLOORS[s.floor-1];
   const victim=s.enemies.find(p=>p.id===s.target&&p.hp>0)||s.enemies.find(p=>p.hp>0)!;
-  // A party total can exceed 20. Only tied natural-20 rolls retain the no-clash exception.
-  if(total>0&&total===enemyTotal&&!(Object.values(s.rolls).flat().every(v=>v===20)&&s.enemyRolls.every(v=>v===20))&&!victim.weaponUpdate?.judgement&& !s.players.some(p=>p.weaponUpdate?.judgement)){
+  // Equal totals always clash, including natural twenties.
+  if(total>0&&total===enemyTotal&&!victim.weaponUpdate?.judgement&& !s.players.some(p=>p.weaponUpdate?.judgement)){
     const foes=s.enemies.filter(p=>p.hp>0),points=foes.reduce((n,p)=>n+(p.d12Charge??0),0);
     const enemyStake=Math.floor(Math.random()*(Math.min(3,points)+1));
     let left=enemyStake;for(const foe of foes){const used=Math.min(left,foe.d12Charge??0);foe.d12Charge=(foe.d12Charge??0)-used;left-=used;}

@@ -72,6 +72,14 @@ const member = (id, weaponId) => ({id, name:id, weaponId, classType:'warrior', c
     await page.waitForSelector('.combat-arena');
     assert.equal(await page.locator('.secret-stand-intro').count(), 0);
 
+    run.state.stage=2;
+    await open('pve');
+    await page.waitForSelector('.combat-arena');
+    assert.equal(await page.locator('.secret-stand-intro').count(),0);
+    run = pve('resumed-stage-two','infinity_ring','death_note');run.state.stage=2;
+    await open('pve');await page.waitForSelector('.combat-arena');
+    assert.equal(await page.locator('.secret-stand-intro').count(),0);
+
     run = pve('musashi-last', 'musashi', 'king_slasher');
     await open('pve');
     await expectIntro('king_slasher', 'right', 'sukuna-domain-theme.mp3', 3);
@@ -80,18 +88,25 @@ const member = (id, weaponId) => ({id, name:id, weaponId, classType:'warrior', c
     const dungeon = createDungeon(member('a','fire_headband'));
     dungeon.players.push(makePlayer(member('b','musashi')));
     dungeon.enemies = [makePlayer(member('enemy','death_note'))];
-    Object.assign(dungeon, {phase:'attack', round:7, encounterStartRound:7, teamHp:200, teamMaxHp:200, target:'enemy'});
+    Object.assign(dungeon, {phase:'attack', floor:1, encounter:1, round:1, encounterStartRound:1, teamHp:200, teamMaxHp:200, target:'enemy'});
     room = {code:'DINTRO', revision:1, state:dungeon};
     await page.setViewportSize({width:390, height:844});
     await open('dungeon');
     await expectIntro('fire_headband', 'left', 'madara-ika.mp3', 5);
-    await expectIntro('death_note', 'right', 'death-note-light-yagami-is-sus.mp3', 6);
     await page.waitForSelector('.secret-stand-intro[data-weapon="musashi"]');
     await page.evaluate(() => window.__gameStore.getState().updateSettings({sfxMuted:true}));
     assert.equal(await page.evaluate(() => window.introClips.at(-1).muted), true);
     await page.evaluate(() => window.__gameStore.setState({currentPage:'home'}));
     await page.waitForSelector('.secret-stand-intro', {state:'detached'});
     assert.equal(await page.evaluate(() => window.introClips.at(-1).dataset.paused), 'true');
+    for(const changes of [{round:2},{round:1,encounter:2},{floor:2,encounter:1,round:1}]){
+      Object.assign(dungeon,changes);room={...room,revision:room.revision+1,state:dungeon};
+      // Even without a prior session marker, later rounds/encounters/floors cannot replay.
+      await page.evaluate(()=>sessionStorage.removeItem('dice-secret-intro:dungeon:DINTRO'));
+      await open('dungeon');await page.waitForSelector('.dungeon-fighting');
+      assert.equal(await page.locator('.secret-stand-intro').count(),0);
+    }
+    assert.equal(await page.evaluate(()=>window.introClips.length),6);
     assert.deepEqual(errors, []);
     console.log('PASS Secret Stand intros: five clips, left/right and Musashi-last ordering, one-time playback, desktop/mobile, audio mute and exit cleanup');
   } finally {

@@ -1,7 +1,8 @@
 'use client';
+import GameSettingsButton from '@/components/ui/GameSettingsButton';
 import {PVE_BOT_RESULT_MS} from '@/lib/botPacing';
 import DiceTiming from './DiceTiming';
-import {DuelClashPanel,DuelResultNotice} from './DuelNotices';
+import {DuelClashPanel,DuelResultNotice,InitiativeClashPanel} from './DuelNotices';
 import {WeaponWeather,WeaponSummons,WeaponStatus,WeaponAura} from './WeaponWorldEffects';
 import {effectFrame,preloadWeaponEffects} from '@/lib/weaponUpdateAssets';
 import {useEffect,useRef,useState} from 'react';
@@ -28,7 +29,7 @@ import VfxAnimationPlayer from './VfxAnimationPlayer';
 import {playDiceRollSound,playBattleCue,playBattleEffect} from '@/lib/soundEffects';
 
 /** Presentation only: all values and dice results come from the battle server. */
-export default function CombatArena({state:s,battleKey,viewer,busy=false,botRolling=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,onDuelWager,onTiming,children}:{state:LmsState;battleKey:string;viewer?:string;busy?:boolean;botRolling?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;onDuelWager?:(stake:number)=>void;onTiming?:(elapsedMs?:number)=>void;children:React.ReactNode}){
+export default function CombatArena({state:s,battleKey,introOpening=true,viewer,busy=false,botRolling=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,onDuelWager,onTiming,children}:{state:LmsState;battleKey:string;introOpening?:boolean;viewer?:string;busy?:boolean;botRolling?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;onDuelWager?:(stake:number)=>void;onTiming?:(elapsedMs?:number)=>void;children:React.ReactNode}){
   useCombatHits(s.hitEvents);
   const weaponKey=s.players.map(p=>p.weapon.id).join(',');
   useEffect(()=>{preloadWeaponEffects(weaponKey.split(','));},[weaponKey]);
@@ -114,11 +115,11 @@ export default function CombatArena({state:s,battleKey,viewer,busy=false,botRoll
     const t=setTimeout(()=>{setRolling(false);playBattleCue('result');},700);return()=>clearTimeout(t);
   },[rollKey]);
   return <div ref={arenaRef} data-animating={animating} className={'combat-arena battle-balanced '+(buffs?'combat-party party-count-'+s.players.length:'combat-duel')}>
-    {(!buffs || !viewer || !s.openingReady || s.openingReady.includes(viewer) || s.phase !== 'initiative') && <SecretStandIntro battleKey={battleKey} opening={s.round === 1 && !s.winner} root={arenaRef}/>}
+    {(!buffs || !viewer || !s.openingReady || s.openingReady.includes(viewer) || s.phase !== 'initiative') && <SecretStandIntro battleKey={battleKey} opening={introOpening && s.round === 1 && !s.winner} root={arenaRef}/>}
     {tiePopup&&<div className="lms-tie-notice" role="status"><h3>✦ {en?'TIED D20 · RANDOM ORDER':'D20 BẰNG ĐIỂM · BỐC THĂM'} ✦</h3>{tiePopup.groups.map(g=><p key={g.roll}>D20 <b>{g.roll}</b> · {g.ids.map(id=>s.players.find(p=>p.id===id)?.name).join(' / ')}<strong>{g.ids.map(id=>s.players.find(p=>p.id===id)?.name).join(' → ')}</strong></p>)}</div>}
     <header className="combat-topbar">
       <div className="combat-heading">{onBack&&<button className="combat-back" onClick={onBack}>{en?'← Back':'← Trở lại'}</button>}<div><small>{title}</small><h2>{en?'ROUND':'VÒNG'} {s.round}</h2></div></div>
-      <div className="combat-toolbar"><WalletBar/><BattleMusicToggle/><button className="combat-surrender" disabled={busy||!!s.winner} onClick={onSurrender}>{en?'Surrender':'Đầu hàng'}</button></div>
+      <div className="combat-toolbar"><WalletBar/><BattleMusicToggle/><GameSettingsButton/><button className="combat-surrender" disabled={busy||!!s.winner} onClick={onSurrender}>{en?'Surrender':'Đầu hàng'}</button></div>
     </header>
     <nav className="combat-phase-bar" aria-label={en?'Battle phases':'Giai đoạn chiến đấu'}>{stages.map((phase,i)=>{
       const labels:Record<string,string>=en?{initiative:'OPENING D20',charge:'D6 · ATK',charge_defense:'D6 · DEF',skills:'SKILL USING',target:'TARGET',attack:'D20 · ATK',defense:'D20 · DEF',clash:'REACTION',end:stageSequence?'SKILLS / END':'END TURN'}:{initiative:'D20 KHỞI ĐẦU',charge:'D6 · CÔNG',charge_defense:'D6 · THỦ',skills:'DÙNG KỸ NĂNG',target:'MỤC TIÊU',attack:'D20 · CÔNG',defense:'D20 · THỦ',clash:'CAN THIỆP',end:stageSequence?'CHIÊU / KẾT THÚC':'KẾT THÚC'};
@@ -147,6 +148,7 @@ export default function CombatArena({state:s,battleKey,viewer,busy=false,botRoll
 
       </section>;})}
     </div>
+    {s.initiativeClash&&!s.winner&&<InitiativeClashPanel clash={s.initiativeClash} players={s.players} viewer={viewer} en={en} busy={busy} onWager={onDuelWager}/>}
     {s.duelClash&&!s.winner&&<DuelClashPanel clash={s.duelClash} attackerId={active.id} viewer={viewer} points={s.players.find(p=>p.id===viewer)?.d12Charge??0} en={en} busy={busy} onWager={onDuelWager}/>}
     <DuelResultNotice notice={s.duelNotice} en={en}/>
     <div className="combat-result-strip" role="status" aria-live="polite">{botRolling?<div className="combat-roll-notice">{en?'ENEMY IS ROLLING…':'ĐỐI THỦ ĐANG TUNG…'}</div>:rollAlerts.length?<div className="opponent-roll-alerts">{rollAlerts.map(r=><div className="opponent-roll-alert" key={r.key}><span>{tx(r.name)}</span><small>{r.die} · {r.role==='ATK'?(en?'ATK':'CÔNG'):(en?'DEF':'THỦ')}</small><strong>{r.values.join(' + ')}</strong><em>{en?'Rolled!':'Đã tung!'}</em></div>)}</div>:<div className="combat-roll-notice" hidden={!notice} title={notice}>{notice}</div>}</div>

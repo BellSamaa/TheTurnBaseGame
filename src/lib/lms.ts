@@ -2,7 +2,7 @@ import {prepareWeapon2Attack,weapon2Reactions} from './weaponUpdate2Logic';
 import {presentationDuration} from './skillMotion';
 import {recordCombatHit,type CombatHit} from './combatHits';
 import {deathNoteMode} from './deathNote';
-import {clashCanResolve,openDuelClash,rollLuckyAttack,submitClashWager,type DuelClash,type DuelNotice} from './duelRules';
+import {clashCanResolve,openDuelClash,rollLuckyAttack,submitClashWager,critChance,type DuelClash,type DuelNotice} from './duelRules';
 import {rollTimedD20,timeLmsRoll} from './diceTiming';
 import {weaponD20,tickWeaponRound,nextWeaponAttacker,prepareWeaponCharge,outgoingDamage} from './weaponUpdateHooks';
 import {syncWeather,weaponState,drainWeaponEvents,advanceWeather} from './weaponUpdateState';
@@ -23,6 +23,7 @@ export interface LmsState {
   animationUntil?:number;
   hitEvents?:CombatHit[];
   duelClash?: DuelClash;
+  initiativeClash?: {score:number;ids:string[];deadline:number;wagers:Record<string,number>};
   duelNotice?: DuelNotice;
   lastEvent?: {id:string;announcementId?:string;damage?:number;cues?:{effect:string;target:string;caster?:string;damage?:number}[];effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
   acceptedActions?:string[];
@@ -102,7 +103,8 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
         s.revision++;return s;
       }
     }else if(now<(s.deadline??Infinity)) throw Error('Chờ hết 5 giây can thiệp');
-    const result=duel?calculateDuelCombat(s.attack!,s.defense!,attacker,target,s.round,s.duelClash?.attackStake,s.duelClash?.defenseStake):calculateD20Combat(s.attack!,s.defense!,CLASS_DEFINITIONS[attacker.classType],CLASS_DEFINITIONS[target.classType],attacker,target,s.round);
+    const lmsCritical=!duel&&s.attack===20&&Math.random()<critChance(attacker.weapon.tier);
+    const result=duel?calculateDuelCombat(s.attack!,s.defense!,attacker,target,s.round,s.duelClash?.attackStake,s.duelClash?.defenseStake):calculateD20Combat(s.attack!,s.defense!,CLASS_DEFINITIONS[attacker.classType],CLASS_DEFINITIONS[target.classType],attacker,target,s.round,lmsCritical?20:undefined);
     weapon2Reactions(attacker,target,s.round);
     s.duelClash=undefined;
     if(duel&&'notice' in result) s.duelNotice=result.notice as DuelNotice|undefined;
@@ -112,6 +114,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     if(flags['insurance:'+target.id]){damage=Math.min(15,damage);target.d12Charge=(target.d12Charge??0)+3;delete flags['insurance:'+target.id];}
     if(flags['phoenix:'+target.id]&&damage>=target.hp){damage=Math.max(0,target.hp-1);target.d12Charge=(target.d12Charge??0)+20;delete flags['phoenix:'+target.id];}
     const lost=Math.min(target.hp,damage);recordCombatHit(s,lost,attacker.id,target.id);target.hp=Math.max(0,target.hp-damage);recordOpponentDamage(target,lost,s.round);
+    if(lmsCritical&&result.isHit){s.duelNotice={id:crypto.randomUUID(),kind:'crit',en:`Critical Hit · ${attacker.name} · ${lost} HP`,vi:`Chí mạng · ${attacker.name} · ${lost} HP`};result.logTextEn=`Critical Hit! D20 ATK 20 bypasses defense · ${lost} HP after effects.`;result.logTextVi=`Chí mạng! D20 Công 20 xuyên điểm Thủ · ${lost} HP sau hiệu ứng.`;}
     for(const p of s.players)if(flags['watch:'+p.id]){p.d12Charge=(p.d12Charge??0)+Math.floor(lost/5);delete flags['watch:'+p.id];}
     if(result.isHit&&(attacker.petRockHp??0)>0&&target.hp>0){const rockDamage=applyOpponentDamage(target,attacker.petRockEnraged?5:2,s.round);recordCombatHit(s,rockDamage,attacker.id,target.id);add('Lượt Pet Rock: tấn công sau chủ nhân, gây '+rockDamage+' sát thương.','Pet Rock follows its owner: '+rockDamage+' damage.');}
     if((attacker.panicTurns??0)>0)attacker.panicTurns!--;

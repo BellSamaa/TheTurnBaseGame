@@ -1,4 +1,5 @@
 'use client';
+import MathSymbol from '@/components/ui/MathSymbol';
 import type {DungeonState} from '@/lib/dungeon';
 export default function DungeonDiceDuel({state:s,en}:{state:DungeonState;en:boolean}){
  if(s.phase!=='attack'&&s.phase!=='defense')return null;
@@ -9,7 +10,7 @@ export default function DungeonDiceDuel({state:s,en}:{state:DungeonState;en:bool
  const outcome=ready?(team>enemy!?'team-wins':team<enemy!?'enemy-wins':'draw'):'pending';
  return <div className={'dungeon-dice-duel '+outcome} key={s.round+':'+s.phase+':'+(enemy??'waiting')} role="status" aria-live="polite" data-team-total={rolled.length?team:''} data-enemy-total={enemy??''}>
  <div className="duel-team" aria-label={en?'Team total':'Tổng đội'}><b>{rolled.length?team:'—'}{rolled.length>0&&rolled.length<actors.length&&<i>…</i>}</b></div>
- <strong className="duel-comparator">{ready?(team>enemy!?'>':team<enemy!?'<':'='):'⋯'}</strong>
+ <strong className="duel-comparator">{ready?<MathSymbol value={team>enemy!?'>':team<enemy!?'<':'='}/>:<span>...</span>}</strong>
  <div className="duel-enemy" aria-label={en?'Enemy total':'Tổng đối thủ'}><b>{enemy??'—'}</b></div>
  </div>;
 }

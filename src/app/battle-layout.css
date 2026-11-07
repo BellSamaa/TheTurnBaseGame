@@ -636,3 +636,48 @@
 .dungeon-portal-ready{position:absolute;z-index:11;transform:translate(-50%,-100%);display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border:2px solid #ffe39b;border-radius:5px;background:linear-gradient(135deg,#28183def,#101a31ef);box-shadow:0 0 12px #ffcf6977,inset 0 0 10px #efc15b22;pointer-events:none;color:#ffeaa7;font-family:var(--font-pixel),monospace;white-space:nowrap}.dungeon-portal-ready small{font-size:7px}.dungeon-portal-ready strong{font-size:15px;text-shadow:0 0 9px #ffcf69;animation:dungeon-ready-count .35s ease-out}.dungeon-portal-ready.is-ready{border-color:#96ffe1;box-shadow:0 0 15px #58ffd766}.dungeon-portal-ready span{color:#96ffe1;font-size:13px}@keyframes dungeon-ready-count{from{transform:scale(1.3);filter:brightness(1.8)}to{transform:scale(1);filter:brightness(1)}}@media(max-width:767px){.dungeon-portal-ready{gap:4px;padding:5px 7px}.dungeon-portal-ready small{font-size:5px}.dungeon-portal-ready strong{font-size:10px}.dungeon-portal-ready span{font-size:9px}}@media(prefers-reduced-motion:reduce){.dungeon-portal-ready strong{animation:none}}
 
 .dungeon-nice-result:empty{display:none}.dungeon-nice-result .duel-result-notice{width:fit-content;max-width:96%;padding:9px 20px;border:2px solid #ffda71;border-radius:4px;background:linear-gradient(110deg,#251534ee,#71441fdd,#251534ee);color:#fff3b0;font-size:clamp(7px,1vw,11px);box-shadow:0 0 18px #ffc94d77;text-shadow:0 0 7px #ffc94d;animation:dungeon-ready-count .35s ease-out}.dungeon-nice-result .duel-result-defense{border-color:#79eaff;background:linear-gradient(110deg,#101c34ee,#245272dd,#101c34ee);color:#b7f7ff;box-shadow:0 0 18px #54dcff77;text-shadow:0 0 7px #54dcff}
+
+.initiative-clash-leaders{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;color:#fff0a3}
+.initiative-clash-leaders>span{display:grid;gap:8px;padding:8px}
+.initiative-clash-leaders strong{font-size:20px;text-shadow:0 0 12px #ffd453}
+.skill-touch-forms{display:grid;gap:6px;margin-top:10px}
+.skill-touch-forms button{padding:10px 8px;border:1px solid #a99156;background:#14223a;color:#f9e4ad;font:inherit;line-height:1.7;min-height:40px}
+.skill-touch-forms button[aria-pressed=true]{border-color:#ffe58d;box-shadow:inset 0 0 12px #ffdb6833;color:#fff7d5}
+@media(hover:none) and (pointer:coarse){
+ .combat-skill{touch-action:pan-y;user-select:none;-webkit-touch-callout:none}
+ .combat-skill-cast:disabled{pointer-events:none}
+ .skill-hover-panel{max-height:55svh;overflow:auto;overscroll-behavior:contain;z-index:80}
+}
+/* Mobile formations keep feet on the foreground and separate adjacent silhouettes. */
+@media(max-width:767px){
+ .battle-balanced.combat-party .combat-seat{width:24%;max-width:none;top:auto!important;right:auto!important;transform:none!important}
+ .battle-balanced.combat-party .combat-seat-0{left:25%;bottom:3%}
+ .battle-balanced.combat-party .combat-seat-1{left:0%;bottom:22%}
+ .battle-balanced.combat-party .combat-seat-2{left:50%;bottom:22%}
+ .battle-balanced.combat-party .combat-seat-3{left:75%;bottom:3%}
+ .battle-balanced.combat-party.party-count-3 .combat-seat-0{left:38%;bottom:3%}
+ .battle-balanced.combat-party.party-count-3 .combat-seat-1{left:5%;bottom:22%}
+ .battle-balanced.combat-party.party-count-3 .combat-seat-2{left:71%;bottom:22%}
+ .battle-balanced.combat-party .combat-name{gap:2px;flex-wrap:wrap;min-width:0}
+ .battle-balanced.combat-party .combat-name b{font-size:6px;overflow:hidden;text-overflow:ellipsis}
+ .battle-balanced.combat-party .combat-fighter .weapon-stand{max-width:100px;max-height:85px}
+ .dungeon-fighting .dungeon-hero[data-formation-index="0"]{left:11%!important;top:68%!important}
+ .dungeon-fighting .dungeon-hero[data-formation-index="1"]{left:32%!important;top:73%!important}
+ .dungeon-fighting .dungeon-hero[data-formation-index="2"]{left:18%!important;top:83%!important}
+ .dungeon-fighting .dungeon-hero[data-formation-index="3"]{left:39%!important;top:88%!important}
+ .dungeon-fighting .dungeon-stage{--party-sprite-height:clamp(30px,7vw,44px)!important}
+ .dungeon-fighting .dungeon-hero .character-motion,.dungeon-fighting .dungeon-hero canvas{height:var(--party-sprite-height)!important;width:calc(var(--party-sprite-height)*2/3)!important}
+ .dungeon-fighting .dungeon-hero>small{max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:4px;line-height:9px;top:96%}
+ .dungeon-fighting .dungeon-hero .weapon-stand{width:48px;height:43px}
+ .dungeon-fighting .dungeon-enemy{width:32px}
+ .dungeon-fighting .dungeon-enemy>img{height:44px}
+ .dungeon-fighting .dungeon-enemy.is-mini{width:45px}
+ .dungeon-fighting .dungeon-enemy.is-mini>img{height:62px}
+ .dungeon-fighting .dungeon-enemy.is-boss{width:66px}
+ .dungeon-fighting .dungeon-enemy.is-boss>img{height:85px}
+ .dungeon-fighting .dungeon-stage[data-enemy-count="1"] .dungeon-enemy{left:78%!important;top:85%!important}
+ .dungeon-fighting .dungeon-stage[data-enemy-count="3"] .dungeon-enemy[data-formation-index="0"]{left:62%!important;top:78%!important}
+ .dungeon-fighting .dungeon-stage[data-enemy-count="3"] .dungeon-enemy[data-formation-index="1"]{left:77%!important;top:88%!important}
+ .dungeon-fighting .dungeon-stage[data-enemy-count="3"] .dungeon-enemy[data-formation-index="2"]{left:91%!important;top:78%!important}
+ .dungeon-fighting .dungeon-enemy>small{font-size:4px;max-width:65px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}

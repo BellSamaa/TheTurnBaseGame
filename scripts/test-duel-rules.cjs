@@ -59,8 +59,8 @@ assert.equal(expired.player2.d12Charge, 3);
 
 for (const [weapon, tier, chance] of [['greatsword', 'common', .5], ['chronos_watch', 'mythic', .6], ['infinity_ring', 'secret', .75]]) {
   assert.equal(critChance(tier), chance);
-  assert.equal(random(chance - .001, () => calculateDuelCombat(20, 20, player('a', weapon), player('b'), 1)).damage, 20 + require('../src/lib/weaponStats.ts').weaponBaseDamage(tier));
-  assert.equal(random(chance, () => calculateDuelCombat(20, 20, player('a', weapon), player('b'), 1)).damage, 0);
+  assert.equal(random(chance - .001, () => calculateDuelCombat(20, 19, player('a', weapon), player('b'), 1)).damage, 20 + require('../src/lib/weaponStats.ts').weaponBaseDamage(tier));
+  assert.equal(random(chance, () => calculateDuelCombat(20, 19, player('a', weapon), player('b'), 1)).critical, false);
 }
 const a = player('a'), b = player('b');
 assert.equal(recordDuelComparison(a, b, 16, 1), undefined);

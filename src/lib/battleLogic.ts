@@ -167,7 +167,7 @@ export function calculateDuelCombat(attack: number, defense: number, attacker: P
     defender.d12Charge = (defender.d12Charge ?? 0) - defenseStake;
   }
   const counter = tied && Math.random() < clashCounterChance(attackStake, defenseStake);
-  const critical = attack === 20 && Math.random() < critChance(attacker.weapon.tier);
+  const critical = !tied && attack === 20 && Math.random() < critChance(attacker.weapon.tier);
   const clashDamage = Math.round(attack * 2 / 3);
   let counterDamage = 0;
   let result: ReturnType<typeof calculateD20Combat>;

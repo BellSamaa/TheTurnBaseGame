@@ -7,7 +7,7 @@ import { t } from '@/lib/translations';
 import PixelButton from '@/components/ui/PixelButton';
 import PixelFrame from '@/components/ui/PixelFrame';
 
-export default function SettingsPanel() {
+export default function SettingsPanel({onClose}:{onClose?:()=>void}={}) {
   const { settings, updateSettings, profile, updateProfile, setPage } = useGameStore();
   const lang = settings.language;
   const isEn = lang === 'en';
@@ -43,7 +43,7 @@ export default function SettingsPanel() {
         <PixelButton
           variant="secondary"
           size="sm"
-          onClick={() => setPage('home')}
+          onClick={() => onClose?onClose():setPage('home')}
           icon={<span>⬅</span>}
         >
           {t('back', lang)}
@@ -255,9 +255,9 @@ export default function SettingsPanel() {
                   <p>• {isEn ? 'Each turn: 1 Attacker, 1 Defender. Roles switch each turn.' : 'Trong 1 lượt: 1 người Tấn công, người còn lại Phòng thủ.'}</p>
                   <p>• {isEn ? 'D20 ATK → D20 DEF → D6 ATK → D6 DEF → SKILL USING.' : 'D20 Công → D20 Thủ → D6 Công → D6 Thủ → Dùng kỹ năng.'}</p>
                   <p>• {isEn ? 'A normal hit deals ATK − DEF when ATK is higher, before class and weapon effects.' : 'Đòn thường gây sát thương bằng Công − Thủ khi Công cao hơn, sau đó tính hiệu ứng class và vũ khí.'}</p>
-                  <p>• <b>Clashing</b> · {isEn ? 'Equal D20 rolls from 1–19 deal ⅔ of the roll. Both sides have 5s to wager 0–3 PTS. Base odds are 65% ATK and 35% DEF. Each PTS shifts the odds 10 percentage points toward that side.' : 'Hai bên tung bằng nhau từ 1–19 thì va chạm gây ⅔ số đã tung. Hai bên có 5 giây cược 0–3 PTS. Tỷ lệ gốc Công 65%, Thủ 35%. Mỗi PTS dịch tỷ lệ 10 điểm phần trăm về phía bên cược.'}</p>
+                  <p>• <b>Clashing</b> · {isEn ? 'Equal D20 rolls from 1–20 deal ⅔ of the roll. Both sides have 5s to wager 0–3 PTS. Base odds are 65% ATK and 35% DEF. Each PTS shifts the odds 10 percentage points toward that side.' : 'Hai bên tung bằng nhau từ 1–20 thì va chạm gây ⅔ số đã tung. Hai bên có 5 giây cược 0–3 PTS. Tỷ lệ gốc Công 65%, Thủ 35%. Mỗi PTS dịch tỷ lệ 10 điểm phần trăm về phía bên cược.'}</p>
                   <p>• <b>Super Strong</b> · {isEn ? '+10 PTS for ATK ahead by over 15 or DEF ahead by at least 15.' : '+10 PTS nếu Công hơn Thủ trên 15 hoặc Thủ hơn Công ít nhất 15.'}</p>
-                  <p>• <b>{isEn?'Critical Hit':'Chí mạng'}</b> · {isEn ? 'D20 ATK 20 can bypass the defense roll for 20 damage. Base chance 50%, Mythic 60%, Secret 75%.' : 'D20 Công 20 có thể xuyên điểm Thủ để gây 20 sát thương. Tỷ lệ gốc 50%, Mythic 60%, Secret 75%.'}</p>
+                  <p>• <b>{isEn?'Critical Hit':'Chí mạng'}</b> · {isEn ? 'Outside a clash, D20 ATK 20 can bypass the defense roll for 20 damage. Base chance 50%, Mythic 60%, Secret 75%.' : 'Ngoài va chạm, D20 Công 20 có thể xuyên điểm Thủ để gây 20 sát thương. Tỷ lệ gốc 50%, Mythic 60%, Secret 75%.'}</p>
                   <p>• <b>Too Lucky / Too Unlucky</b> · {isEn ? 'After 3 consecutive wins or losses on attack dice, a 50% chance adds a die and keeps the lower or higher result. The penalty lasts one attack, and the boost lasts until ATK beats DEF.' : 'Sau 3 lượt Công liên tiếp thắng hoặc thua điểm Thủ, có 50% cơ hội tung thêm một viên và lấy số thấp hơn hoặc cao hơn tương ứng. Hiệu ứng giảm kéo dài một lượt Công, hiệu ứng tăng giữ đến khi Công vượt Thủ.'}</p>
                 </div>
 
