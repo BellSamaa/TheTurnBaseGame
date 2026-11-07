@@ -27,6 +27,7 @@ export function useMeleeMotion(event:Event|undefined,root:RefObject<HTMLDivEleme
   const from=sprite.getBoundingClientRect(),to=victim.getBoundingClientRect(),direction=to.x+to.width/2>=from.x+from.width/2?1:-1;
   setFlipX(musashiNormalFlipX(event.effect,direction<0)??direction<0);
   const travelMs=reduced?0:melee?(isSupersonicEffect(event.effect)?90:event.effect.startsWith('mu:D20_')?140:250):color?360:0,clip=animationSpec(event.effect).ms;
+  let hitTime = travelMs + clip;
   const nodes:HTMLElement[]=[],animations:Animation[]=[],timers:ReturnType<typeof setTimeout>[]=[];
   const old={position:sprite.style.position,zIndex:caster!.style.zIndex};
   setImpact(travelMs||flying&&!reduced?undefined:event.id);
@@ -38,9 +39,47 @@ export function useMeleeMotion(event:Event|undefined,root:RefObject<HTMLDivEleme
    animations.push(sprite.animate([{translate:'0px 0px',offset:0},{translate:travel,offset:travelMs/duration},{translate:travel,offset:(clip+travelMs)/duration},{translate:'0px 0px',offset:1}],{duration,easing:event.effect.startsWith('mu:')?'linear':'ease-in-out'}));
    if(isSupersonicEffect(event.effect))addSpeedTrail(sprite,from,dx,dy,nodes,animations);
   }else if(flying&&!reduced){
-   const wave=document.createElement('div'),art=document.createElement('img'),size=Math.min(innerWidth<600?110:320,Math.max(90,Math.min(190,from.height*1.3))*(event.effect==='wu1:world_slash'||['mu:S2_A_Void_Flash','mu:Musashi_Skill2_Normal_NoFlash'].includes(event.effect)?1.5:1))*(event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?2:1);wave.className='combat-skill-projectile';wave.dataset.waveEffect=event.effect;wave.style.width=size+'px';wave.style.height=(event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?size*.4:size)+'px';wave.style.left=(from.x+from.width/2-size/2)+'px';wave.style.top=(from.y+from.height*.5-(event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?size*.2:size/2))+'px';art.src=effectFrame(event.effect,0);art.alt='';art.style.transform=direction<0?'scaleX(-1)':'';wave.append(art);document.body.append(wave);nodes.push(wave);if(['mu:S2_A_Void_Flash','mu:Musashi_Skill2_Normal_NoFlash'].includes(event.effect)){const flash=document.createElement('div');flash.className='musashi-screen-flash';document.body.append(flash);nodes.push(flash);}
+   const piercingWave = event.effect === 'mu:Musashi_Skill2_Normal_NoFlash';
+   const flashWave = piercingWave || event.effect === 'mu:S2_A_Void_Flash';
+   const largeWave = flashWave || event.effect === 'wu1:world_slash';
+   const size = Math.min(innerWidth < 600 ? 110 : 320, Math.max(90, Math.min(190, from.height * 1.3)) * (largeWave ? 1.5 : 1)) * (piercingWave ? 3 : 1);
+   const height = piercingWave ? size * .4 : size;
+   const wave = document.createElement('div');
+   const art = document.createElement('img');
+   wave.className = 'combat-skill-projectile';
+   wave.dataset.waveEffect = event.effect;
+   wave.style.width = size + 'px';
+   wave.style.height = height + 'px';
+   wave.style.left = from.x + (from.width - size) / 2 + 'px';
+   wave.style.top = from.y + (from.height - height) / 2 + 'px';
+   art.src = effectFrame(event.effect, 0);
+   art.alt = '';
+   art.style.transform = direction < 0 ? 'scaleX(-1)' : '';
+   wave.append(art);
+   document.body.append(wave);
+   nodes.push(wave);
+   if (flashWave) {
+    const flash = document.createElement('div');
+    flash.className = 'musashi-screen-flash';
+    document.body.append(flash);
+    nodes.push(flash);
+   }
    const dx=to.x+to.width/2-(from.x+from.width/2),dy=to.y+to.height*.5-(from.y+from.height*.5);
-   animations.push(wave.animate([{transform:'translate(0px,0px)',offset:0},{transform:'translate('+dx+'px,'+dy+'px)',offset:event.effect==='mu:Musashi_Skill2_Normal_NoFlash'?.55:.65},{transform:'translate('+dx+'px,'+dy+'px)',offset:1}],{duration:clip,easing:event.effect.startsWith('mu:')?'cubic-bezier(0.1,0.6,0.9,0.4)':'ease-out',fill:'forwards'}));
+   const atTarget = `translate(${dx}px,${dy}px)`;
+   if (piercingWave) {
+    const hitOffset = .32;
+    const overshoot = size * .5 + to.width / 2;
+    const pastTarget = `translate(${dx + direction * overshoot}px,${dy}px)`;
+    hitTime = clip * hitOffset;
+    animations.push(wave.animate([
+     {transform:'translate(0px,0px)',opacity:1,offset:0},
+     {transform:atTarget,opacity:1,offset:hitOffset},
+     {transform:pastTarget,opacity:0,offset:.65},
+     {transform:pastTarget,opacity:0,offset:1},
+    ],{duration:clip,fill:'forwards'}));
+   } else {
+    animations.push(wave.animate([{transform:'translate(0px,0px)',offset:0},{transform:atTarget,offset:.65},{transform:atTarget,offset:1}],{duration:clip,easing:event.effect.startsWith('mu:')?'cubic-bezier(0.1,0.6,0.9,0.4)':'ease-out',fill:'forwards'}));
+   }
    const started=performance.now();let frame=-1;const interval=setInterval(()=>{const elapsed=performance.now()-started;if(elapsed>=clip){clearInterval(interval);return}const next=animationFrameAt(event.effect,elapsed);if(next!==frame){frame=next;art.src=effectFrame(event.effect,frame)}},16);timers.push(interval);
   }else if(color&&!reduced){
    const ray=document.createElement('div');ray.className='combat-projectile';ray.style.background=color;ray.style.boxShadow='0 0 8px #fff,0 0 22px '+color;ray.style.left=(from.x+from.width/2-48)+'px';ray.style.top=(from.y+from.height*.5)+'px';document.body.append(ray);nodes.push(ray);
@@ -52,7 +91,7 @@ export function useMeleeMotion(event:Event|undefined,root:RefObject<HTMLDivEleme
   if(damaging)timers.push(setTimeout(()=>{
    const box=victim.getBoundingClientRect();
    for(let i=0;i<(reduced?3:9);i++){const blood=document.createElement('i');blood.className='combat-blood-particle';blood.style.left=(box.x+box.width/2)+'px';blood.style.top=(box.y+box.height*.45)+'px';document.body.append(blood);nodes.push(blood);const angle=(i/9)*Math.PI*2;animations.push(blood.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:'translate('+Math.cos(angle)*45+'px,'+(Math.sin(angle)*32+20)+'px) scale(.2)',opacity:0}],{duration:380,fill:'forwards'}))}
-  },travelMs+clip));
+  },hitTime));
   return()=>{timers.forEach(clearTimeout);animations.forEach(a=>a.cancel());nodes.forEach(n=>n.remove());sprite.style.position=old.position;caster!.style.zIndex=old.zIndex};
  },[event?.id,root]);
  return {impactReady:!event||impact===event.id,flipX};
