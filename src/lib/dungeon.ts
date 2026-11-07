@@ -38,6 +38,7 @@ export interface DungeonState {
   host:string;
   floor:number;
   encounter:number;
+  encounterStartRound?:number;
   round:number;
   phase:'room'|'entrance'|'loading'|'attack'|'defense'|'charge'|'skills'|'enemy_skills'|'end'|'cleared'|'rest'|'victory'|'defeat';
   comparison?:{id:string;attack:number;defense:number;difference:number;damage:number;critical:boolean;target:string;clashing?:boolean};
@@ -105,7 +106,7 @@ function encounterEnemies(s:DungeonState){
     if(s.floor===4&&s.encounter===5)p.weaponUpdate={armor:20};
     return p;
   });
-  s.duelNotice=undefined;s.event=undefined;s.events=[];s.round++;s.rolls={};s.lastD20={};s.enemyRolls=[];s.votes=[];s.target=s.enemies[0].id;
+  s.duelNotice=undefined;s.event=undefined;s.events=[];s.round++;s.encounterStartRound=s.round;s.rolls={};s.lastD20={};s.enemyRolls=[];s.votes=[];s.target=s.enemies[0].id;
   s.phase='attack';s.attackActors=undefined;s.deadline=Date.now()+20000;
   for(const p of s.players){p.skill1UsedTurn=undefined;p.skill2UsedTurn=undefined;p.boxerAttackRound=undefined;p.boxerAttackRolls=[];p.diceTiming=undefined;}
   add(s,'Floor '+s.floor+' · Encounter '+s.encounter+' · '+s.enemies.map(p=>p.name).join(', '));

@@ -21,13 +21,14 @@ import {effectDuration} from '@/lib/skillMotion';
 import CharacterRenderer from '@/components/character/CharacterRenderer';
 import {RockHealthBar,RockCompanion} from './RockCompanion';
 import WeaponStand from './WeaponStand';
+import SecretStandIntro from './SecretStandIntro';
 import DiceRoller3D from './DiceRoller3D';
 import {BuffCard} from './BuffCard';
 import VfxAnimationPlayer from './VfxAnimationPlayer';
 import {playDiceRollSound,playBattleCue,playBattleEffect} from '@/lib/soundEffects';
 
 /** Presentation only: all values and dice results come from the battle server. */
-export default function CombatArena({state:s,viewer,busy=false,botRolling=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,onDuelWager,onTiming,children}:{state:LmsState;viewer?:string;busy?:boolean;botRolling?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;onDuelWager?:(stake:number)=>void;onTiming?:(elapsedMs?:number)=>void;children:React.ReactNode}){
+export default function CombatArena({state:s,battleKey,viewer,busy=false,botRolling=false,title,onSurrender,onBack,buffs=false,stageSequence,targetIds=[],onPickTarget,targetPrompt,diceExtras,onDuelWager,onTiming,children}:{state:LmsState;battleKey:string;viewer?:string;busy?:boolean;botRolling?:boolean;title:string;onSurrender:()=>void;onBack?:()=>void;buffs?:boolean;stageSequence?:LmsState['phase'][];targetIds?:string[];onPickTarget?:(id:string)=>void;targetPrompt?:string;diceExtras?:React.ReactNode;onDuelWager?:(stake:number)=>void;onTiming?:(elapsedMs?:number)=>void;children:React.ReactNode}){
   useCombatHits(s.hitEvents);
   const weaponKey=s.players.map(p=>p.weapon.id).join(',');
   useEffect(()=>{preloadWeaponEffects(weaponKey.split(','));},[weaponKey]);
@@ -113,6 +114,7 @@ export default function CombatArena({state:s,viewer,busy=false,botRolling=false,
     const t=setTimeout(()=>{setRolling(false);playBattleCue('result');},700);return()=>clearTimeout(t);
   },[rollKey]);
   return <div ref={arenaRef} data-animating={animating} className={'combat-arena battle-balanced '+(buffs?'combat-party party-count-'+s.players.length:'combat-duel')}>
+    {(!buffs || !viewer || !s.openingReady || s.openingReady.includes(viewer) || s.phase !== 'initiative') && <SecretStandIntro battleKey={battleKey} opening={s.round === 1 && !s.winner} root={arenaRef}/>}
     {tiePopup&&<div className="lms-tie-notice" role="status"><h3>✦ {en?'TIED D20 · RANDOM ORDER':'D20 BẰNG ĐIỂM · BỐC THĂM'} ✦</h3>{tiePopup.groups.map(g=><p key={g.roll}>D20 <b>{g.roll}</b> · {g.ids.map(id=>s.players.find(p=>p.id===id)?.name).join(' / ')}<strong>{g.ids.map(id=>s.players.find(p=>p.id===id)?.name).join(' → ')}</strong></p>)}</div>}
     <header className="combat-topbar">
       <div className="combat-heading">{onBack&&<button className="combat-back" onClick={onBack}>{en?'← Back':'← Trở lại'}</button>}<div><small>{title}</small><h2>{en?'ROUND':'VÒNG'} {s.round}</h2></div></div>
