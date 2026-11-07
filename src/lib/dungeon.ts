@@ -397,7 +397,7 @@ export function dungeonAction(input:DungeonState,actor:string,action:string,args
     recordCombatHit(s,cast.damage,p.id,target.id);savePooled(s,p,cast.caster);Object.assign(target,cast.opponent);syncWeather([...s.players,...s.enemies]);
     if(cast.effect==='dn:purge')emitDungeon(s,{id:crypto.randomUUID(),effect:'dn:eye',caster:p.id,target:p.id,name:'Eye of Death'});
     const cues=/^(nw|mu):/.test(cast.effect||'')?skillEffectPlan(before,slot,effectiveForm):[{effect:cast.effect||art.effect,target:art.target}];for(const cue of cues)emitDungeon(s,{id:crypto.randomUUID(),damage:cue.target==='opponent'?cast.damage:0,effect:cue.effect,caster:p.id,target:cue.target==='caster'?p.id:target.id,name:art.nameEn});
-    add(s,cast.logTextEn);if(cast.caster.hp>before.hp)add(s,p.name+' · +'+(cast.caster.hp-before.hp)+' shared HP');progressEncounter(s);
+    flushWeaponEvents(s);add(s,cast.logTextEn);if(cast.caster.hp>before.hp)add(s,p.name+' · +'+(cast.caster.hp-before.hp)+' shared HP');progressEncounter(s);
   }else if(action==='end'){
     if(!['skills','end'].includes(s.phase))throw Error('Cannot end this phase.');
     if(!s.votes.includes(actor))s.votes.push(actor);

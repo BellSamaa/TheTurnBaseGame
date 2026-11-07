@@ -6,6 +6,7 @@ import {activeWeather,weaponState,type WeatherKind} from './weaponUpdateState';
 import {applyOpponentDamage} from './combatDamage';
 import {UPDATE_IDS} from './weaponUpdateCatalog';
 export function updateSkillCost(p:PlayerState,slot:1|2,round:number,form?:number){
+ if(p.weapon.id==='musashi'&&slot===2)return form===2?25:20;
  if(p.weapon.id==='death_note'&&slot===2)return (form??deathNoteMode(p,round))===2?20:32;
  if(slot===1&&activeWeather(p,round)){if(p.weapon.id==='thunder_spear'&&form!==1&&activeWeather(p,round)?.kind==='rain')return 5;if(p.weapon.id==='ice_spear'&&activeWeather(p,round)?.kind==='snow')return 5;}return undefined;
 }

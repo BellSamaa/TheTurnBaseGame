@@ -1,6 +1,6 @@
 'use client';
 
-import {animationSpec} from '@/lib/weaponUpdate2Effects';
+import {animationSpec,animationFrameAt} from '@/lib/weaponUpdate2Effects';
 import {effectFrame} from '@/lib/weaponUpdateAssets';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,16 +32,16 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
     }
 
     setFrame(0);
-    let currentFrame = 0;
+    const started=performance.now(),spec=animationSpec(activeVfx.effect);
     const interval = setInterval(() => {
-      currentFrame += 1;
-      if (currentFrame < animationSpec(activeVfx.effect).frames) {
-        setFrame(currentFrame);
+      const elapsed=performance.now()-started;
+      if (elapsed < spec.ms) {
+        setFrame(animationFrameAt(activeVfx.effect,elapsed));
       } else {
         clearInterval(interval);
         finishRef.current?.(activeVfx.id);
       }
-    }, animationSpec(activeVfx.effect).ms/animationSpec(activeVfx.effect).frames); // 130ms per frame * 4 frames = 520ms punchy, clear animation
+    }, 16);
 
     return () => clearInterval(interval);
   }, [activeVfx?.id]);
@@ -52,7 +52,7 @@ export default function VfxAnimationPlayer({ activeVfx, onFinish }: VfxAnimation
 
   if(activeVfx.effect.startsWith('dn:'))return <div className="death-note-vfx"><div className="death-red-flash"/><img src={effectFrame(activeVfx.effect,0)} alt="Purging Judgement" style={{width:size,height:size}}/></div>;
   return (
-    <AnimatePresence>{activeVfx.effect==='mu:S2_A_Void_Flash'&&<div className="musashi-screen-flash"/>}
+    <AnimatePresence>{['mu:S2_A_Void_Flash','mu:Musashi_Skill2_Normal_NoFlash'].includes(activeVfx.effect)&&<div className="musashi-screen-flash"/>}
       <motion.div
         key={activeVfx.id}
         data-vfx-effect={activeVfx.effect}

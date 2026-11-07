@@ -1,4 +1,5 @@
 'use client';
+import {animationFrameAt} from '@/lib/weaponUpdate2Effects';
 import {musashiHidden} from '@/lib/weaponUpdate2Logic';
 import {deathNoteMode} from '@/lib/deathNote';
 import {effectFrame,skillIconFrame} from '@/lib/weaponUpdateAssets';
@@ -22,7 +23,7 @@ export default function CombatSkills({player,round,enabled,busy,onCast,players,f
   const rawForms=p.weapon.skill1.triggerNumber;
   const forms=p.weapon.id==='thunder_spear'&&activeWeather(p,round)?.kind!=='rain'?[1]:rawForms,first=Array.isArray(forms)?forms.includes(form??-1)?form:forms[0]:undefined;
   const f2=p.weapon.id==='musashi'?(opponents.some(t=>musashiHidden(p,t,round))?2:1):p.weapon.id==='death_note'?deathNoteMode(p,round):Array.isArray(p.weapon.skill2.triggerNumber)?p.weapon.id==='king_slasher'&&!marked?1:second:p.weapon.id==='fire_headband'?(second===30?30:20):p.weapon.id==='infinity_ring'?second:undefined;
-  const [hiddenFrame,setHiddenFrame]=useState(0);useEffect(()=>{if(p.weapon.id!=='musashi'||f2!==2)return;const t=setInterval(()=>setHiddenFrame(f=>(f+1)%24),84);return()=>clearInterval(t)},[p.weapon.id,f2]);
+  const [hiddenFrame,setHiddenFrame]=useState(0);useEffect(()=>{if(p.weapon.id!=='musashi'||f2!==2)return;const started=performance.now();const t=setInterval(()=>setHiddenFrame(animationFrameAt('mu:S2_Hidden_Ready',(performance.now()-started)%2000)),32);return()=>clearInterval(t)},[p.weapon.id,f2]);
   return <div className="combat-skills">{([1,2]as const).map(slot=>{
     const skill=slot===1?p.weapon.skill1:p.weapon.skill2,chosen=slot===1?first:f2,art=skillPresentation(p,slot,chosen),cost=freeSlots.includes(slot)?0:skillCost(p,slot,chosen,round);
     const used=(slot===1?p.skill1UsedTurn:p.skill2UsedTurn)===round,locked=skillIsLocked(p,slot,round),leaf=slot===1&&p.weapon.id==='fire_headband'&&p.leafSkillReadyTurn!==round,rock=slot===2&&p.weapon.id==='spirit_stone'&&((p.petRockHp??0)<=0||p.petRockEnraged),empty=slot===2&&p.weapon.id==='revolver'&&(p.bullets??6)<=0;

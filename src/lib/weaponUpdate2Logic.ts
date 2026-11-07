@@ -20,12 +20,12 @@ export function castWeapon2(u:PlayerState,t:PlayerState,slot:1|2,round:number,fo
  }
  if(u.weapon.id==='musashi'){
   const mark=(v.musashiMarkUntil??-1)>=round;
-  const detonate=()=>{if(mark){hit(5);delete v.musashiMarkUntil;queueWeaponEvent(u,t,'mu:Bleed_Explosion',5)}};
+  const detonate=()=>{if(mark){const before=damage;hit(5);delete v.musashiMarkUntil;queueWeaponEvent(u,t,'mu:Bleed_Explosion',damage-before)}};
   if(slot===1&&form===1){hit(12);v.musashiMarkUntil=round+5;effect='mu:S1_A_12_Cuts'}
   else if(slot===1&&form===2){hit(10);detonate();effect='mu:S1_B_Dash_Cut'}
   else if(slot===1){hit(6);if(Math.random()<.5){heal(10);s.musashiHealAt=Date.now()}hit(6);detonate();effect='mu:S1_C_Blue_Wave'}
   else if(form===2){hit(30);s.musashiSmokeAttacks=3;effect='mu:S2_B_20_Cuts'}
-  else{hit(30);v.musashiMarkUntil=round+5;weather('mist',6);effect='mu:S2_A_Void_Flash'}
+  else{hit(20);v.musashiMarkUntil=round+5;weather('mist',6);effect='mu:Musashi_Skill2_Normal_NoFlash'}
  }
  const art=weapon2Presentation(u,slot,form);
  return {damage,requested,piercing:false,die:undefined,effect,refund:0,logTextEn:u.name+' · '+(art?.nameEn||u.weapon.name)+' · '+damage+' damage.',logTextVi:u.name+' · '+(art?.nameVi||u.weapon.nameVi)+' · '+damage+' sát thương.'};
@@ -48,7 +48,7 @@ export function weapon2Defense(d:PlayerState,hit:boolean,round:number){
 }
 export function weapon2Reactions(a:PlayerState,d:PlayerState,round:number){
  const s=weaponState(a);if(s.v2ReactionRound===round)return;s.v2ReactionRound=round;
- if(a.weapon.id==='musashi'&&(s.musashiSmokeAttacks??0)>0){s.musashiSmokeAttacks!--;if(Math.random()<.5){const effect=Math.random()<.5?'mu:Aura_Extra_White':'mu:Aura_Extra_Black';queueWeaponEvent(a,d,effect,applyOpponentDamage(d,5,round,true,a))}}
+ if(a.weapon.id==='musashi'&&(s.musashiSmokeAttacks??0)>0){s.musashiSmokeAttacks!--;if(Math.random()<.8){const effect=Math.random()<.5?'mu:Aura_Extra_White':'mu:Aura_Extra_Black';queueWeaponEvent(a,d,effect,applyOpponentDamage(d,10,round,true,a))}}
 }
 export function tickWeapon2(players:PlayerState[],round:number,canTarget?:(a:PlayerState,b:PlayerState)=>boolean){
  for(const p of players){const s=weaponState(p);

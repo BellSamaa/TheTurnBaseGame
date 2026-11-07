@@ -2,7 +2,7 @@ import {effectDuration} from './skillMotion';
 import {recordCombatHit} from './combatHits';
 import {deathNoteMode} from './deathNote';
 import {effectFrame} from './weaponUpdateAssets';
-import {syncWeather} from './weaponUpdateState';
+import {syncWeather,drainWeaponEvents} from './weaponUpdateState';
 import {canUsePvpSkill} from './skillPriority';
 import type {BattleState} from '@/types/game';
 import {castChargedSkill} from './chargedSkills';
@@ -26,6 +26,7 @@ export function castPvpSkill(input:BattleState,actor:string,slot:1|2,form?:numbe
   next.vfxSequence=skillEffectPlan(user,slot,form).map(cue=>({damage:cue.target==='opponent'?cast.damage:0,id:crypto.randomUUID(),effect:(/^(nw|mu):/.test(cast.effect||'')||user.weapon.id==='death_note'&&slot===2&&form===2)?cue.effect:cast.effect||cue.effect,size:slot===2?180:130,target:cue.target==='caster'||rolledBack?caster:cue.target==='center'?'center':opponent}));
   if(user.weapon.id==='death_note'&&slot===1)next.vfxSequence.unshift({id:crypto.randomUUID(),effect:'wu1:name_write',target:opponent,size:140});
   for(const [show,effect]of [[(foe.petRockHp??0)>(cast.opponent.petRockHp??0),'rock_block'],[foe.immuneDamageNext&&!cast.opponent.immuneDamageNext,'infinity'],[foe.dodgeNextSkill&&!cast.opponent.dodgeNextSkill,'dodge_spell']]as const)if(show)next.vfxSequence.push({id:crypto.randomUUID(),effect,target:opponent,size:140});
+  for(const event of drainWeaponEvents([next.player1,next.player2]))next.vfxSequence.push({id:crypto.randomUUID(),caster:event.caster===next.player1.id?'p1':'p2',target:event.target===next.player1.id?'p1':'p2',effect:event.effect,damage:event.damage,size:180});
   if(cast.purpleSky)next.purpleSky={id:crypto.randomUUID(),startedAt:Date.now()};
   next.battleLog.unshift({turn:input.currentTurn,type:'skill',message:cast.logTextEn,messageVi:cast.logTextVi,timestamp:Date.now()});
   if(next.player1.hp<=0||next.player2.hp<=0){next.winnerId=next.player1.hp<=0?next.player2.id:next.player1.id;next.phase='game_over';}

@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');const {WEAPON_DEFINITIONS:W,DEFAULT_C
 const participant=(id,weaponId)=>({id,name:id,weaponId,classType:'warrior',character:DEFAULT_CUSTOMIZATION,isReady:true});
 const state=(id='greatsword',extra=[])=>{let s=createDungeon(participant('p0',id));for(const [i,w] of extra.entries())s.players.push(makePlayer(participant('p'+(i+1),w)));s.phase='skills';s.round=5;s.teamHp=250;s.teamMaxHp=400;s.pts=500;s.enemies=[makePlayer(participant('enemy','greatsword'))];s.enemies[0].hp=s.enemies[0].maxHp=10000;s.target='enemy';return s;};
 let count=0;const random=Math.random,clock=Date.now;Date.now=()=>100000;Math.random=()=>.99;
-const normalize=x=>{const v=structuredClone(x);for(const p of v?.summons||[])delete p.id;return v;};
+const normalize=x=>{const v=structuredClone(x);if(v)delete v.events;for(const p of v?.summons||[])delete p.id;return v;};
 try{
 for(const weapon of Object.values(W))for(const slot of [1,2]){
  if(weapon.id==='shield'&&slot===1)continue;
