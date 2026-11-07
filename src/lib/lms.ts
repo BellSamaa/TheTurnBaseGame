@@ -24,7 +24,7 @@ export interface LmsState {
   hitEvents?:CombatHit[];
   duelClash?: DuelClash;
   duelNotice?: DuelNotice;
-  lastEvent?: {id:string;announcementId?:string;damage?:number;cues?:{effect:string;target:string;damage?:number}[];effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
+  lastEvent?: {id:string;announcementId?:string;damage?:number;cues?:{effect:string;target:string;caster?:string;damage?:number}[];effect:string;caster:string;target:string;nameEn?:string;nameVi?:string;slot?:1|2};
   acceptedActions?:string[];
   rollDeadline?:number;openingReady?:string[];openingSetupDeadline?:number;stageOrder?:string[];stagePart?:'charge'|'skill';tieNotice?:{id:string;phase:string;groups:{roll:number;ids:string[]}[];order:string[]};
   initiative?: {id:string;roll:number}[];
@@ -199,7 +199,7 @@ export function lmsAction(input:LmsState, actor:string, action:string, args:{tar
     } else throw Error('Hành động không hợp lệ');
   }
   if(s.phase==='skills'&&input.phase!=='skills')for(const e of tickWeaponRound(s.players,s.round,'summons')){add(e.textVi,e.text);s.lastEvent={id:crypto.randomUUID(),effect:e.effect,caster:e.caster,target:e.target};}
-  const queued=drainWeaponEvents(s.players);for(const e of queued){if(e.damage)recordCombatHit(s,e.damage,e.caster,e.target);add(e.textVi,e.text);if(s.lastEvent)s.lastEvent.cues=[...(s.lastEvent.cues||[{effect:s.lastEvent.effect,target:s.lastEvent.target}]),{effect:e.effect,target:e.target,damage:e.damage}];else s.lastEvent={id:crypto.randomUUID(),effect:e.effect,caster:e.caster,target:e.target};}
+  const queued=drainWeaponEvents(s.players);for(const e of queued){if(e.damage)recordCombatHit(s,e.damage,e.caster,e.target);add(e.textVi,e.text);if(s.lastEvent)s.lastEvent.cues=[...(s.lastEvent.cues||[{effect:s.lastEvent.effect,target:s.lastEvent.target}]),{effect:e.effect,target:e.target,caster:e.caster,damage:e.damage}];else s.lastEvent={id:crypto.randomUUID(),effect:e.effect,caster:e.caster,target:e.target};}
   if(s.lastEvent&&s.lastEvent.id!==input.lastEvent?.id)s.animationUntil=now+presentationDuration(s.lastEvent);
   finish();armLmsRollTimer(s,now,input);s.revision++;return s;
 }

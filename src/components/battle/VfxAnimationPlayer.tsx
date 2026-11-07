@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface VfxEvent {
+  caster?:'p1'|'p2';
   damage?:number;
   id: string;
   effect: string; // folder name in /assets/vfx/frames/

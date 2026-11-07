@@ -1,3 +1,4 @@
+import {healPlayer,scaledHealingAmount} from './combatHealing';
 import {castWeapon2,musashiHidden} from './weaponUpdate2Logic';
 import {deathNoteMode} from './deathNote';
 import type {PlayerState} from '@/types/game';
@@ -27,7 +28,7 @@ export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:numbe
   else if(slot===1&&form===4){v.chronoRerollAttacks=2;v.chronoCaster=u.id;effect='time_reroll';}
   else if(slot===1){damage=applyOpponentDamage(t,10,round);v.luckUntil=round+2;effect='time_lock';}
   else if(form===2){s.extraAttacks=2;effect='time_lock';}
-  else{const healing=t.id===u.id?0:((u.opponentDamageTurn??-1)>=round-1?u.opponentDamageAmount||0:0);u.hp=Math.min(u.maxHp,u.hp+healing);effect='time_erase';}
+  else{const healing=t.id===u.id?0:((u.opponentDamageTurn??-1)>=round-1?u.opponentDamageAmount||0:0);healPlayer(u,healing);effect='time_erase';}
   return {damage,requested:damage,piercing:false,die:undefined,effect,refund:0,logTextEn:'Chronos · '+(slot===1?(form===2?'Time Anchor / Rewind':form===4?'Fate Seal':'Time Slow'):form===2?'Time Changer':'Erase Time')+': '+damage+' damage.',logTextVi:'Chronos · '+(slot===1?(form===2?'Neo / Tua Ngược':form===4?'Phong Ấn Vận Mệnh':'Chậm Thời Gian'):form===2?'Đổi Thời Gian':'Xóa Thời Gian')+': '+damage+' sát thương.'};
  }
  if(!UPDATE_IDS.has(u.weapon.id))return undefined;
@@ -45,7 +46,7 @@ export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:numbe
  case 'bee_shooter':if(slot===1){hit(1);v.poisonStacks=Math.min(2,(v.poisonStacks||0)+1);v.poisonUntil=round+2;effect='worker_bee';}else{hit(3);v.queenDefenseTurns=5;v.swarmUntil=round+5;v.swarmOwner=u.id;effect='queen_bee';}break;
  case 'thunder_spear':if(slot===2){climate('rain',5);effect='weather_rain';}else if(form===3){v.blueUntil=round+3;v.blueOwner=u.id;v.blueTick=0;effect='lightning_blue';}else{hit(form===2?15:10);v.paralysisAttacks=5;v.paralysisChance=form===2?.1:.05;effect=form===2?'lightning_red':'lightning_yellow';}break;
  case 'ice_spear':if(slot===2){climate('snow',5);effect='weather_snow';}else{const enhanced=weather?.kind==='snow';hit(enhanced?15:10);v.slowUntil=round+5;if(enhanced&&rng()<.3){v.frozenAttacks=1;v.freezeDefense=1;v.freezeDefenseChance=1;}effect=enhanced?'giant_ice_spear':'ice_spear';}break;
- case 'frying_pan':if(slot===2){climate('heat',5);u.hp=Math.min(u.maxHp,u.hp+5);s.mealUntil=round+2;effect='meal_heal';}else{hit(7+((s.mealUntil??0)>=round?2:0));t.isStunned=true;effect='pan_bonk';if(weather?.kind==='heat'){if(rng()<.25)damage+=5;if(rng()<.1)damage+=7+((s.mealUntil??0)>=round?2:0);}}break;
+ case 'frying_pan':if(slot===2){climate('heat',5);healPlayer(u,5);s.mealUntil=round+2;effect='meal_heal';}else{hit(7+((s.mealUntil??0)>=round?2:0));t.isStunned=true;effect='pan_bonk';if(weather?.kind==='heat'){if(rng()<.25)damage+=5;if(rng()<.1)damage+=7+((s.mealUntil??0)>=round?2:0);}}break;
  case 'dual_spears':if(slot===2){hit(form===2?30:25);climate('superconduct',5,form??1);effect=form===2?'superconduct_beam':'superconduct_orb';}else{hit(12);const bonus=weather?.kind==='superconduct'&&weather.variant===1?.05:0;if(form===1){v.chargeBlockUntil=round+3;v.chargeBlockChance=.1+bonus;effect='lightning_yellow';}else if(form===2){v.freezeDefense=2;v.freezeDefenseChance=.1+bonus;effect='ice_spears_three';}else{if(rng()<.15+bonus)v.superconductUntil=round+3;effect='dual_slash';}}break;
  case 'mirror_of_life':if(slot===1){if(t.hp>=u.hp*1.2){const old=u.hp;u.hp=Math.min(u.maxHp,t.hp);t.hp=Math.min(t.maxHp,old);}else v.weakUntil=round+2;effect='hp_swap';}else{hit(Math.min(20,t.hp));drain=true;effect='life_drain';}break;
  case 'elemental_rings':
@@ -59,7 +60,7 @@ export function castUpdateSkill(u:PlayerState,t:PlayerState,slot:1|2,round:numbe
  const requested=damage;const before=t.hp;
  if(piercing){t.hp=Math.max(0,t.hp-damage);damage=before-t.hp;}
  else{if(t.dodgeNextSkill&&damage>0){t.dodgeNextSkill=false;damage=0;}damage=applyOpponentDamage(t,damage,round,true,u);}
- if(drain){const missing=u.maxHp-u.hp;u.hp=Math.min(u.maxHp,u.hp+damage);s.armor=(s.armor||0)+Math.max(0,damage-missing);}
+ if(drain){const missing=u.maxHp-u.hp;healPlayer(u,damage);s.armor=(s.armor||0)+Math.max(0,scaledHealingAmount(u,damage)-missing);}
  if(u.weapon.id==='death_note'&&slot===2&&effect.startsWith('dn:'))return {damage:0,requested:0,piercing:false,die,effect,refund:0,logTextEn:u.name+' · '+(effect==='dn:eye'?'Eye of Death active for 5 rounds.':'Purging Judgement on '+t.name+' · 2 hits in 4 attack turns.'),logTextVi:u.name+' · '+(effect==='dn:eye'?'Đôi Mắt Tử Thần tồn tại 5 vòng.':'Phán quyết lên '+t.name+' · 2 đòn trúng trong 4 lượt công.')};
  let refund=0;if(u.weapon.id==='dual_spears'&&slot===1&&weather?.kind==='superconduct'&&weather.variant===2&&rng()<.1)refund=10;
  return {damage,requested,piercing,die,effect:effect.startsWith('dn:')?effect:'wu1:'+effect,refund,logTextEn:u.weapon.name+' · '+(slot===1?u.weapon.skill1.name:u.weapon.skill2.name)+(die?' · D6 '+die:'')+': '+damage+' damage'+(requested!==damage?' ('+requested+' before defenses)':'')+'.',logTextVi:u.weapon.nameVi+' · '+(slot===1?u.weapon.skill1.nameVi:u.weapon.skill2.nameVi)+(die?' · D6 '+die:'')+': '+damage+' sát thương.'};

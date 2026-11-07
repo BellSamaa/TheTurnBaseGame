@@ -52,7 +52,7 @@ function settleDefense(state: BattleState, now: number) {
   }
   for (const event of drainWeaponEvents([attacker, defender])) {
     if(event.damage)recordCombatHit(state,event.damage,event.caster,event.target);
-    state.vfxSequence.push({ id: crypto.randomUUID(), damage:event.damage,effect: event.effect, target: event.target === state.player1.id ? 'p1' : 'p2' });
+    state.vfxSequence.push({ id: crypto.randomUUID(), caster:event.caster===state.player1.id?'p1':'p2',damage:event.damage,effect: event.effect, target: event.target === state.player1.id ? 'p1' : 'p2' });
     log(event.text, event.textVi);
   }
   prepareWeaponCharge(attacker, round);

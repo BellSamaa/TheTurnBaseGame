@@ -1,3 +1,4 @@
+import {healPlayer,scaledHealingAmount} from './combatHealing';
 import {weapon2Reactions} from './weaponUpdate2Logic';
 import {weaponBaseDamage} from './weaponStats';
 import {judgementAttack} from './deathNote';
@@ -132,7 +133,7 @@ export function calculateD20Combat(
 
   if(attackerState)modifiedDamage=updateNormalDamage(attackerState,modifiedDamage,!!setup?.cleave,round);
   if(fixedDamage !== undefined) modifiedDamage = fixedDamage + weaponBaseDamage(attackerState?.weapon.tier);
-  if(defenderState){const v=defenderState.weaponUpdate;if(v?.waterWallActiveRound===round)modifiedDamage=Math.ceil(modifiedDamage*2/3);if((v?.regenUntil??-1)>=round&&Math.random()<.2)modifiedDamage-=Math.floor(modifiedDamage/2);}
+  if(defenderState){const v=defenderState.weaponUpdate;if(v?.waterWallActiveRound===round)modifiedDamage=Math.ceil(modifiedDamage*2/3);if((v?.regenUntil??-1)>=round&&Math.random()<.2)modifiedDamage-=Math.min(modifiedDamage,scaledHealingAmount(defenderState,Math.floor(modifiedDamage/2)));}
   const absorbedByRock = defenderState ? absorbWithRock(defenderState, modifiedDamage) : 0;
   modifiedDamage -= absorbedByRock;
   if(defenderState)modifiedDamage=absorbUpdateDamage(defenderState,modifiedDamage);
@@ -520,7 +521,7 @@ export function executeSkill2D12(
       break;
 
     case 'spirit_stone':
-      if(pts>=cost&&(user.petRockHp??0)>0&&!user.petRockEnraged){user.petRockEnraged=true;user.hp=Math.min(user.maxHp,user.hp+10);user.d12Charge=pts-cost;burstTriggered=true;logTextEn='Pet Rock enraged: heals owner 10 HP for 5 rounds, absorbs 7 damage, follows attacks for 5 damage.';logTextVi='Rock cuồng bạo: hồi chủ 10 HP trong 5 round, chắn 7 sát thương, đánh phụ 5 sát thương.';}break;
+      if(pts>=cost&&(user.petRockHp??0)>0&&!user.petRockEnraged){user.petRockEnraged=true;healPlayer(user,10);user.d12Charge=pts-cost;burstTriggered=true;logTextEn='Pet Rock enraged: heals owner 10 HP for 5 rounds, absorbs 7 damage, follows attacks for 5 damage.';logTextVi='Rock cuồng bạo: hồi chủ 10 HP trong 5 round, chắn 7 sát thương, đánh phụ 5 sát thương.';}break;
 
     default:
       if (pts >= cost) {

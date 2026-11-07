@@ -36,6 +36,7 @@ export interface WeaponSkill {
 }
 
 export interface WeaponInfo {
+  family?:'blade';
   id: string;
   name: string;
   nameVi: string;
@@ -77,6 +78,9 @@ export interface UserAccount {
 }
 
 export interface PlayerState {
+  /** Battle-scoped healing modifier; Dungeon Helena supplies 1.2. */
+  healingMultiplier?:number;
+  summonDamageBonus?:number;
   diceTiming?: DiceTimingState;
   duelLuck?: { hits: number; misses: number; mode?: "lucky" | "unlucky" };
   weaponUpdate?:WeaponUpdateState;
@@ -179,6 +183,7 @@ export interface BattleState {
   p1EndedTurn?: boolean;
   p2EndedTurn?: boolean;
   activeVfx?: {
+    caster?:'p1'|'p2';
     damage?:number;
     id: string;
     effect: string;

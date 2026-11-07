@@ -1,0 +1,14 @@
+require('./test-dice-timing.cjs');
+const {chromium}=require('../desktop/dist/browser-test/node_modules/playwright'),assert=require('node:assert/strict');
+const {createLms}=require('../src/lib/lms.ts');
+(async()=>{const browser=await chromium.launch({channel:'chrome',headless:true});try{
+ const page=await browser.newPage({viewport:{width:1366,height:900}});let run;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/api/**',r=>r.fulfill({json:r.request().url().includes('/api/pve')?{run}:{players:[],gems:0,rubies:0,exp:0}}));
+ await page.goto('http://127.0.0.1:3101');await page.waitForFunction(()=>window.__gameStore);const character=await page.evaluate(()=>window.__gameStore.getState().profile.character),member=id=>({id,name:id,weaponId:'king_slasher',classType:'warrior',character,isReady:true});
+ const combat=createLms([member('a'),member('pve_bot')],true);combat.phase='skills';combat.round=8;combat.order=['a','pve_bot'];combat.active=0;combat.players[0].d12Charge=500;run={id:'waves',revision:1,state:{stage:1,combat,reward:{gems:1,rubies:0,exp:1}}};
+ await page.evaluate(()=>window.__gameStore.setState({currentPage:'pve',currentUser:{id:'a',username:'a'}}));await page.waitForSelector('.combat-arena');
+ for(const [effect,caster,target,direction]of [['wu1:white_triple','a','pve_bot',1],['wu1:white_flurry','pve_bot','a',-1],['wu1:world_slash','a','pve_bot',1]]){
+  const before=await page.locator('[data-fighter-id="'+caster+'"] .character-motion').boundingBox();run.revision++;run.state.combat.lastEvent={id:effect,effect,caster,target,damage:5};await page.locator('.combat-skill-cast').first().click();const wave=page.locator('[data-wave-effect="'+effect+'"]');await wave.waitFor();await wave.locator('img').evaluate(i=>i.decode());const first=await wave.boundingBox();await page.waitForTimeout(130);const second=await wave.boundingBox();assert.ok((second.x-first.x)*direction>15,effect+' flies from correct caster');assert.equal(await page.locator('.combat-projectile,[data-vfx-effect="'+effect+'"]').count(),0);assert.ok(Math.abs((await page.locator('[data-fighter-id="'+caster+'"] .character-motion').boundingBox()).x-before.x)<1);await wave.waitFor({state:'detached'});await page.waitForFunction(()=>document.querySelector('.combat-arena')?.dataset.animating==='false');
+ }
+ assert.deepEqual(errors,[]);console.log('PASS sword waves: Dismantle triple/flurry and World Slash fly full sprites both directions, no thin rays or duplicate target effects, caster stays grounded');
+}finally{await browser.close()}})().catch(e=>{console.error(e.stack);process.exitCode=1});
