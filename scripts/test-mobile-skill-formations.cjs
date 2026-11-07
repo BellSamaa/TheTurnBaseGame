@@ -20,7 +20,12 @@ const member=(id,weaponId='greatsword')=>({id,name:id,weaponId,classType:'warrio
   await page.waitForSelector('.dungeon-fighting');
   // Actual touch input: hold opens details, releases without casting, same form closes.
   const cdp=await context.newCDPSession(page);
-  async function hold(slot){const rect=await page.locator('.combat-skill-cast').nth(slot).boundingBox();const x=rect.x+rect.width/2,y=rect.y+rect.height/2;await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});await page.waitForTimeout(2150);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForSelector('.skill-touch-forms');}
+  async function hold(slot){const rect=await page.locator('.combat-skill-cast').nth(slot).boundingBox();const x=rect.x+rect.width/2,y=rect.y+rect.height/2;await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});await page.waitForTimeout(600);
+    const suppressed=await page.locator('.combat-skill-cast').nth(slot).evaluate(button=>{const image=button.querySelector('img');return {menu:!image.dispatchEvent(new Event('contextmenu',{bubbles:true,cancelable:true})),drag:!image.dispatchEvent(new Event('dragstart',{bubbles:true,cancelable:true})),hitTarget:getComputedStyle(image).pointerEvents,draggable:image.draggable};});
+    assert.deepEqual(suppressed,{menu:true,drag:true,hitTarget:'none',draggable:false},'browser image menu must be blocked before 2 seconds');
+    assert.equal(await page.locator('.skill-hover-panel').count(),0,'details do not open before 2 seconds');
+    await page.waitForTimeout(1550);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForSelector('.skill-touch-forms');}
+  assert.equal(await page.locator('.combat-roll img').first().evaluate(image=>!image.dispatchEvent(new Event('contextmenu',{bubbles:true,cancelable:true}))),true,'Roll/End Turn art also blocks the browser menu');
   const before=posts;await hold(0);assert.equal(posts,before,'holding never casts a skill');
   await page.locator('.skill-touch-forms button[aria-pressed=true]').first().tap();assert.equal(await page.locator('.skill-hover-panel').count(),0);
   await hold(0);await page.locator('.skill-touch-forms button').nth(1).tap();assert.equal(await page.locator('.skill-hover-panel').count(),0);

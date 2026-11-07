@@ -643,6 +643,10 @@
 .skill-touch-forms{display:grid;gap:6px;margin-top:10px}
 .skill-touch-forms button{padding:10px 8px;border:1px solid #a99156;background:#14223a;color:#f9e4ad;font:inherit;line-height:1.7;min-height:40px}
 .skill-touch-forms button[aria-pressed=true]{border-color:#ffe58d;box-shadow:inset 0 0 12px #ffdb6833;color:#fff7d5}
+/* Treat button art as decoration, never as a long-pressable browser image. */
+.combat-skill,.combat-roll,.four-commands{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.combat-skill-cast img,.combat-roll img,.four-commands .command-sprite{pointer-events:none;-webkit-user-drag:none;-webkit-touch-callout:none;user-select:none}
+.combat-skill-cast:disabled{pointer-events:none}
 /* Walking sprites scale with the visible map, including height-limited landscape maps. */
 .world-lobby{container-type:size}
 .world-lobby .lobby-walker{--explorer-height:min(6cqw,10.662cqh,96px)}
