@@ -23,12 +23,12 @@ export default function PveTower(){
  async function act(move:string,args:Record<string,unknown>={}){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
   try {
-   if(move!=='duel_wager'&&move!=='resolve')await flushProfile();
+   if(move!=='duel_wager'&&move!=='resolve'&&move!=='rest')await flushProfile();
    const response=await fetch('/api/pve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({move,args,id:run?.id,revision:run?.revision})});
    const body=await response.json();
    if(!alive.current)return;
    if(!response.ok){if(body.run)setRun(body.run);throw Error(tx(body.error));}
-   if(body.abandoned){setRun(null);setPage('play');return;}
+   if(body.abandoned||body.rested){setRun(null);if(body.rested)void loadProgress().catch(()=>{});setPage('play');return;}
    // A live wager must appear immediately because it has a server deadline.
    const frames:PveState[]=body.run?.state.combat.duelClash?[]:body.frames||[];
    let previous=run?.state;
@@ -72,5 +72,5 @@ export default function PveTower(){
  <CombatSkills players={s.players} player={me} round={s.round} enabled={skillPriority&&s.phase==='skills'&&!s.skillDone?.includes(me.id)} busy={busy} onCast={args=>act('skill',{...args,target:'pve_bot'})}/>
  </div></>}
  </CombatArena>}
- {won&&run&&<div className="pve-victory-overlay"><PixelFrame variant="gold" title={en?'FLOOR CLEARED!':'VƯỢT TẦNG!'}><div className="pve-victory-content"><h2>{en?'Victory':'Chiến thắng'} · {run.state.stage}</h2><p>◆ {run.state.reward.gems} Gem · ♦ {run.state.reward.rubies} Ruby · +{run.state.reward.exp} EXP</p><small>{en?'Rewards saved. Rest now or challenge the next floor.':'Đã lưu phần thưởng. Nghỉ tại đây hoặc thử sức tầng kế tiếp.'}</small><div><button disabled={busy} onClick={()=>setPage('play')}>{en?'Claim & rest':'Nhận thưởng & nghỉ'}</button><button disabled={busy} onClick={()=>act('next')}>{en?'Continue':'Tiếp tục'}</button></div></div></PixelFrame></div>}{error&&!s&&<p role="alert">{error}</p>}</div>;
+ {won&&run&&<div className="pve-victory-overlay"><PixelFrame variant="gold" title={en?'FLOOR CLEARED!':'VƯỢT TẦNG!'}><div className="pve-victory-content"><h2>{en?'Victory':'Chiến thắng'} · {run.state.stage}</h2><p>◆ {run.state.reward.gems} Gem · ♦ {run.state.reward.rubies} Ruby · +{run.state.reward.exp} EXP</p><small>{en?'Rewards saved. Rest now or challenge the next floor.':'Đã lưu phần thưởng. Nghỉ tại đây hoặc thử sức tầng kế tiếp.'}</small>{error&&<p role="alert">{error}</p>}<div><button disabled={busy} onClick={()=>act('rest')}>{en?'Claim & rest':'Nhận thưởng & nghỉ'}</button><button disabled={busy} onClick={()=>act('next')}>{en?'Continue':'Tiếp tục'}</button></div></div></PixelFrame></div>}{error&&!s&&<p role="alert">{error}</p>}</div>;
 }

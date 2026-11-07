@@ -643,6 +643,24 @@
 .skill-touch-forms{display:grid;gap:6px;margin-top:10px}
 .skill-touch-forms button{padding:10px 8px;border:1px solid #a99156;background:#14223a;color:#f9e4ad;font:inherit;line-height:1.7;min-height:40px}
 .skill-touch-forms button[aria-pressed=true]{border-color:#ffe58d;box-shadow:inset 0 0 12px #ffdb6833;color:#fff7d5}
+/* Walking sprites scale with the visible map, including height-limited landscape maps. */
+.world-lobby{container-type:size}
+.world-lobby .lobby-walker{--explorer-height:min(6cqw,10.662cqh,96px)}
+.world-lobby .lobby-walker .character-motion,
+.world-lobby .lobby-walker canvas{height:var(--explorer-height)!important;width:calc(var(--explorer-height)*2/3)!important}
+.world-lobby .lobby-walker>b{font-size:clamp(4px,min(.55cqw,.977cqh),9px);margin-bottom:2px}
+.world-lobby .lobby-seated .character-motion{transform:translateY(calc(var(--explorer-height)*.0625))}
+.world-lobby .lobby-near-e{transform:translate(8px,calc(-1*min(6cqw,10.662cqh,96px) - 20px))}
+.dungeon-exploring .dungeon-stage{container-type:inline-size}
+.dungeon-exploring .dungeon-hero{--explorer-height:min(5.742cqw,96px)}
+.dungeon-exploring .dungeon-hero .character-motion,
+.dungeon-exploring .dungeon-hero canvas{height:var(--explorer-height)!important;width:calc(var(--explorer-height)*2/3)!important}
+.dungeon-exploring .dungeon-hero b{font-size:clamp(4px,.55cqw,9px);padding:2px 4px}
+.dungeon-exploring .dungeon-npc img{height:min(9cqw,150px);width:min(6.6cqw,110px)}
+.world-lobby .lobby-walker .character-motion>div.relative.flex,
+.dungeon-exploring .dungeon-hero .character-motion>div.relative.flex{width:100%;height:100%}
+.world-lobby .lobby-walker .character-motion>div.absolute,
+.dungeon-exploring .dungeon-hero .character-motion>div.absolute{width:80%!important;height:12%!important;left:10%!important}
 @media(hover:none) and (pointer:coarse){
  .combat-skill{touch-action:pan-y;user-select:none;-webkit-touch-callout:none}
  .combat-skill-cast:disabled{pointer-events:none}
